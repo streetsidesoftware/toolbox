@@ -1,8 +1,7 @@
 {
   "name": "@streetsidesoftware/unindent",
   "version": "0.0.1-alpha.0",
-  "private": true,
-  "description": "Remove the common indentation from multi-line strings and template literals. -- Private until verified",
+  "description": "Remove the common indentation from multi-line strings and template literals.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/streetsidesoftware/toolbox.git",
