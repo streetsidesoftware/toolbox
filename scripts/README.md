@@ -8,6 +8,13 @@ These scripts are used to help maintain the repo.
   `publishConfig`, `keywords`, and field order. `pnpm run lint` runs it in fixing mode; `pnpm run lint-ci` runs it
   with `--dry-run`, which exits with a non-zero status if a file needs fixing.
 
+## READMEs
+
+- `gen-readme.ts` writes `static/packages.csv`, the table of published (non-private) `packages/*` packages that the
+  root `README.md` injects. `pnpm run build:readme` runs it, then `inject-markdown` and Prettier on every README.
+  `pnpm run readme:check` (`gen-readme --check`, part of `lint-ci`) exits with a non-zero status if
+  `build:readme` would change the CSV or any README.
+
 ## Release
 
 See [releasing](../docs/releasing.md). None of these run as part of lint.

@@ -4,6 +4,7 @@
   "type": "module",
   "bin": {
     "fix-package-json": "./fix-package-json.ts",
+    "gen-readme": "./gen-readme.ts",
     "prepare-publication": "./prepare-publication.ts",
     "release-as": "./release-as.ts",
     "trusted-publishing": "./trusted-publishing.ts",

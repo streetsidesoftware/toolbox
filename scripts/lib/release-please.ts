@@ -1,11 +1,10 @@
 import fs from 'node:fs/promises';
 import Path from 'node:path';
 
-import { format } from 'prettier';
-
 import { REPO_ROOT_DIR } from './consts.ts';
 import type { WorkspacePackage } from './packages.ts';
 import { compare } from './packages.ts';
+import { formatFile } from './prettier.ts';
 
 /** The Release Please config, relative to the repo root. */
 export const CONFIG_FILE = 'release-please-config.json';
@@ -91,7 +90,7 @@ export async function readJsonFile<T>(relFile: string, rootDir: string = REPO_RO
 }
 
 export async function formatJson(value: unknown, relFile: string, rootDir: string = REPO_ROOT_DIR): Promise<string> {
-  return format(JSON.stringify(value, null, 2), { filepath: Path.join(rootDir, relFile) });
+  return formatFile(JSON.stringify(value, null, 2), Path.join(rootDir, relFile));
 }
 
 /**
