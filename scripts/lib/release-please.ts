@@ -4,7 +4,6 @@ import Path from 'node:path';
 import { REPO_ROOT_DIR } from './consts.ts';
 import type { WorkspacePackage } from './packages.ts';
 import { compare } from './packages.ts';
-import { formatFile } from './prettier.ts';
 
 /** The Release Please config, relative to the repo root. */
 export const CONFIG_FILE = 'release-please-config.json';
@@ -89,8 +88,9 @@ export async function readJsonFile<T>(relFile: string, rootDir: string = REPO_RO
   return text === undefined ? undefined : (JSON.parse(text) as T);
 }
 
-export async function formatJson(value: unknown, relFile: string, rootDir: string = REPO_ROOT_DIR): Promise<string> {
-  return formatFile(JSON.stringify(value, null, 2), Path.join(rootDir, relFile));
+/** Generated JSON is written as `JSON.stringify` writes it, not by Prettier; the files are in `.prettierignore`. */
+export function formatJson(value: unknown): string {
+  return JSON.stringify(value, null, 2) + '\n';
 }
 
 /**
@@ -125,6 +125,6 @@ export async function writeReleaseAs(
   const config = await readJsonFile<ReleasePleaseConfig>(CONFIG_FILE, rootDir);
   if (!config) throw new Error(`${CONFIG_FILE} not found`);
   const updated = applyReleaseAs(config, names, version);
-  await fs.writeFile(Path.join(rootDir, CONFIG_FILE), await formatJson(updated, CONFIG_FILE, rootDir), 'utf8');
+  await fs.writeFile(Path.join(rootDir, CONFIG_FILE), formatJson(updated), 'utf8');
   for (const name of names) console.log(`${name}: ${version ? `release-as ${version}` : 'removed release-as'}`);
 }
