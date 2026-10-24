@@ -55,14 +55,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PACKAGE: ${{ inputs.package }}
-        run: |
-          CANDIDATES=$(pnpm exec publication-candidates ${PACKAGE:+"$PACKAGE"})
-          OPEN=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 500 --json headRefName -q '[.[].headRefName]')
-          IS_OPEN='("prepare-publication-" + .dir) as $branch | any($open[]; . == $branch)'
-          jq -r --argjson open "$OPEN" ".[] | select($IS_OPEN) | \"Skipping \\(.name): its PR is already open.\"" <<< "$CANDIDATES"
-          PACKAGES=$(jq -c --argjson open "$OPEN" "[.[] | select($IS_OPEN | not)]" <<< "$CANDIDATES")
-          echo "Preparing: $PACKAGES"
-          echo "packages=$PACKAGES" >> "$GITHUB_OUTPUT"
+        run: pnpm exec publication-candidates --github-output "$PACKAGE"
 
   prepare-publication:
     needs: find

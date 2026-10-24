@@ -20,9 +20,19 @@ export interface PublicationCandidate {
   name: string;
 }
 
+/** The branch of a package's publication PR. */
+export function publicationBranch(dir: string): string {
+  return `prepare-publication-${dir}`;
+}
+
 /** Private packages waiting for publication: every one that `published` doesn't mark `false`. */
 export function publicationCandidates(packages: WorkspacePackage[], published: Published): PublicationCandidate[] {
   return packages
     .filter(({ packageJson: { private: isPrivate, name } }) => isPrivate && name && published[name] !== false)
     .map(({ dir, packageJson }) => ({ dir: dir.replace(/^packages\//, ''), name: packageJson.name ?? '' }));
+}
+
+/** The candidates whose publication PR isn't open, given the head branches of the open PRs. */
+export function withoutOpenPrs(candidates: PublicationCandidate[], openBranches: string[]): PublicationCandidate[] {
+  return candidates.filter((c) => !openBranches.includes(publicationBranch(c.dir)));
 }

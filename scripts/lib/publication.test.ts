@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
 import type { WorkspacePackage } from './packages.ts';
-import { makePublic, publicationCandidates } from './publication.ts';
+import { makePublic, publicationCandidates, withoutOpenPrs } from './publication.ts';
 
 describe('makePublic', () => {
   test('removes private and the description suffix', () => {
@@ -31,5 +31,16 @@ describe('publicationCandidates', () => {
       { dir: 'a', name: '@s/a' },
       { dir: 'd', name: '@s/d' },
     ]);
+  });
+});
+
+describe('withoutOpenPrs', () => {
+  test('drops candidates whose publication PR is open', () => {
+    const candidates = [
+      { dir: 'a', name: '@s/a' },
+      { dir: 'b', name: '@s/b' },
+    ];
+    const open = ['prepare-publication-a', 'other'];
+    assert.deepEqual(withoutOpenPrs(candidates, open), [{ dir: 'b', name: '@s/b' }]);
   });
 });
