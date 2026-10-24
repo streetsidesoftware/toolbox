@@ -50,6 +50,27 @@ unindent`
 
 The padding is the template line's leading whitespace, tabs included, not the column of the `${}`.
 
+### Trimming the first and last lines
+
+Use `createUnindent` to get an `unindent` that also drops the newline after the opening backtick and the
+whitespace-only line before the closing one:
+
+```ts
+import { createUnindent } from '@streetsidesoftware/unindent';
+
+const u = createUnindent({ trimFirstNewline: true, trimLastLine: true });
+
+u`
+  Usage: tool [options]
+`;
+// "Usage: tool [options]"
+```
+
+| Option             | Default | Effect                                                                      |
+| ------------------ | ------- | --------------------------------------------------------------------------- |
+| `trimFirstNewline` | `false` | Drop one leading newline.                                                   |
+| `trimLastLine`     | `false` | Drop the last line, with the newline before it, when it is whitespace-only. |
+
 ### `indent`
 
 Use `indent` to add padding to every line of a string except the first. An optional third argument pads the
@@ -64,8 +85,8 @@ indent('a\nb', '  ', '- '); // "- a\n  b"
 
 ## Behavior details
 
-- **Leading and trailing newlines are kept.** Start the template with ``unindent`\`` (a line continuation) to
-  leave out the first newline.
+- **Leading and trailing newlines are kept.** Use [`createUnindent`](#trimming-the-first-and-last-lines) to drop
+  them, or start the template with ``unindent`\`` (a line continuation) to leave out the first newline.
 - **Blank and whitespace-only lines are ignored** when finding the common indentation. A whitespace-only line
   longer than that indentation keeps the extra whitespace.
 - **Indentation is counted in characters.** A tab and a space each count as one, and mixed indentation is not

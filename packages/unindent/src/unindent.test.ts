@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { indent, unindent } from './index.ts';
+import { createUnindent, indent, unindent } from './index.ts';
 
 describe('unindent string', () => {
   test('removes the common indentation', () => {
@@ -88,6 +88,47 @@ describe('unindent tagged template', () => {
 
   test('converts values to strings', () => {
     assert.equal(unindent`  ${1} ${true} ${null}`, '1 true null');
+  });
+});
+
+describe('createUnindent', () => {
+  test('with no options, matches unindent', () => {
+    const u = createUnindent();
+    assert.equal(u`\n    a\n      b\n  `, unindent`\n    a\n      b\n  `);
+    assert.equal(u('\n  a\n'), '\na\n');
+  });
+
+  test('trimFirstNewline drops one leading newline', () => {
+    const u = createUnindent({ trimFirstNewline: true });
+    const s = u`
+      a
+        b
+    `;
+    assert.equal(s, 'a\n  b\n');
+    assert.equal(u('\n\n  a'), '\na');
+    assert.equal(u('\r\n  a'), 'a');
+  });
+
+  test('trimLastLine drops a trailing whitespace-only line', () => {
+    const u = createUnindent({ trimLastLine: true });
+    const s = u`
+      a
+        b
+    `;
+    assert.equal(s, '\na\n  b');
+    assert.equal(u('  a\n\n'), 'a\n');
+    assert.equal(u('  a\r\n  '), 'a');
+    assert.equal(u('  a\n  b'), 'a\nb');
+  });
+
+  test('both options together', () => {
+    const u = createUnindent({ trimFirstNewline: true, trimLastLine: true });
+    const items = 'x\ny';
+    const s = u`
+      Usage: tool
+        ${items}
+    `;
+    assert.equal(s, 'Usage: tool\n  x\n  y');
   });
 });
 

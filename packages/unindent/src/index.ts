@@ -1,1 +1,2 @@
-export { indent, unindent } from './unindent.ts';
+export type { Unindent, UnindentOptions } from './unindent.ts';
+export { createUnindent, indent, unindent } from './unindent.ts';
