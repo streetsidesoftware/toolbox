@@ -12,6 +12,7 @@ minimumReleaseAgeExclude:
   - '@streetsidesoftware/*'
   - cspell
   - cspell-*
+  - inject-markdown
 
 nodeLinker: isolated
 

@@ -61,6 +61,9 @@ hand, as an alpha, and CI publishes every version after it, starting with `1.0.0
 - Keep `files` as `["dist", "!dist/**/*.map"]`, and every published `src/*.ts` entry in both `tsdown.config.ts` and
   `exports`. See [build and packaging](./build-and-packaging.md).
 - Write a `README.md` for someone installing the package from npm, with absolute `https://` links only.
+- End the README with the shared footer: add
+  `<!--- @@inject: ../../static/footer.md --->` and `<!--- @@inject-end: ../../static/footer.md --->`, then run
+  `pnpm run build:readme`.
 - Run `pnpm run lint`. `fix-package-json` sets `repository` and `publishConfig`.
 - Merge it. The Update Release Please Config workflow then opens a `chore:` PR that adds the package at
   `0.0.1-alpha.0`. Merge that too.
