@@ -4,7 +4,10 @@
   "type": "module",
   "bin": {
     "fix-package-json": "./fix-package-json.ts",
-    "fix-release-please-config": "./fix-release-please-config.ts"
+    "prepare-publication": "./prepare-publication.ts",
+    "release-as": "./release-as.ts",
+    "trusted-publishing": "./trusted-publishing.ts",
+    "update-release-please-config": "./update-release-please-config.ts"
   },
   "scripts": {
     "test": "node --test \"lib/**/*.test.ts\"",

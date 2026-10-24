@@ -6,3 +6,6 @@ export const REPO_ROOT_DIR = Path.resolve(__dirname, '../../');
 
 export const REPOSITORY_URL = 'https://github.com/streetsidesoftware/toolbox.git';
 export const REPOSITORY_GIT_URL = 'git+' + REPOSITORY_URL;
+
+/** The GitHub repository, as `owner/name`. */
+export const REPOSITORY = 'streetsidesoftware/toolbox';

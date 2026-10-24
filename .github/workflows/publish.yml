@@ -2,18 +2,20 @@ name: '🚀 Publish to NPM'
 
 on:
   workflow_dispatch:
-  workflow_call:
-    secrets:
-      PUBLISH_NPM:
-        required: true
-
   push:
     tags:
       - 'toolbox@*' # publish when a version tag is created for the repo
 
+# id-token: write lets lerna-lite publish through npm Trusted Publishing (OIDC). There is no npm token: a package
+# without a trusted publisher fails to publish. See docs/releasing.md.
 permissions:
   contents: read
   id-token: write
+
+# Queue runs instead of running two publishes at once.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   publish:
@@ -40,6 +42,6 @@ jobs:
       # See: https://github.com/lerna/lerna/tree/main/commands/publish#bump-from-package
       - name: Publish to NPM
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_NPM }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm lerna publish from-package --no-push --no-private --yes
+        # Prerelease versions, such as 3.2.0-alpha.0, go to the `alpha` dist-tag, so `latest` doesn't change.
+        run: pnpm lerna publish from-package --no-push --no-private --pre-dist-tag alpha --yes

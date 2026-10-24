@@ -48,11 +48,13 @@ Only erasable TypeScript syntax: Node runs the `.ts` sources directly by strippi
 
 A pnpm workspace monorepo. See `docs/build-and-packaging.md` before changing build config or dependencies.
 
-- `packages/*` — published to npm as `@streetsidesoftware/<name>`. Only published packages go here.
+- `packages/*` — published to npm as `@streetsidesoftware/<name>`. Only packages meant for npm go here; a new one
+  stays private until a maintainer publishes it.
   `packages/unindent` is the template for a new package.
 - `internal/*` — private `@internal/*` packages used only by this repo. Never published or bundled into a
   published package.
-- `scripts/` — `@internal/scripts`: `fix-package-json` and `fix-release-please-config`, run by `pnpm run lint`.
+- `scripts/` — `@internal/scripts`: `fix-package-json` (run by `pnpm run lint`) and the release scripts
+  (`update-release-please-config`, `release-as`, `prepare-publication`, `trusted-publishing`), which are not lint.
 
 Every published `src/*.ts` entry needs a matching entry in **both** `tsdown.config.ts`'s `entry` and
 `package.json`'s `exports`; tsdown does not infer one from the other.
@@ -61,9 +63,11 @@ Every published `src/*.ts` entry needs a matching entry in **both** `tsdown.conf
 data in, check its license by `docs/dependency-licenses.md`. If it would force a package's license to change,
 stop and tell the user exactly which dependency, which license, and what would have to change.
 
-**Release and publish flow** — see `docs/releasing.md`, including "Publishing a new package". Never hand-edit
-`release-please-config.json`'s `packages` map or add a package to `.release-please-manifest.json`:
-`pnpm run lint` maintains the first, and release-please the second.
+**Release and publish flow** — see `docs/releasing.md`. Never edit `release-please-config.json` or
+`.release-please-manifest.json` by hand: the Update Release Please Config workflow maintains both on `main`. Keep
+release tooling out of `lint` and `lint-ci`. A new package starts `private: true` at `0.0.1-alpha.0`, with
+" -- Private until verified" at the end of its `description`; only a maintainer makes it public (see "New packages").
+Publishing uses npm Trusted Publishing only; there is no npm token.
 
 A package's `README.md` is rendered on npmjs.com on its own, so every link in it must be an absolute `https://`
 URL. Write it for someone installing and using the package, not for a contributor.

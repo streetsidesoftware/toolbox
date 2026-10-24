@@ -4,7 +4,8 @@ How the packages in this repo are built, tested, and packaged for npm.
 
 ## Workspace layout
 
-- **`packages/*`**: packages published to npm as `@streetsidesoftware/<name>`. Nothing private goes here.
+- **`packages/*`**: packages published to npm as `@streetsidesoftware/<name>`. A new one starts `private: true`
+  until a maintainer publishes it (see [releasing](./releasing.md#new-packages)); nothing else private goes here.
 - **`internal/*`**: private packages used only inside this repo, named `@internal/<name>` with
   `"private": true`. They are never published or bundled into a published package.
 - **`scripts/`**: the `@internal/scripts` package with the repo maintenance CLIs. See

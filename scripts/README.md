@@ -2,13 +2,25 @@
 
 These scripts are used to help maintain the repo.
 
-- `fix-package-json.ts` lints and fixes `packages/*/package.json` and `internal/*/package.json`.
-- `fix-release-please-config.ts` keeps `release-please-config.json`'s `packages` map in step with
-  `packages/*`.
+## Lint
 
-Both scripts accept a `--dry-run` flag that reports what would change (via stderr) and exits with a non-zero
-status if a fix is needed, without writing anything. `pnpm run lint` runs both in fixing mode before
-`eslint`/`prettier`; `pnpm run lint-ci` runs both with `--dry-run` so CI fails if a `package.json` or
-`release-please-config.json` is out of date.
+- `fix-package-json.ts` lints and fixes `packages/*/package.json` and `internal/*/package.json`: `repository`,
+  `publishConfig`, `keywords`, and field order. `pnpm run lint` runs it in fixing mode; `pnpm run lint-ci` runs it
+  with `--dry-run`, which exits with a non-zero status if a file needs fixing.
+
+## Release
+
+See [releasing](../docs/releasing.md). None of these run as part of lint.
+
+- `update-release-please-config.ts` (`pnpm run release-please-config`) updates `release-please-config.json` and
+  `.release-please-manifest.json`. The Update Release Please Config workflow runs it on `main`. `--check` exits with
+  a non-zero status if either file is out of date.
+- `release-as.ts` (`pnpm run release-as`) sets or removes a package's `release-as`.
+- `prepare-publication.ts` (`pnpm run prepare-publication`) makes a private package public and sets its `release-as`
+  to `1.0.0`. The Prepare a New Package for Publication workflow runs it.
+- `trusted-publishing.ts` (`pnpm run trusted-publishing`) adds, checks, or locks down each package's npm trusted
+  publisher, and records it in `static/published.json`. A maintainer runs it by hand.
+
+Run any of them with `--help` for the options.
 
 Tests for `lib/` run with `pnpm test` from the repo root, or `node --test "lib/**/*.test.ts"` from here.

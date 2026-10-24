@@ -8,7 +8,7 @@ This repo holds small tools and libraries shared across Street Side Software's r
 `packages/` is published to npm as `@streetsidesoftware/<name>`.
 
 - **Set up:** `pnpm install`, then `pnpm run build` and `pnpm test`.
-- **Add a package:** follow "Publishing a new package" in [releasing](docs/releasing.md).
+- **Add a package:** follow "New packages" in [releasing](docs/releasing.md). New packages start private.
 - **Before a PR:** `pnpm run build`, `pnpm run typecheck`, `pnpm run lint` (auto-fixes), `pnpm test`. CI runs
   `build`, `typecheck`, and `test`, plus `pnpm run lint-ci` (a read-only lint) in a separate workflow.
 - **Commits:** [Conventional Commits](https://www.conventionalcommits.org/). Use `feat:` only for a new
@@ -25,7 +25,8 @@ The rest of this file is the full reference, written mainly for coding agents.
 
 - `packages/*` — published packages, one per directory. `packages/unindent` is the template for a new one.
 - `internal/*` — private `@internal/*` packages used only inside this repo. Never published.
-- `scripts/` — `@internal/scripts`, the repo maintenance CLIs (`fix-package-json`, `fix-release-please-config`).
+- `scripts/` — `@internal/scripts`, the repo maintenance CLIs: `fix-package-json` for lint, and the release scripts
+  described in [releasing](docs/releasing.md).
 
 See [build and packaging](docs/build-and-packaging.md) for the toolchain (tsdown, `tsc --noEmit`, `node --test`).
 
@@ -36,7 +37,7 @@ pnpm install
 pnpm run build       # pnpm -r run build     — tsdown, per package
 pnpm run typecheck   # pnpm -r run typecheck — tsc --noEmit, per package
 pnpm test            # pnpm -r run test      — node --test, per package, then typecheck
-pnpm run lint        # fix-* scripts + eslint --fix + prettier --write
+pnpm run lint        # fix-package-json + eslint --fix + prettier --write
 pnpm run lint-ci     # read-only lint, what CI runs
 pnpm run smoke-test  # quick PR health check
 pnpm run clean       # pnpm -r run clean
