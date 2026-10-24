@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { hasPublisher, parseJsonValues, recordTrusted, WORKFLOW_FILE } from './trusted-publishing.ts';
+import {
+  formatPublished,
+  hasPublisher,
+  parseJsonValues,
+  recordPending,
+  recordTrusted,
+  WORKFLOW_FILE,
+} from './trusted-publishing.ts';
 
 describe('trusted publishing helpers', () => {
   test('parseJsonValues splits concatenated JSON objects', () => {
@@ -16,9 +23,26 @@ describe('trusted publishing helpers', () => {
     assert.equal(hasPublisher([config], 'o/other'), false);
   });
 
-  test('recordTrusted adds, removes, and sorts entries', () => {
-    const added = recordTrusted({ '@s/b': { trustedPublishing: true } }, '@s/a', true);
-    assert.deepEqual(Object.keys(added), ['@s/a', '@s/b']);
-    assert.deepEqual(recordTrusted(added, '@s/a', false), { '@s/b': { trustedPublishing: true } });
+  test('recordTrusted sets trustedPublishing, keeping false', () => {
+    const published = recordTrusted({}, '@s/a', true);
+    assert.deepEqual(published, { '@s/a': { trustedPublishing: true } });
+    assert.deepEqual(recordTrusted(published, '@s/a', false), { '@s/a': { trustedPublishing: false } });
+  });
+
+  test('recordTrusted refuses a package marked never to publish', () => {
+    assert.throws(() => recordTrusted({ '@s/a': false }, '@s/a', true), /never to be published/);
+  });
+
+  test('recordPending adds a waiting entry only when there is none', () => {
+    assert.deepEqual(recordPending({}, '@s/a'), { '@s/a': { trustedPublishing: false } });
+    const published = { '@s/a': false as const, '@s/b': { trustedPublishing: true } };
+    assert.equal(recordPending(published, '@s/a'), published);
+    assert.equal(recordPending(published, '@s/b'), published);
+  });
+
+  test('formatPublished writes one package per line, sorted by name', () => {
+    const text = formatPublished({ '@s/b': { trustedPublishing: true }, '@s/a': false, '@s/c': {} });
+    assert.equal(text, '{\n  "@s/a": false,\n  "@s/b": { "trustedPublishing": true },\n  "@s/c": {}\n}\n');
+    assert.equal(formatPublished({}), '{}\n');
   });
 });

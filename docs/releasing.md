@@ -68,17 +68,37 @@ hand, as an alpha, and CI publishes every version after it, starting with `1.0.0
 - Merge it. The Update Release Please Config workflow then opens a `chore:` PR that adds the package at
   `0.0.1-alpha.0`. Merge that too.
 
-### 2. Open the publication PR
+Don't edit `release-please-config.json`, `.release-please-manifest.json` or `static/published.json` in the package's
+PR: workflows maintain them.
 
-Run the
+### 2. The publication PR opens
+
+The
 [Prepare a New Package for Publication](https://github.com/streetsidesoftware/toolbox/actions/workflows/prepare-publication.yml)
-workflow with the package's directory under `packages/`, such as `unindent`. It opens a
-`feat(<name>): publish <package>` PR that:
+workflow runs on every push to `main` that changes `packages/**` or `static/published.json`. For each private package
+waiting for publication, it opens a `feat(<dir>): publish <package>` PR that:
 
 - makes the package public (`pnpm run prepare-publication <package>`)
 - sets its `release-as` to `1.0.0`
 - adds the package to the packages table in the root `README.md` (`pnpm run build:readme`)
+- records it in `static/published.json` as waiting for publication: `{ "trustedPublishing": false }`
 - lists the commands for steps 3 and 4 as a checklist
+
+It skips a package whose PR is already open, so commits pushed to the PR's branch are kept. To rebuild a stale PR
+from `main`, close it and run the workflow by hand. Running it by hand follows the same rules; its `package` input
+takes a directory under `packages/` or a package name, and blank means every private package.
+
+#### Publication state
+
+`static/published.json` has one line per package. Only the publication PR and `pnpm exec trusted-publishing` write
+it, except for `false`, which a maintainer sets on `main`.
+
+| Entry                            | Meaning                                                                  |
+| -------------------------------- | ------------------------------------------------------------------------ |
+| none                             | Not yet prepared. The workflow opens its publication PR.                 |
+| `{ "trustedPublishing": false }` | Waiting for publication, or its trusted publisher is missing on npm.     |
+| `{ "trustedPublishing": true }`  | Its trusted publisher on npm is `publish.yml`.                           |
+| `false`                          | Never publish. The workflow skips it; set it on `main` and close the PR. |
 
 ### 3. Publish the first version by hand
 
@@ -89,7 +109,7 @@ Follow the checklist in the PR. It covers:
 - building and packing the package, then publishing it with
   `npm publish package.tgz --tag alpha --provenance=false`
 - adding the trusted publisher with `pnpm exec trusted-publishing`
-- committing `static/published.json` to the PR
+- committing `static/published.json`, now `{ "trustedPublishing": true }`, to the PR
 
 Check the files `pnpm pack` lists before publishing: `dist/` is gitignored and must be there.
 
@@ -131,7 +151,7 @@ To run it:
    `@streetsidesoftware`.
 2. When npm asks for 2FA in the browser, check the box to skip 2FA for the next 5 minutes. If the 5 minutes run out
    before it finishes, run it again: it skips packages that are already set up.
-3. Commit `static/published.json`, where the script records the packages it set up.
+3. Commit `static/published.json`, where the script records each package's `trustedPublishing`.
 
 ## Repository secrets
 

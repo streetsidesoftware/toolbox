@@ -1,15 +1,23 @@
 name: '📦 Prepare a New Package for Publication'
 
-# Opens a `feat:` PR that makes a private package public and sets its `release-as` to 1.0.0.
-# The PR's checklist has the maintainer's steps before merging.
+# Opens a `feat:` PR for each private package waiting for publication: it makes the package public, sets its
+# `release-as` to 1.0.0, and adds it to static/published.json. The PR's checklist has the maintainer's steps.
+# A package is skipped when static/published.json marks it `false` or its PR is already open. An open PR is never
+# rebuilt, since the maintainer commits to its branch; close it to have the next run rebuild it.
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/**'
+      - 'static/published.json'
   workflow_dispatch:
     inputs:
       package:
-        description: 'Package directory under packages/, such as unindent'
+        description: 'Only this package: its directory under packages/, such as unindent, or its name. Blank: all.'
         type: string
-        required: true
+        required: false
       ref:
         description: 'Branch to run against and open the PR into'
         type: string
@@ -18,13 +26,48 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  REF_BRANCH: ${{ inputs.ref || 'main' }}
+
 jobs:
-  prepare-publication:
+  find:
     if: github.repository_owner == 'streetsidesoftware'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      packages: ${{ steps.find.outputs.packages }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          ref: ${{ env.REF_BRANCH }}
+
+      - uses: ./.github/actions/setup
+
+      - name: Find packages waiting for publication
+        id: find
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PACKAGE: ${{ inputs.package }}
+        run: pnpm exec publication-candidates --github-output "$PACKAGE"
+
+  prepare-publication:
+    needs: find
+    if: needs.find.outputs.packages != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.find.outputs.packages) }}
     env:
-      PACKAGE_DIR: ${{ inputs.package }}
-      REF_BRANCH: ${{ inputs.ref || 'main' }}
+      PACKAGE_DIR: ${{ matrix.dir }}
+      PACKAGE_NAME: ${{ matrix.name }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -34,35 +77,33 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Prepare for publication
-        id: prepare
         run: |
-          NAME=$(node -p 'require(`./packages/${process.env.PACKAGE_DIR}/package.json`).name')
-          echo "name=$NAME" >> "$GITHUB_OUTPUT"
-          pnpm run prepare-publication "$NAME"
-          pnpm exec prettier --write "packages/$PACKAGE_DIR/package.json" release-please-config.json
+          pnpm run prepare-publication "$PACKAGE_NAME"
           # Adds the now-public package to the root README's packages table.
           pnpm run build:readme
 
       - name: PR
         uses: ./.github/actions/pr
         with:
-          commit-message: 'feat(${{ inputs.package }}): publish ${{ steps.prepare.outputs.name }}'
-          branch: prepare-publication-${{ inputs.package }}
+          commit-message: 'feat(${{ matrix.dir }}): publish ${{ matrix.name }}'
+          branch: prepare-publication-${{ matrix.dir }}
           base: ${{ env.REF_BRANCH }}
           body: |
-            Makes `${{ steps.prepare.outputs.name }}` public: removes `private` and "-- Private until verified", sets its `release-as` to `1.0.0`, and adds it to the packages table in the root `README.md`.
+            Makes `${{ matrix.name }}` public: removes `private` and "-- Private until verified", sets its `release-as` to `1.0.0`, adds it to the packages table in the root `README.md`, and records it in `static/published.json` as waiting for publication (`{ "trustedPublishing": false }`).
+
+            This PR stays as it is while it's open, so commits pushed to its branch are kept. To rebuild it from `main`, close it and run the workflow. To never publish the package, set its entry in `static/published.json` on `main` to `false` and close this PR.
 
             ### 1. Check out this branch
 
             ```sh
-            git fetch origin prepare-publication-${{ inputs.package }}
-            git switch -C prepare-publication-${{ inputs.package }} FETCH_HEAD
+            git fetch origin prepare-publication-${{ matrix.dir }}
+            git switch -C prepare-publication-${{ matrix.dir }} FETCH_HEAD
             ```
 
             Or with the GitHub CLI:
 
             ```sh
-            gh pr checkout prepare-publication-${{ inputs.package }} --detach
+            gh pr checkout prepare-publication-${{ matrix.dir }} --detach
             ```
 
             ### 2. Publish the first version by hand
@@ -80,7 +121,7 @@ jobs:
               pnpm run build
               cp static/sponsor-pub.md static/sponsor.md
               pnpm run build:readme
-              cd packages/${{ inputs.package }}
+              cd packages/${{ matrix.dir }}
               pnpm pack --out package.tgz
               git checkout -- ../../static/sponsor.md README.md
               ```
@@ -93,13 +134,13 @@ jobs:
 
             ### 3. Commit the Trusted Publishing status
 
-            `pnpm trusted-publishing` records the package in `static/published.json`:
+            `pnpm trusted-publishing` changes the package's entry in `static/published.json` to `{ "trustedPublishing": true }`:
 
             ```sh
             cd ../..
             git add static/published.json
-            git commit -m "chore(${{ inputs.package }}): record Trusted Publishing"
-            git push origin HEAD:prepare-publication-${{ inputs.package }}
+            git commit -m "chore(${{ matrix.dir }}): record Trusted Publishing"
+            git push origin HEAD:prepare-publication-${{ matrix.dir }}
             ```
 
             ### 4. Merge this PR
