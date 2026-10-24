@@ -23,8 +23,10 @@ See [releasing](../docs/releasing.md). None of these run as part of lint.
   `.release-please-manifest.json`. The Update Release Please Config workflow runs it on `main`. `--check` exits with
   a non-zero status if either file is out of date.
 - `release-as.ts` (`pnpm run release-as`) sets or removes a package's `release-as`.
-- `prepare-publication.ts` (`pnpm run prepare-publication`) makes a private package public and sets its `release-as`
-  to `1.0.0`. The Prepare a New Package for Publication workflow runs it.
+- `publication-candidates.ts` prints the private packages waiting for publication, as JSON: every one that
+  `static/published.json` doesn't mark `false`. The Prepare a New Package for Publication workflow runs it.
+- `prepare-publication.ts` (`pnpm run prepare-publication`) makes a private package public, sets its `release-as`
+  to `1.0.0`, and records it in `static/published.json` as waiting for publication. The same workflow runs it.
 - `trusted-publishing.ts` (`pnpm run trusted-publishing`) adds, checks, or locks down each package's npm trusted
   publisher, and records it in `static/published.json`. A maintainer runs it by hand.
 

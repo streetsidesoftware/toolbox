@@ -1,21 +1,20 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process';
-import fs from 'node:fs/promises';
-import Path from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
 
-import { REPO_ROOT_DIR, REPOSITORY } from './lib/consts.ts';
+import { REPOSITORY } from './lib/consts.ts';
 import { currentPackageName, findPackages } from './lib/packages.ts';
-import { formatJson, readJsonFile } from './lib/release-please.ts';
-import type { Published, TrustConfig } from './lib/trusted-publishing.ts';
+import type { TrustConfig } from './lib/trusted-publishing.ts';
 import {
   hasPublisher,
   parseJsonValues,
   PUBLISHED_FILE,
+  readPublished,
   recordTrusted,
   WORKFLOW_FILE,
+  writePublished,
 } from './lib/trusted-publishing.ts';
 
 const HELP = `Usage: trusted-publishing [options] [packages...]
@@ -90,20 +89,15 @@ function listTrust(name: string): TrustConfig[] {
   return npmJson(['trust', 'list', name]) as TrustConfig[];
 }
 
-async function readPublished(): Promise<Published> {
-  return (await readJsonFile<Published>(PUBLISHED_FILE)) ?? {};
-}
-
-async function writePublished(published: Published): Promise<void> {
-  const file = Path.join(REPO_ROOT_DIR, PUBLISHED_FILE);
-  await fs.mkdir(Path.dirname(file), { recursive: true });
-  await fs.writeFile(file, formatJson(published), 'utf8');
-}
-
 async function addTrust(names: string[], dryRun: boolean): Promise<void> {
   let published = await readPublished();
   for (const name of names) {
-    if (published[name]?.trustedPublishing) {
+    const entry = published[name];
+    if (entry === false) {
+      console.log(`${name}: ${PUBLISHED_FILE} marks it as never to be published`);
+      continue;
+    }
+    if (entry?.trustedPublishing) {
       console.log(`${name}: recorded as trusting ${WORKFLOW_FILE}`);
       continue;
     }

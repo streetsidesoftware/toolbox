@@ -54,7 +54,8 @@ A pnpm workspace monorepo. See `docs/build-and-packaging.md` before changing bui
 - `internal/*` — private `@internal/*` packages used only by this repo. Never published or bundled into a
   published package.
 - `scripts/` — `@internal/scripts`: `fix-package-json` (run by `pnpm run lint`) and the release scripts
-  (`update-release-please-config`, `release-as`, `prepare-publication`, `trusted-publishing`), which are not lint.
+  (`update-release-please-config`, `release-as`, `publication-candidates`, `prepare-publication`,
+  `trusted-publishing`), which are not lint.
 
 Every published `src/*.ts` entry needs a matching entry in **both** `tsdown.config.ts`'s `entry` and
 `package.json`'s `exports`; tsdown does not infer one from the other.
@@ -68,6 +69,10 @@ stop and tell the user exactly which dependency, which license, and what would h
 release tooling out of `lint` and `lint-ci`. A new package starts `private: true` at `0.0.1-alpha.0`, with
 " -- Private until verified" at the end of its `description`; only a maintainer makes it public (see "New packages").
 Publishing uses npm Trusted Publishing only; there is no npm token.
+
+`static/published.json` holds each package's publication state, one line per package. The Prepare a New Package for
+Publication workflow opens a publication PR for every private package on `main` without an open PR, unless its entry is
+`false`. Don't add entries by hand, except `false` for a package never to publish.
 
 A package's `README.md` is rendered on npmjs.com on its own, so every link in it must be an absolute `https://`
 URL. Write it for someone installing and using the package, not for a contributor.

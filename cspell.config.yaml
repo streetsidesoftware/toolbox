@@ -23,6 +23,7 @@ ignorePaths:
   - CHANGELOG.md
   - .git/!(hooks,COMMIT_EDITMSG)
 words:
+  - argjson
   - COMMIT_EDITMSG
   - gitdir
   - inlines
