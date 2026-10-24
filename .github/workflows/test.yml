@@ -3,7 +3,19 @@ name: '🧪 Test'
 on:
   push:
     branches: [main]
+    # Only code, dependencies and build config; docs-only and other-workflow changes skip the tests.
+    paths: &test-paths
+      - 'packages/**'
+      - 'internal/**'
+      - 'scripts/**'
+      - '.config/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'tsconfig*.json'
+      - '.github/workflows/test.yml'
   pull_request:
+    paths: *test-paths
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
