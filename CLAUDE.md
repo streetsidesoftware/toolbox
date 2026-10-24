@@ -72,8 +72,10 @@ Publishing uses npm Trusted Publishing only; there is no npm token.
 A package's `README.md` is rendered on npmjs.com on its own, so every link in it must be an absolute `https://`
 URL. Write it for someone installing and using the package, not for a contributor.
 
-Every package README ends with the shared footer from `static/footer.md`, injected with `inject-markdown` markers.
-Edit `static/footer.md`, not the injected copy, and run `pnpm run build:readme` to update every README.
+Every package README ends with the sponsor section (`static/sponsor.md`) and the footer (`static/footer.md`),
+injected with `inject-markdown` markers. Edit the files in `static/`, not the injected copies, and run
+`pnpm run build:readme` to update every README. Keep `static/sponsor-pub.md` in step with `static/sponsor.md`:
+it's the Markdown-only version `publish.yml` swaps in for npm, since npmjs.com doesn't render HTML like `<picture>`.
 
 In `README.md` and other user-facing text, don't start a sentence with a code span; lead with a word instead.
 List items can start with code.

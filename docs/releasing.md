@@ -61,8 +61,8 @@ hand, as an alpha, and CI publishes every version after it, starting with `1.0.0
 - Keep `files` as `["dist", "!dist/**/*.map"]`, and every published `src/*.ts` entry in both `tsdown.config.ts` and
   `exports`. See [build and packaging](./build-and-packaging.md).
 - Write a `README.md` for someone installing the package from npm, with absolute `https://` links only.
-- End the README with the shared footer: add
-  `<!--- @@inject: ../../static/footer.md --->` and `<!--- @@inject-end: ../../static/footer.md --->`, then run
+- End the README with a `## Support Future Development` section that injects `../../static/sponsor.md`, then the
+  shared footer from `../../static/footer.md`. Copy the markers from `packages/unindent/README.md`, then run
   `pnpm run build:readme`.
 - Run `pnpm run lint`. `fix-package-json` sets `repository` and `publishConfig`.
 - Merge it. The Update Release Please Config workflow then opens a `chore:` PR that adds the package at
@@ -91,6 +91,10 @@ Follow the checklist in the PR. It covers:
 - committing `static/published.json` to the PR
 
 Check the files `pnpm pack` lists before publishing: `dist/` is gitignored and must be there.
+
+The README sent to npm uses `static/sponsor-pub.md` instead of `static/sponsor.md`. GitHub renders the HTML
+`<picture>` sponsor cards, but npmjs.com only renders Markdown links. `publish.yml` makes the same swap before
+every publish, and never commits it.
 
 Publish the alpha, never `1.0.0`. `lerna publish from-package` skips versions already on npm, so a `1.0.0` published
 by hand would stay the one version without provenance. The `alpha` tag keeps `latest` unset until CI publishes
