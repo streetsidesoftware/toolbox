@@ -53,7 +53,7 @@ jobs:
       - name: Find packages waiting for publication
         id: find
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
           PACKAGE: ${{ inputs.package }}
         run: pnpm exec publication-candidates --github-output "$PACKAGE"
 

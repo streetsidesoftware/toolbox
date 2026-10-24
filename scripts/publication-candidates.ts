@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { spawnSync } from 'node:child_process';
 import fs from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 
@@ -13,7 +12,7 @@ import { PUBLISHED_FILE, readPublished } from './lib/trusted-publishing.ts';
 const HELP = `Usage: publication-candidates [options] [package]
 
 Prints, as a JSON array of {"dir", "name"}, the private packages/* packages to open a publication PR for: every one
-that ${PUBLISHED_FILE} doesn't mark false and whose PR isn't open. Needs the GitHub CLI (gh), logged in.
+that ${PUBLISHED_FILE} doesn't mark false and whose PR isn't open. Sends GITHUB_TOKEN to the GitHub API if set.
 The Prepare a New Package for Publication workflow runs this.
 
 Arguments:
@@ -49,7 +48,7 @@ async function main() {
     }
   }
 
-  const ready = withoutOpenPrs(candidates, candidates.length ? openPrBranches() : []);
+  const ready = withoutOpenPrs(candidates, await openPrBranches(candidates));
   logSkipped(candidates, ready);
 
   const json = JSON.stringify(ready);
@@ -61,11 +60,20 @@ async function main() {
   }
 }
 
-function openPrBranches(): string[] {
-  const args = ['pr', 'list', '--repo', REPOSITORY, '--state', 'open', '--limit', '500', '--json', 'headRefName'];
-  const result = spawnSync('gh', args, { encoding: 'utf8', shell: process.platform === 'win32' });
-  if (result.status !== 0) throw new Error(`gh ${args.join(' ')} failed:\n${result.stderr}`);
-  return (JSON.parse(result.stdout) as { headRefName: string }[]).map((pr) => pr.headRefName);
+/** The publication branches of `candidates` that have an open PR. */
+async function openPrBranches(candidates: PublicationCandidate[]): Promise<string[]> {
+  const [owner] = REPOSITORY.split('/');
+  const headers: Record<string, string> = { Accept: 'application/vnd.github+json' };
+  if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+  const open: string[] = [];
+  for (const { dir } of candidates) {
+    const branch = publicationBranch(dir);
+    const url = `https://api.github.com/repos/${REPOSITORY}/pulls?state=open&head=${owner}:${branch}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`GitHub API returned ${response.status} for ${url}`);
+    if (((await response.json()) as unknown[]).length) open.push(branch);
+  }
+  return open;
 }
 
 function logSkipped(candidates: PublicationCandidate[], ready: PublicationCandidate[]): void {

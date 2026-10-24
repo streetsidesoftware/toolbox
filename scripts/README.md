@@ -24,7 +24,7 @@ See [releasing](../docs/releasing.md). None of these run as part of lint.
   a non-zero status if either file is out of date.
 - `release-as.ts` (`pnpm run release-as`) sets or removes a package's `release-as`.
 - `publication-candidates.ts` prints, as JSON, the private packages to open a publication PR for: every one that
-  `static/published.json` doesn't mark `false` and whose PR isn't open. It asks `gh` for the open PRs. The Prepare a
+  `static/published.json` doesn't mark `false` and whose PR isn't open. It asks the GitHub API for open PRs, with `GITHUB_TOKEN` if set. The Prepare a
   New Package for Publication workflow runs it.
 - `prepare-publication.ts` (`pnpm run prepare-publication`) makes a private package public, sets its `release-as`
   to `1.0.0`, and records it in `static/published.json` as waiting for publication. The same workflow runs it.
