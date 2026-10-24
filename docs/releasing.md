@@ -113,10 +113,6 @@ Follow the checklist in the PR. It covers:
 
 Check the files `pnpm pack` lists before publishing: `dist/` is gitignored and must be there.
 
-The README sent to npm uses `static/sponsor-pub.md` instead of `static/sponsor.md`. GitHub renders the HTML
-`<picture>` sponsor cards, but npmjs.com only renders Markdown links. `publish.yml` makes the same swap before
-every publish, and never commits it.
-
 Publish the alpha, never `1.0.0`. `lerna publish from-package` skips versions already on npm, so a `1.0.0` published
 by hand would stay the one version without provenance. The `alpha` tag keeps `latest` unset until CI publishes
 `1.0.0`. Use `--provenance=false`, since npm can only create provenance in CI and `publishConfig.provenance` would
