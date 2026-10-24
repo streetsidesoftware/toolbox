@@ -1,0 +1,80 @@
+# @streetsidesoftware/unindent
+
+Remove the common indentation from multi-line strings and template literals, so text can be indented to match
+the code around it.
+
+## Install
+
+```sh
+npm install @streetsidesoftware/unindent
+```
+
+Requires Node.js 22.18 or later. ESM only.
+
+## Usage
+
+```ts
+import { unindent } from '@streetsidesoftware/unindent';
+
+function usage(): string {
+  return unindent`
+    Usage: tool [options]
+
+    Options:
+      -h, --help  Show help.
+  `;
+}
+// "\nUsage: tool [options]\n\nOptions:\n  -h, --help  Show help.\n"
+```
+
+Call `unindent` on a plain string too:
+
+```ts
+unindent('    a\n      b'); // "a\n  b"
+```
+
+### Multi-line values
+
+When a value inserted with `${}` spans several lines, each line after the first gets the leading whitespace of
+the template line it is inserted on. The value keeps its shape in the result:
+
+```ts
+const items = 'apple\nbanana';
+
+unindent`
+  fruit:
+    ${items}
+`;
+// "\nfruit:\n  apple\n  banana\n"
+```
+
+The padding is the template line's leading whitespace, tabs included, not the column of the `${}`.
+
+### `indent`
+
+Use `indent` to add padding to every line of a string except the first. An optional third argument pads the
+first line:
+
+```ts
+import { indent } from '@streetsidesoftware/unindent';
+
+indent('a\nb\nc', '  '); // "a\n  b\n  c"
+indent('a\nb', '  ', '- '); // "- a\n  b"
+```
+
+## Behavior details
+
+- **Leading and trailing newlines are kept.** Start the template with ``unindent`\`` (a line continuation) to
+  leave out the first newline.
+- **Blank and whitespace-only lines are ignored** when finding the common indentation. A whitespace-only line
+  longer than that indentation keeps the extra whitespace.
+- **Indentation is counted in characters.** A tab and a space each count as one, and mixed indentation is not
+  normalized.
+- **Line endings pass through.** Lines are split on `\n`, so a `\r` stays at the end of its line.
+- **Escape sequences are processed.** A `\t` or `\n` in the template becomes a tab or a newline before the
+  indentation is removed.
+- **Values are converted with `String()`** semantics, as in a normal template literal.
+
+## License
+
+MIT
