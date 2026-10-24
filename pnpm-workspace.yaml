@@ -1,0 +1,23 @@
+packages:
+  - packages/*
+  - internal/*
+  - scripts
+
+blockExoticSubdeps: true
+
+minimumReleaseAge: 2880
+
+minimumReleaseAgeExclude:
+  - '@cspell/*'
+  - '@streetsidesoftware/*'
+  - cspell
+  - cspell-*
+
+nodeLinker: isolated
+
+saveWorkspaceProtocol: rolling
+
+trustPolicy: no-downgrade
+
+trustPolicyExclude:
+  - semver@5.7.2

@@ -1,0 +1,20 @@
+{
+  "name": "@internal/scripts",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "fix-package-json": "./fix-package-json.ts",
+    "fix-release-please-config": "./fix-release-please-config.ts"
+  },
+  "scripts": {
+    "test": "node --test \"lib/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.6",
+    "sort-package-json": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}
