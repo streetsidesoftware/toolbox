@@ -85,7 +85,7 @@ jobs:
       - name: PR
         uses: ./.github/actions/pr
         with:
-          commit-message: 'feat(${{ matrix.dir }}): publish ${{ matrix.name }}'
+          commit-message: 'feat(${{ matrix.dir }}): publish to npm'
           branch: prepare-publication-${{ matrix.dir }}
           base: ${{ env.REF_BRANCH }}
           body: |

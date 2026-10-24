@@ -76,7 +76,7 @@ PR: workflows maintain them.
 The
 [Prepare a New Package for Publication](https://github.com/streetsidesoftware/toolbox/actions/workflows/prepare-publication.yml)
 workflow runs on every push to `main` that changes `packages/**` or `static/published.json`. For each private package
-waiting for publication, it opens a `feat(<dir>): publish <package>` PR that:
+waiting for publication, it opens a `feat(<dir>): publish to npm` PR that:
 
 - makes the package public (`pnpm run prepare-publication <package>`)
 - sets its `release-as` to `1.0.0`
