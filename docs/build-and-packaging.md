@@ -25,6 +25,10 @@ How the packages in this repo are built, tested, and packaged for npm.
 - **Only erasable TypeScript.** Because Node strips types rather than compiling them, `tsconfig.base.json` sets
   `erasableSyntaxOnly` and `verbatimModuleSyntax`: no `enum`, no `namespace`, no parameter properties, and type
   imports use `import type`.
+- **Exports need explicit types.** `tsconfig.base.json` sets `isolatedDeclarations`, so tsdown generates each
+  `.d.ts` with Oxc instead of the TypeScript API. An exported function or value needs an explicit type unless
+  it can be read straight from the code, such as a literal. `scripts/` turns it off, since nothing there is
+  built.
 - **Tools are root dev dependencies.** `tsdown`, `typescript` and `shx` are declared once at the root and
   resolve into packages through Node's ancestor `node_modules` lookup, which works even with
   `nodeLinker: isolated`.

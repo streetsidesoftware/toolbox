@@ -1,5 +1,9 @@
 {
   "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    // Scripts are never built, so their exports don't need explicit types.
+    "isolatedDeclarations": false
+  },
   "include": ["**/*.ts"],
   "exclude": ["node_modules"]
 }
