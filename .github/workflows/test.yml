@@ -20,8 +20,9 @@ jobs:
         os:
           - ubuntu-latest
         include:
+          # The Windows image pre-installs 24.x; 26.x is downloaded every run.
           - os: windows-latest
-            node-version: 26.x
+            node-version: 24.x
 
     steps:
       - uses: actions/checkout@v7
