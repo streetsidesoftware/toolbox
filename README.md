@@ -4,9 +4,12 @@ Tools and libraries used across Street Side Software's repositories.
 
 ## Packages
 
-| Package                                             | Description                                                                                       |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| [`@streetsidesoftware/unindent`](packages/unindent) | Remove the common indentation from multi-line strings and template literals. (Not yet published.) |
+<!--- @@inject: static/packages.csv#markdown --->
+
+| Package | Description |
+| ------- | ----------- |
+
+<!--- @@inject-end: static/packages.csv#markdown --->
 
 ## Development
 

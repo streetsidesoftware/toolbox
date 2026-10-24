@@ -46,7 +46,7 @@ async function main() {
   ] as const) {
     const filePath = Path.join(REPO_ROOT_DIR, file);
     const current = await fs.readFile(filePath, 'utf8').catch(() => '');
-    const next = await formatJson(value, file);
+    const next = formatJson(value);
     if (current === next) continue;
     if (values.check) {
       console.error('%s is out of date. Run `pnpm run release-please-config`.', file);

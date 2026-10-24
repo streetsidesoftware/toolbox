@@ -77,6 +77,11 @@ injected with `inject-markdown` markers. Edit the files in `static/`, not the in
 `pnpm run build:readme` to update every README. Keep `static/sponsor-pub.md` in step with `static/sponsor.md`:
 it's the Markdown-only version `publish.yml` swaps in for npm, since npmjs.com doesn't render HTML like `<picture>`.
 
+The root `README.md` packages table is generated from every non-private `packages/*/package.json` (name and
+`description`) into `static/packages.csv` by `gen-readme`, and injected. Never edit the table by hand: change the
+`description`, then run `pnpm run build:readme`. `lint-ci` runs `pnpm run readme:check`, which fails when
+`build:readme` would change any README.
+
 In `README.md` and other user-facing text, don't start a sentence with a code span; lead with a word instead.
 List items can start with code.
 

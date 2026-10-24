@@ -97,7 +97,7 @@ async function readPublished(): Promise<Published> {
 async function writePublished(published: Published): Promise<void> {
   const file = Path.join(REPO_ROOT_DIR, PUBLISHED_FILE);
   await fs.mkdir(Path.dirname(file), { recursive: true });
-  await fs.writeFile(file, await formatJson(published, PUBLISHED_FILE), 'utf8');
+  await fs.writeFile(file, formatJson(published), 'utf8');
 }
 
 async function addTrust(names: string[], dryRun: boolean): Promise<void> {

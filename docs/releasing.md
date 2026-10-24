@@ -77,6 +77,7 @@ workflow with the package's directory under `packages/`, such as `unindent`. It 
 
 - makes the package public (`pnpm run prepare-publication <package>`)
 - sets its `release-as` to `1.0.0`
+- adds the package to the packages table in the root `README.md` (`pnpm run build:readme`)
 - lists the commands for steps 3 and 4 as a checklist
 
 ### 3. Publish the first version by hand

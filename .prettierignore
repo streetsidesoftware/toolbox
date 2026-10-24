@@ -3,5 +3,8 @@ dist/
 CHANGELOG.md
 coverage/
 pnpm-lock.yaml
+.release-please-manifest.json
+release-please-config.json
+static/published.json
 .vscode/settings.json
 .claude/worktrees/**
