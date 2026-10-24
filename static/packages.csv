@@ -1,1 +1,2 @@
 Package,Description
+[`@streetsidesoftware/unindent`](../packages/unindent),Remove the common indentation from multi-line strings and template literals.
