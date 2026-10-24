@@ -37,7 +37,7 @@ pnpm install
 pnpm run build       # pnpm -r run build     — tsdown, per package
 pnpm run typecheck   # pnpm -r run typecheck — tsc --noEmit, per package
 pnpm test            # pnpm -r run test      — node --test, per package, then typecheck
-pnpm run lint        # fix-package-json + eslint --fix + prettier --write
+pnpm run lint        # fix-package-json + oxlint --fix + prettier --write
 pnpm run lint-ci     # read-only lint, what CI runs
 pnpm run smoke-test  # quick PR health check
 pnpm run clean       # pnpm -r run clean

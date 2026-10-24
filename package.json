@@ -11,9 +11,9 @@
     "build": "pnpm -r run build",
     "build:readme": "pnpm exec gen-readme && inject-markdown README.md \"packages/*/README.md\" && prettier --write README.md \"packages/*/README.md\"",
     "clean": "pnpm -r run clean",
-    "lint": "pnpm exec fix-package-json && eslint . --fix && prettier --write .",
-    "lint-ci": "pnpm exec fix-package-json --dry-run && pnpm run readme:check && eslint . --max-warnings 0 && prettier --check .",
-    "lint:eslint": "eslint . --fix",
+    "lint": "pnpm exec fix-package-json && oxlint --fix && prettier --write .",
+    "lint-ci": "pnpm exec fix-package-json --dry-run && pnpm run readme:check && oxlint --max-warnings 0 && prettier --check .",
+    "lint:oxlint": "oxlint --fix",
     "lint:prettier": "prettier --write .",
     "prepare-publication": "prepare-publication",
     "readme:check": "gen-readme --check",
@@ -27,22 +27,17 @@
     "typecheck": "pnpm -r run typecheck"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
     "@internal/scripts": "workspace:*",
     "@lerna-lite/cli": "^5.6.1",
     "@lerna-lite/publish": "^5.6.1",
     "@tsconfig/node22": "^22.0.6",
     "@types/node": "^24.13.4",
     "cspell": "^10.3.4",
-    "eslint": "^10.10.0",
-    "eslint-plugin-n": "^18.3.0",
-    "eslint-plugin-simple-import-sort": "^14.0.0",
-    "globals": "^17.12.0",
     "inject-markdown": "^6.1.0",
+    "oxlint": "^1.89.0",
     "prettier": "^3.9.6",
     "shx": "^0.4.0",
     "tsdown": "^0.23.0",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.70.0"
+    "typescript": "^6.0.3"
   }
 }
