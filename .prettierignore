@@ -1,0 +1,7 @@
+node_modules/
+dist/
+CHANGELOG.md
+coverage/
+pnpm-lock.yaml
+.vscode/settings.json
+.claude/worktrees/**

@@ -1,0 +1,47 @@
+{
+  "name": "toolbox",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.4.2+sha512.08adc6613180275c7c9edada39dcf08c9c61ad4e7eaf330a4f3461f102b0f907423454d117f98e72d47fef0616070644d7bffc973a6a57f5090a6d7c368b07c9",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "build": "pnpm -r run build",
+    "build:readme": "inject-markdown README.md \"packages/*/README.md\" && prettier --write README.md \"packages/*/README.md\"",
+    "clean": "pnpm -r run clean",
+    "lint": "pnpm exec fix-package-json && eslint . --fix && prettier --write .",
+    "lint-ci": "pnpm exec fix-package-json --dry-run && eslint . --max-warnings 0 && prettier --check .",
+    "lint:eslint": "eslint . --fix",
+    "lint:prettier": "prettier --write .",
+    "prepare-publication": "prepare-publication",
+    "release-as": "release-as",
+    "release-please-config": "update-release-please-config",
+    "release-please-config:check": "update-release-please-config --check",
+    "smoke-test": "pnpm run spell",
+    "spell": "cspell --no-progress .",
+    "test": "pnpm -r run test && pnpm run typecheck",
+    "trusted-publishing": "trusted-publishing",
+    "typecheck": "pnpm -r run typecheck"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@internal/scripts": "workspace:*",
+    "@lerna-lite/cli": "^5.6.1",
+    "@lerna-lite/publish": "^5.6.1",
+    "@tsconfig/node22": "^22.0.6",
+    "@types/node": "^24.13.4",
+    "cspell": "^10.3.4",
+    "eslint": "^10.10.0",
+    "eslint-plugin-n": "^18.3.0",
+    "eslint-plugin-simple-import-sort": "^14.0.0",
+    "globals": "^17.12.0",
+    "inject-markdown": "^6.1.0",
+    "prettier": "^3.9.6",
+    "shx": "^0.4.0",
+    "tsdown": "^0.23.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.0"
+  }
+}

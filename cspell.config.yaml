@@ -1,0 +1,35 @@
+version: '0.2'
+language: en
+enableGlobDot: true
+languageSettings:
+  - languageId: yaml,markdown
+    substitutions:
+      - - "''"
+        - "'"
+dictionaries:
+  - typescript
+  - node
+  - npm
+  - html
+  - css
+  - misc
+ignorePaths:
+  - node_modules
+  - dist
+  - coverage
+  - .claude/worktrees
+  - pnpm-lock.yaml
+  - '**/*.log'
+  - CHANGELOG.md
+  - .git/!(hooks,COMMIT_EDITMSG)
+words:
+  - COMMIT_EDITMSG
+  - gitdir
+  - inlines
+  - lerna
+  - sigstore
+  - unindent
+  - unindented
+  - unindenting
+  - worktree
+  - worktrees

@@ -1,0 +1,53 @@
+name: '🧪 Test'
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        node-version: [22.x, 26.x]
+        os:
+          - ubuntu-latest
+        include:
+          - os: windows-latest
+            node-version: 26.x
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Test
+        run: pnpm test
+
+  # this is a workaround to have a final step that runs after all tests, regardless of OS
+  test-finalize:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Finished
+        run: echo "All tests completed."

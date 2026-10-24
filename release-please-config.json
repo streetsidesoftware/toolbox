@@ -1,0 +1,73 @@
+{
+  "include-v-in-tag": false,
+  "tag-separator": "@",
+  "prerelease-type": "alpha",
+  "prerelease": true,
+  "plugins": [
+    {
+      "type": "node-workspace",
+      "always-link-local": true,
+      "updatePeerDependencies": true
+    }
+  ],
+  "changelog-sections": [
+    {
+      "type": "feat",
+      "section": "Features",
+      "hidden": false
+    },
+    {
+      "type": "fix",
+      "section": "Updates and Bug Fixes",
+      "hidden": false
+    },
+    {
+      "type": "perf",
+      "section": "Performance Improvements",
+      "hidden": false
+    },
+    {
+      "type": "ci",
+      "section": "Continuous Integration",
+      "hidden": true
+    },
+    {
+      "type": "chore",
+      "section": "Miscellaneous",
+      "hidden": true
+    },
+    {
+      "type": "revert",
+      "section": "Reverts",
+      "hidden": false
+    },
+    {
+      "type": "docs",
+      "section": "Documentation",
+      "hidden": true
+    },
+    {
+      "type": "style",
+      "section": "Styles",
+      "hidden": true
+    },
+    {
+      "type": "refactor",
+      "section": "Code Refactoring",
+      "hidden": true
+    },
+    {
+      "type": "test",
+      "section": "Tests",
+      "hidden": true
+    }
+  ],
+  "packages": {
+    ".": {
+      "component": "toolbox"
+    },
+    "packages/unindent": {
+      "component": "@streetsidesoftware/unindent"
+    }
+  }
+}

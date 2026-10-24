@@ -1,0 +1,107 @@
+name: '📦 Prepare a New Package for Publication'
+
+# Opens a `feat:` PR that makes a private package public and sets its `release-as` to 1.0.0.
+# The PR's checklist has the maintainer's steps before merging.
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package directory under packages/, such as unindent'
+        type: string
+        required: true
+      ref:
+        description: 'Branch to run against and open the PR into'
+        type: string
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-publication:
+    if: github.repository_owner == 'streetsidesoftware'
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE_DIR: ${{ inputs.package }}
+      REF_BRANCH: ${{ inputs.ref || 'main' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          ref: ${{ env.REF_BRANCH }}
+
+      - uses: ./.github/actions/setup
+
+      - name: Prepare for publication
+        id: prepare
+        run: |
+          NAME=$(node -p 'require(`./packages/${process.env.PACKAGE_DIR}/package.json`).name')
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          pnpm run prepare-publication "$NAME"
+          pnpm exec prettier --write "packages/$PACKAGE_DIR/package.json" release-please-config.json
+
+      - name: PR
+        uses: ./.github/actions/pr
+        with:
+          commit-message: 'feat(${{ inputs.package }}): publish ${{ steps.prepare.outputs.name }}'
+          branch: prepare-publication-${{ inputs.package }}
+          base: ${{ env.REF_BRANCH }}
+          body: |
+            Makes `${{ steps.prepare.outputs.name }}` public: removes `private` and "-- Private until verified", and sets its `release-as` to `1.0.0`.
+
+            ### 1. Check out this branch
+
+            ```sh
+            git fetch origin prepare-publication-${{ inputs.package }}
+            git switch -C prepare-publication-${{ inputs.package }} FETCH_HEAD
+            ```
+
+            Or with the GitHub CLI:
+
+            ```sh
+            gh pr checkout prepare-publication-${{ inputs.package }} --detach
+            ```
+
+            ### 2. Publish the first version by hand
+
+            From the repo root:
+
+            - [ ] Log in to npm, then check that the last command shows your npm user name:
+              ```sh
+              npm login --auth-type=web
+              npm whoami
+              ```
+            - [ ] Build and pack the package, then check the files under "Tarball Contents". `dist/` is gitignored and must be there. The README gets the Markdown sponsor links that npmjs.com can render, as in `publish.yml`; the last line undoes that:
+              ```sh
+              pnpm install
+              pnpm run build
+              cp static/sponsor-pub.md static/sponsor.md
+              pnpm run build:readme
+              cd packages/${{ inputs.package }}
+              pnpm pack --out package.tgz
+              git checkout -- ../../static/sponsor.md README.md
+              ```
+            - [ ] Publish it as an alpha and add the trusted publisher. When npm opens the browser for 2FA, check the box to skip 2FA for the next 5 minutes, so `pnpm trusted-publishing` doesn't ask again:
+              ```sh
+              npm publish package.tgz --tag alpha --provenance=false
+              rm package.tgz
+              pnpm exec trusted-publishing
+              ```
+
+            ### 3. Commit the Trusted Publishing status
+
+            `pnpm trusted-publishing` records the package in `static/published.json`:
+
+            ```sh
+            cd ../..
+            git add static/published.json
+            git commit -m "chore(${{ inputs.package }}): record Trusted Publishing"
+            git push origin HEAD:prepare-publication-${{ inputs.package }}
+            ```
+
+            ### 4. Merge this PR
+
+            Then merge the release PR. The [Publish to NPM](https://github.com/streetsidesoftware/toolbox/actions/workflows/publish.yml) workflow publishes `1.0.0` through Trusted Publishing. Then merge the PR that the [Update Release Please Config](https://github.com/streetsidesoftware/toolbox/actions/workflows/update-release-please-config.yml) workflow opens to remove `release-as`.
+          app_id: ${{ secrets.AUTOMATION_APP_ID }}
+          app_private_key: ${{ secrets.AUTOMATION_PRIVATE_KEY }}
