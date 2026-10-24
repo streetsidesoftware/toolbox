@@ -117,15 +117,13 @@ jobs:
               npm login --auth-type=web
               npm whoami
               ```
-            - [ ] Build and pack the package, then check the files under "Tarball Contents". `dist/` is gitignored and must be there. The README gets the Markdown sponsor links that npmjs.com can render, as in `publish.yml`; the last line undoes that:
+            - [ ] Build and pack the package, then check the files under "Tarball Contents". `dist/` is gitignored and must be there:
               ```sh
               pnpm install
               pnpm run build
-              cp static/sponsor-pub.md static/sponsor.md
               pnpm run build:readme
               cd packages/${{ matrix.dir }}
               pnpm pack --out package.tgz
-              git checkout -- ../../static/sponsor.md README.md
               ```
             - [ ] Publish it as an alpha and add the trusted publisher. When npm opens the browser for 2FA, check the box to skip 2FA for the next 5 minutes, so `pnpm trusted-publishing` doesn't ask again:
               ```sh
