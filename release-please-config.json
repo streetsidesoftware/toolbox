@@ -67,8 +67,7 @@
       "component": "toolbox"
     },
     "packages/unindent": {
-      "component": "@streetsidesoftware/unindent",
-      "release-as": "1.0.0"
+      "component": "@streetsidesoftware/unindent"
     }
   }
 }
