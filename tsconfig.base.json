@@ -2,7 +2,9 @@
   "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
     "allowImportingTsExtensions": true,
+    "declaration": true,
     "erasableSyntaxOnly": true,
+    "isolatedDeclarations": true,
     "isolatedModules": true,
     "exactOptionalPropertyTypes": true,
     "module": "NodeNext",
