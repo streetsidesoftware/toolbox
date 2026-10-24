@@ -65,9 +65,6 @@
   "packages": {
     ".": {
       "component": "toolbox"
-    },
-    "packages/unindent": {
-      "component": "@streetsidesoftware/unindent"
     }
   }
 }
