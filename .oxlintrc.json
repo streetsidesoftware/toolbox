@@ -1,0 +1,60 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "import"],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "builtin": true,
+    "node": true
+  },
+  "ignorePatterns": ["**/dist/**", "**/coverage/**", "**/node_modules/**", ".claude/worktrees/**"],
+  "rules": {
+    // The ESLint and typescript-eslint recommended rules that oxlint doesn't put in `correctness`.
+    "no-array-constructor": "error",
+    "no-case-declarations": "error",
+    "no-empty": "error",
+    "no-fallthrough": "error",
+    "no-prototype-builtins": "error",
+    "no-regex-spaces": "error",
+    "no-unexpected-multiline": "error",
+    "no-var": "error",
+    "preserve-caught-error": "error",
+    "prefer-const": "error",
+    "prefer-rest-params": "error",
+    "prefer-spread": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-empty-object-type": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-namespace": "error",
+    "typescript/no-require-imports": "error",
+    "typescript/no-unnecessary-type-constraint": "error",
+    "typescript/no-unsafe-function-type": "error",
+
+    // Sorts the names inside each import; the order of the import statements themselves is left alone.
+    "sort-imports": ["error", { "ignoreCase": true, "ignoreDeclarationSort": true, "allowSeparatedGroups": true }],
+    // A brace-less body is fine on the same line as its `if`, but not once it wraps onto its own line.
+    "curly": ["error", "multi-line"],
+    "no-unused-vars": [
+      "error",
+      {
+        "args": "all",
+        "argsIgnorePattern": "^_",
+        "caughtErrors": "all",
+        "caughtErrorsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }
+    ],
+    "typescript/no-import-type-side-effects": "error",
+    // Handle a possibly missing value explicitly instead of asserting it away with `!`.
+    "typescript/no-non-null-assertion": "error",
+    "typescript/consistent-type-imports": [
+      "error",
+      { "prefer": "type-imports", "fixStyle": "separate-type-imports", "disallowTypeAnnotations": true }
+    ],
+    // consistent-type-imports allows `import { a, type B }`; require a separate `import type` instead.
+    "import/consistent-type-specifier-style": ["error", "prefer-top-level"]
+  }
+}
