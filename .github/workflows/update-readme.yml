@@ -1,0 +1,54 @@
+name: '📄 Update READMEs'
+
+# Runs `pnpm run build:readme`, which regenerates static/packages.csv and injects it, the sponsor section and the
+# footer into every README. Opens a `chore:` PR with any change.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch to run against and open the PR into'
+        type: string
+        default: main
+  push:
+    branches:
+      - main
+    paths:
+      - README.md
+      - 'packages/*/package.json'
+      - 'packages/*/README.md'
+      - 'static/**'
+
+permissions:
+  contents: read
+
+# Each run regenerates from the newest main, so a newer run makes an older one pointless.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  update-readme:
+    if: github.repository_owner == 'streetsidesoftware'
+    runs-on: ubuntu-latest
+    env:
+      REF_BRANCH: ${{ inputs.ref || 'main' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          ref: ${{ env.REF_BRANCH }}
+
+      - uses: ./.github/actions/setup
+
+      - name: Update the READMEs
+        run: pnpm run build:readme
+
+      - name: PR
+        uses: ./.github/actions/pr
+        with:
+          commit-message: 'chore: update the READMEs'
+          branch: update-readme
+          base: ${{ env.REF_BRANCH }}
+          app_id: ${{ secrets.AUTOMATION_APP_ID }}
+          app_private_key: ${{ secrets.AUTOMATION_PRIVATE_KEY }}

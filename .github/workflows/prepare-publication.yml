@@ -79,7 +79,7 @@ jobs:
       - name: Prepare for publication
         run: |
           pnpm run prepare-publication "$PACKAGE_NAME"
-          # Adds the now-public package to the root README's packages table.
+          # Drops "-- Private until verified" from the package's row in the root README's packages table.
           pnpm run build:readme
 
       - name: PR
@@ -89,7 +89,7 @@ jobs:
           branch: prepare-publication-${{ matrix.dir }}
           base: ${{ env.REF_BRANCH }}
           body: |
-            Makes `${{ matrix.name }}` public: removes `private` and "-- Private until verified", sets its `release-as` to `1.0.0`, adds it to the packages table in the root `README.md`, and records it in `static/published.json` as waiting for publication (`{ "trustedPublishing": false }`).
+            Makes `${{ matrix.name }}` public: removes `private` and "-- Private until verified", sets its `release-as` to `1.0.0`, updates its row in the root `README.md` packages table, and records it in `static/published.json` as waiting for publication (`{ "trustedPublishing": false }`).
 
             This PR stays as it is while it's open, so commits pushed to its branch are kept. To rebuild it from `main`, close it and run the workflow. To never publish the package, set its entry in `static/published.json` on `main` to `false` and close this PR.
 
