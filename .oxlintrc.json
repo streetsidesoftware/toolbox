@@ -31,7 +31,7 @@
     "typescript/no-unnecessary-type-constraint": "error",
     "typescript/no-unsafe-function-type": "error",
 
-    // Sorts the names inside each import; the order of the import statements themselves is left alone.
+    // Sorts the names inside each import; Prettier's sort-imports plugin orders the import statements.
     "sort-imports": ["error", { "ignoreCase": true, "ignoreDeclarationSort": true, "allowSeparatedGroups": true }],
     // A brace-less body is fine on the same line as its `if`, but not once it wraps onto its own line.
     "curly": ["error", "multi-line"],
