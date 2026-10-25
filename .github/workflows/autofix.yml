@@ -1,7 +1,8 @@
 name: autofix.ci
 
 # Fix what can be fixed on a pull request and push it to the pull request with autofix.ci: `fix-package-json`,
-# the generated READMEs, oxlint's fixes and Prettier's formatting. The `no-autofix` label turns it off.
+# oxlint's fixes and Prettier's formatting. The READMEs are rebuilt on `main` by the Update READMEs workflow. The
+# `no-autofix` label turns it off.
 
 on:
   pull_request:
@@ -25,20 +26,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v6
-
-      - uses: actions/setup-node@v7
+      - uses: ./.github/actions/setup
         with:
           node-version: 26.x
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
 
       - name: Fix package.json files
         run: pnpm exec fix-package-json
-
-      - name: READMEs
-        run: pnpm run build:readme
 
       # A problem oxlint can't fix would fail this step; the lint job reports it.
       - name: oxlint
