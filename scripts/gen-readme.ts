@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-import fs from 'node:fs/promises';
 import Path from 'node:path';
+import fs from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 
 import { REPO_ROOT_DIR } from './lib/consts.ts';
 import { findPackages } from './lib/packages.ts';
-import { PACKAGES_CSV_FILE, packagesCsv, README_GLOBS } from './lib/readme.ts';
+import { README_GLOBS, packagesCsv, PACKAGES_CSV_FILE } from "./lib/readme.ts"
 
 const HELP = `Usage: gen-readme [options]
 
