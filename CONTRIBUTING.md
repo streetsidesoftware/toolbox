@@ -11,6 +11,7 @@ This repo holds small tools and libraries shared across Street Side Software's r
 - **Add a package:** follow "New packages" in [releasing](docs/releasing.md). New packages start private.
 - **Before a PR:** `pnpm run build`, `pnpm run typecheck`, `pnpm run lint` (auto-fixes), `pnpm test`. CI runs
   `build`, `typecheck`, and `test`, plus `pnpm run lint-ci` (a read-only lint) in a separate workflow.
+  On a PR, the autofix.ci workflow pushes what the fixers can fix; the `no-autofix` label turns it off.
 - **Commits:** [Conventional Commits](https://www.conventionalcommits.org/). Use `feat:` only for a new
   capability, and `fix:` for any other change to a published package's behavior. A change with no behavior
   change is `refactor:`, and everything else is `chore:`, `docs:`, etc.

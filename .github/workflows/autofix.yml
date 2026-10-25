@@ -1,0 +1,47 @@
+name: autofix.ci
+
+# Fix what can be fixed on a pull request and push it to the pull request with autofix.ci: `fix-package-json`,
+# oxlint's fixes and Prettier's formatting. The READMEs are rebuilt on `main` by the Update READMEs workflow. The
+# `no-autofix` label turns it off.
+
+on:
+  pull_request:
+    types: [labeled, unlabeled, opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  USE_AUTOFIX: ${{ !contains(github.event.pull_request.labels.*.name, 'no-autofix') }}
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+        with:
+          node-version: 26.x
+
+      - name: Fix package.json files
+        run: pnpm exec fix-package-json
+
+      # A problem oxlint can't fix would fail this step; the lint job reports it.
+      - name: oxlint
+        run: pnpm exec oxlint --fix
+        continue-on-error: true
+
+      # Not `.github/`: autofix.ci rejects the whole fix when it changes a file there. The lint job reports it.
+      - name: Prettier
+        run: pnpm exec prettier --write . '!.github/**'
+
+      - name: Run autofix.ci
+        if: env.USE_AUTOFIX == 'true'
+        uses: autofix-ci/action@c5b2d67aa2274e7b5a18224e8171550871fc7e4a # v1.3.4
