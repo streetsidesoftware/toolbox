@@ -58,12 +58,14 @@ hand, as an alpha, and CI publishes every version after it, starting with `1.0.0
 - Put it in `packages/<name>/`, named `@streetsidesoftware/<name>`. Start from `packages/unindent`: copy its
   `package.json`, `tsconfig.json`, `tsdown.config.ts` and `LICENSE`.
 - Set `"private": true`, `"version": "0.0.1-alpha.0"`, and end `description` with " -- Private until verified".
+  Here `private` only keeps the package off npm until it's verified. It's still public in this repo and listed in
+  the root `README.md` like any other package.
 - Keep `files` as `["dist", "!dist/**/*.map"]`, and every published `src/*.ts` entry in both `tsdown.config.ts` and
   `exports`. See [build and packaging](./build-and-packaging.md).
 - Write a `README.md` for someone installing the package from npm, with absolute `https://` links only.
 - End the README with a `## Support Future Development` section that injects `../../static/sponsor.md`, then the
-  shared footer from `../../static/footer.md`. Copy the markers from `packages/unindent/README.md`, then run
-  `pnpm run build:readme`.
+  shared footer from `../../static/footer.md`. Copy the markers from `packages/unindent/README.md`. Running
+  `pnpm run build:readme` fills them in; if you don't, the Update READMEs workflow does after the merge.
 - Run `pnpm run lint`. `fix-package-json` sets `repository` and `publishConfig`.
 - Merge it. The Update Release Please Config workflow then opens a `chore:` PR that adds the package at
   `0.0.1-alpha.0`. Merge that too.
@@ -80,7 +82,7 @@ waiting for publication, it opens a `feat(<dir>): publish to npm` PR that:
 
 - makes the package public (`pnpm run prepare-publication <package>`)
 - sets its `release-as` to `1.0.0`
-- adds the package to the packages table in the root `README.md` (`pnpm run build:readme`)
+- updates the package's row in the root `README.md` packages table (`pnpm run build:readme`)
 - records it in `static/published.json` as waiting for publication: `{ "trustedPublishing": false }`
 - lists the commands for steps 3 and 4 as a checklist
 

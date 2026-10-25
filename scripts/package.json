@@ -16,7 +16,6 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "prettier": "^3.9.6",
     "sort-package-json": "^4.0.0"
   },
   "engines": {
