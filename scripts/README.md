@@ -10,10 +10,9 @@ These scripts are used to help maintain the repo.
 
 ## READMEs
 
-- `gen-readme.ts` writes `static/packages.csv`, the table of published (non-private) `packages/*` packages that the
-  root `README.md` injects. `pnpm run build:readme` runs it, then `inject-markdown` and Prettier on every README.
-  `pnpm run readme:check` (`gen-readme --check`, part of `lint-ci`) exits with a non-zero status if
-  `build:readme` would change the CSV or any README.
+- `gen-readme.ts` writes `static/packages.csv`, the table of every `packages/*` package that the root `README.md`
+  injects. `pnpm run build:readme` runs it, then `inject-markdown` and Prettier on every README. The Update READMEs
+  workflow runs `build:readme` on `main` and opens a PR with any change.
 
 ## Release
 

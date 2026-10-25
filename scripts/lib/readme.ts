@@ -7,12 +7,12 @@ export const PACKAGES_CSV_FILE = 'static/packages.csv';
 export const README_GLOBS = ['README.md', 'packages/*/README.md'];
 
 /**
- * The `Package,Description` table of published (non-private) packages, sorted by name.
+ * The `Package,Description` table of every package, sorted by name. Private ones are listed too: `private` only keeps them off npm.
  * Links are relative to `static/`; inject-markdown rebases them into the README.
  */
 export function packagesCsv(packages: WorkspacePackage[]): string {
   const rows = packages
-    .filter((p) => !p.packageJson.private && p.packageJson.name)
+    .filter((p) => p.packageJson.name)
     .map(({ dir, packageJson }) => ({ name: packageJson.name ?? '', dir, description: packageJson.description }))
     .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
     .map(({ name, dir, description }) => [`[\`${name}\`](../${dir})`, markdownCell(`${description ?? ''}`)]);

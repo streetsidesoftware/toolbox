@@ -10,14 +10,14 @@ const pkg = (dir: string, name: string, description: string, isPrivate = false):
 });
 
 describe('packagesCsv', () => {
-  test('lists published packages sorted by name, linked relative to static/', () => {
+  test('lists packages sorted by name, linked relative to static/', () => {
     const csv = packagesCsv([pkg('packages/b', '@s/b', 'Bee.'), pkg('packages/a', '@s/a', 'Ay.')]);
     assert.equal(csv, 'Package,Description\n[`@s/a`](../packages/a),Ay.\n[`@s/b`](../packages/b),Bee.\n');
   });
 
-  test('leaves out private packages', () => {
+  test('lists private packages too', () => {
     const csv = packagesCsv([pkg('packages/a', '@s/a', 'Ay. -- Private until verified', true)]);
-    assert.equal(csv, 'Package,Description\n');
+    assert.equal(csv, 'Package,Description\n[`@s/a`](../packages/a),Ay. -- Private until verified\n');
   });
 
   test('quotes commas and quotes, and escapes pipes', () => {
