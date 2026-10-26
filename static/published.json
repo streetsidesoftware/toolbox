@@ -1,4 +1,4 @@
 {
-  "@streetsidesoftware/markdown-builders": { "trustedPublishing": false },
+  "@streetsidesoftware/markdown-builders": { "trustedPublishing": true },
   "@streetsidesoftware/unindent": { "trustedPublishing": true }
 }
