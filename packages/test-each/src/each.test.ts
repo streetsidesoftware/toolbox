@@ -5,9 +5,6 @@ import type { Row } from './each.ts';
 import { formatTitle, parseTable } from './each.ts';
 import { describeEach, testEach } from './index.ts';
 
-const table = (strings: TemplateStringsArray, ...values: unknown[]) => parseTable('table', strings, values);
-const row = (values: Row): Row => Object.assign(Object.create(null), values);
-
 describe('parseTable header', () => {
   test('names the columns from the first line', () => {
     assert.deepEqual(table`a | b\n${1} | ${2}`, [row({ a: 1, b: 2 })]);
@@ -156,3 +153,12 @@ describe('describeEach', () => {
     assert.throws(() => describeEach`a || b`, /^Error: describeEach: the first line must name the columns/);
   });
 });
+
+function table(strings: TemplateStringsArray, ...values: unknown[]): Row[] {
+  return parseTable('table', strings, values);
+}
+
+/** A row as `parseTable` builds it, without a prototype. */
+function row(values: Row): Row {
+  return Object.assign(Object.create(null), values);
+}
