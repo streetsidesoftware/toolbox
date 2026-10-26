@@ -10,7 +10,7 @@ import type { AnyContent, BlockContent, InlineContent, ListItemContent, MDKind, 
  * The key a value's rendering is stored under. Having it is what makes a value a Markdown value.
  * It comes from the global symbol registry, so another loaded copy of this module recognizes the value too.
  */
-const renderingKey: unique symbol = Symbol.for('@streetsidesoftware/markdown-builders.value');
+const renderingKey: unique symbol = Symbol.for('@streetsidesoftware/markdown-toolkit.value');
 
 /** The nodes a value renders as, and the style to render them in. */
 interface Rendering {

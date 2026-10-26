@@ -1,4 +1,4 @@
-# Markdown builders
+# Markdown toolkit
 
 ## Why
 
@@ -49,7 +49,7 @@ The first round covers bold, strikethrough, rules, and line breaks. Existing Mar
 A script builds Markdown values, composes them, and calls `toString()` on the outermost one. Escaping happens there, based on where each value ends up, so the script never needs to know the escaping rules.
 
 ```ts
-import { link, list } from '@streetsidesoftware/markdown-builders';
+import { link, list } from '@streetsidesoftware/markdown-toolkit';
 
 const md = list(extensions.map((e) => [link(e.name, e.url), ` - ${e.description}`])).toString();
 ```
@@ -69,11 +69,11 @@ The node tree (mdast) stays internal. It's too raw for callers, and most don't c
 
 ### Creating values
 
-A value is created by a factory function, such as `link(…)` or `list(…)`. The public types (`MDLink`, `MDList`, and so on) are interfaces: a kind, a description, and `toString()`. Underneath, one internal class carries the nodes a value renders as, under the key `Symbol.for('@streetsidesoftware/markdown-builders.value')`. Having that key is what the runtime kind check looks for.
+A value is created by a factory function, such as `link(…)` or `list(…)`. The public types (`MDLink`, `MDList`, and so on) are interfaces: a kind, a description, and `toString()`. Underneath, one internal class carries the nodes a value renders as, under the key `Symbol.for('@streetsidesoftware/markdown-toolkit.value')`. Having that key is what the runtime kind check looks for.
 
 - The interfaces never mention mdast.
 - The key comes from the global symbol registry, so a value made by another loaded copy of the builders is recognized. That happens when a script loads the builders both directly and through inject-markdown's pass-through.
-- The key names the package, `@streetsidesoftware/markdown-builders`. If what's stored under it ever changes incompatibly, a new key such as `….value.1` can be used.
+- The key names the package, `@streetsidesoftware/markdown-toolkit`. If what's stored under it ever changes incompatibly, a new key such as `….value.1` can be used.
 - The key is a brand, not privacy: anyone can read it.
 
 Factories are the only way to create a value, so the internal class can change while the API settles. `isMarkdown(x)` tells a Markdown value from anything else.
@@ -350,13 +350,13 @@ A builders-specific error class waits until a caller needs to catch one specific
 
 ### Where it lives
 
-The builders were built inside inject-markdown first, for rapid development against the scripts that need them, and then moved to toolbox as `@streetsidesoftware/markdown-builders`.
+The builders were built inside inject-markdown first, for rapid development against the scripts that need them, and then moved to toolbox as `@streetsidesoftware/markdown-toolkit`.
 
 - inject-markdown depends on the builders, never the other way around.
 - The placeholder grammar and substitution live in the builders, so injection and templates share one implementation.
 - The package has two entries:
-  - `@streetsidesoftware/markdown-builders`: the builders, templates, and `detectStyle`. Its types never mention mdast.
-  - `@streetsidesoftware/markdown-builders/placeholders`: for tools such as inject-markdown that fill placeholders in an mdast tree. It has the placeholder name checks, `substituteInString`, `substituteInTree`, and `detectMarkdownStyle`.
+  - `@streetsidesoftware/markdown-toolkit`: the builders, templates, and `detectStyle`. Its types never mention mdast.
+  - `@streetsidesoftware/markdown-toolkit/placeholders`: for tools such as inject-markdown that fill placeholders in an mdast tree. It has the placeholder name checks, `substituteInString`, `substituteInTree`, and `detectMarkdownStyle`.
 - inject-markdown keeps exporting the builders as `inject-markdown/markdown`, as a pass-through to the package.
 - While the API settles, it's documented as experimental. Breaking changes ship as minor releases, called out in the release notes.
 
@@ -382,6 +382,7 @@ The README's usage section is written once the API is built, not during developm
 - HTML tables with Markdown cells, as vscode-spell-checker's settings pages use.
 - Raw HTML blocks such as `<details>` and `<dl>` definition lists, which vscode-spell-checker writes with its own helpers.
 - Images and other raw HTML, once a script needs them.
+- A template function that only substitutes placeholders, changing as little as possible outside them. `template()` parses the whole text and writes it back out, so text around a placeholder can change: a setext heading becomes `#`, and a table's divider row is rewritten.
 
 ## Alternatives
 

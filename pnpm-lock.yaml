@@ -206,7 +206,7 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
-  packages/markdown-builders:
+  packages/markdown-toolkit:
     dependencies:
       remark-gfm:
         specifier: ^4.0.1

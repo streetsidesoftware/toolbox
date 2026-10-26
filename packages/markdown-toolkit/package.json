@@ -1,11 +1,12 @@
 {
-  "name": "@streetsidesoftware/markdown-builders",
+  "name": "@streetsidesoftware/markdown-toolkit",
   "version": "0.0.1-alpha.0",
-  "description": "Build Markdown in scripts from typed values that escape their content.",
+  "private": true,
+  "description": "Build Markdown in scripts from typed values that escape their content. -- Private until verified",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/streetsidesoftware/toolbox.git",
-    "directory": "packages/markdown-builders"
+    "directory": "packages/markdown-toolkit"
   },
   "publishConfig": {
     "access": "public",
