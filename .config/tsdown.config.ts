@@ -8,4 +8,6 @@ export default defineConfig({
   clean: true,
   // Single ESM format + "type": "module" makes plain .js/.d.ts unambiguous.
   fixedExtension: false,
+  // Fail the build if it would copy anything from node_modules, code or types, into dist/.
+  deps: { onlyBundle: [] },
 });
