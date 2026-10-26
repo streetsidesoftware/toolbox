@@ -36,7 +36,7 @@ export function validatePackageName(name: string): void {
 export function newPackageFiles(name: string, options: NewPackageOptions = {}): Record<string, string> {
   validatePackageName(name);
   const fullName = `${SCOPE}/${name}`;
-  const description = (options.description ?? DEFAULT_DESCRIPTION) + PRIVATE_SUFFIX;
+  const description = privateDescription(options.description);
   const year = options.year ?? new Date().getFullYear();
 
   return {
@@ -57,14 +57,33 @@ export function newPackageFiles(name: string, options: NewPackageOptions = {}): 
 export async function createPackage(name: string, options: CreatePackageOptions = {}): Promise<string> {
   const files = newPackageFiles(name, options);
   const dir = Path.join(options.rootDir ?? REPO_ROOT_DIR, 'packages', name);
-  if (await exists(dir)) throw new Error(`${dir} already exists.`);
+  await fs.mkdir(Path.dirname(dir), { recursive: true });
+  // Not recursive, so it fails if the folder already exists.
+  await fs.mkdir(dir).catch((error: unknown) => {
+    if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new Error(`${dir} already exists.`);
+    throw error;
+  });
 
-  for (const [relPath, content] of Object.entries(files)) {
-    const file = Path.join(dir, relPath);
-    await fs.mkdir(Path.dirname(file), { recursive: true });
-    await fs.writeFile(file, content, 'utf-8');
+  try {
+    for (const [relPath, content] of Object.entries(files)) {
+      const file = Path.join(dir, relPath);
+      await fs.mkdir(Path.dirname(file), { recursive: true });
+      await fs.writeFile(file, content, 'utf-8');
+    }
+  } catch (error) {
+    // The folder is new, so remove it rather than leave a half-written package behind.
+    await fs.rm(dir, { recursive: true, force: true });
+    throw error;
   }
   return dir;
+}
+
+/** Trims `description`, defaults it if blank, and ends it with {@link PRIVATE_SUFFIX} once. */
+export function privateDescription(description: string | undefined): string {
+  const suffix = PRIVATE_SUFFIX.trim();
+  let text = description?.trim() ?? '';
+  if (text.endsWith(suffix)) text = text.slice(0, -suffix.length).trim();
+  return (text || DEFAULT_DESCRIPTION) + PRIVATE_SUFFIX;
 }
 
 function packageJsonText(name: string, fullName: string, description: string): string {
@@ -181,11 +200,4 @@ describe('packageName', () => {
   });
 });
 `;
-}
-
-async function exists(path: string): Promise<boolean> {
-  return fs.stat(path).then(
-    () => true,
-    () => false,
-  );
 }
