@@ -1,6 +1,6 @@
 # @streetsidesoftware/markdown-toolkit
 
-Build Markdown in scripts from typed values that escape their content. Compose links, lists, headings and code,
+A toolkit for generating Markdown: builders, templates and placeholders. Compose links, lists, headings and code,
 then render the result with `toString()`.
 
 > [!WARNING]
