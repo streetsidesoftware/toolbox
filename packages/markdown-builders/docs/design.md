@@ -319,7 +319,7 @@ The concerns that apply at injection time, such as untrusted values and link reb
 - A `{@ name @}` placeholder is kept as written, the same as in `text()`, so injection can fill it later. Rendering never escapes it.
 - The result renders in the style detected from its own text. Inside a document, the document's style applies.
 
-`template()` and `parse()` return the same types: `MDFragment` for blocks and `MDInlineFragment` for inline content. Callers narrow on `kind`, so the types don't record which function made the value. There are no forced forms like `blockTemplate()` yet. `toBlock(parse(markdown))` gives blocks.
+`template()` and `parse()` return the same types: `MDFragment` for blocks and `MDInlineFragment` for inline content. Callers narrow on `kind`, so the types don't record which function made the value. `parse()` has no forced form like `blockTemplate()`. `toBlock(parse(markdown))` gives blocks.
 
 In prose, the Markdown parser reads `\{` as an escape and drops the backslash, so `\{@ name @}` comes out as a kept placeholder. Templates and injection have the same problem ([#887](https://github.com/streetsidesoftware/inject-markdown/issues/887)).
 
