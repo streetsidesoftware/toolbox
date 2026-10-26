@@ -66,6 +66,9 @@ describe('delimiters', () => {
     text                     | options                            | expected
     ${'{{ name }}'}          | ${{ open: '{{', close: '}}' }}     | ${'X'}
     ${'__name__'}            | ${{ open: '__', close: '__' }}     | ${'X'}
+    ${'__name__b__'}         | ${{ open: '__', close: '__' }}     | ${'Xb__'}
+    ${'__name___'}           | ${{ open: '__', close: '__' }}     | ${'X_'}
+    ${'__name__ __name__'}   | ${{ open: '__', close: '__' }}     | ${'X X'}
     ${'/* name */'}          | ${{ open: '/*', close: '*/' }}     | ${'X'}
     ${'$(name)'}             | ${{ open: '$(', close: ')' }}      | ${'X'}
     ${'[.name.]'}            | ${{ open: '[.', close: '.]' }}     | ${'X'}
@@ -99,6 +102,12 @@ describe('listPlaceholders', () => {
     assert.deepEqual(listPlaceholders('{@ a @} {{ b }}', { open: '{{', close: '}}' }), [
       { name: 'b', start: 8, end: 15 },
     ]);
+  });
+
+  test('ends a name at the first close delimiter', () => {
+    const options = { open: '__', close: '__' };
+    assert.deepEqual(listPlaceholders('__a__b__', options), [{ name: 'a', start: 0, end: 5 }]);
+    assert.deepEqual(listPlaceholders('__a_b.c-d__', options), [{ name: 'a_b.c-d', start: 0, end: 11 }]);
   });
 
   test('is empty without placeholders', () => {
