@@ -55,18 +55,19 @@ hand, as an alpha, and CI publishes every version after it, starting with `1.0.0
 
 ### 1. Add the package
 
-- Put it in `packages/<name>/`, named `@streetsidesoftware/<name>`. Start from `packages/unindent`: copy its
-  `package.json`, `tsconfig.json`, `tsdown.config.ts` and `LICENSE`.
-- Set `"private": true`, `"version": "0.0.1-alpha.0"`, and end `description` with " -- Private until verified".
+- Run `pnpm run new-package <name>`, optionally with `--description "<text>"`, then `pnpm install`. It creates
+  `packages/<name>/`, named `@streetsidesoftware/<name>`, with `"private": true`, `"version": "0.0.1-alpha.0"`, a
+  `description` ending in " -- Private until verified", and a placeholder `src/`, test and `README.md`.
   Here `private` only keeps the package off npm until it's verified. It's still public in this repo and listed in
   the root `README.md` like any other package.
 - Keep `files` as `["dist", "!dist/**/*.map"]`, and every published `src/*.ts` entry in both `tsdown.config.ts` and
   `exports`. See [build and packaging](./build-and-packaging.md).
-- Write a `README.md` for someone installing the package from npm, with absolute `https://` links only.
-- End the README with a `## Support Future Development` section that injects `../../static/sponsor.md`, then the
-  shared footer from `../../static/footer.md`. Copy the markers from `packages/unindent/README.md`. Running
-  `pnpm run build:readme` fills them in; if you don't, the Update READMEs workflow does after the merge.
-- Run `pnpm run lint`. `fix-package-json` sets `repository` and `publishConfig`.
+- Fill in the `README.md` for someone installing the package from npm, with absolute `https://` links only.
+- The README ends with a `## Support Future Development` section with empty inject markers for
+  `../../static/sponsor.md` and `../../static/footer.md`. Leave them empty, and don't run `pnpm run build:readme` in
+  the package's PR: it also rewrites the root `README.md` table and `static/packages.csv`, which conflicts with other
+  PRs. The Update READMEs workflow fills them in after the merge.
+- Run `pnpm run lint`.
 - Merge it. The Update Release Please Config workflow then opens a `chore:` PR that adds the package at
   `0.0.1-alpha.0`. Merge that too.
 

@@ -8,6 +8,11 @@ These scripts are used to help maintain the repo.
   `publishConfig`, `keywords`, and field order. `pnpm run lint` runs it in fixing mode; `pnpm run lint-ci` runs it
   with `--dry-run`, which exits with a non-zero status if a file needs fixing.
 
+## New packages
+
+- `new-package.ts` (`pnpm run new-package <name>`) creates `packages/<name>/`, a private package at
+  `0.0.1-alpha.0` with a placeholder `src/`, test and `README.md`. See [releasing](../docs/releasing.md#new-packages).
+
 ## READMEs
 
 - `gen-readme.ts` writes `static/packages.csv`, the table of every `packages/*` package that the root `README.md`

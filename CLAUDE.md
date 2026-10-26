@@ -53,11 +53,11 @@ A pnpm workspace monorepo. See `docs/build-and-packaging.md` before changing bui
 
 - `packages/*` — published to npm as `@streetsidesoftware/<name>`. Only packages meant for npm go here; a new one
   stays private until a maintainer publishes it.
-  `packages/unindent` is the template for a new package.
+  Create a new one with `pnpm run new-package <name>`.
 - `internal/*` — private `@internal/*` packages used only by this repo. Never published or bundled into a
   published package.
-- `scripts/` — `@internal/scripts`: `fix-package-json` (run by `pnpm run lint`) and the release scripts
-  (`update-release-please-config`, `release-as`, `publication-candidates`, `prepare-publication`,
+- `scripts/` — `@internal/scripts`: `fix-package-json` (run by `pnpm run lint`), `new-package`, and the release
+  scripts (`update-release-please-config`, `release-as`, `publication-candidates`, `prepare-publication`,
   `trusted-publishing`), which are not lint.
 
 Every published `src/*.ts` entry needs a matching entry in **both** `tsdown.config.ts`'s `entry` and
