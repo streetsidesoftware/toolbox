@@ -6,9 +6,10 @@ Tools and libraries used across Street Side Software's repositories.
 
 <!--- @@inject: static/packages.csv#markdown --->
 
-| Package                                             | Description                                                                  |
-| --------------------------------------------------- | ---------------------------------------------------------------------------- |
-| [`@streetsidesoftware/unindent`](packages/unindent) | Remove the common indentation from multi-line strings and template literals. |
+| Package                                               | Description                                                                                                 |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [`@streetsidesoftware/test-each`](packages/test-each) | Table-driven tests for node:test, written as vitest-style tagged-template tables. -- Private until verified |
+| [`@streetsidesoftware/unindent`](packages/unindent)   | Remove the common indentation from multi-line strings and template literals.                                |
 
 <!--- @@inject-end: static/packages.csv#markdown --->
 
