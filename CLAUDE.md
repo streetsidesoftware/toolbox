@@ -34,6 +34,9 @@ After pushing more commits to an already-open PR, re-check that its body still m
 
 Use explicit escape sequences (e.g. ` `, `\t`) rather than literal invisible/non-printing characters in
 source code, including inside string and regex literals.
+The one exception is a zero-width space (U+200B) in a comment, to break up text that JSDoc, TypeScript or editors
+would misread: a placeholder such as `{@ name @}`, which TypeScript reads as an inline tag, or a glob such as
+`src/**/*.ts`, whose `*/` ends the comment.
 
 Keep comments short. A comment covers the "what" and, only when it's non-obvious, a bit of the "why". Favor one
 line over a `/** ... */` block. Don't restate what well-named identifiers already say. Keep a single comment

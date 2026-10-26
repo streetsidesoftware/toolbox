@@ -32,6 +32,10 @@ How the packages in this repo are built, tested, and packaged for npm.
 - **Tools are root dev dependencies.** `tsdown`, `typescript` and `shx` are declared once at the root and
   resolve into packages through Node's ancestor `node_modules` lookup, which works even with
   `nodeLinker: isolated`.
+- **Nothing from `node_modules` is bundled.** By default, tsdown copies a dev dependency's code or types into
+  `dist/` when a package imports it, such as `@types/mdast` reached from a public type. The shared config sets
+  `deps: { onlyBundle: [] }`, so the build fails instead. A package's public types use only its production
+  dependencies, or its own copy of a third-party type, checked with `satisfies` in a test.
 - **Relative imports use `.ts` extensions**, as in `from './unindent.ts'`. tsdown rewrites them to `.js`.
 
 ## Entry points

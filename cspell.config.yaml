@@ -23,11 +23,15 @@ ignorePaths:
   - CHANGELOG.md
   - .git/!(hooks,COMMIT_EDITMSG)
 words:
+  - commonmark
   - COMMIT_EDITMSG
+  - frontmatter
   - gitdir
   - inlines
   - lerna
+  - setext
   - sigstore
+  - stringifying
   - trivago
   - unindent
   - unindented

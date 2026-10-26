@@ -15,6 +15,8 @@
     "no-case-declarations": "error",
     "no-empty": "error",
     "no-fallthrough": "error",
+    // A zero-width space is allowed in comments, to break up text such as `{@ name @}` that JSDoc would misread.
+    "no-irregular-whitespace": ["error", { "skipComments": true }],
     "no-prototype-builtins": "error",
     "no-regex-spaces": "error",
     "no-unexpected-multiline": "error",

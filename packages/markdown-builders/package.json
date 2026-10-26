@@ -1,0 +1,60 @@
+{
+  "name": "@streetsidesoftware/markdown-builders",
+  "version": "0.0.1-alpha.0",
+  "private": true,
+  "description": "Build Markdown in scripts from typed values that escape their content. -- Private until verified",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/streetsidesoftware/toolbox.git",
+    "directory": "packages/markdown-builders"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "keywords": [
+    "builder",
+    "commonmark",
+    "escape",
+    "gfm",
+    "markdown",
+    "template"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./placeholders": {
+      "types": "./dist/placeholders.d.ts",
+      "default": "./dist/placeholders.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "!dist/**/*.map"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "clean": "shx rm -rf dist coverage",
+    "test": "node --test \"src/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/mdast": "^4.0.4"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}
