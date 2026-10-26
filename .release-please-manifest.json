@@ -1,4 +1,6 @@
 {
   ".": "1.0.0",
+  "packages/markdown-builders": "0.0.1-alpha.0",
+  "packages/test-each": "0.0.1-alpha.0",
   "packages/unindent": "1.0.0"
 }

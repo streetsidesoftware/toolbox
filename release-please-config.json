@@ -66,6 +66,12 @@
     ".": {
       "component": "toolbox"
     },
+    "packages/markdown-builders": {
+      "component": "@streetsidesoftware/markdown-builders"
+    },
+    "packages/test-each": {
+      "component": "@streetsidesoftware/test-each"
+    },
     "packages/unindent": {
       "component": "@streetsidesoftware/unindent"
     }
