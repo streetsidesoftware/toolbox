@@ -32,6 +32,9 @@ const validName = new RegExp(`^${namePattern}$`);
 /** Segments that would reach `Object.prototype` if walked. */
 const unsafeSegments = new Set(['__proto__', 'constructor', 'prototype']);
 
+// The regex for the last delimiter pair used, so repeated calls with the same pair don't recompile it.
+let cached: { open: string; close: string; regExp: RegExp } | undefined;
+
 /**
  * A dotted placeholder name: one or more segments of `[A-Za-z0-9_][A-Za-z0-9_-]*` joined by `.`.
  * A hyphen may appear inside a segment but not at its start.
@@ -51,7 +54,7 @@ export function isValidPlaceholderName(name: string): boolean {
  */
 export function replacePlaceholders(text: string, values: PlaceholderValues, options?: PlaceholderOptions): string {
   const resolve = typeof values === 'function' ? (values as PlaceholderResolver) : objectResolver(values);
-  return text.replaceAll(placeholderRegExp(options, 'g'), (match, name: string) => resolve(name) ?? match);
+  return text.replaceAll(placeholderRegExp(options), (match, name: string) => resolve(name) ?? match);
 }
 
 /**
@@ -61,7 +64,7 @@ export function replacePlaceholders(text: string, values: PlaceholderValues, opt
  * @returns each placeholder's name and offsets
  */
 export function listPlaceholders(text: string, options?: PlaceholderOptions): Placeholder[] {
-  return [...text.matchAll(placeholderRegExp(options, 'g'))].map((match) => ({
+  return [...text.matchAll(placeholderRegExp(options))].map((match) => ({
     name: match[1] ?? '',
     start: match.index,
     end: match.index + match[0].length,
@@ -77,10 +80,17 @@ export function hasPlaceholders(text: string, options?: PlaceholderOptions): boo
   return placeholderRegExp(options).test(text);
 }
 
-function placeholderRegExp(options: PlaceholderOptions = {}, flags?: string): RegExp {
+function placeholderRegExp(options: PlaceholderOptions = {}): RegExp {
   const { open = DEFAULT_OPEN, close = DEFAULT_CLOSE } = options;
+  if (cached?.open === open && cached.close === close) {
+    // Shared and global, so start every reuse at 0.
+    cached.regExp.lastIndex = 0;
+    return cached.regExp;
+  }
   if (!open || !close) throw new TypeError('The open and close delimiters must not be empty.');
-  return new RegExp(`${escapeRegExp(open)}\\s*(${namePattern})\\s*${escapeRegExp(close)}`, flags);
+  const regExp = new RegExp(`${escapeRegExp(open)}\\s*(${namePattern})\\s*${escapeRegExp(close)}`, 'g');
+  cached = { open, close, regExp };
+  return regExp;
 }
 
 function objectResolver(values: object): PlaceholderResolver {

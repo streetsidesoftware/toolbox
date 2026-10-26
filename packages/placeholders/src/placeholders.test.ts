@@ -131,6 +131,38 @@ describe('hasPlaceholders', () => {
     assert.equal(hasPlaceholders('{@ a @}'), true);
     assert.equal(hasPlaceholders('{@ a @}'), true);
   });
+
+  test('a match does not affect the next call', () => {
+    assert.equal(hasPlaceholders('x {@ a @}'), true);
+    assert.equal(hasPlaceholders('{@ a @}'), true);
+  });
+});
+
+describe('reusing the regex', () => {
+  test('listPlaceholders after hasPlaceholders finds every placeholder', () => {
+    assert.equal(hasPlaceholders('x {@ a @}'), true);
+    assert.deepEqual(
+      listPlaceholders('{@ a @} {@ b @}').map(({ name }) => name),
+      ['a', 'b'],
+    );
+  });
+
+  test('alternating delimiter pairs', () => {
+    const curly = { open: '{{', close: '}}' };
+    for (let i = 0; i < 2; ++i) {
+      assert.equal(replacePlaceholders('{@ a @} {{ a }}', { a: 'X' }), 'X {{ a }}');
+      assert.equal(replacePlaceholders('{@ a @} {{ a }}', { a: 'X' }, curly), '{@ a @} X');
+    }
+  });
+
+  test('a resolver that calls back in with other delimiters', () => {
+    const curly = { open: '{{', close: '}}' };
+    const result = replacePlaceholders('{@ a @} {@ b @} {@ a @}', (name) =>
+      replacePlaceholders(`{{ ${name} }}`, (inner) => inner.toUpperCase(), curly),
+    );
+    assert.equal(result, 'A B A');
+    assert.equal(replacePlaceholders('{@ a @}', { a: 'X' }), 'X');
+  });
 });
 
 describe('name grammar', () => {
