@@ -7,6 +7,10 @@ on:
   pull_request:
     branches:
       - main
+    # Markdown and static/ hold no code to analyze; pushes to main and the weekly run still cover everything.
+    paths-ignore:
+      - '**/*.md'
+      - 'static/**'
   schedule:
     - cron: '0 23 * * 0'
 

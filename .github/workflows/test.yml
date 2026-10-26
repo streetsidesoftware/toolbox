@@ -6,6 +6,7 @@ on:
     # Only code, dependencies and build config; docs-only and other-workflow changes skip the tests.
     paths: &test-paths
       - 'packages/**'
+      - '!packages/*/README.md'
       - 'internal/**'
       - 'scripts/**'
       - '.config/**'
