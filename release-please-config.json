@@ -66,9 +66,8 @@
     ".": {
       "component": "toolbox"
     },
-    "packages/markdown-builders": {
-      "component": "@streetsidesoftware/markdown-builders",
-      "release-as": "1.0.0"
+    "packages/markdown-toolkit": {
+      "component": "@streetsidesoftware/markdown-toolkit"
     },
     "packages/test-each": {
       "component": "@streetsidesoftware/test-each",
