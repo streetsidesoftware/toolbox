@@ -364,7 +364,7 @@ The builders were built inside inject-markdown first, for rapid development agai
 
 - Unit tests next to each builder, built from the escaping failures found in the repos: `]` in link text, a backtick in inline code, a fence inside a code block, `-->` in a comment, and inline versus block errors.
 - Template tests for the resolve order, missing names, kept placeholders, and placeholders inside code.
-- Tables of cases use `testEach`, a test-only helper that reads the same tagged-template tables as vitest's `test.each`.
+- Tables of cases use `testEach` from `@streetsidesoftware/test-each`, which reads the same tagged-template tables as vitest's `test.each`.
 - inject-markdown's placeholder and injection tests pass unchanged once it uses the package, which shows injection behavior didn't change.
 - Fixtures are fine, kept in this package.
 

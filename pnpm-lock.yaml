@@ -224,6 +224,9 @@ importers:
         specifier: ^5.1.0
         version: 5.1.0
     devDependencies:
+      '@streetsidesoftware/test-each':
+        specifier: workspace:*
+        version: link:../test-each
       '@types/mdast':
         specifier: ^4.0.4
         version: 4.0.4
