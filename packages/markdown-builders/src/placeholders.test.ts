@@ -4,6 +4,7 @@ import { describe, mock, test } from 'node:test';
 import type { Root } from 'mdast';
 
 import { substituteInString, substituteInTree } from './placeholders.ts';
+import type { MdastRoot } from './placeholders.ts';
 import { testEach } from './testEach.ts';
 
 interface SubstituteRow {
@@ -46,6 +47,11 @@ describe('substituteInTree', () => {
   function root(children: Root['children']): Root {
     return { type: 'root', children };
   }
+
+  test("mdast's Root fits MdastRoot, the copy the /placeholders functions take", () => {
+    const tree = root([]) satisfies MdastRoot;
+    assert.equal(tree.type, 'root');
+  });
 
   test('substitutes in text, inlineCode, code, and html nodes', () => {
     const tree = root([

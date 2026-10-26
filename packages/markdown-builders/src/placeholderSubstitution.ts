@@ -1,6 +1,8 @@
 import type { Root } from 'mdast';
 import { visit } from 'unist-util-visit';
 
+import type { MdastRoot } from './types.ts';
+
 /**
  * Matches `{​@ name @​}` placeholders, with an optional leading backslash escape.
  * Whitespace immediately inside the delimiters is optional and trimmed by the regex itself.
@@ -67,8 +69,12 @@ const textBearingTypes = ['text', 'inlineCode', 'code', 'html'] as const;
  * own string value, in place.
  * It does not stringify and re-parse the tree, so only the substituted text changes.
  */
-export function substituteInTree(root: Root, resolve: PlaceholderResolver, onUnresolved: (name: string) => void): void {
-  visit(root, [...textBearingTypes], (node) => {
+export function substituteInTree(
+  tree: MdastRoot,
+  resolve: PlaceholderResolver,
+  onUnresolved: (name: string) => void,
+): void {
+  visit(tree as Root, [...textBearingTypes], (node) => {
     node.value = substituteInString(node.value, resolve, onUnresolved);
   });
 }

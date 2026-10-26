@@ -185,6 +185,15 @@ export type ListItemContent = BlockOrInlineContent;
 /** One item of a list. */
 export type ListEntry = InlineContent | MDBlock | MDListItem | readonly ListItemContent[];
 
+/**
+ * The root of an mdast tree, as the `/placeholders` functions take it.
+ * A copy of the part of mdast's `Root` they need, so the package's types don't depend on mdast.
+ */
+export interface MdastRoot {
+  type: 'root';
+  children: unknown[];
+}
+
 export type BulletMarker = '*' | '+' | '-';
 export type OrderedBulletMarker = '.' | ')';
 export type EmphasisMarker = '*' | '_';

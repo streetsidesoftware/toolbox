@@ -208,9 +208,6 @@ importers:
 
   packages/markdown-builders:
     dependencies:
-      '@types/mdast':
-        specifier: ^4.0.4
-        version: 4.0.4
       remark-gfm:
         specifier: ^4.0.1
         version: 4.0.1(supports-color@9.4.0)
@@ -226,6 +223,10 @@ importers:
       unist-util-visit:
         specifier: ^5.1.0
         version: 5.1.0
+    devDependencies:
+      '@types/mdast':
+        specifier: ^4.0.4
+        version: 4.0.4
 
   packages/unindent: {}
 
