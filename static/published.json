@@ -1,4 +1,4 @@
 {
-  "@streetsidesoftware/test-each": { "trustedPublishing": false },
+  "@streetsidesoftware/test-each": { "trustedPublishing": true },
   "@streetsidesoftware/unindent": { "trustedPublishing": true }
 }
