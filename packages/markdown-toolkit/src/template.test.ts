@@ -134,11 +134,12 @@ describe('template', () => {
     assert.equal(md.toString(), 'cspell `{@ engines.cspell @}`, needs {@ engines.cspell @}');
   });
 
-  test('a placeholder with no value throws, naming every missing one', () => {
-    assert.throws(
-      () => template('{@ a @} {@ b.c @} {@ a @} {@ d @}', { d: 'x' }),
-      /template has no value for \{@ a @\}, \{@ b\.c @\}/,
-    );
+  test('a placeholder with no value is kept, so templates can be chained', () => {
+    const md = template('{@ a @} {@ b.c @}\n\n{@ list @}\n', { a: 'x' });
+    assert.equal(md.toString(), 'x {@ b.c @}\n\n{@ list @}');
+    assert.equal(blockTemplate('{@ a @}', {}).toString(), '{@ a @}');
+    assert.equal(inlineTemplate('a {@ b @} c', {}).toString(), 'a {@ b @} c');
+    assert.equal(substitutePlaceholders(md, { b: { c: 'y' }, list: list(['z']) }).toString(), 'x y\n\n- z');
   });
 
   test('an escaped placeholder in code stays literal', () => {

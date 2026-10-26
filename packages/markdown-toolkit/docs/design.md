@@ -281,11 +281,7 @@ There are three template functions. Each fills a template in one call:
 - Its text must be inline-able: one paragraph. A blank line throws. Block syntax is parsed as text, so `' - Adds …'` is a fragment, not a list. Leading and trailing whitespace is kept.
 - Its placeholders take only inline values.
 
-A placeholder with no value is an error. `template` throws and lists the missing names. A script that keeps a placeholder for injection time passes it explicitly. So typos are caught, and every kept placeholder is visible in the script. Any of these work:
-
-- `{ engines: { cspell: placeholder('engines.cspell') } }`
-- `{ 'engines.cspell': placeholder('engines.cspell') }`: a key may be a dotted name.
-- `{ 'engines.cspell': '{@ engines.cspell @}' }`: escaping text leaves placeholder syntax alone.
+A placeholder with no value is kept as written, so templates can be chained: a later template, `substitutePlaceholders`, or injection fills it. A script that needs every placeholder filled can search its output for `{@`.
 
 A values object resolves names the way injection resolves declarations:
 
@@ -344,7 +340,7 @@ document(step).toString(); // `{@ engines.vscode @}` is kept, for injection.
 
 ### Errors
 
-A value of the wrong kind throws a `TypeError`, such as a block where only inline content can go, or an array that mixes inline and block values. Other misuse throws an `Error`, such as a template placeholder with no value or a heading depth outside 1–6. Each message names what was wrong: `heading content must be inline, got a list`.
+A value of the wrong kind throws a `TypeError`, such as a block where only inline content can go, or an array that mixes inline and block values. Other misuse throws an `Error`, such as a heading depth outside 1–6. Each message names what was wrong: `heading content must be inline, got a list`.
 
 A builders-specific error class waits until a caller needs to catch one specifically.
 
@@ -396,7 +392,7 @@ The README's usage section is written once the API is built, not during developm
 - `template(markdown).fill(values)`: a second kind of object, for a parse-once speed gain the scripts don't need. It can still be added later.
 - Trying the exact key first, then the nested walk: it ignores the order a reader sees, and mixed forms such as `{ 'a.b': { c: 1 } }` for `a.b.c` don't resolve.
 - Trying the longest matching key first: a later key couldn't override an earlier, longer one.
-- Leaving a placeholder with no value as written, as injection does: a typo reaches the generated file. A `strict` option would make the safe behavior opt-in.
+- A template throwing on a placeholder with no value: templates are chained, so a later step may fill it. A `strict` option or a check function isn't needed either, since a script can search its output for `{@`.
 - During development, a second package in inject-markdown: it means converting that repo to a monorepo, with its release and CI setup.
 - Toolbox from the start: during development, every grammar change would have needed a toolbox release before inject-markdown could use it.
 - `experimental` in the package name or subpath: every import would change once it settles.
