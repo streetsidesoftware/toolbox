@@ -136,16 +136,17 @@ jobs:
 
             ### 3. Commit the Trusted Publishing status
 
-            `pnpm trusted-publishing` changes the package's entry in `static/published.json` to `{ "trustedPublishing": true }`:
-
-            ```sh
-            cd ../..
-            git add static/published.json
-            git commit -m "chore(${{ matrix.dir }}): record Trusted Publishing"
-            git push
-            ```
+            - [ ] Commit and push the updated `static/published.json`:
+              ```sh
+              cd ../..
+              git add static/published.json
+              git commit -m "chore(${{ matrix.dir }}): record Trusted Publishing"
+              git push
+              ```
 
             ### 4. Merge this PR
+
+            - [ ] Merge this PR after committing the Trusted Publishing status
 
             Then merge the release PR. The [Publish to NPM](https://github.com/streetsidesoftware/toolbox/actions/workflows/publish.yml) workflow publishes `1.0.0` through Trusted Publishing. Then merge the PR that the [Update Release Please Config](https://github.com/streetsidesoftware/toolbox/actions/workflows/update-release-please-config.yml) workflow opens to remove `release-as`.
           app_id: ${{ secrets.AUTOMATION_APP_ID }}
