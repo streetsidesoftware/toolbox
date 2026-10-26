@@ -79,7 +79,15 @@ function parseColumns(name: string, strings: readonly string[]): string[] {
 }
 
 export function formatTitle(title: string, row: Row): string {
-  return title.replace(/\$(\w+)/g, (match, column: string) =>
-    Object.hasOwn(row, column) ? inspect(row[column]) : match,
+  return title.replace(/\$(\w+)((?:\.\w+)*)/g, (match, column: string, path: string) =>
+    Object.hasOwn(row, column) ? inspect(followPath(row[column], path)) : match,
   );
+}
+
+// Follows a `.a.b` path into a value, like vitest's `$a.b`. A missing step gives `undefined`.
+function followPath(value: unknown, path: string): unknown {
+  for (const key of path.split('.').slice(1)) {
+    value = value == null ? undefined : (value as Record<string, unknown>)[key];
+  }
+  return value;
 }

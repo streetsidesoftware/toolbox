@@ -59,7 +59,8 @@ describeEach`
 ### Titles
 
 A `$column` in the title is replaced by that row's value, formatted with
-[`util.inspect`](https://nodejs.org/api/util.html#utilinspectobject-options), so strings are quoted: `'empty'`. A
+[`util.inspect`](https://nodejs.org/api/util.html#utilinspectobject-options), so strings are quoted: `'empty'`. Use
+`$column.key` to reach into an object, as in vitest: `$input.length` or `$a.val`. A missing key gives `undefined`. A
 `$name` that isn't a column is left as it is.
 
 ### Errors

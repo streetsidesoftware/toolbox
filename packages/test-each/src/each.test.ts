@@ -103,6 +103,19 @@ describe('formatTitle', () => {
     );
   });
 
+  test('follows a $column.path into the value', () => {
+    const values = { a: { val: 1, deep: { x: 'y' } }, s: 'abc' };
+    assert.equal(formatTitle('add($a.val) $a.deep.x $s.length', values), "add(1) 'y' 3");
+  });
+
+  test('gives undefined for a path that is missing', () => {
+    assert.equal(formatTitle('$a.missing.x $n.x', { a: {}, n: null }), 'undefined undefined');
+  });
+
+  test('leaves a trailing dot as text', () => {
+    assert.equal(formatTitle('$a.', { a: 1 }), '1.');
+  });
+
   test('leaves $names that are not columns', () => {
     assert.equal(formatTitle('$a $other $constructor $', { a: 1 }), '1 $other $constructor $');
   });
