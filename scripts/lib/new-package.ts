@@ -5,7 +5,7 @@ import { listPlaceholders, replacePlaceholders } from '@streetsidesoftware/place
 
 import { REPO_ROOT_DIR } from './consts.ts';
 import type { PackageJson } from './package-json-util.ts';
-import { fixUpPackageJson, formatPackageJson } from './package-json-util.ts';
+import { fixUpPackageJson, formatPackageJson, readPackageJson, ROOT_PACKAGE_JSON_FILE } from './package-json-util.ts';
 
 export const SCOPE = '@streetsidesoftware';
 export const PRIVATE_SUFFIX = ' -- Private until verified';
@@ -55,11 +55,15 @@ export async function newPackageFiles(name: string, options: NewPackageOptions =
   const templateDir = options.templateDir ?? TEMPLATE_DIR;
   const templates = await readTemplates(templateDir);
   assertKnownPlaceholders(templates, values, templateDir);
+  const rootPackageJson = await readPackageJson(ROOT_PACKAGE_JSON_FILE);
 
   const files: Record<string, string> = {};
   for (const [relPath, text] of Object.entries(templates)) {
     const path = replacePlaceholders(relPath, values);
-    files[path] = path === 'package.json' ? packageJsonText(name, text, values) : replacePlaceholders(text, values);
+    files[path] =
+      path === 'package.json'
+        ? packageJsonText(name, text, values, rootPackageJson)
+        : replacePlaceholders(text, values);
   }
   return files;
 }
@@ -101,12 +105,12 @@ export function privateDescription(description: string | undefined): string {
 }
 
 // Placeholders are filled in the parsed string values, so a value with a `"` can't break the JSON.
-function packageJsonText(name: string, template: string, values: TemplateValues): string {
+function packageJsonText(name: string, template: string, values: TemplateValues, rootPackageJson: PackageJson): string {
   const packageJson: PackageJson = JSON.parse(template, (_key, value: unknown) =>
     typeof value === 'string' ? replacePlaceholders(value, values) : value,
   );
-  // Add repository and publishConfig the way `fix-package-json` does, so the new package already passes lint.
-  fixUpPackageJson(packageJson, Path.join(REPO_ROOT_DIR, 'packages', name, 'package.json'));
+  // Add repository, publishConfig and engines the way `fix-package-json` does, so the new package already passes lint.
+  fixUpPackageJson(packageJson, Path.join(REPO_ROOT_DIR, 'packages', name, 'package.json'), rootPackageJson);
   return formatPackageJson(packageJson);
 }
 

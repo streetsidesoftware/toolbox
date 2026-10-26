@@ -56,10 +56,13 @@ How the packages in this repo are built, tested, and packaged for npm.
   package.
 - **Keep production dependencies few.** Be conservative about adding a `dependencies` entry, and check its
   license first by [dependency licenses](./dependency-licenses.md).
-- **`fix-package-json` sets the rest.** `pnpm run lint` runs it on `packages/*` and `internal/*`:
+- **`fix-package-json` sets the rest.** `pnpm run lint` runs it on `packages/*`, `internal/*` and `scripts/`:
   - `repository`, with `directory` pointing at the package. npm's provenance check needs `repository.url` to
     match the repo the build ran in.
   - `publishConfig`: public access with provenance, or restricted for `@internal/*`.
+  - `engines.node`, copied from the root `package.json`, also into the new-package template in
+    `static/templates/`. Change the Node.js version there and run `pnpm run lint`; `lint-ci` fails while a
+    package is out of step.
   - Sorted, deduped `keywords`, and the order of the fields.
 
 For releasing, see [releasing](./releasing.md).

@@ -1,6 +1,15 @@
 {
   "name": "@internal/scripts",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/streetsidesoftware/toolbox.git",
+    "directory": "scripts"
+  },
+  "publishConfig": {
+    "access": "restricted",
+    "provenance": true
+  },
   "type": "module",
   "bin": {
     "fix-package-json": "./fix-package-json.ts",
@@ -16,13 +25,13 @@
     "test": "node --test \"lib/**/*.test.ts\"",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@streetsidesoftware/placeholders": "workspace:*"
+  },
   "devDependencies": {
     "sort-package-json": "^4.0.0"
   },
   "engines": {
     "node": ">=22.18.0"
-  },
-  "dependencies": {
-    "@streetsidesoftware/placeholders": "workspace:*"
   }
 }

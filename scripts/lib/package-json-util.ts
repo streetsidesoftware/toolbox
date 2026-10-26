@@ -10,6 +10,9 @@ const PUBLISH_CONFIG: PackageJsonPublishConfig = {
   provenance: true,
 };
 
+/** The root `package.json`, whose `engines.node` every package gets. */
+export const ROOT_PACKAGE_JSON_FILE: string = Path.join(REPO_ROOT_DIR, 'package.json');
+
 const SORT_PACKAGE_ORDER = ['name', 'version', 'private', 'description', 'repository', 'funding', 'publishConfig'];
 
 export interface PackageJson {
@@ -60,23 +63,34 @@ export function setPackageRepository(packageJson: PackageJson, filePath: string)
   };
 }
 
-export function fixUpPackageJson(packageJson: PackageJson, filePath: string) {
+export function fixUpPackageJson(packageJson: PackageJson, filePath: string, rootPackageJson: PackageJson) {
   const name = packageJson.name ?? '@internal/' + Path.basename(Path.dirname(filePath));
   packageJson.name = name;
   setPackageRepository(packageJson, filePath);
-
-  if (packageJson.keywords) packageJson.keywords = [...new Set(packageJson.keywords)].sort();
 
   const publishConfig = { ...PUBLISH_CONFIG };
   if (name.startsWith('@internal/')) {
     publishConfig.access = 'restricted';
   }
   packageJson.publishConfig = publishConfig;
+
+  fixUpTemplatePackageJson(packageJson, rootPackageJson);
+}
+
+/** The fix-ups that don't depend on where a package lives, so the new-package template gets them too. */
+export function fixUpTemplatePackageJson(packageJson: PackageJson, rootPackageJson: PackageJson) {
+  if (packageJson.keywords) packageJson.keywords = [...new Set(packageJson.keywords)].sort();
+
+  const node = rootPackageJson.engines?.node;
+  if (!node) throw new Error(`${ROOT_PACKAGE_JSON_FILE} has no engines.node.`);
+  packageJson.engines = { ...packageJson.engines, node };
 }
 
 export interface FixPackageJsonOptions {
   dryRun?: boolean;
   force?: boolean;
+  /** Only the fix-ups in {@link fixUpTemplatePackageJson}, for the new-package template. */
+  template?: boolean;
 }
 
 /**
@@ -84,12 +98,14 @@ export interface FixPackageJsonOptions {
  * @returns `true` if the file's contents needed fixing, `false` if it was already correct.
  */
 export async function fixPackageJson(filePath: string, options: FixPackageJsonOptions): Promise<boolean> {
-  const { dryRun, force } = options;
+  const { dryRun, force, template } = options;
   const relPath = Path.relative(REPO_ROOT_DIR, filePath);
   console.error('Fixing package.json for: %s', relPath);
   const packageJson = await readPackageJson(filePath);
   const orig = await fs.readFile(filePath, 'utf-8');
-  fixUpPackageJson(packageJson, filePath);
+  const rootPackageJson = await readPackageJson(ROOT_PACKAGE_JSON_FILE);
+  if (template) fixUpTemplatePackageJson(packageJson, rootPackageJson);
+  else fixUpPackageJson(packageJson, filePath, rootPackageJson);
   const result = formatPackageJson(packageJson);
   const needsFix = orig !== result;
 
