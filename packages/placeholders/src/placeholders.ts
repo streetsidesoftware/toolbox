@@ -51,7 +51,7 @@ export function isValidPlaceholderName(name: string): boolean {
  */
 export function replacePlaceholders(text: string, values: PlaceholderValues, options?: PlaceholderOptions): string {
   const resolve = typeof values === 'function' ? (values as PlaceholderResolver) : objectResolver(values);
-  return text.replace(placeholderRegExp(options, 'g'), (match, name: string) => resolve(name) ?? match);
+  return text.replaceAll(placeholderRegExp(options, 'g'), (match, name: string) => resolve(name) ?? match);
 }
 
 /**
