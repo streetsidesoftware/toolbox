@@ -1,4 +1,5 @@
 {
+  "@streetsidesoftware/markdown-toolkit": { "trustedPublishing": false },
   "@streetsidesoftware/test-each": { "trustedPublishing": true },
   "@streetsidesoftware/unindent": { "trustedPublishing": true }
 }
