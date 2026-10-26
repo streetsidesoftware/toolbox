@@ -1,8 +1,7 @@
 {
   "name": "@streetsidesoftware/test-each",
   "version": "0.0.1-alpha.0",
-  "private": true,
-  "description": "Table-driven tests for node:test, written as vitest-style tagged-template tables. -- Private until verified",
+  "description": "Table-driven tests for node:test, written as vitest-style tagged-template tables.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/streetsidesoftware/toolbox.git",
