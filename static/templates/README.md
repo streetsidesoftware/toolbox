@@ -8,7 +8,15 @@ TODO: describe the package.
 npm install {@ fullName @}
 ```
 
-Requires Node.js 22.18 or later. ESM only.
+## Usage
+
+> Fill in usage
+
+> Add package readme content here.
+
+## Requirements
+
+<!-- @@inject: ../../static/requirements.md#values-file=:package.json -->
 
 ## License
 

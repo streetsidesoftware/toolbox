@@ -8,8 +8,6 @@ Replace placeholders such as `{@ name @}` in a string with values, and find the 
 npm install @streetsidesoftware/placeholders
 ```
 
-Requires Node.js 22.18 or later. ESM only.
-
 ## Usage
 
 ```ts
@@ -67,6 +65,10 @@ Every function takes the same `{ open, close }` options. The defaults are `{@` a
 - `listPlaceholders(text, options?)`: every placeholder in `text`, as `{ name, start, end }`, in order.
 - `hasPlaceholders(text, options?)`: whether `text` has any placeholders.
 - `isValidPlaceholderName(name)`: whether `name` follows the name rules.
+
+## Requirements
+
+<!-- @@inject: ../../static/requirements.md#values-file=:package.json -->
 
 ## License
 
