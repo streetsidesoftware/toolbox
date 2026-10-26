@@ -46,6 +46,7 @@ async function main() {
   await fs.writeFile(pkgFile, stringifyPackageJson(makePublic(found.packageJson)), 'utf8');
   console.log(`${name}: removed private and "${PRIVATE_SUFFIX.trim()}" (${found.dir}/package.json)`);
 
+  // A private package stays 0.x: Release Please only reaches 1.0.0 through a release-as set by hand.
   await writeReleaseAs([name], '1.0.0');
 
   await writePublished(recordPending(published, name));
