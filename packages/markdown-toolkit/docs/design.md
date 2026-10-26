@@ -358,7 +358,6 @@ The builders were built inside inject-markdown first, for rapid development agai
   - `@streetsidesoftware/markdown-toolkit`: the builders, templates, and `detectStyle`. Its types never mention mdast.
   - `@streetsidesoftware/markdown-toolkit/placeholders`: for tools such as inject-markdown that fill placeholders in an mdast tree. It has the placeholder name checks, `substituteInString`, `substituteInTree`, and `detectMarkdownStyle`.
 - inject-markdown keeps exporting the builders as `inject-markdown/markdown`, as a pass-through to the package.
-- While the API settles, it's documented as experimental. Breaking changes ship as minor releases, called out in the release notes.
 
 ### Tests
 

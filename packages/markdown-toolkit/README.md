@@ -6,10 +6,6 @@ or fill a Markdown template, then render the result with `toString()`.
 Building Markdown with string concatenation works until a value contains `*`, `[`, `|` or a leading `1.`. This
 toolkit escapes each value for where it ends up, so text you insert stays text.
 
-> [!WARNING]
-> Experimental. The API may change while it settles. Breaking changes ship as minor releases, called out in the
-> release notes.
-
 ## Install
 
 ```sh
