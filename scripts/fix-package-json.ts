@@ -3,8 +3,8 @@
 import fs from 'node:fs/promises';
 import Path from 'node:path';
 
-import { REPO_ROOT_DIR } from './lib/consts.ts';
-import { TEMPLATE_DIR } from './lib/new-package.ts';
+// Not from new-package.ts: that imports @streetsidesoftware/placeholders, which needs a build, and autofix runs this without one.
+import { REPO_ROOT_DIR, TEMPLATE_DIR } from './lib/consts.ts';
 import { fixPackageJson } from './lib/package-json-util.ts';
 
 const HELP = `Usage: fix-package-json [options]

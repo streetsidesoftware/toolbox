@@ -6,14 +6,8 @@ import { describe, mock, test } from 'node:test';
 
 import { hasPlaceholders, replacePlaceholders } from '@streetsidesoftware/placeholders';
 
-import { REPOSITORY_GIT_URL } from './consts.ts';
-import {
-  createPackage,
-  newPackageFiles,
-  privateDescription,
-  TEMPLATE_DIR,
-  validatePackageName,
-} from './new-package.ts';
+import { REPOSITORY_GIT_URL, TEMPLATE_DIR } from './consts.ts';
+import { createPackage, newPackageFiles, privateDescription, validatePackageName } from './new-package.ts';
 import type { NewPackageOptions } from './new-package.ts';
 import type { PackageJson } from './package-json-util.ts';
 import { readPackageJson, ROOT_PACKAGE_JSON_FILE } from './package-json-util.ts';

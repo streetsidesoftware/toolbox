@@ -3,14 +3,13 @@ import Path from 'node:path';
 
 import { listPlaceholders, replacePlaceholders } from '@streetsidesoftware/placeholders';
 
-import { REPO_ROOT_DIR } from './consts.ts';
+import { REPO_ROOT_DIR, TEMPLATE_DIR } from './consts.ts';
 import type { PackageJson } from './package-json-util.ts';
 import { fixUpPackageJson, formatPackageJson, readPackageJson, ROOT_PACKAGE_JSON_FILE } from './package-json-util.ts';
 
 export const SCOPE = '@streetsidesoftware';
 export const PRIVATE_SUFFIX = ' -- Private until verified';
 export const DEFAULT_DESCRIPTION = 'TODO: describe the package.';
-export const TEMPLATE_DIR: string = Path.join(REPO_ROOT_DIR, 'static', 'templates');
 
 /** Lowercase words of letters and digits joined by single hyphens, such as `test-each`. */
 const NAME_REGEXP = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
