@@ -18,13 +18,15 @@ Publishing a new package for the first time is done by hand once (see [New packa
 
 - **Never edit `release-please-config.json` or `.release-please-manifest.json` by hand.** The
   [Update Release Please Config](https://github.com/streetsidesoftware/toolbox/actions/workflows/update-release-please-config.yml)
-  workflow keeps both up to date: when a package is added or released, it opens a `chore:` PR. Merge it. It runs
+  workflow keeps both up to date: when a package is added, removed, renamed or released, it opens a `chore:` PR. Merge it. It runs
   `pnpm run release-please-config`, which:
   - adds a config entry for the root package and every `packages/*` package, private ones included
-  - adds each package missing from the manifest at its `package.json` version, and never changes an existing entry
+  - adds each package missing from the manifest at its `package.json` version, and never changes an existing version
   - drops each `release-as` once the manifest shows that version was released
+  - drops the entries of packages that no longer exist from the manifest and `static/published.json`, except a
+    `false` in `static/published.json`
 - **Release state isn't lint.** `pnpm run lint` and `lint-ci` don't touch either file.
-  `pnpm run release-please-config:check` reports whether they're up to date.
+  `pnpm run release-please-config:check` reports whether they and `static/published.json` are up to date.
 - **Only `packages/*` is released.** Private code lives in `internal/*` and `scripts/`.
 - **New packages start private.** A new package has `"private": true`, version `0.0.1-alpha.0`, and
   " -- Private until verified" at the end of its `description`. Leave all three until a maintainer publishes it.
@@ -95,7 +97,8 @@ takes a directory under `packages/` or a package name, and blank means every pri
 #### Publication state
 
 `static/published.json` has one line per package. Only the publication PR and `pnpm exec trusted-publishing` write
-it, except for `false`, which a maintainer sets on `main`.
+it, except for `false`, which a maintainer sets on `main`. When a package is removed or renamed, the Update Release
+Please Config PR drops its entry, unless it's `false`.
 
 | Entry                            | Meaning                                                                  |
 | -------------------------------- | ------------------------------------------------------------------------ |

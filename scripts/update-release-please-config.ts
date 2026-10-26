@@ -9,18 +9,20 @@ import { readPackageJson } from './lib/package-json-util.ts';
 import { findPackages } from './lib/packages.ts';
 import type { Manifest, ReleasePleaseConfig } from './lib/release-please.ts';
 import { CONFIG_FILE, formatJson, genConfig, genManifest, MANIFEST_FILE, readJsonFile } from './lib/release-please.ts';
+import { formatPublished, prunePublished, PUBLISHED_FILE, readPublished } from './lib/trusted-publishing.ts';
 
 const HELP = `Usage: update-release-please-config [options]
 
-Updates ${CONFIG_FILE} and ${MANIFEST_FILE} from the root package and packages/*:
+Updates ${CONFIG_FILE}, ${MANIFEST_FILE} and ${PUBLISHED_FILE} from the root package and packages/*:
 - adds a config entry for each package, private ones included
-- adds each package missing from the manifest at its package.json version; existing entries never change
+- adds each package missing from the manifest at its package.json version; existing versions never change
 - drops each release-as once the manifest shows that version was released
+- drops the manifest and ${PUBLISHED_FILE} entries of packages that no longer exist, except a false in ${PUBLISHED_FILE}
 
 Run by the Update Release Please Config workflow on main. Release state, not lint.
 
 Options:
-  --check     Don't write; exit with a non-zero status if either file is out of date.
+  --check     Don't write; exit with a non-zero status if any of the files is out of date.
   -h, --help  Show this help message.
 `;
 
@@ -38,15 +40,17 @@ async function main() {
 
   const manifest = genManifest(root, packages, currentManifest);
   const config = genConfig(root, packages, currentConfig, manifest);
+  const names = packages.flatMap((p) => (p.packageJson.name ? [p.packageJson.name] : []));
+  const published = prunePublished(await readPublished(), names);
 
   let outOfDate = false;
-  for (const [file, value] of [
-    [MANIFEST_FILE, manifest],
-    [CONFIG_FILE, config],
+  for (const [file, next] of [
+    [MANIFEST_FILE, formatJson(manifest)],
+    [CONFIG_FILE, formatJson(config)],
+    [PUBLISHED_FILE, formatPublished(published)],
   ] as const) {
     const filePath = Path.join(REPO_ROOT_DIR, file);
     const current = await fs.readFile(filePath, 'utf8').catch(() => '');
-    const next = formatJson(value);
     if (current === next) continue;
     if (values.check) {
       console.error('%s is out of date. Run `pnpm run release-please-config`.', file);
