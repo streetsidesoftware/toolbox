@@ -9,7 +9,8 @@ building on it, not after.
 
 - **Production dependencies**, and everything they pull in. Users install these alongside the package.
   `pnpm licenses list --prod --filter <package-name>` lists them with their licenses.
-- **Anything bundled into `dist/`.** tsdown inlines dev dependencies' code and types, and we
+- **Anything bundled into `dist/`.** The build fails if tsdown would inline code or types from
+  `node_modules` (see [build and packaging](./build-and-packaging.md)). If a package ever allows that, we
   redistribute whatever it inlines.
 - **Anything copied into `src/`**: a ported function, a data table, a `.wasm` file.
   Record where it came from, next to the copy.
