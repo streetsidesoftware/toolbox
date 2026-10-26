@@ -1,0 +1,145 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+
+import { testEach } from '@streetsidesoftware/test-each';
+
+import { hasPlaceholders, isValidPlaceholderName, listPlaceholders, replacePlaceholders } from './index.ts';
+import type { PlaceholderOptions } from './index.ts';
+
+interface ReplaceRow {
+  text: string;
+  values: object;
+  expected: string;
+}
+
+describe('replacePlaceholders', () => {
+  testEach`
+    text                             | values                                | expected
+    ${'v{@ version @}'}              | ${{ version: '1.2.3' }}               | ${'v1.2.3'}
+    ${'v{@version@}'}                | ${{ version: '1.2.3' }}               | ${'v1.2.3'}
+    ${'v{@  version\t@}'}            | ${{ version: '1.2.3' }}               | ${'v1.2.3'}
+    ${'{@ a @}-{@ b @}-{@ a @}'}     | ${{ a: '1', b: '2' }}                 | ${'1-2-1'}
+    ${'{@ pkg.version @}'}           | ${{ pkg: { version: '9.9.9' } }}      | ${'9.9.9'}
+    ${'{@ a.b.c @}'}                 | ${{ a: { b: { c: 'deep' } } }}        | ${'deep'}
+    ${'(c) {@ year @}'}              | ${{ year: 2030 }}                     | ${'(c) 2030'}
+    ${'{@ empty @}!'}                | ${{ empty: '' }}                      | ${'!'}
+    ${'no placeholder here'}         | ${{}}                                 | ${'no placeholder here'}
+    ${'{@ missing @}'}               | ${{}}                                 | ${'{@ missing @}'}
+    ${'{@ a.missing @}'}             | ${{ a: {} }}                          | ${'{@ a.missing @}'}
+    ${'{@ a.b @}'}                   | ${{ a: 'text' }}                      | ${'{@ a.b @}'}
+    ${'{@ a @}'}                     | ${{ a: { b: '1' } }}                  | ${'{@ a @}'}
+    ${'{@ a @}'}                     | ${{ a: true }}                        | ${'{@ a @}'}
+    ${'{@ a @}'}                     | ${{ a: null }}                        | ${'{@ a @}'}
+    ${'{@ a.length @}'}              | ${{ a: 'text' }}                      | ${'{@ a.length @}'}
+    ${'{@ toString @}'}              | ${{}}                                 | ${'{@ toString @}'}
+    ${'{@ __proto__.x @}'}           | ${{ ['__proto__']: { x: 'bad' } }}    | ${'{@ __proto__.x @}'}
+    ${'{@ constructor.name @}'}      | ${{}}                                 | ${'{@ constructor.name @}'}
+    ${'{@ v @}'}                     | ${{ v: '{@ v @}' }}                   | ${'{@ v @}'}
+    ${'{@ v @}'}                     | ${{ v: '$& $1' }}                     | ${'$& $1'}
+  `('replacePlaceholders($text, $values)', ({ text, values, expected }: ReplaceRow) => {
+    assert.equal(replacePlaceholders(text, values), expected);
+  });
+
+  test('takes a resolver', () => {
+    const names: string[] = [];
+    const result = replacePlaceholders('{@ a @} {@ b.c @} {@ d @}', (name) => {
+      names.push(name);
+      return name === 'd' ? undefined : name.toUpperCase();
+    });
+    assert.equal(result, 'A B.C {@ d @}');
+    assert.deepEqual(names, ['a', 'b.c', 'd']);
+  });
+
+  test('does not replace inside a value', () => {
+    assert.equal(replacePlaceholders('{@ a @}{@ b @}', { a: '{@ b', b: ' @}' }), '{@ b @}');
+  });
+});
+
+describe('delimiters', () => {
+  interface DelimiterRow {
+    text: string;
+    options: PlaceholderOptions;
+    expected: string;
+  }
+
+  testEach`
+    text                     | options                            | expected
+    ${'{{ name }}'}          | ${{ open: '{{', close: '}}' }}     | ${'X'}
+    ${'__name__'}            | ${{ open: '__', close: '__' }}     | ${'X'}
+    ${'/* name */'}          | ${{ open: '/*', close: '*/' }}     | ${'X'}
+    ${'$(name)'}             | ${{ open: '$(', close: ')' }}      | ${'X'}
+    ${'[.name.]'}            | ${{ open: '[.', close: '.]' }}     | ${'X'}
+    ${'<% name %>'}          | ${{ open: '<%' }}                  | ${'<% name %>'}
+    ${'<% name @}'}          | ${{ open: '<%' }}                  | ${'X'}
+    ${'{@ name @}'}          | ${{ open: '{{', close: '}}' }}     | ${'{@ name @}'}
+    ${'a.b'}                 | ${{ open: 'a', close: 'b' }}       | ${'a.b'}
+  `('$text with $options', ({ text, options, expected }: DelimiterRow) => {
+    assert.equal(replacePlaceholders(text, { name: 'X' }, options), expected);
+  });
+
+  test('rejects an empty delimiter', () => {
+    assert.throws(() => replacePlaceholders('', {}, { open: '' }), TypeError);
+    assert.throws(() => hasPlaceholders('', { close: '' }), TypeError);
+  });
+});
+
+describe('listPlaceholders', () => {
+  test('lists each placeholder with its offsets, in order', () => {
+    const text = 'a {@ x @} b {@y.z@} c {@ x @}';
+    const found = listPlaceholders(text);
+    assert.deepEqual(found, [
+      { name: 'x', start: 2, end: 9 },
+      { name: 'y.z', start: 12, end: 19 },
+      { name: 'x', start: 22, end: 29 },
+    ]);
+    for (const { start, end } of found) assert.match(text.slice(start, end), /^\{@.*@\}$/);
+  });
+
+  test('uses the given delimiters', () => {
+    assert.deepEqual(listPlaceholders('{@ a @} {{ b }}', { open: '{{', close: '}}' }), [
+      { name: 'b', start: 8, end: 15 },
+    ]);
+  });
+
+  test('is empty without placeholders', () => {
+    assert.deepEqual(listPlaceholders('plain {@ -bad @} text'), []);
+  });
+});
+
+describe('hasPlaceholders', () => {
+  testEach`
+    text                 | expected
+    ${'{@ a @}'}         | ${true}
+    ${'x {@a.b@} y'}     | ${true}
+    ${'plain'}           | ${false}
+    ${'{@ @}'}           | ${false}
+    ${'{@ a b @}'}       | ${false}
+  `('hasPlaceholders($text)', ({ text, expected }: { text: string; expected: boolean }) => {
+    assert.equal(hasPlaceholders(text), expected);
+  });
+
+  test('gives the same answer when called again', () => {
+    assert.equal(hasPlaceholders('{@ a @}'), true);
+    assert.equal(hasPlaceholders('{@ a @}'), true);
+  });
+});
+
+describe('name grammar', () => {
+  testEach`
+    name           | expected
+    ${'a'}         | ${true}
+    ${'a-b'}       | ${true}
+    ${'_a.b_2.c'}  | ${true}
+    ${'2fast'}     | ${true}
+    ${'-a'}        | ${false}
+    ${'a.-b'}      | ${false}
+    ${'a..b'}      | ${false}
+    ${'a.'}        | ${false}
+    ${'.a'}        | ${false}
+    ${'a b'}       | ${false}
+    ${''}          | ${false}
+  `('isValidPlaceholderName($name)', ({ name, expected }: { name: string; expected: boolean }) => {
+    assert.equal(isValidPlaceholderName(name), expected);
+    assert.equal(hasPlaceholders(`{@ ${name} @}`), expected);
+  });
+});
