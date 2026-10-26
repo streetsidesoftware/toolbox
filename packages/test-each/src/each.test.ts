@@ -1,14 +1,16 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
+import type { Row } from './each.ts';
 import { formatTitle, parseTable } from './each.ts';
 import { describeEach, testEach } from './index.ts';
 
 const table = (strings: TemplateStringsArray, ...values: unknown[]) => parseTable('table', strings, values);
+const row = (values: Row): Row => Object.assign(Object.create(null), values);
 
 describe('parseTable header', () => {
   test('names the columns from the first line', () => {
-    assert.deepEqual(table`a | b\n${1} | ${2}`, [{ a: 1, b: 2 }]);
+    assert.deepEqual(table`a | b\n${1} | ${2}`, [row({ a: 1, b: 2 })]);
   });
 
   test('ignores the whitespace around the header and its columns', () => {
@@ -16,23 +18,34 @@ describe('parseTable header', () => {
         first   |   second
         ${1}    |   ${2}
     `;
-    assert.deepEqual(rows, [{ first: 1, second: 2 }]);
+    assert.deepEqual(rows, [row({ first: 1, second: 2 })]);
   });
 
   test('allows a single column', () => {
-    assert.deepEqual(table`a\n${1}\n${2}`, [{ a: 1 }, { a: 2 }]);
+    assert.deepEqual(table`a\n${1}\n${2}`, [row({ a: 1 }), row({ a: 2 })]);
   });
 
   test('returns no rows for a header without values', () => {
     assert.deepEqual(table`a | b`, []);
   });
 
+  test('creates rows without a prototype', () => {
+    const [first] = table`a\n${1}`;
+    assert.equal(first && Object.getPrototypeOf(first), null);
+  });
+
+  test('keeps a column named __proto__ as a key', () => {
+    const [first] = table`__proto__ | b\n${1} | ${2}`;
+    assert.ok(first && Object.hasOwn(first, '__proto__'));
+    assert.equal(first['__proto__'], 1);
+  });
+
   test('keeps values as they are', () => {
     const obj = { x: 1 };
-    const [row] = table`a | b | c\n${obj} | ${undefined} | ${'s'}`;
-    assert.equal(row?.['a'], obj);
-    assert.ok(row && Object.hasOwn(row, 'b'));
-    assert.equal(row?.['c'], 's');
+    const [first] = table`a | b | c\n${obj} | ${undefined} | ${'s'}`;
+    assert.equal(first?.['a'], obj);
+    assert.ok(first && Object.hasOwn(first, 'b'));
+    assert.equal(first?.['c'], 's');
   });
 
   test('rejects an empty header', () => {
@@ -61,10 +74,7 @@ describe('parseTable rows', () => {
       ${1} | ${2}
       ${3} | ${4}
     `;
-    assert.deepEqual(rows, [
-      { a: 1, b: 2 },
-      { a: 3, b: 4 },
-    ]);
+    assert.deepEqual(rows, [row({ a: 1, b: 2 }), row({ a: 3, b: 4 })]);
   });
 
   test('rejects values that do not fill the last row', () => {

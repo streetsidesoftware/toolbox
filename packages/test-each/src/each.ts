@@ -51,7 +51,7 @@ export function parseTable(name: string, strings: readonly string[], values: rea
   }
   const rows: Row[] = [];
   for (let start = 0; start < values.length; start += columns.length) {
-    const row: Row = {};
+    const row: Row = Object.create(null);
     for (const [i, column] of columns.entries()) {
       const separator = strings[start + i + 1]?.trim();
       const expected = i < columns.length - 1 ? '|' : '';
