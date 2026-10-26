@@ -58,8 +58,8 @@ describe('newPackageFiles', async () => {
       'LICENSE',
       'README.md',
       'package.json',
+      'src/index.test.ts',
       'src/index.ts',
-      'src/my-pkg.test.ts',
       'tsconfig.json',
       'tsdown.config.ts',
     ]);
@@ -125,6 +125,16 @@ describe('newPackageFiles', async () => {
 
   test('throws on an invalid name', async () => {
     await assert.rejects(newPackageFiles('Bad'), /Invalid package name/);
+  });
+
+  test('fills in placeholders in paths', async () => {
+    await withTempRoot(async (templateDir) => {
+      await fs.mkdir(Path.join(templateDir, 'src'));
+      await fs.writeFile(Path.join(templateDir, 'src', '{@name@}.ts'), '{@ fullName @}');
+      assert.deepEqual(await newPackageFiles('my-pkg', { templateDir }), {
+        'src/my-pkg.ts': '@streetsidesoftware/my-pkg',
+      });
+    });
   });
 
   test('throws on a placeholder without a value, naming each one', async () => {
