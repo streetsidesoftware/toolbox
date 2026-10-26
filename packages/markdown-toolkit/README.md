@@ -1,4 +1,4 @@
-# @streetsidesoftware/markdown-builders
+# @streetsidesoftware/markdown-toolkit
 
 Build Markdown in scripts from typed values that escape their content. Compose links, lists, headings and code,
 then render the result with `toString()`.
@@ -10,7 +10,7 @@ then render the result with `toString()`.
 ## Install
 
 ```sh
-npm install @streetsidesoftware/markdown-builders
+npm install @streetsidesoftware/markdown-toolkit
 ```
 
 Requires Node.js 22.18 or later. ESM only.
@@ -18,7 +18,7 @@ Requires Node.js 22.18 or later. ESM only.
 ## Usage
 
 ```ts
-import * as md from '@streetsidesoftware/markdown-builders';
+import * as md from '@streetsidesoftware/markdown-toolkit';
 
 const doc = md.document(
   md.heading(2, ['Using ', md.inlineCode('cspell')]),
