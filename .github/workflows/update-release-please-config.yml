@@ -2,6 +2,7 @@ name: '⚙️ Update Release Please Config'
 
 # Runs update-release-please-config, which adds new packages to release-please-config.json and
 # .release-please-manifest.json, and drops each `release-as` whose version is now in the manifest.
+# It also drops the entries of packages that no longer exist from the manifest and static/published.json.
 # Opens a `chore:` PR with any change.
 
 on:
@@ -18,6 +19,7 @@ on:
       - .release-please-manifest.json
       - package.json
       - 'packages/*/package.json'
+      - static/published.json
 
 permissions:
   contents: read

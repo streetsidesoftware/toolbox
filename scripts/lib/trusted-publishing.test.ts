@@ -5,6 +5,7 @@ import {
   formatPublished,
   hasPublisher,
   parseJsonValues,
+  prunePublished,
   recordPending,
   recordTrusted,
   WORKFLOW_FILE,
@@ -38,6 +39,15 @@ describe('trusted publishing helpers', () => {
     const published = { '@s/a': false as const, '@s/b': { trustedPublishing: true } };
     assert.equal(recordPending(published, '@s/a'), published);
     assert.equal(recordPending(published, '@s/b'), published);
+  });
+
+  test('prunePublished drops packages not in the repo, keeping false', () => {
+    const published = {
+      '@s/a': { trustedPublishing: true },
+      '@s/gone': { trustedPublishing: true },
+      '@s/never': false as const,
+    };
+    assert.deepEqual(prunePublished(published, ['@s/a']), { '@s/a': { trustedPublishing: true }, '@s/never': false });
   });
 
   test('formatPublished writes one package per line, sorted by name', () => {

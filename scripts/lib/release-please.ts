@@ -72,11 +72,18 @@ export function genConfig(
   return { ...CONFIG_SETTINGS, packages: entries };
 }
 
-/** The manifest with an entry, at its `package.json` version, for each package that has none. */
+/**
+ * The manifest with an entry for the root and each package: its current entry, or its `package.json` version if it
+ * has none. Entries for packages that no longer exist are dropped.
+ */
 export function genManifest(root: WorkspacePackage, packages: WorkspacePackage[], current: Manifest): Manifest {
-  const manifest = { ...current };
+  const manifest: Manifest = {};
   for (const { dir, packageJson } of [root, ...packages]) {
-    if (manifest[dir] !== undefined) continue;
+    const version = current[dir];
+    if (version !== undefined) {
+      manifest[dir] = version;
+      continue;
+    }
     if (!packageJson.version) throw new Error(`${dir}/package.json has no version`);
     manifest[dir] = packageJson.version;
   }

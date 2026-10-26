@@ -26,11 +26,8 @@ describe('genManifest', () => {
     assert.deepEqual(manifest, { '.': '3.0.0', 'packages/a': '1.5.0' });
   });
 
-  test('keeps entries for packages that no longer exist', () => {
-    assert.deepEqual(genManifest(root, [], { '.': '1.0.0', 'packages/gone': '2.0.0' }), {
-      '.': '1.0.0',
-      'packages/gone': '2.0.0',
-    });
+  test('drops entries for packages that no longer exist', () => {
+    assert.deepEqual(genManifest(root, [], { '.': '1.0.0', 'packages/gone': '2.0.0' }), { '.': '1.0.0' });
   });
 });
 

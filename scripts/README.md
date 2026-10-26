@@ -19,8 +19,9 @@ These scripts are used to help maintain the repo.
 See [releasing](../docs/releasing.md). None of these run as part of lint.
 
 - `update-release-please-config.ts` (`pnpm run release-please-config`) updates `release-please-config.json` and
-  `.release-please-manifest.json`. The Update Release Please Config workflow runs it on `main`. `--check` exits with
-  a non-zero status if either file is out of date.
+  `.release-please-manifest.json`, and drops the entries of packages that no longer exist from
+  `static/published.json`. The Update Release Please Config workflow runs it on `main`. `--check` exits with a
+  non-zero status if any of the files is out of date.
 - `release-as.ts` (`pnpm run release-as`) sets or removes a package's `release-as`.
 - `publication-candidates.ts` prints, as JSON, the private packages to open a publication PR for: every one that
   `static/published.json` doesn't mark `false` and whose PR isn't open. It asks the GitHub API for open PRs, with `GITHUB_TOKEN` if set. The Prepare a

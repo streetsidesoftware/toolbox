@@ -50,6 +50,13 @@ export function recordPending(published: Published, name: string): Published {
   return name in published ? published : { ...published, [name]: { trustedPublishing: false } };
 }
 
+/** A copy of `published` without the entries of packages not in `names`. A `false` entry is kept. */
+export function prunePublished(published: Published, names: string[]): Published {
+  return Object.fromEntries(
+    Object.entries(published).filter(([name, entry]) => entry === false || names.includes(name)),
+  );
+}
+
 /** One package per line, sorted by name, so a change of state is a one-line diff. Not formatted by Prettier. */
 export function formatPublished(published: Published): string {
   const lines = Object.entries(published)
