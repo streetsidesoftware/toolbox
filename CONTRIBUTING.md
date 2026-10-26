@@ -24,10 +24,10 @@ The rest of this file is the full reference, written mainly for coding agents.
 
 ## Workspace layout
 
-- `packages/*` — published packages, one per directory. `packages/unindent` is the template for a new one.
+- `packages/*` — published packages, one per directory. Create a new one with `pnpm run new-package <name>`.
 - `internal/*` — private `@internal/*` packages used only inside this repo. Never published.
-- `scripts/` — `@internal/scripts`, the repo maintenance CLIs: `fix-package-json` for lint, and the release scripts
-  described in [releasing](docs/releasing.md).
+- `scripts/` — `@internal/scripts`, the repo maintenance CLIs: `fix-package-json` for lint, `new-package`, and the
+  release scripts described in [releasing](docs/releasing.md).
 
 See [build and packaging](docs/build-and-packaging.md) for the toolchain (tsdown, `tsc --noEmit`, `node --test`).
 

@@ -15,6 +15,7 @@
     "lint-ci": "pnpm exec fix-package-json --dry-run && oxlint --max-warnings 0 && prettier --check .",
     "lint:oxlint": "oxlint --fix",
     "lint:prettier": "prettier --write .",
+    "new-package": "new-package",
     "prepare-publication": "prepare-publication",
     "release-as": "release-as",
     "release-please-config": "update-release-please-config",

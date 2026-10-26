@@ -5,6 +5,7 @@
   "bin": {
     "fix-package-json": "./fix-package-json.ts",
     "gen-readme": "./gen-readme.ts",
+    "new-package": "./new-package.ts",
     "prepare-publication": "./prepare-publication.ts",
     "publication-candidates": "./publication-candidates.ts",
     "release-as": "./release-as.ts",
