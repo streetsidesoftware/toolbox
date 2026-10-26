@@ -21,7 +21,7 @@ describe('substituteInString', () => {
         ${'v{@  version  @}'}      | ${{ version: '1.2.3' }}           | ${'v1.2.3'}
         ${'{@ package.version @}'} | ${{ 'package.version': '9.9.9' }} | ${'9.9.9'}
         ${'no placeholder here'}   | ${{}}                             | ${'no placeholder here'}
-        ${'\\{@ version @}'}       | ${{ version: '1.2.3' }}           | ${'{@ version @}'}
+        ${'\\{@ version @}'}       | ${{ version: '1.2.3' }}           | ${'\\1.2.3'}
     `('substituteInString($text)', ({ text, values, expected }: SubstituteRow) => {
     const resolve = (name: string): string | undefined => values[name];
     const onUnresolved = mock.fn();

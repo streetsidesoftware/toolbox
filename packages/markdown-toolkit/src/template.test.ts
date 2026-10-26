@@ -141,8 +141,9 @@ describe('template', () => {
     );
   });
 
-  test('an escaped placeholder in code stays literal', () => {
-    assert.equal(template('`\\{@ x @}`', {}).toString(), '`{@ x @}`');
+  test('a backslash before a placeholder does not escape it', () => {
+    assert.equal(template('`\\{@ x @}`', { x: '1' }).toString(), '`\\1`');
+    assert.equal(template('a \\\\{@ x @} b', { x: '1' }).toString(), 'a \\1 b');
   });
 
   test('the template keeps its own style', () => {

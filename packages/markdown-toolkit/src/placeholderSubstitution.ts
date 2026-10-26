@@ -4,11 +4,10 @@ import { visit } from 'unist-util-visit';
 import type { MdastRoot } from './types.ts';
 
 /**
- * Matches `{​@ name @​}` placeholders, with an optional leading backslash escape.
+ * Matches `{​@ name @​}` placeholders.
  * Whitespace immediately inside the delimiters is optional and trimmed by the regex itself.
  */
-export const placeholderRegExp: RegExp =
-  /(\\)?\{@\s*([A-Za-z0-9_][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_][A-Za-z0-9_-]*)*)\s*@\}/g;
+export const placeholderRegExp: RegExp = /\{@\s*([A-Za-z0-9_][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_][A-Za-z0-9_-]*)*)\s*@\}/g;
 
 /**
  * Segments that would reach `Object.prototype` if walked or written. They match the placeholder-name
@@ -41,7 +40,6 @@ export type PlaceholderResolver = (name: string) => string | undefined;
 
 /**
  * Replace placeholders in a single string.
- * `\{​@ ... @​}` is unescaped to literal `{​@ ... @​}` text.
  * An unresolved name is left untouched and reported via `onUnresolved`, once per occurrence.
  * The caller is responsible for deduping.
  */
@@ -50,8 +48,7 @@ export function substituteInString(
   resolve: PlaceholderResolver,
   onUnresolved: (name: string) => void,
 ): string {
-  return text.replace(placeholderRegExp, (match, escape: string | undefined, name: string) => {
-    if (escape) return match.slice(1);
+  return text.replace(placeholderRegExp, (match, name: string) => {
     const value = resolve(name);
     if (value === undefined) {
       onUnresolved(name);
