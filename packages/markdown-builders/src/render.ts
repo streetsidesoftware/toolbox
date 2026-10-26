@@ -5,7 +5,7 @@ import type { Options as StyleOptions } from 'remark-stringify';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
-import type { Placeholder } from './nodes.ts';
+import type { PlaceholderNode } from './placeholderNode.ts';
 
 export type { Options as StyleOptions } from 'remark-stringify';
 
@@ -21,9 +21,10 @@ export const defaultStyle: StyleOptions = {
 };
 
 /** A placeholder is written as is. */
-const handlers: StyleOptions['handlers'] = {
-  placeholder: (node: Placeholder) => node.value,
-};
+// remark-stringify's handler types list only mdast's own node types.
+const handlers = {
+  placeholder: (node: PlaceholderNode) => node.value,
+} as StyleOptions['handlers'];
 
 /**
  * Render Markdown nodes as text, without a trailing newline.

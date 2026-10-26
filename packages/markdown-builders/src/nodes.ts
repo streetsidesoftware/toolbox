@@ -1,5 +1,6 @@
-import type { ListItem, Literal, BlockContent as MdastBlockContent, PhrasingContent, RootContent } from 'mdast';
+import type { ListItem, BlockContent as MdastBlockContent, PhrasingContent, RootContent } from 'mdast';
 
+import { placeholderNodeAsWritten } from './placeholderNode.ts';
 import { placeholderRegExp } from './placeholderSubstitution.ts';
 import { renderNodes } from './render.ts';
 import type { StyleOptions } from './render.ts';
@@ -57,28 +58,6 @@ export function isKind(value: unknown, ...kinds: MDValue['kind'][]): value is MD
 }
 
 /**
- * A placeholder kept as written. It has a node type of its own, so rendering writes it as is.
- * As HTML, a line ending before it would render as a space.
- */
-export interface Placeholder extends Literal {
-  type: 'placeholder';
-}
-
-declare module 'mdast' {
-  interface PhrasingContentMap {
-    placeholder: Placeholder;
-  }
-  interface RootContentMap {
-    placeholder: Placeholder;
-  }
-}
-
-/** The node for a placeholder kept as written. */
-export function placeholderNode(name: string): Placeholder {
-  return { type: 'placeholder', value: `{@ ${name} @}` };
-}
-
-/**
  * Text nodes for a string.
  * A placeholder is kept as written, so escaping never touches `{@ name @}`.
  */
@@ -88,7 +67,7 @@ export function textNodes(text: string): PhrasingContent[] {
   for (const match of text.matchAll(placeholderRegExp)) {
     if (match[1]) continue;
     if (match.index > last) nodes.push({ type: 'text', value: text.slice(last, match.index) });
-    nodes.push({ type: 'placeholder', value: match[0] });
+    nodes.push(placeholderNodeAsWritten(match[0]));
     last = match.index + match[0].length;
   }
   if (last < text.length) nodes.push({ type: 'text', value: text.slice(last) });

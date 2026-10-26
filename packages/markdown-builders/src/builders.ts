@@ -1,5 +1,6 @@
-import type { ListItem, Paragraph, RootContent } from 'mdast';
+import type { ListItem, Paragraph } from 'mdast';
 
+import { DocumentValue } from './documentValue.ts';
 import {
   describe,
   groupedNodes,
@@ -9,13 +10,12 @@ import {
   isListItem,
   listItemNode,
   MarkdownValue,
-  placeholderNode,
   renderingOf,
   runs,
   textNodes,
 } from './nodes.ts';
+import { placeholderNode } from './placeholderNode.ts';
 import { isValidPlaceholderName } from './placeholderSubstitution.ts';
-import type { StyleOptions } from './render.ts';
 import type {
   AnyContent,
   BlockContent,
@@ -23,7 +23,6 @@ import type {
   InlineContent,
   ListEntry,
   ListItemContent,
-  MarkdownStyle,
   MDBlockPlaceholder,
   MDBr,
   MDCodeBlock,
@@ -70,20 +69,6 @@ class BlockPlaceholderValue extends MarkdownValue<'block', 'a block placeholder'
   constructor(name: string) {
     super('block', 'a block placeholder', [{ type: 'paragraph', children: [placeholderNode(name)] }]);
     this.name = name;
-  }
-}
-
-export class DocumentValue extends MarkdownValue<'block', 'a document'> implements MDDocument {
-  constructor(nodes: RootContent[], style?: StyleOptions) {
-    super('block', 'a document', nodes, style);
-  }
-
-  withStyle(style: MarkdownStyle): MDDocument {
-    return new DocumentValue(renderingOf(this)?.nodes ?? [], style);
-  }
-
-  override toString(): string {
-    return super.toString() + '\n';
   }
 }
 

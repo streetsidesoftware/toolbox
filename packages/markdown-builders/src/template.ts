@@ -3,8 +3,9 @@ import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import { unified } from 'unified';
 
-import { DocumentValue, inlineText } from './builders.ts';
+import { inlineText } from './builders.ts';
 import { detectMarkdownStyle } from './detectStyle.ts';
+import { DocumentValue } from './documentValue.ts';
 import {
   blockNodes,
   describe,
@@ -15,7 +16,8 @@ import {
   renderingOf,
   textNodes,
 } from './nodes.ts';
-import type { Placeholder } from './nodes.ts';
+import { asPlaceholderNode, placeholderNodeAsWritten } from './placeholderNode.ts';
+import type { PlaceholderNode } from './placeholderNode.ts';
 import { placeholderRegExp } from './placeholderSubstitution.ts';
 import type { StyleOptions } from './render.ts';
 import type {
@@ -240,7 +242,7 @@ function placeholderPieces(text: string): PhrasingContent[] {
     const [whole, escape] = match;
     if (match.index > last) nodes.push({ type: 'text', value: text.slice(last, match.index) });
     last = match.index + whole.length;
-    nodes.push(escape ? { type: 'text', value: whole.slice(1) } : { type: 'placeholder', value: whole });
+    nodes.push(escape ? { type: 'text', value: whole.slice(1) } : placeholderNodeAsWritten(whole));
   }
   if (last < text.length) nodes.push({ type: 'text', value: text.slice(last) });
   return nodes;
@@ -358,19 +360,20 @@ function fill(root: Root, values: TemplateValues, allowBlocks: boolean): Set<str
    */
   const fillNodes = (nodes: RootContent[], lines: boolean, blocks: boolean): Piece[] =>
     nodes.flatMap((node, i): Piece[] => {
+      const placeholder = asPlaceholderNode(node);
+      if (placeholder) {
+        const name = placeholderName(placeholder);
+        const value = lookup(name);
+        if (value === undefined) return [node];
+        if (lines && isWholeLine(nodes, i) && isBlockContent(value)) {
+          return [{ blocks: blockNodes(value, `{@ ${name} @}`) }];
+        }
+        return valueAsInline(value, name);
+      }
       switch (node.type) {
         case 'paragraph': {
           const pieces = fillNodes(node.children, blocks, false);
           return splitParagraph(node, pieces);
-        }
-        case 'placeholder': {
-          const name = placeholderName(node);
-          const value = lookup(name);
-          if (value === undefined) return [node];
-          if (lines && isWholeLine(nodes, i) && isBlockContent(value)) {
-            return [{ blocks: blockNodes(value, `{@ ${name} @}`) }];
-          }
-          return valueAsInline(value, name);
         }
         case 'html':
         case 'inlineCode':
@@ -439,7 +442,7 @@ function endsLine(node: RootContent | undefined, lineEnd: RegExp): boolean {
   return !node || node.type === 'break' || (node.type === 'text' && lineEnd.test(node.value));
 }
 
-function placeholderName(node: Placeholder): string {
+function placeholderName(node: PlaceholderNode): string {
   return [...node.value.matchAll(placeholderRegExp)][0][2];
 }
 
