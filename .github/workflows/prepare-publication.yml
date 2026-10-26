@@ -136,7 +136,7 @@ jobs:
 
             ### 3. Commit the Trusted Publishing status
 
-            - [ ] Commit and push the package's entry in `static/published.json`, which `pnpm exec trusted-publishing` changed to `{ "trustedPublishing": true }`:
+            - [ ] Commit and push the updated `static/published.json`:
               ```sh
               cd ../..
               git add static/published.json
