@@ -32,7 +32,10 @@ describe('replacePlaceholders', () => {
     ${'{@ a @}'}                     | ${{ a: null }}                        | ${'{@ a @}'}
     ${'{@ a.length @}'}              | ${{ a: 'text' }}                      | ${'{@ a.length @}'}
     ${'{@ toString @}'}              | ${{}}                                 | ${'{@ toString @}'}
-    ${'{@ __proto__.x @}'}           | ${{ ['__proto__']: { x: 'bad' } }}    | ${'{@ __proto__.x @}'}
+    ${'{@ __proto__.x @}'}           | ${{ ['__proto__']: { x: 'own' } }}    | ${'own'}
+    ${'{@ __proto__.x @}'}           | ${JSON.parse('{"__proto__":{"x":"own"}}')} | ${'own'}
+    ${'{@ __proto__.constructor @}'} | ${{}}                                 | ${'{@ __proto__.constructor @}'}
+    ${'{@ a.prototype @}'}           | ${{ a: class {} }}                    | ${'{@ a.prototype @}'}
     ${'{@ constructor.name @}'}      | ${{}}                                 | ${'{@ constructor.name @}'}
     ${'{@ v @}'}                     | ${{ v: '{@ v @}' }}                   | ${'{@ v @}'}
     ${'{@ v @}'}                     | ${{ v: '$& $1' }}                     | ${'$& $1'}

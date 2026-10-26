@@ -29,9 +29,6 @@ const segment = '[A-Za-z0-9_][A-Za-z0-9_-]*?';
 const namePattern = `${segment}(?:\\.${segment})*?`;
 const validName = new RegExp(`^${namePattern}$`);
 
-/** Segments that would reach `Object.prototype` if walked. */
-const unsafeSegments = new Set(['__proto__', 'constructor', 'prototype']);
-
 // The regex for the last delimiter pair used, so repeated calls with the same pair don't recompile it.
 let cached: { open: string; close: string; regExp: RegExp } | undefined;
 
@@ -97,9 +94,8 @@ function objectResolver(values: object): PlaceholderResolver {
   return (name) => {
     let value: unknown = values;
     for (const key of name.split('.')) {
-      if (typeof value !== 'object' || value === null || unsafeSegments.has(key) || !Object.hasOwn(value, key)) {
-        return undefined;
-      }
+      // Own properties only, so a name never reads `Object.prototype` and the like.
+      if (typeof value !== 'object' || value === null || !Object.hasOwn(value, key)) return undefined;
       value = (value as Record<string, unknown>)[key];
     }
     if (typeof value === 'string') return value;
