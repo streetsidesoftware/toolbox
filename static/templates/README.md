@@ -20,14 +20,10 @@ npm install {@ fullName @}
 
 ## License
 
-MIT
+<!-- @@inject: ../../static/licenseTpl.md#values-file=:package.json -->
 
 ## Support Future Development
 
 <!--- @@inject: ../../static/sponsor.md --->
 
-<!--- @@inject-end: ../../static/sponsor.md --->
-
 <!--- @@inject: ../../static/footer.md --->
-
-<!--- @@inject-end: ../../static/footer.md --->

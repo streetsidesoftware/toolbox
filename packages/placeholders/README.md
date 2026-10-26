@@ -78,8 +78,4 @@ MIT
 
 <!--- @@inject: ../../static/sponsor.md --->
 
-<!--- @@inject-end: ../../static/sponsor.md --->
-
 <!--- @@inject: ../../static/footer.md --->
-
-<!--- @@inject-end: ../../static/footer.md --->
