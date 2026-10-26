@@ -231,11 +231,21 @@ importers:
         specifier: ^4.0.4
         version: 4.0.4
 
+  packages/placeholders:
+    devDependencies:
+      '@streetsidesoftware/test-each':
+        specifier: workspace:*
+        version: link:../test-each
+
   packages/test-each: {}
 
   packages/unindent: {}
 
   scripts:
+    dependencies:
+      '@streetsidesoftware/placeholders':
+        specifier: workspace:*
+        version: link:../packages/placeholders
     devDependencies:
       sort-package-json:
         specifier: ^4.0.0

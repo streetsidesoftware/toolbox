@@ -4,8 +4,16 @@ import os from 'node:os';
 import Path from 'node:path';
 import { describe, mock, test } from 'node:test';
 
+import { hasPlaceholders } from '@streetsidesoftware/placeholders';
+
 import { REPOSITORY_GIT_URL } from './consts.ts';
-import { createPackage, newPackageFiles, privateDescription, validatePackageName } from './new-package.ts';
+import {
+  createPackage,
+  newPackageFiles,
+  privateDescription,
+  TEMPLATE_DIR,
+  validatePackageName,
+} from './new-package.ts';
 
 describe('validatePackageName', () => {
   test('accepts lowercase hyphenated names', () => {
@@ -42,8 +50,8 @@ describe('privateDescription', () => {
   });
 });
 
-describe('newPackageFiles', () => {
-  const files = newPackageFiles('my-pkg', { year: 2030 });
+describe('newPackageFiles', async () => {
+  const files = await newPackageFiles('my-pkg', { year: 2030 });
 
   test('writes the package files', () => {
     assert.deepEqual(Object.keys(files).sort(), [
@@ -69,16 +77,16 @@ describe('newPackageFiles', () => {
     assert.deepEqual(Object.keys(pkg).slice(0, 4), ['name', 'version', 'private', 'description']);
   });
 
-  test('appends the private suffix to a given description, once', () => {
+  test('appends the private suffix to a given description, once', async () => {
     for (const description of ['Does a.', 'Does a. -- Private until verified']) {
-      const pkg = JSON.parse(fileText(newPackageFiles('a', { description }), 'package.json'));
+      const pkg = JSON.parse(fileText(await newPackageFiles('a', { description }), 'package.json'));
       assert.equal(pkg.description, 'Does a. -- Private until verified');
     }
   });
 
-  test('a blank description falls back to the default', () => {
+  test('a blank description falls back to the default', async () => {
     for (const description of ['', '   ']) {
-      const pkg = JSON.parse(fileText(newPackageFiles('a', { description }), 'package.json'));
+      const pkg = JSON.parse(fileText(await newPackageFiles('a', { description }), 'package.json'));
       assert.equal(pkg.description, 'TODO: describe the package. -- Private until verified');
     }
   });
@@ -98,8 +106,39 @@ describe('newPackageFiles', () => {
     assert.match(fileText(files, 'LICENSE'), /^MIT License\n\nCopyright \(c\) 2030 Street Side Software\n/);
   });
 
-  test('throws on an invalid name', () => {
-    assert.throws(() => newPackageFiles('Bad'), /Invalid package name/);
+  test('a description with quotes and placeholders stays as given', async () => {
+    const description = 'Says "hi" to {@ name @}.';
+    const pkg = JSON.parse(fileText(await newPackageFiles('a', { description }), 'package.json'));
+    assert.equal(pkg.description, 'Says "hi" to {@ name @}. -- Private until verified');
+  });
+
+  test('fills in every placeholder', () => {
+    for (const [path, text] of Object.entries(files)) {
+      assert.ok(!hasPlaceholders(path) && !hasPlaceholders(text), path);
+    }
+  });
+
+  test('copies a file without placeholders as is', async () => {
+    const template = await fs.readFile(Path.join(TEMPLATE_DIR, 'tsdown.config.ts'), 'utf-8');
+    assert.equal(fileText(files, 'tsdown.config.ts'), template);
+  });
+
+  test('throws on an invalid name', async () => {
+    await assert.rejects(newPackageFiles('Bad'), /Invalid package name/);
+  });
+
+  test('throws on a placeholder without a value, naming each one', async () => {
+    await withTempRoot(async (templateDir) => {
+      await fs.mkdir(Path.join(templateDir, 'src'));
+      await fs.writeFile(Path.join(templateDir, 'src', '{@ title @}.ts'), '{@ name @} {@ author @} {@ author @}');
+      await assert.rejects(newPackageFiles('a', { templateDir }), (error: Error) => {
+        assert.equal(
+          error.message,
+          `Unknown placeholders in ${templateDir}:\n  src/{@ title @}.ts: {@ title @}\n  src/{@ title @}.ts: {@ author @}`,
+        );
+        return true;
+      });
+    });
   });
 });
 
