@@ -9,8 +9,8 @@ Tools and libraries used across Street Side Software's repositories.
 | Package                                                               | Description                                                                                                 |
 | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | [`@streetsidesoftware/markdown-builders`](packages/markdown-builders) | Build Markdown in scripts from typed values that escape their content.                                      |
-| [`@streetsidesoftware/test-each`](packages/test-each)                 | Table-driven tests for node:test, written as vitest-style tagged-template tables. -- Private until verified |
-| [`@streetsidesoftware/unindent`](packages/unindent)                   | Remove the common indentation from multi-line strings and template literals.                                |
+| [`@streetsidesoftware/test-each`](packages/test-each)                 | Table-driven tests for node:test, written as vitest-style tagged-template tables.                |
+| [`@streetsidesoftware/unindent`](packages/unindent)                   | Remove the common indentation from multi-line strings and template literals.                     |
 
 <!--- @@inject-end: static/packages.csv#markdown --->
 

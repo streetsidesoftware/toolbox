@@ -71,7 +71,8 @@
       "release-as": "1.0.0"
     },
     "packages/test-each": {
-      "component": "@streetsidesoftware/test-each"
+      "component": "@streetsidesoftware/test-each",
+      "release-as": "1.0.0"
     },
     "packages/unindent": {
       "component": "@streetsidesoftware/unindent"
