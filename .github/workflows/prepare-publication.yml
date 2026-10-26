@@ -2,7 +2,8 @@ name: '📦 Prepare a New Package for Publication'
 
 # Opens a `feat:` PR for each private package waiting for publication: it makes the package public, sets its
 # `release-as` to 1.0.0, and adds it to static/published.json. The PR's checklist has the maintainer's steps.
-# A package is skipped when static/published.json marks it `false` or its PR is already open. An open PR is never
+# A package waits until it's in release-please-config.json, so merging the Update Release Please Config PR opens it.
+# It's skipped when static/published.json marks it `false` or its PR is already open. An open PR is never
 # rebuilt, since the maintainer commits to its branch; close it to have the next run rebuild it.
 
 on:
@@ -10,7 +11,8 @@ on:
     branches:
       - main
     paths:
-      - 'packages/**'
+      - 'packages/*/package.json'
+      - 'release-please-config.json'
       - 'static/published.json'
   workflow_dispatch:
     inputs:

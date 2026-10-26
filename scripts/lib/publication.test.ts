@@ -25,12 +25,18 @@ describe('publicationCandidates', () => {
   });
   const packages = [pkg('a', '@s/a', true), pkg('b', '@s/b', false), pkg('c', '@s/c', true), pkg('d', '@s/d', true)];
 
+  const components = ['@s/a', '@s/b', '@s/c', '@s/d'];
+
   test('lists private packages unless published.json marks them false', () => {
     const published = { '@s/a': { trustedPublishing: false }, '@s/c': false as const };
-    assert.deepEqual(publicationCandidates(packages, published), [
+    assert.deepEqual(publicationCandidates(packages, published, components), [
       { dir: 'a', name: '@s/a' },
       { dir: 'd', name: '@s/d' },
     ]);
+  });
+
+  test('skips packages not yet in the Release Please config', () => {
+    assert.deepEqual(publicationCandidates(packages, {}, ['@s/c']), [{ dir: 'c', name: '@s/c' }]);
   });
 });
 

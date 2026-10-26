@@ -25,10 +25,20 @@ export function publicationBranch(dir: string): string {
   return `prepare-publication-${dir}`;
 }
 
-/** Private packages waiting for publication: every one that `published` doesn't mark `false`. */
-export function publicationCandidates(packages: WorkspacePackage[], published: Published): PublicationCandidate[] {
+/**
+ * Private packages waiting for publication: every one that `published` doesn't mark `false`, once it's one of the
+ * Release Please config's `components`, since its publication PR sets its `release-as`.
+ */
+export function publicationCandidates(
+  packages: WorkspacePackage[],
+  published: Published,
+  components: string[],
+): PublicationCandidate[] {
   return packages
-    .filter(({ packageJson: { private: isPrivate, name } }) => isPrivate && name && published[name] !== false)
+    .filter(
+      ({ packageJson: { private: isPrivate, name } }) =>
+        isPrivate && name && published[name] !== false && components.includes(name),
+    )
     .map(({ dir, packageJson }) => ({ dir: dir.replace(/^packages\//, ''), name: packageJson.name ?? '' }));
 }
 

@@ -77,8 +77,10 @@ PR: workflows maintain them.
 
 The
 [Prepare a New Package for Publication](https://github.com/streetsidesoftware/toolbox/actions/workflows/prepare-publication.yml)
-workflow runs on every push to `main` that changes `packages/**` or `static/published.json`. For each private package
-waiting for publication, it opens a `feat(<dir>): publish to npm` PR that:
+workflow runs on every push to `main` that changes a `packages/*/package.json`, `release-please-config.json` or
+`static/published.json`. A private package waits for publication once it's in `release-please-config.json`, so merging
+the Update Release Please Config PR from step 1 opens its PR. For each private package waiting for publication, it
+opens a `feat(<dir>): publish to npm` PR that:
 
 - makes the package public (`pnpm run prepare-publication <package>`)
 - sets its `release-as` to `1.0.0`
@@ -97,7 +99,7 @@ it, except for `false`, which a maintainer sets on `main`.
 
 | Entry                            | Meaning                                                                  |
 | -------------------------------- | ------------------------------------------------------------------------ |
-| none                             | Not yet prepared. The workflow opens its publication PR.                 |
+| none                             | Not yet prepared. The workflow opens its PR once it's in the config.     |
 | `{ "trustedPublishing": false }` | Waiting for publication, or its trusted publisher is missing on npm.     |
 | `{ "trustedPublishing": true }`  | Its trusted publisher on npm is `publish.yml`.                           |
 | `false`                          | Never publish. The workflow skips it; set it on `main` and close the PR. |

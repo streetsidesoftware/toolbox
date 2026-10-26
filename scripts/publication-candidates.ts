@@ -7,12 +7,14 @@ import { REPOSITORY } from './lib/consts.ts';
 import { findPackages } from './lib/packages.ts';
 import type { PublicationCandidate } from './lib/publication.ts';
 import { publicationBranch, publicationCandidates, withoutOpenPrs } from './lib/publication.ts';
+import type { ReleasePleaseConfig } from './lib/release-please.ts';
+import { CONFIG_FILE, readJsonFile } from './lib/release-please.ts';
 import { PUBLISHED_FILE, readPublished } from './lib/trusted-publishing.ts';
 
 const HELP = `Usage: publication-candidates [options] [package]
 
 Prints, as a JSON array of {"dir", "name"}, the private packages/* packages to open a publication PR for: every one
-that ${PUBLISHED_FILE} doesn't mark false and whose PR isn't open. Sends GITHUB_TOKEN to the GitHub API if set.
+that's in ${CONFIG_FILE}, that ${PUBLISHED_FILE} doesn't mark false, and whose PR isn't open. Sends GITHUB_TOKEN to the GitHub API if set.
 The Prepare a New Package for Publication workflow runs this.
 
 Arguments:
@@ -35,7 +37,11 @@ async function main() {
   }
 
   const packages = await findPackages();
-  let candidates = publicationCandidates(packages, await readPublished());
+  const config = await readJsonFile<ReleasePleaseConfig>(CONFIG_FILE);
+  if (!config) throw new Error(`${CONFIG_FILE} not found`);
+  const components = Object.values(config.packages).map((e) => e.component);
+  const published = await readPublished();
+  let candidates = publicationCandidates(packages, published, components);
 
   const select = positionals[0];
   if (select) {
@@ -43,7 +49,12 @@ async function main() {
     if (!found) throw new Error(`Not a packages/* package in this repo: ${select}`);
     candidates = candidates.filter((c) => c.name === found.packageJson.name);
     if (!candidates.length) {
-      const reason = found.packageJson.private ? `${PUBLISHED_FILE} marks it never to be published` : 'it is public';
+      const name = found.packageJson.name ?? '';
+      const reason = !found.packageJson.private
+        ? 'it is public'
+        : published[name] === false
+          ? `${PUBLISHED_FILE} marks it never to be published`
+          : `it isn't in ${CONFIG_FILE} yet`;
       console.error(`Skipping ${select}: ${reason}.`);
     }
   }
