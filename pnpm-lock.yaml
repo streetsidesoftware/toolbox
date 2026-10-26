@@ -206,6 +206,27 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
+  packages/markdown-builders:
+    dependencies:
+      '@types/mdast':
+        specifier: ^4.0.4
+        version: 4.0.4
+      remark-gfm:
+        specifier: ^4.0.1
+        version: 4.0.1(supports-color@9.4.0)
+      remark-parse:
+        specifier: ^11.0.0
+        version: 11.0.0(supports-color@9.4.0)
+      remark-stringify:
+        specifier: ^11.0.0
+        version: 11.0.0
+      unified:
+        specifier: ^11.0.5
+        version: 11.0.5
+      unist-util-visit:
+        specifier: ^5.1.0
+        version: 5.1.0
+
   packages/unindent: {}
 
   scripts:
