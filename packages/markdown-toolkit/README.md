@@ -3,9 +3,6 @@
 A toolkit for generating Markdown: builders, templates and placeholders. Compose links, lists, headings and code,
 or fill a Markdown template, then render the result with `toString()`.
 
-Building Markdown with string concatenation works until a value contains `*`, `[`, `|` or a leading `1.`. This
-toolkit escapes each value for where it ends up, so text you insert stays text.
-
 ## Install
 
 ```sh
@@ -16,14 +13,16 @@ Requires Node.js 22.18 or later. ESM only.
 
 ## Why use it
 
-- **Escaping by context.** Text inside a link, a heading, a table cell or a list item is escaped for that spot.
-  Code is inserted as is.
-- **Mistakes throw early.** A list can't go inside a heading, and a template with a missing value doesn't render.
-  You get an error instead of broken Markdown.
-- **Templates, not just builders.** Write the Markdown you want, mark the gaps with `{@ name @}`, and fill them
-  with strings or built values.
+- **Builders.** Compose a document from headings, paragraphs, lists, links and code, as values rather than
+  strings.
+- **Templates.** Write the Markdown you want, mark the gaps with `{@ name @}`, and fill them with strings or
+  built values.
+- **Placeholders.** Leave a gap unfilled and fill it in a later step, or hand it to a tool such as inject-markdown.
 - **Fits existing documents.** Detect the style a document already uses, such as `*` or `-` bullets, and render in
   that style.
+- **Mistakes throw early.** A list can't go inside a heading, and a template with a missing value doesn't render.
+  You get an error instead of broken Markdown.
+- **Text stays text.** A value is escaped for where it ends up, so a `*` or `[` in it doesn't turn into Markdown.
 - **Built on remark.** Parsing and rendering use [unified](https://unifiedjs.com) and
   [remark](https://github.com/remarkjs/remark) with GitHub Flavored Markdown, not hand-rolled string rules.
 
