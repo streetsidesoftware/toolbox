@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { describe, test } from 'node:test';
 
+import { testEach } from '@streetsidesoftware/test-each';
+
 import type * as Builders from './index.ts';
 import type { MDValue } from './index.ts';
 import {
@@ -31,7 +33,6 @@ import {
   text,
   toBlock,
 } from './index.ts';
-import { testEach } from './testEach.ts';
 
 describe('escaping', () => {
   testEach`

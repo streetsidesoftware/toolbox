@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, mock, test } from 'node:test';
 
+import { testEach } from '@streetsidesoftware/test-each';
 import type { Root } from 'mdast';
 
 import { substituteInString, substituteInTree } from './placeholders.ts';
 import type { MdastRoot } from './placeholders.ts';
-import { testEach } from './testEach.ts';
 
 interface SubstituteRow {
   text: string;

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
+import { testEach } from '@streetsidesoftware/test-each';
+
 import {
   blockPlaceholder,
   blockTemplate,
@@ -22,7 +24,6 @@ import {
 } from './index.ts';
 import type { TemplateValue, TemplateValues } from './index.ts';
 import { resolveValue } from './template.ts';
-import { testEach } from './testEach.ts';
 
 interface ResolveRow {
   values: TemplateValues;
