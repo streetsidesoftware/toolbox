@@ -20,7 +20,6 @@
     "release-as": "release-as",
     "release-please-config": "update-release-please-config",
     "release-please-config:check": "update-release-please-config --check",
-    "smoke-test": "pnpm run spell",
     "spell": "cspell --no-progress .",
     "test": "pnpm -r run test && pnpm run typecheck",
     "trusted-publishing": "trusted-publishing",
