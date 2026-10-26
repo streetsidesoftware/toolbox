@@ -1,3 +1,4 @@
 Package,Description
 [`@streetsidesoftware/markdown-builders`](../packages/markdown-builders),Build Markdown in scripts from typed values that escape their content. -- Private until verified
+[`@streetsidesoftware/test-each`](../packages/test-each),"Table-driven tests for node:test, written as vitest-style tagged-template tables. -- Private until verified"
 [`@streetsidesoftware/unindent`](../packages/unindent),Remove the common indentation from multi-line strings and template literals.
