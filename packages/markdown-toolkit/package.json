@@ -49,6 +49,7 @@
   },
   "devDependencies": {
     "@streetsidesoftware/test-each": "workspace:*",
+    "@streetsidesoftware/unindent": "workspace:*",
     "@types/mdast": "^4.0.4"
   },
   "engines": {
