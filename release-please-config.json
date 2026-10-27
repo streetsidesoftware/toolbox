@@ -67,16 +67,13 @@
       "component": "toolbox"
     },
     "packages/markdown-toolkit": {
-      "component": "@streetsidesoftware/markdown-toolkit",
-      "release-as": "1.0.0"
+      "component": "@streetsidesoftware/markdown-toolkit"
     },
     "packages/placeholders": {
-      "component": "@streetsidesoftware/placeholders",
-      "release-as": "1.0.0"
+      "component": "@streetsidesoftware/placeholders"
     },
     "packages/test-each": {
-      "component": "@streetsidesoftware/test-each",
-      "release-as": "1.0.0"
+      "component": "@streetsidesoftware/test-each"
     },
     "packages/unindent": {
       "component": "@streetsidesoftware/unindent"
