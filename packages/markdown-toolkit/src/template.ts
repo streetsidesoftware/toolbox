@@ -54,11 +54,13 @@ export interface TemplateValues {
  * The filled result decides its kind:
  * - A single paragraph is inline, without the whitespace around it.
  * - Anything else is blocks, rendered in the template's own style.
- * @throws if a placeholder has no value, or a value doesn't fit where its placeholder is.
+ *
+ * A placeholder with no value is kept as written, so it can be filled later.
+ * @throws if a value doesn't fit where its placeholder is.
  */
 export function template(markdown: string, values: TemplateValues): MDFragment | MDInlineFragment {
   const root = templateTree(markdown, false);
-  throwIfMissing(fill(root, values, true));
+  fill(root, values, true);
   return fragment(root, markdown);
 }
 
@@ -68,14 +70,14 @@ export function template(markdown: string, values: TemplateValues): MDFragment |
  */
 export function blockTemplate(markdown: string, values: TemplateValues): MDFragment {
   const root = templateTree(markdown, false);
-  throwIfMissing(fill(root, values, true));
+  fill(root, values, true);
   return new MarkdownValue('block', 'a Markdown fragment', root.children, detectMarkdownStyle(root, markdown));
 }
 
 /**
  * Fill an inline template, for use inside a line.
  * The text must be one paragraph. Block syntax, such as a leading `-`, is read as text.
- * @throws if the text isn't one paragraph, a placeholder has no value, or a value isn't inline.
+ * @throws if the text isn't one paragraph, or a value isn't inline.
  */
 export function inlineTemplate(markdown: string, values: TemplateValues): MDInlineFragment {
   const start = markdown.trimStart();
@@ -86,7 +88,7 @@ export function inlineTemplate(markdown: string, values: TemplateValues): MDInli
   if (root.children.length > 1 || (root.children[0] && root.children[0].type !== 'paragraph')) {
     throw new Error('inline template text must be one paragraph');
   }
-  throwIfMissing(fill(root, values, false));
+  fill(root, values, false);
   const children = root.children[0]?.type === 'paragraph' ? root.children[0].children : [];
   return new MarkdownValue('inline', 'an inline Markdown fragment', [
     ...textNodes(lead),
@@ -336,21 +338,12 @@ const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'list', 'li
  * - Where blocks can go, a placeholder that is a whole line of a paragraph may take blocks.
  *   The paragraph splits around them.
  * @param allowBlocks - the root's children may be blocks.
- * @returns the names that have no value.
  */
-function fill(root: Root, values: TemplateValues, allowBlocks: boolean): Set<string> {
-  const missing = new Set<string>();
-
-  const lookup = (name: string): TemplateValue | undefined => {
-    const value = resolveValue(values, name);
-    if (value === undefined) missing.add(name);
-    return value;
-  };
-
+function fill(root: Root, values: TemplateValues, allowBlocks: boolean): void {
   const fillCode = (code: string): string =>
     code.replace(placeholderRegExp, (whole, escape: string | undefined, name: string) => {
       if (escape) return whole.slice(1);
-      const value = lookup(name);
+      const value = resolveValue(values, name);
       return value === undefined ? whole : valueAsCode(value, name);
     });
 
@@ -363,7 +356,7 @@ function fill(root: Root, values: TemplateValues, allowBlocks: boolean): Set<str
       const placeholder = asPlaceholderNode(node);
       if (placeholder) {
         const name = placeholderName(placeholder);
-        const value = lookup(name);
+        const value = resolveValue(values, name);
         if (value === undefined) return [node];
         if (lines && isWholeLine(nodes, i) && isBlockContent(value)) {
           return [{ blocks: blockNodes(value, `{@ ${name} @}`) }];
@@ -390,7 +383,6 @@ function fill(root: Root, values: TemplateValues, allowBlocks: boolean): Set<str
     });
 
   root.children = fillNodes(root.children, false, allowBlocks) as RootContent[];
-  return missing;
 }
 
 /** A paragraph from its filled children, split around the blocks among them. */
@@ -444,12 +436,6 @@ function endsLine(node: RootContent | undefined, lineEnd: RegExp): boolean {
 
 function placeholderName(node: PlaceholderNode): string {
   return [...node.value.matchAll(placeholderRegExp)][0][2];
-}
-
-function throwIfMissing(missing: Set<string>): void {
-  if (!missing.size) return;
-  const names = [...missing].map((name) => `{@ ${name} @}`).join(', ');
-  throw new Error(`template has no value for ${names}`);
 }
 
 function valueAsInline(value: TemplateValue, name: string): PhrasingContent[] {
