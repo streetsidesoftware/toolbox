@@ -3,16 +3,14 @@
 import fs from 'node:fs/promises';
 import Path from 'node:path';
 
-// Not from new-package.ts: that imports @streetsidesoftware/placeholders, which needs a build, and autofix runs this without one.
-import { REPO_ROOT_DIR, ROOT_LICENSE_FILE, TEMPLATE_DIR } from './lib/consts.ts';
+import { REPO_ROOT_DIR, ROOT_LICENSE_FILE } from './lib/consts.ts';
 import { syncLicense } from './lib/license.ts';
 import { fixPackageJson } from './lib/package-json-util.ts';
 
 const HELP = `Usage: fix-package-json [options]
 
 Fixes up the packages/*, internal/* and scripts package.json files (name, repository, keywords, publishConfig,
-and engines.node, copied from the root package.json), and the keywords and engines.node of the new-package
-template's package.json. Also copies the root LICENSE into each packages/* folder.
+and engines.node, copied from the root package.json). Also copies the root LICENSE into each packages/* folder.
 
 Options:
   --dry-run   Report which files need fixing without writing changes; exits with a
@@ -43,7 +41,6 @@ async function main() {
     const fixed = await fixPackageJson(Path.join(REPO_ROOT_DIR, relFilePath), { dryRun });
     needsFix ||= fixed;
   }
-  needsFix ||= await fixPackageJson(Path.join(TEMPLATE_DIR, 'package.json'), { dryRun, template: true });
 
   const licenseText = await fs.readFile(ROOT_LICENSE_FILE, 'utf-8');
   for await (const relFilePath of fs.glob('packages/*/package.json', { cwd: REPO_ROOT_DIR })) {

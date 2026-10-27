@@ -4,7 +4,7 @@ import { describe, test } from 'node:test';
 
 import { REPO_ROOT_DIR, REPOSITORY_GIT_URL } from './consts.ts';
 import type { PackageJson } from './package-json-util.ts';
-import { fixUpPackageJson, fixUpTemplatePackageJson, formatPackageJson } from './package-json-util.ts';
+import { fixUpPackageJson, formatPackageJson } from './package-json-util.ts';
 
 const pkgFile = (dir: string) => Path.join(REPO_ROOT_DIR, dir, 'package.json');
 const root: PackageJson = { engines: { node: '>=22.18.0' } };
@@ -44,14 +44,6 @@ describe('fixUpPackageJson', () => {
 
   test('throws when the root has no engines.node', () => {
     assert.throws(() => fixUpPackageJson({}, pkgFile('packages/example'), {}), /has no engines\.node/);
-  });
-});
-
-describe('fixUpTemplatePackageJson', () => {
-  test('sets engines.node and sorts keywords, but leaves name, repository and publishConfig alone', () => {
-    const pkg: PackageJson = { name: '{@ fullName @}', keywords: ['b', 'a'], engines: { node: '>=20' } };
-    fixUpTemplatePackageJson(pkg, root);
-    assert.deepEqual(pkg, { name: '{@ fullName @}', keywords: ['a', 'b'], engines: { node: '>=22.18.0' } });
   });
 });
 

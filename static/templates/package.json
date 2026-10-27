@@ -22,8 +22,5 @@
     "clean": "shx rm -rf dist coverage",
     "test": "node --test \"src/**/*.test.ts\"",
     "typecheck": "tsc --noEmit"
-  },
-  "engines": {
-    "node": ">=22.18.0"
   }
 }

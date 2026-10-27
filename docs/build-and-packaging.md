@@ -60,9 +60,9 @@ How the packages in this repo are built, tested, and packaged for npm.
   - `repository`, with `directory` pointing at the package. npm's provenance check needs `repository.url` to
     match the repo the build ran in.
   - `publishConfig`: public access with provenance, or restricted for `@internal/*`.
-  - `engines.node`, copied from the root `package.json`, also into the new-package template in
-    `static/templates/`. Change the Node.js version there and run `pnpm run lint`; `lint-ci` fails while a
-    package is out of step.
+  - `engines.node`, copied from the root `package.json`. Change the Node.js version there and run
+    `pnpm run lint`; `lint-ci` fails while a package is out of step. `new-package` sets it the same way, so the
+    template in `static/templates/` has none.
   - Sorted, deduped `keywords`, and the order of the fields.
 
 For releasing, see [releasing](./releasing.md).
