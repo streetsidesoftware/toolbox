@@ -433,7 +433,8 @@ function endsLine(node: RootContent | undefined, lineEnd: RegExp): boolean {
 }
 
 function placeholderName(node: PlaceholderNode): string {
-  return listPlaceholders(node.value)[0].name;
+  const [first] = listPlaceholders(node.value);
+  return first.name;
 }
 
 function valueAsInline(value: TemplateValue, name: string): PhrasingContent[] {
