@@ -3,18 +3,24 @@
 A template is Markdown with `{@ name @}` placeholders. A string value is escaped, a built value is inserted as
 Markdown, and a placeholder on a line of its own can take blocks, such as a list.
 
+The template is indented to match the code, and `unindent` from [`@streetsidesoftware/unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent) removes the indentation. Imported as
+`markdown`, the tag also tells editors and Prettier that the text is Markdown, so it's highlighted and formatted as
+Markdown.
+
 <!--- @@inject: example.ts --->
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
+import { unindent as markdown } from '@streetsidesoftware/unindent';
 
 const readme = md.template(
-  `## {@ name @}
+  markdown`
+    ## {@ name @}
 
-Install with \`npm i {@ name @}\`, then see {@ docs @}.
+    Install with \`npm i {@ name @}\`, then see {@ docs @}.
 
-{@ features @}
-`,
+    {@ features @}
+  `,
   {
     name: 'my_package*',
     docs: md.link('the docs', 'https://example.com'),

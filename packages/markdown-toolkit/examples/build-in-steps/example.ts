@@ -1,17 +1,19 @@
 import * as md from '@streetsidesoftware/markdown-toolkit';
+import { unindent as markdown } from '@streetsidesoftware/unindent';
 
 // The layout, with the title this step knows.
 const layout = md.template(
-  `# {@ title @}
+  markdown`
+    # {@ title @}
 
-{@ summary @}
+    {@ summary @}
 
-## Results
+    ## Results
 
-{@ results @}
+    {@ results @}
 
-Last run: {@ date @}
-`,
+    Last run: {@ date @}
+  `,
   { title: 'Spell check report' },
 );
 

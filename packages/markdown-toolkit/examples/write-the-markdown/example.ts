@@ -1,12 +1,14 @@
 import * as md from '@streetsidesoftware/markdown-toolkit';
+import { unindent as markdown } from '@streetsidesoftware/unindent';
 
 const readme = md.template(
-  `## {@ name @}
+  markdown`
+    ## {@ name @}
 
-Install with \`npm i {@ name @}\`, then see {@ docs @}.
+    Install with \`npm i {@ name @}\`, then see {@ docs @}.
 
-{@ features @}
-`,
+    {@ features @}
+  `,
   {
     name: 'my_package*',
     docs: md.link('the docs', 'https://example.com'),

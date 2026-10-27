@@ -102,16 +102,22 @@ Text that is already Markdown, such as a `markdownDescription`, goes in as Markd
 A template is Markdown with `{@ name @}` placeholders. A string value is escaped, a built value is inserted as
 Markdown, and a placeholder on a line of its own can take blocks, such as a list.
 
+The template is indented to match the code, and `unindent` from [`@streetsidesoftware/unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent) removes the indentation. Imported as
+`markdown`, the tag also tells editors and Prettier that the text is Markdown, so it's highlighted and formatted as
+Markdown.
+
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
+import { unindent as markdown } from '@streetsidesoftware/unindent';
 
 const readme = md.template(
-  `## {@ name @}
+  markdown`
+    ## {@ name @}
 
-Install with \`npm i {@ name @}\`, then see {@ docs @}.
+    Install with \`npm i {@ name @}\`, then see {@ docs @}.
 
-{@ features @}
-`,
+    {@ features @}
+  `,
   {
     name: 'my_package*',
     docs: md.link('the docs', 'https://example.com'),
@@ -150,19 +156,21 @@ later step, or a tool such as inject-markdown, can fill it.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
+import { unindent as markdown } from '@streetsidesoftware/unindent';
 
 // The layout, with the title this step knows.
 const layout = md.template(
-  `# {@ title @}
+  markdown`
+    # {@ title @}
 
-{@ summary @}
+    {@ summary @}
 
-## Results
+    ## Results
 
-{@ results @}
+    {@ results @}
 
-Last run: {@ date @}
-`,
+    Last run: {@ date @}
+  `,
   { title: 'Spell check report' },
 );
 
@@ -198,16 +206,23 @@ Last run: {@ date @}
 Sites such as Docusaurus read a page's settings from YAML frontmatter at its start. Put `frontmatter` first in a
 document. Its text is inserted as is, between `---` lines, so making it valid YAML is up to you.
 
+The YAML here is written with an `unindent` from [`@streetsidesoftware/unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent) that also drops the newline after the opening backtick, so the
+frontmatter doesn't start with a blank line.
+
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
+import { createUnindent } from '@streetsidesoftware/unindent';
+
+const yaml = createUnindent({ trimFirstNewline: true });
 
 const title = 'Code Spell Checker';
 
 const page = md.document(
-  md.frontmatter(`# AUTO-GENERATED: edit the script, not this file.
-title: ${title}
-id: code-spell-checker
-`),
+  md.frontmatter(yaml`
+    # AUTO-GENERATED: edit the script, not this file.
+    title: ${title}
+    id: code-spell-checker
+  `),
   md.heading(1, title),
   md.paragraph('Settings that control the behavior of the spell checker.'),
 );
