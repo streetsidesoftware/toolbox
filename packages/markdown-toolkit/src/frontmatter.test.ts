@@ -52,8 +52,9 @@ describe('frontmatter', () => {
     assert.equal(md.toString(), '---\n# AUTO-GENERATED\ntitle: A *b*\nid: a\n---\n\n# A \\*b\\*\n');
   });
 
-  test('drops its leading and trailing blank lines', () => {
-    assert.equal(document(frontmatter('\n  \ntitle: A\n\n')).toString(), '---\ntitle: A\n---\n');
+  test('inserts the text as given', () => {
+    assert.equal(document(frontmatter('\n  \ntitle: A\n\n')).toString(), '---\n\n  \ntitle: A\n\n---\n');
+    assert.equal(document(frontmatter('title: A\n')).toString(), '---\ntitle: A\n---\n');
   });
 
   test('empty frontmatter', () => {

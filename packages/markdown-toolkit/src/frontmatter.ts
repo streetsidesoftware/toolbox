@@ -21,11 +21,12 @@ export function readFrontmatter(markdown: string): FrontmatterMatch | undefined 
 }
 
 /**
- * YAML frontmatter, for the start of a document. The text is inserted as is, between `---` lines,
- * without its leading and trailing blank lines. Making it valid YAML is up to the caller.
+ * YAML frontmatter, for the start of a document. The text is inserted as is, between `---` lines.
+ * Making it valid YAML is up to the caller.
  */
 export function frontmatter(yaml: string): MDFrontmatter {
-  return new MarkdownValue('frontmatter', 'frontmatter', [yamlNode(yaml.replace(/^\s*\n/, '').trimEnd())]);
+  // The closing `---` starts its own line, so a line ending at the end of the text is that line's.
+  return new MarkdownValue('frontmatter', 'frontmatter', [yamlNode(yaml.replace(/\r?\n$/, ''))]);
 }
 
 export function yamlNode(yaml: string): Yaml {

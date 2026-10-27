@@ -132,7 +132,7 @@ A placeholder fits in by converting to a string, since its string form is exactl
 vscode-spell-checker's settings pages start with YAML frontmatter: two `#` comments, then `title` and `id`, all plain single-line strings.
 
 - `frontmatter(yaml)` goes first in a document, so the code reads in file order: `document(frontmatter(…), heading(1, title), …)`. Its kind is `frontmatter`, which no other builder accepts. Anywhere else in a document, it throws.
-- It takes YAML text, inserted as is between `---` lines, without its leading and trailing blank lines. Text keeps the comments the pages start with, and needs no YAML dependency. Making it valid YAML is the script's job. Taking an object, serialized as YAML, can come later; a script that needs it now can use a YAML library.
+- It takes YAML text, inserted as is between `---` lines. Text keeps the comments the pages start with, and needs no YAML dependency. Making it valid YAML is the script's job. Taking an object, serialized as YAML, can come later; a script that needs it now can use a YAML library.
 - Whether a leading `---` starts frontmatter or is a rule can't be told from the text alone. A template is often a fragment, and `---\n\nIntro\n\n---` is two rules there. So the script says what it reads:
   - `parseDocument(markdown)` and `templateDocument(markdown, values)` read a whole file and return an `MDDocument`.
   - `parse` and `template` read fragments, where a leading `---` is always a rule. `parseFragment` and `templateFragment` are other names for them. `parse` stays the fragment reader, so nothing changes for existing callers.
