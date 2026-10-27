@@ -153,11 +153,13 @@ A document renders for a target flavor. It's built in round two, with tables, be
 
 - `'github'` is the default: GitHub's Markdown.
 - `doc.withFlavor('mdx')` returns a copy of the document that renders as valid MDX. Docusaurus 3 parses even `.md` files as MDX.
+- The toolkit helps scripts whose Markdown is consumed by MDX. It isn't another way to write MDX, so MDX-only helpers, such as an MDX comment, are added only when a script needs them.
 - Flavor is separate from style. A style chooses between equivalent forms and can be detected from a file. A flavor decides what is valid, and only the script knows its target.
 - In `'mdx'`:
   - `{` and `<` in text are escaped.
   - A comment renders as `{/* … */}`. Docusaurus accepts `<!-- -->` today only through its MDX 1 compatibility setting, which its v4 defaults turn off.
   - Raw HTML is valid JSX, as `<br/>` already is.
+  - A plain-text summary or term, written on one line in `'github'`, also needs Markdown escaping. MDX reads Markdown inside JSX, where GitHub reads raw HTML.
   - A kept placeholder throws when rendering. `{@ name @}` is an invalid MDX expression, and an `'mdx'` document is final output.
 - Flavor-only constructs, such as GitHub alerts (`> [!NOTE]`) and Docusaurus admonitions (`:::note`), wait until a script needs them.
 
@@ -205,7 +207,7 @@ Converting a value to a string too early loses its kind. `text(`see ${link(…)}
 Every value is inline or block, as in Markdown:
 
 - **Inline:** text, link, strong, emphasis, strikethrough, inline code, line break, comment.
-- **Block:** heading, list, list item, code block, paragraph, comment.
+- **Block:** heading, list, list item, code block, paragraph, details, definition list, comment.
 
 A heading and a paragraph are blocks that hold inline content.
 
@@ -229,6 +231,45 @@ Putting a block where only inline content can go, such as a list inside a headin
 - `inlineText` and `blockText`, for plain text
 - `substitutePlaceholders`, for content built in steps
 - `toBlock`
+
+### Details and definition lists
+
+`details(summary, ...content)` makes a collapsible `<details>` block. `definitionList(entries)`, or `dl(entries)` for short, makes a `<dl>` definition list, one `[term, definition]` pair per entry:
+
+```ts
+details('TypeScript:', codeBlock(code, 'ts'));
+dl([
+  ['Name', inlineCode(key)],
+  ['Description', parse(markdownDescription)],
+]);
+```
+
+- The summary and each term are inline, as HTML allows. A string is text.
+- The content and each definition are like a document's: inline pieces in a row form a paragraph, and blocks follow.
+- The caller says what the content is, and rendering picks the form that works on GitHub. Markdown inside HTML is read only after a blank line, so:
+  - A plain-text summary or term is written on one line, `<summary>TypeScript:</summary>`, as GitHub's own examples do. `&` and `<` are HTML-escaped, and a blank line in it becomes a line ending, since it would end the HTML block.
+  - A summary or term with any other inline value, such as inline code or a placeholder, gets blank lines around it, so it renders.
+  - The content and each definition always get blank lines around them.
+
+```markdown
+<details>
+<summary>TypeScript:</summary>
+
+…
+
+</details>
+
+<dl>
+
+<dt>Name</dt>
+<dd>
+
+`cSpell.dark`
+
+</dd>
+
+</dl>
+```
 
 ### Line breaks
 
@@ -385,7 +426,6 @@ The README's usage section is written once the API is built, not during developm
 - The concrete API: names, how a template and its values are passed in, and how values are typed.
 - Tables and flavors, in a second round. A table cell holds inline content, and `lineBreak()` in it renders as `<br/>`.
 - HTML tables with Markdown cells, as vscode-spell-checker's settings pages use.
-- Raw HTML blocks such as `<details>` and `<dl>` definition lists, which vscode-spell-checker writes with its own helpers.
 - Images and other raw HTML, once a script needs them.
 - A template function that only substitutes placeholders, changing as little as possible outside them. `template()` parses the whole text and writes it back out, so text around a placeholder can change: a setext heading becomes `#`, and a table's divider row is rewritten.
 
@@ -413,4 +453,7 @@ The README's usage section is written once the API is built, not during developm
 - A placeholder kept as an HTML node: the stringifier turns a line ending before HTML into a space, so a placeholder written on its own line would end up inside the line before it.
 - One `MDPlaceholder` type with a `kind` of `'inline' | 'block'`: the compiler couldn't keep a block placeholder out of a line.
 - Only a placeholder that is a whole paragraph taking blocks: `Fruit:\n{@ fruit @}` would throw, though a list written in its place starts right after `Fruit:`.
+- A `<summary>` or `<dt>` always on one line: inline code or a link in it would show as raw Markdown on GitHub, unless converted to HTML.
+- A `<summary>` or `<dt>` always with blank lines: a plain term gains a `<p>`, unlike GitHub's own `<summary>text</summary>` examples.
+- Definition entries as `{ term, definition }` objects, or a `definition(term, ...content)` builder: wordier, or one more export, for no gain over a pair.
 - `fill(value, values)` or `replacePlaceholders(value, values)`: the function puts a value in place of each placeholder that has one, which is substitution.

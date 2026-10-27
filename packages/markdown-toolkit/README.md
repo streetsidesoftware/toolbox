@@ -186,6 +186,7 @@ padding may change.
   `comment`, `placeholder`
 - Blocks: `heading`, `paragraph`, `blockText`, `list`, `listItem`, `codeBlock`, `horizontalRule` (`hr`),
   `blockPlaceholder`, `toBlock`
+- HTML blocks: `details` for a collapsible `<details>` section, and `definitionList` (`dl`) for a `<dl>` definition list
 - A whole document: `document`, `frontmatter`, `parseDocument`, `templateDocument`
 - Templates and placeholders: `template` (`templateFragment`), `blockTemplate`, `inlineTemplate`, `parse`
   (`parseFragment`), `substitutePlaceholders`

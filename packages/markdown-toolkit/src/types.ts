@@ -113,6 +113,18 @@ export interface MDList extends MDValue {
   readonly description: 'a list';
 }
 
+/** A collapsible `<details>` block with a summary. */
+export interface MDDetails extends MDValue {
+  readonly kind: 'block';
+  readonly description: 'a details block';
+}
+
+/** A `<dl>` definition list. */
+export interface MDDefinitionList extends MDValue {
+  readonly kind: 'block';
+  readonly description: 'a definition list';
+}
+
 /** A whole document. It renders with a trailing newline, as a file should end. */
 export interface MDDocument extends MDValue {
   readonly kind: 'block';
@@ -165,6 +177,8 @@ export type MDBlock =
   | MDList
   | MDCodeBlock
   | MDHorizontalRule
+  | MDDetails
+  | MDDefinitionList
   | MDComment
   | MDDocument
   | MDFragment
@@ -191,6 +205,9 @@ export type ListItemContent = BlockOrInlineContent;
 
 /** One item of a list. */
 export type ListEntry = InlineContent | MDBlock | MDListItem | readonly ListItemContent[];
+
+/** One entry of a definition list: an inline term and its definition. */
+export type DefinitionEntry = readonly [term: InlineContent, definition: AnyContent];
 
 export type BulletMarker = '*' | '+' | '-';
 export type OrderedBulletMarker = '.' | ')';

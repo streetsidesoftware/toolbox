@@ -24,6 +24,7 @@ export {
   toBlock,
 } from './builders.ts';
 export { frontmatter } from './frontmatter.ts';
+export { definitionList, details, dl } from './htmlBlocks.ts';
 export { detectStyle } from './style.ts';
 export type { SubstitutedValue, TemplateValue, TemplateValues } from './template.ts';
 export {
@@ -42,6 +43,7 @@ export type {
   BlockContent,
   BlockOrInlineContent,
   BulletMarker,
+  DefinitionEntry,
   EmphasisMarker,
   FenceMarker,
   HeadingDepth,
@@ -54,6 +56,8 @@ export type {
   MDBr,
   MDCodeBlock,
   MDComment,
+  MDDefinitionList,
+  MDDetails,
   MDDocument,
   MDEmphasis,
   MDFragment,
