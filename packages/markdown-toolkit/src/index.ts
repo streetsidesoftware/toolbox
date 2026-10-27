@@ -23,6 +23,7 @@ export {
   text,
   toBlock,
 } from './builders.ts';
+export { definitionList, details, dl } from './htmlBlocks.ts';
 export { detectStyle } from './style.ts';
 export type { SubstitutedValue, TemplateValue, TemplateValues } from './template.ts';
 export { blockTemplate, inlineTemplate, parse, substitutePlaceholders, template } from './template.ts';
@@ -31,6 +32,7 @@ export type {
   BlockContent,
   BlockOrInlineContent,
   BulletMarker,
+  DefinitionEntry,
   EmphasisMarker,
   FenceMarker,
   HeadingDepth,
@@ -43,6 +45,8 @@ export type {
   MDBr,
   MDCodeBlock,
   MDComment,
+  MDDefinitionList,
+  MDDetails,
   MDDocument,
   MDEmphasis,
   MDFragment,
