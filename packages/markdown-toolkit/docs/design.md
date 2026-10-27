@@ -394,7 +394,6 @@ The README's usage section is written once the API is built, not during developm
 - A template throwing on a placeholder with no value: templates are chained, so a later step may fill it. A `strict` option or a check function isn't needed either, since [@streetsidesoftware/placeholders](../../placeholders/README.md) finds what is left.
 - During development, a second package in inject-markdown: it means converting that repo to a monorepo, with its release and CI setup.
 - Toolbox from the start: during development, every grammar change would have needed a toolbox release before inject-markdown could use it.
-- `experimental` in the package name or subpath: every import would change once it settles.
 - `text()` deciding its kind by its content, as `parse()` does: its type would become `MDText | MDFragment`, and `heading(2, text(s))` would stop type-checking.
 - Splitting a string into paragraphs wherever blocks can go: the same string would mean something different in a list item than in a paragraph.
 - A newline in `blockText()` as a line break: text wrapped at a fixed width would break in the middle of sentences.
