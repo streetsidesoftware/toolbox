@@ -58,6 +58,41 @@ describe('replacePlaceholders', () => {
   });
 });
 
+describe('multi-line values', () => {
+  testEach`
+    text                          | value                        | expected
+    ${'  {@ v @}'}                | ${'a\nb'}                    | ${'  a\n  b'}
+    ${'\t{@ v @}'}                | ${'a\nb'}                    | ${'\ta\n\tb'}
+    ${'{@ v @}'}                  | ${'a\nb'}                    | ${'a\nb'}
+    ${'x:\n  {@ v @}\ny'}         | ${'a\nb'}                    | ${'x:\n  a\n  b\ny'}
+    ${'  - {@ v @}'}              | ${'a\n- b'}                  | ${'  - a\n  - b'}
+    ${'  - {@ v @}'}              | ${'a\n  b'}                  | ${'  - a\n    b'}
+    ${'  {@ v @} {@ v @}'}        | ${'a\nb'}                    | ${'  a\n  b a\n  b'}
+    ${'  {@ v @}'}                | ${'a\n\nb'}                  | ${'  a\n\n  b'}
+    ${'  {@ v @}'}                | ${'a\n   \nb'}               | ${'  a\n     \n  b'}
+    ${'  {@ v @}\nnext'}          | ${'a\nb\n'}                  | ${'  a\n  b\n\nnext'}
+    ${'  {@ v @}'}                | ${'a\r\nb'}                  | ${'  a\r\n  b'}
+    ${'  {@ v @}'}                | ${'a\r\n\r\nb'}              | ${'  a\r\n\r\n  b'}
+  `('$text with $value', ({ text, value, expected }: { text: string; value: string; expected: string }) => {
+    assert.equal(replacePlaceholders(text, { v: value }), expected);
+  });
+
+  test('takes the indent from the template, not from earlier values', () => {
+    assert.equal(replacePlaceholders('{@ pad @}{@ v @}', { pad: '    ', v: 'a\nb' }), '    a\nb');
+  });
+
+  test('indents a value from a resolver', () => {
+    assert.equal(
+      replacePlaceholders('  {@ v @}', () => 'a\nb'),
+      '  a\n  b',
+    );
+  });
+
+  test('autoIndent: false inserts the value as given', () => {
+    assert.equal(replacePlaceholders('  {@ v @}', { v: 'a\nb' }, { autoIndent: false }), '  a\nb');
+  });
+});
+
 describe('delimiters', () => {
   interface DelimiterRow {
     text: string;

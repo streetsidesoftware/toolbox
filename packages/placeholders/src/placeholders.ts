@@ -5,6 +5,11 @@ export interface PlaceholderOptions {
   close?: string | undefined;
 }
 
+export interface ReplacePlaceholdersOptions extends PlaceholderOptions {
+  /** Give each later line of a multi-line value the leading whitespace of its placeholder's line. Default: `true`. */
+  autoIndent?: boolean | undefined;
+}
+
 /** Returns the value for a placeholder name, or `undefined` to leave the placeholder as written. */
 export type PlaceholderResolver = (name: string) => string | undefined;
 
@@ -44,14 +49,24 @@ export function isValidPlaceholderName(name: string): boolean {
  * Replace the placeholders in `text`, such as `{​@ name @​}`, with their values.
  * Whitespace just inside the delimiters is optional. A placeholder without a value is left as written; use
  * {@link listPlaceholders} or {@link hasPlaceholders} to find what is left.
+ * Each later line of a multi-line value gets the leading whitespace of the placeholder's line, except an empty line.
  * @param text - the text to fill
  * @param values - a resolver, or an object a dotted name walks
- * @param options - the delimiters
+ * @param options - the delimiters, and whether to indent multi-line values
  * @returns the filled text
  */
-export function replacePlaceholders(text: string, values: PlaceholderValues, options?: PlaceholderOptions): string {
+export function replacePlaceholders(
+  text: string,
+  values: PlaceholderValues,
+  options?: ReplacePlaceholdersOptions,
+): string {
   const resolve = typeof values === 'function' ? (values as PlaceholderResolver) : objectResolver(values);
-  return text.replaceAll(placeholderRegExp(options), (match, name: string) => resolve(name) ?? match);
+  const autoIndent = options?.autoIndent ?? true;
+  return text.replaceAll(placeholderRegExp(options), (match, name: string, offset: number) => {
+    const value = resolve(name);
+    if (value === undefined) return match;
+    return autoIndent ? indentLines(value, lineIndent(text, offset)) : value;
+  });
 }
 
 /**
@@ -105,6 +120,21 @@ function objectResolver(values: object): PlaceholderResolver {
     if (typeof value === 'number') return String(value);
     return undefined;
   };
+}
+
+/** The leading whitespace of the line `offset` is on, up to `offset`. */
+function lineIndent(text: string, offset: number): string {
+  const line = text.slice(text.lastIndexOf('\n', offset - 1) + 1, offset);
+  return line.slice(0, line.length - line.trimStart().length);
+}
+
+/** Add `indent` to each line after the first, except an empty one. */
+function indentLines(value: string, indent: string): string {
+  if (!indent || !value.includes('\n')) return value;
+  return value
+    .split('\n')
+    .map((line, i) => (i && line !== '' && line !== '\r' ? indent + line : line))
+    .join('\n');
 }
 
 function escapeRegExp(text: string): string {
