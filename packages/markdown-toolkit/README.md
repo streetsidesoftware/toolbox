@@ -138,7 +138,8 @@ md.document(md.list(['a', md.emphasis('b')]))
 // * *b*
 ```
 
-A template or parsed fragment keeps the style of its own text.
+A template or parsed fragment is re-rendered. It tries to keep the style of its own text, but spacing and table
+padding may change.
 
 ## What's included
 
