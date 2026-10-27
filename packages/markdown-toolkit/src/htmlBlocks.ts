@@ -57,10 +57,12 @@ function wrapped(before: string, tag: string, content: InlineContent, after: str
 /** Text for an HTML block: `&` and `<` escaped, and no blank line, which would end the block. */
 function htmlEscape(text: string): string {
   return text
-    .trim()
+    .split(/\r\n?|\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join('\n')
     .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/[ \t]*(?:\r\n?|\n)\s*/g, '\n');
+    .replace(/</g, '&lt;');
 }
 
 function html(value: string): Html {
