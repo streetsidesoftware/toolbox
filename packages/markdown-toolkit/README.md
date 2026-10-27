@@ -9,7 +9,7 @@ or fill a Markdown template, then render the result with `toString()`.
 npm install @streetsidesoftware/markdown-toolkit
 ```
 
-## Why use it
+## Features
 
 - **Builders.** Compose a document from headings, paragraphs, lists, links and code, as values rather than
   strings.
