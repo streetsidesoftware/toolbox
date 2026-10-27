@@ -71,7 +71,8 @@
       "release-as": "1.0.0"
     },
     "packages/placeholders": {
-      "component": "@streetsidesoftware/placeholders"
+      "component": "@streetsidesoftware/placeholders",
+      "release-as": "1.0.0"
     },
     "packages/test-each": {
       "component": "@streetsidesoftware/test-each",
