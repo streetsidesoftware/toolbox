@@ -70,6 +70,9 @@
       "component": "@streetsidesoftware/markdown-toolkit",
       "release-as": "1.0.0"
     },
+    "packages/placeholders": {
+      "component": "@streetsidesoftware/placeholders"
+    },
     "packages/test-each": {
       "component": "@streetsidesoftware/test-each",
       "release-as": "1.0.0"
