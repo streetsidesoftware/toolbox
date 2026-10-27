@@ -281,7 +281,7 @@ There are three template functions. Each fills a template in one call:
 - Its text must be inline-able: one paragraph. A blank line throws. Block syntax is parsed as text, so `' - Adds …'` is a fragment, not a list. Leading and trailing whitespace is kept.
 - Its placeholders take only inline values.
 
-A placeholder with no value is kept as written, so templates can be chained: a later template, `substitutePlaceholders`, or injection fills it. A script that needs every placeholder filled can search its output for `{@`.
+A placeholder with no value is kept as written, so templates can be chained: a later template, `substitutePlaceholders`, or injection fills it. A script that needs every placeholder filled can check its output with `hasPlaceholders` or `listPlaceholders` from [@streetsidesoftware/placeholders](../../placeholders/README.md).
 
 A values object resolves names the way injection resolves declarations:
 
@@ -354,7 +354,6 @@ The builders were built inside inject-markdown first, for rapid development agai
   - `@streetsidesoftware/markdown-toolkit`: the builders, templates, and `detectStyle`. Its types never mention mdast.
   - `@streetsidesoftware/markdown-toolkit/placeholders`: for tools such as inject-markdown that fill placeholders in an mdast tree. It has the placeholder name checks, `substituteInString`, `substituteInTree`, and `detectMarkdownStyle`.
 - inject-markdown keeps exporting the builders as `inject-markdown/markdown`, as a pass-through to the package.
-- While the API settles, it's documented as experimental. Breaking changes ship as minor releases, called out in the release notes.
 
 ### Tests
 
@@ -392,10 +391,9 @@ The README's usage section is written once the API is built, not during developm
 - `template(markdown).fill(values)`: a second kind of object, for a parse-once speed gain the scripts don't need. It can still be added later.
 - Trying the exact key first, then the nested walk: it ignores the order a reader sees, and mixed forms such as `{ 'a.b': { c: 1 } }` for `a.b.c` don't resolve.
 - Trying the longest matching key first: a later key couldn't override an earlier, longer one.
-- A template throwing on a placeholder with no value: templates are chained, so a later step may fill it. A `strict` option or a check function isn't needed either, since a script can search its output for `{@`.
+- A template throwing on a placeholder with no value: templates are chained, so a later step may fill it. A `strict` option or a check function isn't needed either, since [@streetsidesoftware/placeholders](../../placeholders/README.md) finds what is left.
 - During development, a second package in inject-markdown: it means converting that repo to a monorepo, with its release and CI setup.
 - Toolbox from the start: during development, every grammar change would have needed a toolbox release before inject-markdown could use it.
-- `experimental` in the package name or subpath: every import would change once it settles.
 - `text()` deciding its kind by its content, as `parse()` does: its type would become `MDText | MDFragment`, and `heading(2, text(s))` would stop type-checking.
 - Splitting a string into paragraphs wherever blocks can go: the same string would mean something different in a list item than in a paragraph.
 - A newline in `blockText()` as a line break: text wrapped at a fixed width would break in the middle of sentences.
