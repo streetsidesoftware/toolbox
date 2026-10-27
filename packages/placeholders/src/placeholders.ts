@@ -55,17 +55,14 @@ export function replacePlaceholders(text: string, values: PlaceholderValues, opt
 }
 
 /**
- * Find the placeholders in `text`, in order.
+ * Find the placeholders in `text`, in order. They are found as they are iterated, so a caller can stop early.
  * @param text - the text to search
  * @param options - the delimiters
  * @returns each placeholder's name and offsets
  */
-export function listPlaceholders(text: string, options?: PlaceholderOptions): Placeholder[] {
-  return [...text.matchAll(placeholderRegExp(options))].map((match) => ({
-    name: match[1] ?? '',
-    start: match.index,
-    end: match.index + match[0].length,
-  }));
+export function listPlaceholders(text: string, options?: PlaceholderOptions): Iterable<Placeholder> {
+  // matchAll copies the shared regex now, so a later call can't move where this search starts.
+  return placeholdersOf(text.matchAll(placeholderRegExp(options)));
 }
 
 /**
@@ -88,6 +85,12 @@ function placeholderRegExp(options: PlaceholderOptions = {}): RegExp {
   const regExp = new RegExp(`${escapeRegExp(open)}\\s*(${namePattern})\\s*${escapeRegExp(close)}`, 'g');
   cached = { open, close, regExp };
   return regExp;
+}
+
+function* placeholdersOf(matches: Iterable<RegExpExecArray>): Generator<Placeholder> {
+  for (const match of matches) {
+    yield { name: match[1] ?? '', start: match.index, end: match.index + match[0].length };
+  }
 }
 
 function objectResolver(values: object): PlaceholderResolver {

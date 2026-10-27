@@ -92,7 +92,7 @@ describe('delimiters', () => {
 describe('listPlaceholders', () => {
   test('lists each placeholder with its offsets, in order', () => {
     const text = 'a {@ x @} b {@y.z@} c {@ x @}';
-    const found = listPlaceholders(text);
+    const found = [...listPlaceholders(text)];
     assert.deepEqual(found, [
       { name: 'x', start: 2, end: 9 },
       { name: 'y.z', start: 12, end: 19 },
@@ -102,19 +102,29 @@ describe('listPlaceholders', () => {
   });
 
   test('uses the given delimiters', () => {
-    assert.deepEqual(listPlaceholders('{@ a @} {{ b }}', { open: '{{', close: '}}' }), [
-      { name: 'b', start: 8, end: 15 },
-    ]);
+    assert.deepEqual(
+      [...listPlaceholders('{@ a @} {{ b }}', { open: '{{', close: '}}' })],
+      [{ name: 'b', start: 8, end: 15 }],
+    );
   });
 
   test('ends a name at the first close delimiter', () => {
     const options = { open: '__', close: '__' };
-    assert.deepEqual(listPlaceholders('__a__b__', options), [{ name: 'a', start: 0, end: 5 }]);
-    assert.deepEqual(listPlaceholders('__a_b.c-d__', options), [{ name: 'a_b.c-d', start: 0, end: 11 }]);
+    assert.deepEqual([...listPlaceholders('__a__b__', options)], [{ name: 'a', start: 0, end: 5 }]);
+    assert.deepEqual([...listPlaceholders('__a_b.c-d__', options)], [{ name: 'a_b.c-d', start: 0, end: 11 }]);
   });
 
   test('is empty without placeholders', () => {
-    assert.deepEqual(listPlaceholders('plain {@ -bad @} text'), []);
+    assert.deepEqual([...listPlaceholders('plain {@ -bad @} text')], []);
+  });
+
+  test('finds placeholders as they are iterated', () => {
+    const [first] = listPlaceholders('{@ a @} {@ b @}');
+    assert.deepEqual(first, { name: 'a', start: 0, end: 7 });
+  });
+
+  test('checks the delimiters when called, not when iterated', () => {
+    assert.throws(() => listPlaceholders('', { open: '' }), TypeError);
   });
 });
 
@@ -145,7 +155,16 @@ describe('reusing the regex', () => {
   test('listPlaceholders after hasPlaceholders finds every placeholder', () => {
     assert.equal(hasPlaceholders('x {@ a @}'), true);
     assert.deepEqual(
-      listPlaceholders('{@ a @} {@ b @}').map(({ name }) => name),
+      [...listPlaceholders('{@ a @} {@ b @}')].map(({ name }) => name),
+      ['a', 'b'],
+    );
+  });
+
+  test('hasPlaceholders between listing and iterating does not change what is found', () => {
+    const found = listPlaceholders('{@ a @} {@ b @}');
+    assert.equal(hasPlaceholders('{@ c @} and more text'), true);
+    assert.deepEqual(
+      [...found].map(({ name }) => name),
       ['a', 'b'],
     );
   });
