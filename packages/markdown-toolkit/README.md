@@ -91,8 +91,7 @@ Install with `npm i my_package*`, then see [the docs](https://example.com).
 ```
 
 The name is escaped in the heading, but not inside the inline code. A name may be dotted, such as
-`{@ engines.node @}`, and is looked up in nested objects. A placeholder with no value is kept as written, so
-templates can be chained: fill what you know now, and the rest in a later step.
+`{@ engines.node @}`, and is looked up in nested objects. A name you leave out can be filled in a later step.
 
 Templates are also the way to write what has no builder, such as a table:
 
