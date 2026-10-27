@@ -1,6 +1,6 @@
 {
   "name": "@streetsidesoftware/test-each",
-  "version": "0.0.1-alpha.0",
+  "version": "1.0.0",
   "description": "Table-driven tests for node:test, written as vitest-style tagged-template tables.",
   "repository": {
     "type": "git",
