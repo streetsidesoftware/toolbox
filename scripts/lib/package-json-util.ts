@@ -10,6 +10,9 @@ const PUBLISH_CONFIG: PackageJsonPublishConfig = {
   provenance: true,
 };
 
+/** The root `package.json`, whose `engines.node` every package gets. */
+export const ROOT_PACKAGE_JSON_FILE: string = Path.join(REPO_ROOT_DIR, 'package.json');
+
 const SORT_PACKAGE_ORDER = ['name', 'version', 'private', 'description', 'repository', 'funding', 'publishConfig'];
 
 export interface PackageJson {
@@ -60,7 +63,7 @@ export function setPackageRepository(packageJson: PackageJson, filePath: string)
   };
 }
 
-export function fixUpPackageJson(packageJson: PackageJson, filePath: string) {
+export function fixUpPackageJson(packageJson: PackageJson, filePath: string, rootPackageJson: PackageJson) {
   const name = packageJson.name ?? '@internal/' + Path.basename(Path.dirname(filePath));
   packageJson.name = name;
   setPackageRepository(packageJson, filePath);
@@ -72,6 +75,10 @@ export function fixUpPackageJson(packageJson: PackageJson, filePath: string) {
     publishConfig.access = 'restricted';
   }
   packageJson.publishConfig = publishConfig;
+
+  const node = rootPackageJson.engines?.node;
+  if (!node) throw new Error(`${ROOT_PACKAGE_JSON_FILE} has no engines.node.`);
+  packageJson.engines = { ...packageJson.engines, node };
 }
 
 export interface FixPackageJsonOptions {
@@ -89,7 +96,7 @@ export async function fixPackageJson(filePath: string, options: FixPackageJsonOp
   console.error('Fixing package.json for: %s', relPath);
   const packageJson = await readPackageJson(filePath);
   const orig = await fs.readFile(filePath, 'utf-8');
-  fixUpPackageJson(packageJson, filePath);
+  fixUpPackageJson(packageJson, filePath, await readPackageJson(ROOT_PACKAGE_JSON_FILE));
   const result = formatPackageJson(packageJson);
   const needsFix = orig !== result;
 
