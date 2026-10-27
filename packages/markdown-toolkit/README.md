@@ -148,8 +148,8 @@ padding may change.
 
 ## What's included
 
-- Inline: `text` (`inlineText`), `inlineCode`, `link`, `strong`, `emphasis`, `strikethrough`, `lineBreak`, `br`, `comment`,
-  `placeholder`
+- Inline: `text` (`inlineText`), `inlineCode`, `link`, `strong`, `emphasis`, `strikethrough`, `lineBreak`, `br`,
+  `comment`, `placeholder`
 - Blocks: `heading`, `paragraph`, `blockText`, `list`, `listItem`, `codeBlock`, `horizontalRule` (`hr`),
   `blockPlaceholder`, `toBlock`
 - A whole document: `document`
