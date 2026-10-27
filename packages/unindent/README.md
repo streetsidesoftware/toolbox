@@ -9,8 +9,6 @@ the code around it.
 npm install @streetsidesoftware/unindent
 ```
 
-Requires Node.js 22.18 or later. ESM only.
-
 ## Usage
 
 ```ts
@@ -95,6 +93,14 @@ indent('a\nb', '  ', '- '); // "- a\n  b"
 - **Escape sequences are processed.** A `\t` or `\n` in the template becomes a tab or a newline before the
   indentation is removed.
 - **Values are converted with `String()`** semantics, as in a normal template literal.
+
+## Requirements
+
+<!--- @@inject: ../../static/requirements.md#values-file=:package.json --->
+
+Requires Node.js >=22.18.0. ESM only.
+
+<!--- @@inject-end: ../../static/requirements.md#values-file=:package.json --->
 
 ## License
 
