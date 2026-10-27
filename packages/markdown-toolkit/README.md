@@ -148,13 +148,14 @@ padding may change.
 
 ## What's included
 
-- Inline: `text`, `inlineCode`, `link`, `strong`, `emphasis`, `strikethrough`, `lineBreak`, `br`, `comment`,
+- Inline: `text` (`inlineText`), `inlineCode`, `link`, `strong`, `emphasis`, `strikethrough`, `lineBreak`, `br`, `comment`,
   `placeholder`
 - Blocks: `heading`, `paragraph`, `blockText`, `list`, `listItem`, `codeBlock`, `horizontalRule` (`hr`),
   `blockPlaceholder`, `toBlock`
 - A whole document: `document`
 - Templates and placeholders: `template`, `blockTemplate`, `inlineTemplate`, `parse`, `substitutePlaceholders`
 - Style: `detectStyle`, and `withStyle` on a document
+- Checks: `isMarkdown`, which tells whether a value was made by this package
 
 There are no builders yet for tables, ordered lists, block quotes or images. Write those as a template.
 
