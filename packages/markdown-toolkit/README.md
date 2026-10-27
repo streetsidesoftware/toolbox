@@ -13,6 +13,8 @@ then render the result with `toString()`.
 npm install @streetsidesoftware/markdown-toolkit
 ```
 
+Requires Node.js 22.18 or later. ESM only.
+
 ## Usage
 
 ```ts
@@ -41,10 +43,6 @@ npm install -D cspell
 ````
 
 Each builder escapes its content for where it ends up, so the `]` in the link text doesn't end the link.
-
-## Requirements
-
-<!-- @@inject: ../../static/requirements.md#values-file=:package.json -->
 
 ## License
 
