@@ -9,8 +9,6 @@ vitest's `test.each` and `describe.each`.
 npm install --save-dev @streetsidesoftware/test-each
 ```
 
-Requires Node.js 22.18 or later. ESM only.
-
 ## Usage
 
 The first line of the table names the columns, separated by `|`. Each line after it is one row, with one `${value}`
@@ -70,6 +68,14 @@ A malformed table throws when it's tagged, before any test is registered:
 - The first line is empty, has an empty column name (`a || b`), or names a column twice.
 - The values don't fill the last row.
 - Values in a row aren't separated by `|`, or a row has anything after its last value.
+
+## Requirements
+
+<!--- @@inject: ../../static/requirements.md#values-file=:package.json --->
+
+Requires Node.js >=22.18.0. ESM only.
+
+<!--- @@inject-end: ../../static/requirements.md#values-file=:package.json --->
 
 ## License
 
