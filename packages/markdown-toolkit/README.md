@@ -18,8 +18,6 @@ npm install @streetsidesoftware/markdown-toolkit
 - **Placeholders.** Leave a gap unfilled and fill it in a later step, or hand it to a tool such as inject-markdown.
 - **Fits existing documents.** Detect the style a document already uses, such as `*` or `-` bullets, and render in
   that style.
-- **Mistakes throw early.** A list can't go inside a heading, and a template with a missing value doesn't render.
-  You get an error instead of broken Markdown.
 - **Text stays text.** A value is escaped for where it ends up, so a `*` or `[` in it doesn't turn into Markdown.
 - **Built on remark.** Parsing and rendering use [unified](https://unifiedjs.com) and
   [remark](https://github.com/remarkjs/remark) with GitHub Flavored Markdown, not hand-rolled string rules.
@@ -93,7 +91,8 @@ Install with `npm i my_package*`, then see [the docs](https://example.com).
 ```
 
 The name is escaped in the heading, but not inside the inline code. A name may be dotted, such as
-`{@ engines.node @}`, and is looked up in nested objects.
+`{@ engines.node @}`, and is looked up in nested objects. A placeholder with no value is kept as written, so
+templates can be chained: fill what you know now, and the rest in a later step.
 
 Templates are also the way to write what has no builder, such as a table:
 
