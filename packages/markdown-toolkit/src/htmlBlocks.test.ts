@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
 import { testEach } from '@streetsidesoftware/test-each';
+import { createUnindent } from '@streetsidesoftware/unindent';
 
 import type { InlineContent } from './index.ts';
 import {
@@ -19,11 +20,22 @@ import {
   text,
 } from './index.ts';
 
+const md = createUnindent({ trimFirstNewline: true, trimLastLine: true });
+
 describe('details', () => {
   test('a plain-text summary is on one line, and the content has blank lines around it', () => {
     assert.equal(
       details('TypeScript:', codeBlock('{ a?: string }', 'ts')).toString(),
-      '<details>\n<summary>TypeScript:</summary>\n\n```ts\n{ a?: string }\n```\n\n</details>',
+      md`
+        <details>
+        <summary>TypeScript:</summary>
+
+        ${'```ts'}
+        { a?: string }
+        ${'```'}
+
+        </details>
+      `,
     );
   });
 
@@ -48,7 +60,18 @@ describe('details', () => {
     ({ summary, expected }: { summary: InlineContent; expected: string }) => {
       assert.equal(
         details(summary, 'b').toString(),
-        `<details>\n<summary>\n\n${expected}\n\n</summary>\n\nb\n\n</details>`,
+        md`
+          <details>
+          <summary>
+
+          ${expected}
+
+          </summary>
+
+          b
+
+          </details>
+        `,
       );
     },
   );
@@ -56,14 +79,32 @@ describe('details', () => {
   test('inline content is a paragraph, and blocks follow', () => {
     assert.equal(
       details('S', 'See ', inlineCode('x'), '.', list(['a'])).toString(),
-      '<details>\n<summary>S</summary>\n\nSee `x`.\n\n- a\n\n</details>',
+      md`
+        <details>
+        <summary>S</summary>
+
+        See \`x\`.
+
+        - a
+
+        </details>
+      `,
     );
   });
 
   test('it goes in a document', () => {
     assert.equal(
       document('Intro', details('S', 'b')).toString(),
-      'Intro\n\n<details>\n<summary>S</summary>\n\nb\n\n</details>\n',
+      md`
+        Intro
+
+        <details>
+        <summary>S</summary>
+
+        b
+
+        </details>
+      ` + '\n',
     );
   });
 
@@ -79,49 +120,105 @@ describe('definitionList', () => {
         ['Name', inlineCode('cSpell.dark')],
         ['Description', parse('Decoration.\n\n- [a](b.md)\n')],
       ]).toString(),
-      [
-        '<dl>',
-        '',
-        '<dt>Name</dt>',
-        '<dd>',
-        '',
-        '`cSpell.dark`',
-        '',
-        '</dd>',
-        '',
-        '<dt>Description</dt>',
-        '<dd>',
-        '',
-        'Decoration.',
-        '',
-        '- [a](b.md)',
-        '',
-        '</dd>',
-        '',
-        '</dl>',
-      ].join('\n'),
+      md`
+        <dl>
+
+        <dt>Name</dt>
+        <dd>
+
+        \`cSpell.dark\`
+
+        </dd>
+
+        <dt>Description</dt>
+        <dd>
+
+        Decoration.
+
+        - [a](b.md)
+
+        </dd>
+
+        </dl>
+      `,
     );
   });
 
   test('term text is HTML-escaped', () => {
-    assert.equal(dl([['a < b & c', 'd']]).toString(), '<dl>\n\n<dt>a &lt; b &amp; c</dt>\n<dd>\n\nd\n\n</dd>\n\n</dl>');
+    assert.equal(
+      dl([['a < b & c', 'd']]).toString(),
+      md`
+        <dl>
+
+        <dt>a &lt; b &amp; c</dt>
+        <dd>
+
+        d
+
+        </dd>
+
+        </dl>
+      `,
+    );
   });
 
   test('definition text is Markdown-escaped', () => {
     assert.equal(
       dl([['T', '*not* emphasis']]).toString(),
-      '<dl>\n\n<dt>T</dt>\n<dd>\n\n\\*not\\* emphasis\n\n</dd>\n\n</dl>',
+      md`
+        <dl>
+
+        <dt>T</dt>
+        <dd>
+
+        ${'\\*not\\* emphasis'}
+
+        </dd>
+
+        </dl>
+      `,
     );
   });
 
   test('a term with Markdown has blank lines', () => {
-    assert.equal(dl([[inlineCode('x'), 'y']]).toString(), '<dl>\n\n<dt>\n\n`x`\n\n</dt>\n<dd>\n\ny\n\n</dd>\n\n</dl>');
+    assert.equal(
+      dl([[inlineCode('x'), 'y']]).toString(),
+      md`
+        <dl>
+
+        <dt>
+
+        \`x\`
+
+        </dt>
+        <dd>
+
+        y
+
+        </dd>
+
+        </dl>
+      `,
+    );
   });
 
   test('a definition can mix inline and blocks', () => {
     assert.equal(
       dl([['T', ['See ', inlineCode('x'), list(['a'])]]]).toString(),
-      '<dl>\n\n<dt>T</dt>\n<dd>\n\nSee `x`\n\n- a\n\n</dd>\n\n</dl>',
+      md`
+        <dl>
+
+        <dt>T</dt>
+        <dd>
+
+        See \`x\`
+
+        - a
+
+        </dd>
+
+        </dl>
+      `,
     );
   });
 
