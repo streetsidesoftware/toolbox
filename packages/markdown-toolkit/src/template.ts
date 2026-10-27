@@ -183,12 +183,12 @@ function filled(nodes: RootContent[], values: TemplateValues, allowBlocks: boole
 
 /**
  * Text with its placeholders substituted, or `undefined` if a value isn't a string or text.
- * An escaped placeholder, or one with no value, is kept as written.
+ * A placeholder with no value is kept as written.
  */
 function substituteInText(text: string, values: TemplateValues): string | undefined {
   let onlyText = true;
-  const result = text.replace(placeholderRegExp, (whole, escape: string | undefined, name: string) => {
-    const value = escape ? undefined : resolveValue(values, name);
+  const result = text.replace(placeholderRegExp, (whole, name: string) => {
+    const value = resolveValue(values, name);
     if (value === undefined) return whole;
     if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
     if (isText(value)) return value.text;
@@ -228,7 +228,7 @@ function templateTree(markdown: string, inline: boolean): Root {
   return root;
 }
 
-/** Make the placeholders in text nodes of their own, in place. An escaped placeholder becomes text. */
+/** Make the placeholders in text nodes of their own, in place. */
 function splitPlaceholders(parent: Parent): void {
   parent.children = parent.children.flatMap((child): RootContent[] => {
     if (child.type === 'text') return placeholderPieces(child.value);
@@ -241,10 +241,10 @@ function placeholderPieces(text: string): PhrasingContent[] {
   const nodes: PhrasingContent[] = [];
   let last = 0;
   for (const match of text.matchAll(placeholderRegExp)) {
-    const [whole, escape] = match;
+    const [whole] = match;
     if (match.index > last) nodes.push({ type: 'text', value: text.slice(last, match.index) });
     last = match.index + whole.length;
-    nodes.push(escape ? { type: 'text', value: whole.slice(1) } : placeholderNodeAsWritten(whole));
+    nodes.push(placeholderNodeAsWritten(whole));
   }
   if (last < text.length) nodes.push({ type: 'text', value: text.slice(last) });
   return nodes;
@@ -341,8 +341,7 @@ const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'list', 'li
  */
 function fill(root: Root, values: TemplateValues, allowBlocks: boolean): void {
   const fillCode = (code: string): string =>
-    code.replace(placeholderRegExp, (whole, escape: string | undefined, name: string) => {
-      if (escape) return whole.slice(1);
+    code.replace(placeholderRegExp, (whole, name: string) => {
       const value = resolveValue(values, name);
       return value === undefined ? whole : valueAsCode(value, name);
     });
@@ -435,7 +434,7 @@ function endsLine(node: RootContent | undefined, lineEnd: RegExp): boolean {
 }
 
 function placeholderName(node: PlaceholderNode): string {
-  return [...node.value.matchAll(placeholderRegExp)][0][2];
+  return [...node.value.matchAll(placeholderRegExp)][0][1];
 }
 
 function valueAsInline(value: TemplateValue, name: string): PhrasingContent[] {

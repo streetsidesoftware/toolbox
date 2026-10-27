@@ -65,7 +65,6 @@ export function textNodes(text: string): PhrasingContent[] {
   const nodes: PhrasingContent[] = [];
   let last = 0;
   for (const match of text.matchAll(placeholderRegExp)) {
-    if (match[1]) continue;
     if (match.index > last) nodes.push({ type: 'text', value: text.slice(last, match.index) });
     nodes.push(placeholderNodeAsWritten(match[0]));
     last = match.index + match[0].length;

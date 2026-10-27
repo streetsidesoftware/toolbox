@@ -317,7 +317,7 @@ The concerns that apply at injection time, such as untrusted values and link reb
 
 `template()` and `parse()` return the same types: `MDFragment` for blocks and `MDInlineFragment` for inline content. Callers narrow on `kind`, so the types don't record which function made the value. `parse()` has no forced form like `blockTemplate()`. `toBlock(parse(markdown))` gives blocks.
 
-In prose, the Markdown parser reads `\{` as an escape and drops the backslash, so `\{@ name @}` comes out as a kept placeholder. Templates and injection have the same problem ([#887](https://github.com/streetsidesoftware/inject-markdown/issues/887)).
+A backslash doesn't escape a placeholder, in templates or in `parse()`. In prose, the Markdown parser would drop it before the toolkit saw it, so it couldn't work the same as in code. A literal `{@ name @}` comes from a value instead: `md.placeholder('name')`, or the string `'{@ name @}'`.
 
 ### Substituting placeholders
 
