@@ -1,9 +1,11 @@
 import fs from 'node:fs/promises';
 import Path from 'node:path';
 
-import { REPO_ROOT_DIR } from './consts.ts';
+import { listPlaceholders, replacePlaceholders } from '@streetsidesoftware/placeholders';
+
+import { REPO_ROOT_DIR, ROOT_LICENSE_FILE, TEMPLATE_DIR } from './consts.ts';
 import type { PackageJson } from './package-json-util.ts';
-import { fixUpPackageJson, formatPackageJson } from './package-json-util.ts';
+import { fixUpPackageJson, formatPackageJson, readPackageJson, ROOT_PACKAGE_JSON_FILE } from './package-json-util.ts';
 
 export const SCOPE = '@streetsidesoftware';
 export const PRIVATE_SUFFIX = ' -- Private until verified';
@@ -14,9 +16,12 @@ const NAME_REGEXP = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 
 export interface NewPackageOptions {
   description?: string | undefined;
-  /** The year in `LICENSE`; default: the current year. */
-  year?: number | undefined;
+  /** The folder of template files; default: {@link TEMPLATE_DIR}. */
+  templateDir?: string | undefined;
 }
+
+/** The values the templates' placeholders take. */
+type TemplateValues = Record<'name' | 'fullName' | 'description', string>;
 
 export interface CreatePackageOptions extends NewPackageOptions {
   rootDir?: string | undefined;
@@ -32,22 +37,33 @@ export function validatePackageName(name: string): void {
   }
 }
 
-/** The files of a new private package, keyed by path relative to its folder. */
-export function newPackageFiles(name: string, options: NewPackageOptions = {}): Record<string, string> {
+/**
+ * The files of a new private package, keyed by path relative to its folder: the templates in `static/templates/`,
+ * with their placeholders filled in, and the root `LICENSE`.
+ */
+export async function newPackageFiles(name: string, options: NewPackageOptions = {}): Promise<Record<string, string>> {
   validatePackageName(name);
-  const fullName = `${SCOPE}/${name}`;
-  const description = privateDescription(options.description);
-  const year = options.year ?? new Date().getFullYear();
-
-  return {
-    'package.json': packageJsonText(name, fullName, description),
-    'tsconfig.json': TSCONFIG,
-    'tsdown.config.ts': TSDOWN_CONFIG,
-    LICENSE: license(year),
-    'README.md': readme(fullName),
-    'src/index.ts': `export const packageName = '${fullName}';\n`,
-    [`src/${name}.test.ts`]: testFile(fullName),
+  const values: TemplateValues = {
+    name,
+    fullName: `${SCOPE}/${name}`,
+    description: privateDescription(options.description),
   };
+  const templateDir = options.templateDir ?? TEMPLATE_DIR;
+  const templates = await readTemplates(templateDir);
+  assertKnownPlaceholders(templates, values, templateDir);
+  const rootPackageJson = await readPackageJson(ROOT_PACKAGE_JSON_FILE);
+
+  const files: Record<string, string> = {};
+  for (const [relPath, text] of Object.entries(templates)) {
+    const path = replacePlaceholders(relPath, values);
+    files[path] =
+      path === 'package.json'
+        ? packageJsonText(name, text, values, rootPackageJson)
+        : replacePlaceholders(text, values);
+  }
+  // A copy of the root one, which `fix-package-json` keeps in step.
+  files['LICENSE'] = await fs.readFile(ROOT_LICENSE_FILE, 'utf-8');
+  return files;
 }
 
 /**
@@ -55,7 +71,7 @@ export function newPackageFiles(name: string, options: NewPackageOptions = {}): 
  * @returns the package folder.
  */
 export async function createPackage(name: string, options: CreatePackageOptions = {}): Promise<string> {
-  const files = newPackageFiles(name, options);
+  const files = await newPackageFiles(name, options);
   const dir = Path.join(options.rootDir ?? REPO_ROOT_DIR, 'packages', name);
   await fs.mkdir(Path.dirname(dir), { recursive: true });
   // Not recursive, so it fails if the folder already exists.
@@ -86,118 +102,36 @@ export function privateDescription(description: string | undefined): string {
   return (text || DEFAULT_DESCRIPTION) + PRIVATE_SUFFIX;
 }
 
-function packageJsonText(name: string, fullName: string, description: string): string {
-  const packageJson: PackageJson = {
-    name: fullName,
-    version: '0.0.1-alpha.0',
-    private: true,
-    description,
-    license: 'MIT',
-    type: 'module',
-    exports: {
-      '.': {
-        types: './dist/index.d.ts',
-        default: './dist/index.js',
-      },
-    },
-    main: './dist/index.js',
-    types: './dist/index.d.ts',
-    files: ['dist', '!dist/**/*.map'],
-    scripts: {
-      build: 'tsdown',
-      clean: 'shx rm -rf dist coverage',
-      test: 'node --test "src/**/*.test.ts"',
-      typecheck: 'tsc --noEmit',
-    },
-    engines: {
-      node: '>=22.18.0',
-    },
-  };
-  // Add repository and publishConfig the way `fix-package-json` does, so the new package already passes lint.
-  fixUpPackageJson(packageJson, Path.join(REPO_ROOT_DIR, 'packages', name, 'package.json'));
+// Placeholders are filled in the parsed string values, so a value with a `"` can't break the JSON.
+function packageJsonText(name: string, template: string, values: TemplateValues, rootPackageJson: PackageJson): string {
+  const packageJson: PackageJson = JSON.parse(template, (_key, value: unknown) =>
+    typeof value === 'string' ? replacePlaceholders(value, values) : value,
+  );
+  // Add repository, publishConfig and engines the way `fix-package-json` does, so the new package already passes lint.
+  fixUpPackageJson(packageJson, Path.join(REPO_ROOT_DIR, 'packages', name, 'package.json'), rootPackageJson);
   return formatPackageJson(packageJson);
 }
 
-const TSCONFIG = `{
-  "extends": "../../tsconfig.base.json",
-  "include": ["src/**/*.ts"]
-}
-`;
-
-const TSDOWN_CONFIG = `import { mergeConfig } from 'tsdown';
-
-import base from '../../.config/tsdown.config.ts';
-
-export default mergeConfig(base, {
-  entry: ['src/index.ts'],
-});
-`;
-
-function license(year: number): string {
-  return `MIT License
-
-Copyright (c) ${year} Street Side Software
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-`;
+/** Every file under `dir`, keyed by its path relative to `dir`, with `/` separators. */
+async function readTemplates(dir: string): Promise<Record<string, string>> {
+  const templates: Record<string, string> = {};
+  const entries = await fs.readdir(dir, { recursive: true, withFileTypes: true });
+  for (const entry of entries.filter((entry) => entry.isFile())) {
+    const file = Path.join(entry.parentPath, entry.name);
+    templates[Path.relative(dir, file).replaceAll('\\', '/')] = await fs.readFile(file, 'utf-8');
+  }
+  return templates;
 }
 
-// The inject markers stay empty: the Update READMEs workflow fills them in after the merge.
-function readme(fullName: string): string {
-  return `# ${fullName}
-
-TODO: describe the package.
-
-## Install
-
-\`\`\`sh
-npm install ${fullName}
-\`\`\`
-
-Requires Node.js 22.18 or later. ESM only.
-
-## License
-
-MIT
-
-## Support Future Development
-
-<!--- @@inject: ../../static/sponsor.md --->
-
-<!--- @@inject-end: ../../static/sponsor.md --->
-
-<!--- @@inject: ../../static/footer.md --->
-
-<!--- @@inject-end: ../../static/footer.md --->
-`;
-}
-
-function testFile(fullName: string): string {
-  return `import assert from 'node:assert/strict';
-import { describe, test } from 'node:test';
-
-import { packageName } from './index.ts';
-
-describe('packageName', () => {
-  test('is the package name', () => {
-    assert.equal(packageName, '${fullName}');
-  });
-});
-`;
+/** Throws if a template's path or text uses a placeholder that `values` has no value for. */
+function assertKnownPlaceholders(templates: Record<string, string>, values: TemplateValues, dir: string): void {
+  const unknown: string[] = [];
+  for (const [relPath, text] of Object.entries(templates)) {
+    for (const { name } of [...listPlaceholders(relPath), ...listPlaceholders(text)]) {
+      if (!Object.hasOwn(values, name)) unknown.push(`${relPath}: {@ ${name} @}`);
+    }
+  }
+  if (unknown.length) {
+    throw new Error(`Unknown placeholders in ${dir}:\n  ${[...new Set(unknown)].join('\n  ')}`);
+  }
 }

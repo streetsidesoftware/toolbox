@@ -53,13 +53,16 @@ How the packages in this repo are built, tested, and packaged for npm.
 - **Source maps stay local.** The shared config sets `sourcemap: true` for debugging from a checkout, and
   `files` keeps the maps out of the tarball.
 - **Each package has its own `LICENSE`**, a copy of the root one, since npm only bundles a `LICENSE` inside the
-  package.
+  package. `fix-package-json` copies the root one in, so edit only the root `LICENSE`.
 - **Keep production dependencies few.** Be conservative about adding a `dependencies` entry, and check its
   license first by [dependency licenses](./dependency-licenses.md).
-- **`fix-package-json` sets the rest.** `pnpm run lint` runs it on `packages/*` and `internal/*`:
+- **`fix-package-json` sets the rest.** `pnpm run lint` runs it on `packages/*`, `internal/*` and `scripts/`:
   - `repository`, with `directory` pointing at the package. npm's provenance check needs `repository.url` to
     match the repo the build ran in.
   - `publishConfig`: public access with provenance, or restricted for `@internal/*`.
+  - `engines.node`, copied from the root `package.json`. Change the Node.js version there and run
+    `pnpm run lint`; `lint-ci` fails while a package is out of step. `new-package` sets it the same way, so the
+    template in `static/templates/` has none.
   - Sorted, deduped `keywords`, and the order of the fields.
 
 For releasing, see [releasing](./releasing.md).

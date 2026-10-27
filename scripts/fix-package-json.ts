@@ -3,12 +3,14 @@
 import fs from 'node:fs/promises';
 import Path from 'node:path';
 
-import { REPO_ROOT_DIR } from './lib/consts.ts';
+import { REPO_ROOT_DIR, ROOT_LICENSE_FILE } from './lib/consts.ts';
+import { syncLicense } from './lib/license.ts';
 import { fixPackageJson } from './lib/package-json-util.ts';
 
 const HELP = `Usage: fix-package-json [options]
 
-Fixes up packages/*/package.json and internal/*/package.json files (name, repository, keywords, publishConfig).
+Fixes up the packages/*, internal/* and scripts package.json files (name, repository, keywords, publishConfig,
+and engines.node, copied from the root package.json). Also copies the root LICENSE into each packages/* folder.
 
 Options:
   --dry-run   Report which files need fixing without writing changes; exits with a
@@ -30,15 +32,27 @@ async function main() {
   }
 
   let needsFix = false;
-  for await (const relFilePath of fs.glob(['packages/*/package.json', 'internal/*/package.json'], {
-    cwd: REPO_ROOT_DIR,
-  })) {
+  for await (const relFilePath of fs.glob(
+    ['packages/*/package.json', 'internal/*/package.json', 'scripts/package.json'],
+    {
+      cwd: REPO_ROOT_DIR,
+    },
+  )) {
     const fixed = await fixPackageJson(Path.join(REPO_ROOT_DIR, relFilePath), { dryRun });
     needsFix ||= fixed;
   }
 
+  const licenseText = await fs.readFile(ROOT_LICENSE_FILE, 'utf-8');
+  for await (const relFilePath of fs.glob('packages/*/package.json', { cwd: REPO_ROOT_DIR })) {
+    const licenseFile = Path.join(REPO_ROOT_DIR, Path.dirname(relFilePath), 'LICENSE');
+    if (await syncLicense(licenseFile, licenseText, { dryRun })) {
+      console.error('LICENSE differs from the root one: %s', Path.relative(REPO_ROOT_DIR, licenseFile));
+      needsFix = true;
+    }
+  }
+
   if (dryRun && needsFix) {
-    console.error('One or more package.json files need fixing. Run `pnpm exec fix-package-json` to fix them.');
+    console.error('One or more files need fixing. Run `pnpm exec fix-package-json` to fix them.');
     process.exitCode = 1;
     return;
   }
