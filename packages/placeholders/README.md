@@ -41,7 +41,7 @@ left, for example to fail when a template uses a name you didn't pass:
 import { listPlaceholders, replacePlaceholders } from '@streetsidesoftware/placeholders';
 
 const text = replacePlaceholders('{@ name @} {@ title @}', { name: 'tool' });
-listPlaceholders(text);
+[...listPlaceholders(text)];
 // [{ name: 'title', start: 5, end: 16 }]
 ```
 
@@ -62,7 +62,8 @@ Every function takes the same `{ open, close }` options. The defaults are `{@` a
 ## API
 
 - `replacePlaceholders(text, values, options?)`: replace each placeholder that has a value.
-- `listPlaceholders(text, options?)`: every placeholder in `text`, as `{ name, start, end }`, in order.
+- `listPlaceholders(text, options?)`: every placeholder in `text`, as `{ name, start, end }`, in order. It returns an
+  iterable that finds them as it goes; spread it for an array.
 - `hasPlaceholders(text, options?)`: whether `text` has any placeholders.
 - `isValidPlaceholderName(name)`: whether `name` follows the name rules.
 
