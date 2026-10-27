@@ -125,7 +125,20 @@ A placeholder fits in by converting to a string, since its string form is exactl
 
 ### Documents
 
-`document(...content)` makes a block value from its content, so a script can render a whole file: `document(heading(3, title), list(items)).toString()`. Arrays are flattened, so `document(sections, ...more)` works. Inline pieces in a row form a paragraph, and blocks follow, as in a list item: `document('See ', link(…), '.')` is one paragraph. A document is the one value that renders with a trailing newline, because it's meant to stand alone as a file. It's where a document's own frontmatter will go.
+`document(...content)` makes a block value from its content, so a script can render a whole file: `document(heading(3, title), list(items)).toString()`. Arrays are flattened, so `document(sections, ...more)` works. Inline pieces in a row form a paragraph, and blocks follow, as in a list item: `document('See ', link(…), '.')` is one paragraph. A document is the one value that renders with a trailing newline, because it's meant to stand alone as a file.
+
+### Frontmatter
+
+vscode-spell-checker's settings pages start with YAML frontmatter: two `#` comments, then `title` and `id`, all plain single-line strings.
+
+- `frontmatter(yaml)` goes first in a document, so the code reads in file order: `document(frontmatter(…), heading(1, title), …)`. Its kind is `frontmatter`, which no other builder accepts. Anywhere else in a document, it throws.
+- It takes YAML text, inserted as is between `---` lines, without its leading and trailing blank lines. Text keeps the comments the pages start with, and needs no YAML dependency. Making it valid YAML is the script's job. Taking an object, serialized as YAML, can come later; a script that needs it now can use a YAML library.
+- Whether a leading `---` starts frontmatter or is a rule can't be told from the text alone. A template is often a fragment, and `---\n\nIntro\n\n---` is two rules there. So the script says what it reads:
+  - `parseDocument(markdown)` and `templateDocument(markdown, values)` read a whole file and return an `MDDocument`.
+  - `parse` and `template` read fragments, where a leading `---` is always a rule. `parseFragment` and `templateFragment` are other names for them. `parse` stays the fragment reader, so nothing changes for existing callers.
+- In a whole file, frontmatter starts with a first line of exactly `---` and ends at the next line of exactly `---`. Without a closing line, there's none. TOML (`+++`) and the `...` closer wait until a script needs them. The frontmatter is kept as written.
+- A placeholder in frontmatter takes any value, inserted as is: a string or text as written, and a built value, such as `link(…)` or a list, as its Markdown. Nothing is escaped or validated as YAML; a script that needs a YAML block uses one, such as `>-`. As in `unindent`, each line of a value after the first gets the leading whitespace of the placeholder's line, so a multi-line value stays inside that block. `substitutePlaceholders` fills a document's frontmatter the same way.
+- Reading frontmatter needs no parser dependency: `readFrontmatter(markdown)`, internal to the package, returns its text and end offset, and the body is parsed after it.
 
 A document can carry its own style:
 
@@ -369,7 +382,6 @@ The README's usage section is written once the API is built, not during developm
 
 ## Open questions
 
-- `MDDocument` frontmatter. vscode-spell-checker's settings pages start with YAML frontmatter.
 - The concrete API: names, how a template and its values are passed in, and how values are typed.
 - Tables and flavors, in a second round. A table cell holds inline content, and `lineBreak()` in it renders as `<br/>`.
 - HTML tables with Markdown cells, as vscode-spell-checker's settings pages use.

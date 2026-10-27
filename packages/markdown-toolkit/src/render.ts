@@ -1,4 +1,4 @@
-import type { PhrasingContent, Root, RootContent } from 'mdast';
+import type { PhrasingContent, Root, RootContent, Yaml } from 'mdast';
 import remarkGfm from 'remark-gfm';
 import remarkStringify from 'remark-stringify';
 import type { Options as StyleOptions } from 'remark-stringify';
@@ -20,10 +20,11 @@ export const defaultStyle: StyleOptions = {
   strong: '*',
 };
 
-/** A placeholder is written as is. */
+/** A placeholder and frontmatter are written as is. */
 // remark-stringify's handler types list only mdast's own node types.
 const handlers = {
   placeholder: (node: PlaceholderNode) => node.value,
+  yaml: (node: Yaml) => (node.value ? `---\n${node.value}\n---` : '---\n---'),
 } as StyleOptions['handlers'];
 
 /**

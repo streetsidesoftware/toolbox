@@ -2,6 +2,7 @@ import { isValidPlaceholderName } from '@streetsidesoftware/placeholders';
 import type { ListItem, Paragraph } from 'mdast';
 
 import { DocumentValue } from './documentValue.ts';
+import { isFrontmatter } from './frontmatter.ts';
 import {
   describe,
   groupedNodes,
@@ -30,6 +31,7 @@ import type {
   MDDocument,
   MDEmphasis,
   MDFragment,
+  MDFrontmatter,
   MDHeading,
   MDHorizontalRule,
   MDInlineCode,
@@ -247,9 +249,18 @@ export function listItem(...content: ListItemContent[]): MDListItem {
 /**
  * A whole document. Arrays are flattened.
  * Inline pieces in a row form a paragraph, and blocks follow, as in a list item.
+ * Frontmatter goes first.
  */
-export function document(...content: AnyContent[]): MDDocument {
-  return new DocumentValue(groupedNodes(content, 'document content'));
+export function document(frontmatter: MDFrontmatter, ...content: AnyContent[]): MDDocument;
+export function document(...content: AnyContent[]): MDDocument;
+export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument {
+  const [first, ...rest] = content;
+  if (rest.some(isFrontmatter)) throw new TypeError('frontmatter must be the first content of a document');
+  if (!isFrontmatter(first)) return new DocumentValue(groupedNodes(content as AnyContent[], 'document content'));
+  return new DocumentValue([
+    ...(renderingOf(first)?.nodes ?? []),
+    ...groupedNodes(rest as AnyContent[], 'document content'),
+  ]);
 }
 
 /** A bulleted list, one item per entry. */

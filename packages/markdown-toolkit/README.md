@@ -112,6 +112,40 @@ md.blockTemplate('| Package | Version |\n| --- | --- |\n| {@ name @} | {@ versio
 - `blockTemplate` always returns blocks.
 - `inlineTemplate` requires one paragraph, for use inside a line.
 - `parse` reads Markdown made elsewhere as a value, without filling anything.
+- `parseFragment` and `templateFragment` are other names for `parse` and `template`.
+
+## Frontmatter
+
+A document can start with YAML frontmatter. `frontmatter` takes the YAML text and inserts it as is, so making it
+valid YAML is up to you:
+
+```ts
+md.document(md.frontmatter(`title: ${title}\nid: ${id}`), md.heading(1, title));
+```
+
+To read or fill a whole file that may start with frontmatter, use `parseDocument` or `templateDocument`. They
+return a document, and keep the frontmatter as written. A value filled into the frontmatter is inserted as is: a
+string as written, and a built value as its Markdown. Each line of a value after the first gets the indentation of
+the placeholder's line, so a multi-line value fits a YAML block:
+
+```ts
+md.templateDocument('---\ndescription: >-\n  {@ description @}\n---\n\n# Settings\n', {
+  description: 'First line\nsecond line',
+});
+```
+
+```markdown
+---
+description: >-
+  First line
+  second line
+---
+
+# Settings
+```
+
+Frontmatter starts with a first line of exactly `---` and ends at the next line of exactly `---`. The other
+readers, `parse` and the templates, read fragments, where a leading `---` is a horizontal rule.
 
 ## Fill placeholders later
 
@@ -152,8 +186,9 @@ padding may change.
   `comment`, `placeholder`
 - Blocks: `heading`, `paragraph`, `blockText`, `list`, `listItem`, `codeBlock`, `horizontalRule` (`hr`),
   `blockPlaceholder`, `toBlock`
-- A whole document: `document`
-- Templates and placeholders: `template`, `blockTemplate`, `inlineTemplate`, `parse`, `substitutePlaceholders`
+- A whole document: `document`, `frontmatter`, `parseDocument`, `templateDocument`
+- Templates and placeholders: `template` (`templateFragment`), `blockTemplate`, `inlineTemplate`, `parse`
+  (`parseFragment`), `substitutePlaceholders`
 - Style: `detectStyle`, and `withStyle` on a document
 - Checks: `isMarkdown`, which tells whether a value was made by this package
 
