@@ -6,8 +6,9 @@
  * - `block`: on its own lines.
  * - `comment`: either one.
  * - `listItem`: only directly in a list.
+ * - `frontmatter`: only first in a document.
  */
-export type MDKind = 'inline' | 'block' | 'comment' | 'listItem';
+export type MDKind = 'inline' | 'block' | 'comment' | 'listItem' | 'frontmatter';
 
 /** A Markdown value. Converting it to a string renders it. */
 export interface MDValue {
@@ -133,6 +134,12 @@ export interface MDDocument extends MDValue {
    * The style replaces any style the document had. Everything inside the document renders in it.
    */
   withStyle(style: MarkdownStyle): MDDocument;
+}
+
+/** YAML frontmatter between `---` lines. It goes only first in a document. */
+export interface MDFrontmatter extends MDValue {
+  readonly kind: 'frontmatter';
+  readonly description: 'frontmatter';
 }
 
 /** Blocks made from a string. Markdown text renders in its own style. */

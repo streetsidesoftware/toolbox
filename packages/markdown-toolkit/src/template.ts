@@ -7,10 +7,13 @@ import { unified } from 'unified';
 import { inlineText } from './builders.ts';
 import { detectMarkdownStyle } from './detectStyle.ts';
 import { DocumentValue } from './documentValue.ts';
+import { readFrontmatter, yamlNode } from './frontmatter.ts';
 import {
   blockNodes,
   describe,
+  groupedNodes,
   inlineNodes,
+  isArray,
   isBlockContent,
   isKind,
   MarkdownValue,
@@ -21,8 +24,10 @@ import { asPlaceholderNode, placeholderNodeAsWritten } from './placeholderNode.t
 import type { PlaceholderNode } from './placeholderNode.ts';
 import type { StyleOptions } from './render.ts';
 import type {
+  AnyContent,
   InlineContent,
   MDBlockPlaceholder,
+  MDDocument,
   MDFragment,
   MDInlineFragment,
   MDParagraph,
@@ -111,6 +116,28 @@ export function parse(markdown: string): MDFragment | MDInlineFragment {
 }
 
 /**
+ * A whole file as a document. Frontmatter at its start is kept as written.
+ * A `{​@ name @​}` placeholder is kept as written, the same as in {@link parse}.
+ */
+export function parseDocument(markdown: string): MDDocument {
+  return documentOf(markdown, (body) => {
+    const root = parseTree(body, false);
+    keepPlaceholders(root);
+    return root;
+  });
+}
+
+/**
+ * Fill a whole file's placeholders, the same way as {@link template}, as a document.
+ * Frontmatter at its start is kept. A value in it is inserted as is: a string as written, and a Markdown value as rendered.
+ * Each line of the value after the first gets the leading whitespace of the placeholder's line.
+ * @throws if a value doesn't fit where its placeholder is.
+ */
+export function templateDocument(markdown: string, values: TemplateValues): MDDocument {
+  return documentOf(markdown, (body) => templateTree(body, false), values);
+}
+
+/**
  * What {@link substitutePlaceholders} returns for a value.
  * A value that can't hold what was substituted into it becomes a fragment of what it holds:
  * - Text with a value that isn't a string or text, or with blocks on a line of their own.
@@ -196,6 +223,17 @@ function substituteInText(text: string, values: TemplateValues): string | undefi
     return undefined;
   });
   return onlyText ? result : undefined;
+}
+
+/** A whole file as a document, its body read by `read`, and filled when there are values. */
+function documentOf(markdown: string, read: (body: string) => Root, values?: TemplateValues): MDDocument {
+  const front = readFrontmatter(markdown);
+  const body = front ? markdown.slice(front.end) : markdown;
+  const root = read(body);
+  const style = detectMarkdownStyle(root, body);
+  if (front) root.children.unshift(yamlNode(front.yaml));
+  if (values) fill(root, values, true);
+  return new DocumentValue(root.children, style);
 }
 
 /** A parsed tree as a value, in the style of its text. */
@@ -366,6 +404,9 @@ function fill(root: Root, values: TemplateValues, allowBlocks: boolean): void {
           const pieces = fillNodes(node.children, blocks, false);
           return splitParagraph(node, pieces);
         }
+        case 'yaml':
+          node.value = fillFrontmatter(node.value, values);
+          return [node];
         case 'html':
         case 'inlineCode':
         case 'code':
@@ -449,6 +490,30 @@ function valueAsCode(value: TemplateValue, name: string): string {
   if (isText(value)) return value.text;
   if (isKind(value, 'inline') && value.description === 'a placeholder') return value.toString();
   throw new TypeError(`{@ ${name} @} is inside code and takes only a string or text, got ${describe(value)}`);
+}
+
+/** Frontmatter with its placeholders filled. A value's later lines get the leading whitespace of its placeholder's line. */
+function fillFrontmatter(yaml: string, values: TemplateValues): string {
+  let result = '';
+  let last = 0;
+  for (const { start, end, name } of listPlaceholders(yaml)) {
+    const value = resolveValue(values, name);
+    if (value === undefined) continue;
+    const lineStart = yaml.lastIndexOf('\n', start - 1) + 1;
+    const indent = /^[ \t]*/.exec(yaml.slice(lineStart))?.[0] ?? '';
+    result += yaml.slice(last, start) + valueAsFrontmatter(value).replaceAll('\n', '\n' + indent);
+    last = end;
+  }
+  return result + yaml.slice(last);
+}
+
+/** A value inside frontmatter, inserted as is: a string as written, and a Markdown value as rendered. */
+function valueAsFrontmatter(value: TemplateValue): string {
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (isText(value)) return value.text;
+  // A template value can be any kind. groupedNodes throws when a piece isn't Markdown content.
+  if (!isArray(value)) return value.toString();
+  return new MarkdownValue('block', 'content', groupedNodes(value as AnyContent, 'frontmatter value')).toString();
 }
 
 function isText(value: unknown): value is MDText {

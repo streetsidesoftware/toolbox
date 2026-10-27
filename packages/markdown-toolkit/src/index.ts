@@ -23,10 +23,21 @@ export {
   text,
   toBlock,
 } from './builders.ts';
+export { frontmatter } from './frontmatter.ts';
 export { definitionList, details, dl } from './htmlBlocks.ts';
 export { detectStyle } from './style.ts';
 export type { SubstitutedValue, TemplateValue, TemplateValues } from './template.ts';
-export { blockTemplate, inlineTemplate, parse, substitutePlaceholders, template } from './template.ts';
+export {
+  blockTemplate,
+  inlineTemplate,
+  parse,
+  parseDocument,
+  parse as parseFragment,
+  substitutePlaceholders,
+  template,
+  templateDocument,
+  template as templateFragment,
+} from './template.ts';
 export type {
   AnyContent,
   BlockContent,
@@ -50,6 +61,7 @@ export type {
   MDDocument,
   MDEmphasis,
   MDFragment,
+  MDFrontmatter,
   MDHeading,
   MDHorizontalRule,
   MDInline,
