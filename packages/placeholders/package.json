@@ -1,6 +1,6 @@
 {
   "name": "@streetsidesoftware/placeholders",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Replace placeholders in a string with values.",
   "repository": {
     "type": "git",

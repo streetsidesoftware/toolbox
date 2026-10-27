@@ -1,7 +1,7 @@
 {
-  ".": "1.1.0",
-  "packages/markdown-toolkit": "1.0.0",
-  "packages/placeholders": "1.0.0",
+  ".": "1.1.1",
+  "packages/markdown-toolkit": "1.0.1",
+  "packages/placeholders": "1.0.1",
   "packages/test-each": "1.0.0",
   "packages/unindent": "1.0.0"
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/streetsidesoftware/toolbox/compare/toolbox@1.1.0...toolbox@1.1.1) (2026-10-27)
+
+
+### Updates and Bug Fixes
+
+* **placeholders:** return an iterable from listPlaceholders ([#58](https://github.com/streetsidesoftware/toolbox/issues/58)) ([869038c](https://github.com/streetsidesoftware/toolbox/commit/869038c2aaf4e106cdb3514f14abdf7ac43a4181))
+
 ## [1.1.0](https://github.com/streetsidesoftware/toolbox/compare/toolbox@1.0.0...toolbox@1.1.0) (2026-10-27)
 
 

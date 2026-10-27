@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.1](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/markdown-toolkit@1.0.0...@streetsidesoftware/markdown-toolkit@1.0.1) (2026-10-27)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @streetsidesoftware/placeholders bumped to 1.0.1
+
 ## [1.0.0](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/markdown-toolkit@0.0.1-alpha.0...@streetsidesoftware/markdown-toolkit@1.0.0) (2026-10-27)
 
 
