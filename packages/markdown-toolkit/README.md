@@ -102,6 +102,12 @@ md.blockTemplate('| Package | Version |\n| --- | --- |\n| {@ name @} | {@ versio
 });
 ```
 
+```markdown
+| Package                      | Version |
+| ---------------------------- | ------- |
+| [cspell](https://cspell.org) | `9.0`   |
+```
+
 - `template` returns inline content when the result is one paragraph, and blocks otherwise.
 - `blockTemplate` always returns blocks.
 - `inlineTemplate` requires one paragraph, for use inside a line.
