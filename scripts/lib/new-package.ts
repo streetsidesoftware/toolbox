@@ -3,7 +3,7 @@ import Path from 'node:path';
 
 import { listPlaceholders, replacePlaceholders } from '@streetsidesoftware/placeholders';
 
-import { REPO_ROOT_DIR, TEMPLATE_DIR } from './consts.ts';
+import { REPO_ROOT_DIR, ROOT_LICENSE_FILE, TEMPLATE_DIR } from './consts.ts';
 import type { PackageJson } from './package-json-util.ts';
 import { fixUpPackageJson, formatPackageJson, readPackageJson, ROOT_PACKAGE_JSON_FILE } from './package-json-util.ts';
 
@@ -16,14 +16,12 @@ const NAME_REGEXP = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 
 export interface NewPackageOptions {
   description?: string | undefined;
-  /** The year in `LICENSE`; default: the current year. */
-  year?: number | undefined;
   /** The folder of template files; default: {@link TEMPLATE_DIR}. */
   templateDir?: string | undefined;
 }
 
 /** The values the templates' placeholders take. */
-type TemplateValues = Record<'name' | 'fullName' | 'description', string> & { year: number };
+type TemplateValues = Record<'name' | 'fullName' | 'description', string>;
 
 export interface CreatePackageOptions extends NewPackageOptions {
   rootDir?: string | undefined;
@@ -41,7 +39,7 @@ export function validatePackageName(name: string): void {
 
 /**
  * The files of a new private package, keyed by path relative to its folder: the templates in `static/templates/`,
- * with their placeholders filled in.
+ * with their placeholders filled in, and the root `LICENSE`.
  */
 export async function newPackageFiles(name: string, options: NewPackageOptions = {}): Promise<Record<string, string>> {
   validatePackageName(name);
@@ -49,7 +47,6 @@ export async function newPackageFiles(name: string, options: NewPackageOptions =
     name,
     fullName: `${SCOPE}/${name}`,
     description: privateDescription(options.description),
-    year: options.year ?? new Date().getFullYear(),
   };
   const templateDir = options.templateDir ?? TEMPLATE_DIR;
   const templates = await readTemplates(templateDir);
@@ -64,6 +61,8 @@ export async function newPackageFiles(name: string, options: NewPackageOptions =
         ? packageJsonText(name, text, values, rootPackageJson)
         : replacePlaceholders(text, values);
   }
+  // A copy of the root one, which `fix-package-json` keeps in step.
+  files['LICENSE'] = await fs.readFile(ROOT_LICENSE_FILE, 'utf-8');
   return files;
 }
 

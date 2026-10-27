@@ -53,7 +53,7 @@ How the packages in this repo are built, tested, and packaged for npm.
 - **Source maps stay local.** The shared config sets `sourcemap: true` for debugging from a checkout, and
   `files` keeps the maps out of the tarball.
 - **Each package has its own `LICENSE`**, a copy of the root one, since npm only bundles a `LICENSE` inside the
-  package.
+  package. `fix-package-json` copies the root one in, so edit only the root `LICENSE`.
 - **Keep production dependencies few.** Be conservative about adding a `dependencies` entry, and check its
   license first by [dependency licenses](./dependency-licenses.md).
 - **`fix-package-json` sets the rest.** `pnpm run lint` runs it on `packages/*`, `internal/*` and `scripts/`:

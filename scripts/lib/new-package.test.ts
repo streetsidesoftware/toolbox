@@ -6,7 +6,7 @@ import { describe, mock, test } from 'node:test';
 
 import { hasPlaceholders, replacePlaceholders } from '@streetsidesoftware/placeholders';
 
-import { REPOSITORY_GIT_URL, TEMPLATE_DIR } from './consts.ts';
+import { REPOSITORY_GIT_URL, ROOT_LICENSE_FILE, TEMPLATE_DIR } from './consts.ts';
 import { createPackage, newPackageFiles, privateDescription, validatePackageName } from './new-package.ts';
 import type { NewPackageOptions } from './new-package.ts';
 import type { PackageJson } from './package-json-util.ts';
@@ -51,11 +51,11 @@ describe('newPackageFiles', async () => {
   // These run on the real templates without depending on what they say, so editing a template doesn't break them.
   describe('with static/templates', async () => {
     const templates = await readTemplateFiles(TEMPLATE_DIR);
-    const files = await newPackageFiles('my-pkg', { year: 2030 });
+    const files = await newPackageFiles('my-pkg');
 
-    test('writes one file per template, with its path filled in', () => {
+    test('writes one file per template, with its path filled in, and LICENSE', () => {
       const expected = Object.keys(templates).map((path) => replacePlaceholders(path, { name: 'my-pkg' }));
-      assert.deepEqual(Object.keys(files).sort(), expected.sort());
+      assert.deepEqual(Object.keys(files).sort(), [...expected, 'LICENSE'].sort());
     });
 
     test('fills in every placeholder', () => {
@@ -76,16 +76,17 @@ describe('newPackageFiles', async () => {
     });
   });
 
-  test('fills in name, fullName, description and year', async () => {
-    const text = '{@ name @} | {@ fullName @} | {@ description @} | {@ year @}';
+  test('fills in name, fullName and description', async () => {
+    const text = '{@ name @} | {@ fullName @} | {@ description @}';
     assert.equal(
-      await fillOne(text, 'my-pkg', { description: 'Does a.', year: 2030 }),
-      'my-pkg | @streetsidesoftware/my-pkg | Does a. -- Private until verified | 2030',
+      await fillOne(text, 'my-pkg', { description: 'Does a.' }),
+      'my-pkg | @streetsidesoftware/my-pkg | Does a. -- Private until verified',
     );
   });
 
-  test('the year defaults to the current year', async () => {
-    assert.equal(await fillOne('{@ year @}', 'a'), String(new Date().getFullYear()));
+  test('LICENSE is a copy of the root one', async () => {
+    const files = await withTempRoot((templateDir) => newPackageFiles('a', { templateDir }));
+    assert.equal(fileText(files, 'LICENSE'), await fs.readFile(ROOT_LICENSE_FILE, 'utf-8'));
   });
 
   test('appends the private suffix to a given description, once', async () => {
@@ -125,9 +126,8 @@ describe('newPackageFiles', async () => {
     await withTempRoot(async (templateDir) => {
       await fs.mkdir(Path.join(templateDir, 'src'));
       await fs.writeFile(Path.join(templateDir, 'src', '{@name@}.ts'), '{@ fullName @}');
-      assert.deepEqual(await newPackageFiles('my-pkg', { templateDir }), {
-        'src/my-pkg.ts': '@streetsidesoftware/my-pkg',
-      });
+      const files = await newPackageFiles('my-pkg', { templateDir });
+      assert.equal(fileText(files, 'src/my-pkg.ts'), '@streetsidesoftware/my-pkg');
     });
   });
 
@@ -149,9 +149,9 @@ describe('newPackageFiles', async () => {
 describe('createPackage', () => {
   test('writes packages/<name>/', async () => {
     await withTempRoot(async (rootDir) => {
-      const dir = await createPackage('my-pkg', { rootDir, year: 2030 });
+      const dir = await createPackage('my-pkg', { rootDir });
       assert.equal(dir, Path.join(rootDir, 'packages', 'my-pkg'));
-      assert.deepEqual(await readTemplateFiles(dir), await newPackageFiles('my-pkg', { year: 2030 }));
+      assert.deepEqual(await readTemplateFiles(dir), await newPackageFiles('my-pkg'));
     });
   });
 
