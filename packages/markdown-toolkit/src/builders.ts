@@ -1,3 +1,4 @@
+import { isValidPlaceholderName } from '@streetsidesoftware/placeholders';
 import type { ListItem, Paragraph } from 'mdast';
 
 import { DocumentValue } from './documentValue.ts';
@@ -15,7 +16,6 @@ import {
   textNodes,
 } from './nodes.ts';
 import { placeholderNode } from './placeholderNode.ts';
-import { isValidPlaceholderName } from './placeholderSubstitution.ts';
 import type {
   AnyContent,
   BlockContent,

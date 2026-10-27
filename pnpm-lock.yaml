@@ -208,6 +208,9 @@ importers:
 
   packages/markdown-toolkit:
     dependencies:
+      '@streetsidesoftware/placeholders':
+        specifier: workspace:^
+        version: link:../placeholders
       remark-gfm:
         specifier: ^4.0.1
         version: 4.0.1(supports-color@9.4.0)

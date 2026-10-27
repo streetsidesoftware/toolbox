@@ -1,14 +1,14 @@
 import type { Root } from 'mdast';
 import { visit } from 'unist-util-visit';
 
-import type { MarkdownStyle, MdastRoot } from './types.ts';
+import type { MarkdownStyle } from './types.ts';
 
 /**
  * Detects the Markdown marker style (bullets, emphasis, fences, etc.) `root`
  * actually uses, by majority vote over its nodes, so re-stringifying can
  * preserve it instead of falling back to remark-stringify's defaults.
  */
-export function detectMarkdownStyle(tree: MdastRoot, content: string): MarkdownStyle {
+export function detectMarkdownStyle(tree: Root, content: string): MarkdownStyle {
   const rule = new Tally<'-' | '_' | '*'>();
   const bullet = new Tally<'-' | '+' | '*'>();
   const bulletOrdered = new Tally<'.' | ')'>();
@@ -16,7 +16,7 @@ export function detectMarkdownStyle(tree: MdastRoot, content: string): MarkdownS
   const strong = new Tally<'_' | '*'>();
   const fence = new Tally<'`' | '~'>();
 
-  visit(tree as Root, (node) => {
+  visit(tree, (node) => {
     const offset = node.position?.start.offset;
     if (offset === undefined) return;
 

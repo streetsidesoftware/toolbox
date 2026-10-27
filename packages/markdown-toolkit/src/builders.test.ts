@@ -73,6 +73,10 @@ describe('placeholders', () => {
   test('an invalid name throws', () => {
     assert.throws(() => placeholder('-bad'), /invalid placeholder name/);
   });
+
+  test('a name such as constructor is a name like any other', () => {
+    assert.equal(placeholder('a.constructor').toString(), '{@ a.constructor @}');
+  });
 });
 
 describe('composing', () => {
