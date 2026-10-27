@@ -1,4 +1,10 @@
-export type { Placeholder, PlaceholderOptions, PlaceholderResolver, PlaceholderValues } from './placeholders.ts';
+export type {
+  Placeholder,
+  PlaceholderOptions,
+  PlaceholderResolver,
+  PlaceholderValues,
+  ReplacePlaceholdersOptions,
+} from './placeholders.ts';
 export {
   DEFAULT_CLOSE,
   DEFAULT_OPEN,

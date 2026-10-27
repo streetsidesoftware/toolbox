@@ -32,6 +32,26 @@ written:
 replacePlaceholders('Hello {@ USER @}', (name) => process.env[name]);
 ```
 
+### Multi-line values
+
+Each line of a value after the first gets the leading whitespace of the placeholder's line, so a multi-line value
+stays where the template puts it:
+
+```ts
+replacePlaceholders('run: |\n  {@ script @}\n', { script: 'npm ci\nnpm test' });
+// "run: |\n  npm ci\n  npm test\n"
+```
+
+The rest of the value is kept as given: its own indentation, a trailing newline and its line endings. An empty line
+stays empty. To indent a line further, put the extra whitespace in the value:
+
+```ts
+replacePlaceholders('  - {@ item @}', { item: 'apple\n  red' });
+// "  - apple\n    red"
+```
+
+Pass `{ autoIndent: false }` to insert values exactly as given.
+
 ### Placeholders without a value
 
 A placeholder without a value is left as written. Use `listPlaceholders` or `hasPlaceholders` to find what is
@@ -61,7 +81,8 @@ Every function takes the same `{ open, close }` options. The defaults are `{@` a
 
 ## API
 
-- `replacePlaceholders(text, values, options?)`: replace each placeholder that has a value.
+- `replacePlaceholders(text, values, options?)`: replace each placeholder that has a value. Besides `open` and `close`,
+  `options` takes `autoIndent`.
 - `listPlaceholders(text, options?)`: every placeholder in `text`, as `{ name, start, end }`, in order. It returns an
   iterable that finds them as it goes; spread it for an array.
 - `hasPlaceholders(text, options?)`: whether `text` has any placeholders.
