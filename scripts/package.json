@@ -18,6 +18,7 @@
     "prepare-publication": "./prepare-publication.ts",
     "publication-candidates": "./publication-candidates.ts",
     "release-as": "./release-as.ts",
+    "run-examples": "./run-examples.ts",
     "trusted-publishing": "./trusted-publishing.ts",
     "update-release-please-config": "./update-release-please-config.ts"
   },

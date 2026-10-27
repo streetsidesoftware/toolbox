@@ -5,5 +5,13 @@
   "importOrder": ["^node:", "<THIRD_PARTY_MODULES>", "^[.]"],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true,
-  "importOrderCaseInsensitive": true
+  "importOrderCaseInsensitive": true,
+  "overrides": [
+    {
+      "files": ["packages/*/README.md", "packages/*/examples/*/README.md"],
+      "options": {
+        "embeddedLanguageFormatting": "off"
+      }
+    }
+  ]
 }

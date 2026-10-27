@@ -419,7 +419,7 @@ The builders were built inside inject-markdown first, for rapid development agai
 
 The package starts private, at `0.0.1-alpha.0`, and follows toolbox's process for new packages until it's verified and published.
 
-The README's usage section is written once the API is built, not during development.
+The README leads a user through their goals in order: generate a file, put any text in safely, write the Markdown yourself, build a page in steps, add frontmatter, generate a page from a template file, and match an existing style. Each goal is a folder under `examples/`, with a complete `example.ts`, the `output.md` it printed, and a `README.md` that injects both; the package README injects each folder's `README.md`. `pnpm run build:readme` runs the examples, so the output shown is what the code printed. One example shows one idea and has one output. A reference for each builder is still to be designed.
 
 ## Open questions
 

@@ -20,8 +20,11 @@ These scripts are used to help maintain the repo.
 ## READMEs
 
 - `gen-readme.ts` writes `static/packages.csv`, the table of every `packages/*` package that the root `README.md`
-  injects. `pnpm run build:readme` runs it, then `inject-markdown` and Prettier on every README. The Update READMEs
-  workflow runs `build:readme` on `main` and opens a PR with any change.
+  injects. `pnpm run build:readme` runs it, then `run-examples`, then `inject-markdown` and Prettier on every README.
+  The Update READMEs workflow runs `build:readme` on `main` and opens a PR with any change.
+- `run-examples.ts` runs each `packages/*/examples/*/example.ts` with Node, in its own folder and without a shell,
+  and writes what it prints to `output.md` next to it. An example's `README.md` injects both, and the package README
+  injects the example's `README.md`. The examples import their package by name, so build it first.
 
 ## Release
 

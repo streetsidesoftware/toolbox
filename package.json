@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "pnpm -r run build",
-    "build:readme": "pnpm exec gen-readme && inject-markdown README.md \"packages/*/README.md\" && prettier --write README.md \"packages/*/README.md\"",
+    "build:readme": "pnpm exec gen-readme && pnpm exec run-examples && inject-markdown \"packages/*/examples/*/README.md\" && inject-markdown README.md \"packages/*/README.md\" && prettier --write README.md \"packages/*/README.md\" \"packages/*/examples/*/README.md\"",
     "clean": "pnpm -r run clean",
     "lint": "pnpm exec fix-package-json && oxlint --fix && prettier --write .",
     "lint-ci": "pnpm exec fix-package-json --dry-run && oxlint --max-warnings 0 && prettier --check .",

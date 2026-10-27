@@ -1,7 +1,7 @@
 name: '📄 Update READMEs'
 
-# Runs `pnpm run build:readme`, which regenerates static/packages.csv and injects it, the sponsor section and the
-# footer into every README. Opens a `chore:` PR with any change.
+# Runs `pnpm run build:readme`, which regenerates static/packages.csv and each package's example output, and injects
+# them, the sponsor section and the footer into every README. Opens a `chore:` PR with any change.
 
 on:
   workflow_dispatch:
@@ -17,6 +17,8 @@ on:
       - README.md
       - 'packages/*/package.json'
       - 'packages/*/README.md'
+      - 'packages/*/examples/**'
+      - 'packages/*/src/**'
       - 'static/**'
 
 permissions:
@@ -40,6 +42,10 @@ jobs:
           ref: ${{ env.REF_BRANCH }}
 
       - uses: ./.github/actions/setup
+
+      # The examples import their package, which resolves to its build.
+      - name: Build
+        run: pnpm run build
 
       - name: Update the READMEs
         run: pnpm run build:readme

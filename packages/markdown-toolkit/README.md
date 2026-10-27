@@ -22,20 +22,28 @@ npm install @streetsidesoftware/markdown-toolkit
 - **Built on remark.** Parsing and rendering use [unified](https://unifiedjs.com) and
   [remark](https://github.com/remarkjs/remark) with GitHub Flavored Markdown, not hand-rolled string rules.
 
-## Build a document
+<!--- @@inject: examples/generate-a-file/README.md --->
+
+## Generate a Markdown file from data
+
+Each builder returns a Markdown value, not a string. Put values together with `document`, and render the file with
+`toString()`. A value is escaped for where it ends up, so the `]` in the link text doesn't end the link.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
+const links = [
+  { title: 'Docs [beta]', url: 'https://cspell.org' },
+  { title: 'Source', url: 'https://github.com/streetsidesoftware/cspell' },
+];
+
 const doc = md.document(
   md.heading(2, ['Using ', md.inlineCode('cspell')]),
-  md.list([
-    md.link('Docs [beta]', 'https://cspell.org'),
-    md.link('Source', 'https://github.com/streetsidesoftware/cspell'),
-  ]),
+  md.list(links.map(({ title, url }) => md.link(title, url))),
   md.codeBlock('npm install -D cspell', 'sh'),
 );
-console.log(doc.toString());
+
+process.stdout.write(doc.toString());
 ```
 
 ````markdown
@@ -49,15 +57,47 @@ npm install -D cspell
 ```
 ````
 
-Each builder escapes its content for where it ends up, so the `]` in the link text doesn't end the link. The same
-goes for text that only looks like Markdown:
+<!--- @@inject-end: examples/generate-a-file/README.md --->
+
+<!--- @@inject: examples/text-safely/README.md --->
+
+## Put any text into Markdown safely
+
+Text that comes from elsewhere, such as a `package.json` or a user, can contain characters that mean something in
+Markdown. A string given to a builder is always text: it's escaped for where it ends up, so a `*`, `[` or `1.` in it
+stays as written. Inside inline code, nothing needs escaping, so nothing is.
 
 ```ts
-md.paragraph('1. Use *any* [text] here').toString();
-// 1\. Use \*any\* \[text] here
+import * as md from '@streetsidesoftware/markdown-toolkit';
+
+// Text from a package.json, a user, or anywhere else.
+const name = 'my_package*';
+const description = '1. Use *any* [text] here';
+
+const doc = md.document(
+  md.heading(2, name),
+  md.paragraph(description),
+  md.paragraph('Install with ', md.inlineCode(`npm i ${name}`), '.'),
+);
+
+process.stdout.write(doc.toString());
 ```
 
-## Fill a template
+```markdown
+## my_package\*
+
+1\. Use \*any\* \[text] here
+
+Install with `npm i my_package*`.
+```
+
+Text that is already Markdown, such as a `markdownDescription`, goes in as Markdown with `md.parse(text)`.
+
+<!--- @@inject-end: examples/text-safely/README.md --->
+
+<!--- @@inject: examples/write-the-markdown/README.md --->
+
+## Write the Markdown yourself, with data in it
 
 A template is Markdown with `{@ name @}` placeholders. A string value is escaped, a built value is inserted as
 Markdown, and a placeholder on a line of its own can take blocks, such as a list.
@@ -78,6 +118,7 @@ Install with \`npm i {@ name @}\`, then see {@ docs @}.
     features: md.list(['Fast', ['Escapes ', md.inlineCode('*'), ' for you']]),
   },
 );
+
 console.log(readme.toString());
 ```
 
@@ -91,94 +132,183 @@ Install with `npm i my_package*`, then see [the docs](https://example.com).
 ```
 
 The name is escaped in the heading, but not inside the inline code. A name may be dotted, such as
-`{@ engines.node @}`, and is looked up in nested objects. A name you leave out can be filled in a later step.
-
-Templates are also the way to write what has no builder, such as a table:
-
-```ts
-md.blockTemplate('| Package | Version |\n| --- | --- |\n| {@ name @} | {@ version @} |\n', {
-  name: md.link('cspell', 'https://cspell.org'),
-  version: md.inlineCode('9.0'),
-});
-```
-
-```markdown
-| Package                      | Version |
-| ---------------------------- | ------- |
-| [cspell](https://cspell.org) | `9.0`   |
-```
+`{@ engines.node @}`, and is looked up in nested objects.
 
 - `template` returns inline content when the result is one paragraph, and blocks otherwise.
 - `blockTemplate` always returns blocks.
 - `inlineTemplate` requires one paragraph, for use inside a line.
-- `parse` reads Markdown made elsewhere as a value, without filling anything.
-- `parseFragment` and `templateFragment` are other names for `parse` and `template`.
 
-## Frontmatter
+<!--- @@inject-end: examples/write-the-markdown/README.md --->
 
-A document can start with YAML frontmatter. `frontmatter` takes the YAML text and inserts it as is, so making it
-valid YAML is up to you:
+<!--- @@inject: examples/build-in-steps/README.md --->
+
+## Build a page in steps
+
+A page can be built by several steps, each filling in what it knows. `substitutePlaceholders` takes the result of
+one step and fills more of its placeholders. A placeholder that no step has a value for is kept as written, so a
+later step, or a tool such as inject-markdown, can fill it.
 
 ```ts
-md.document(md.frontmatter(`title: ${title}\nid: ${id}`), md.heading(1, title));
+import * as md from '@streetsidesoftware/markdown-toolkit';
+
+// The layout, with the title this step knows.
+const layout = md.template(
+  `# {@ title @}
+
+{@ summary @}
+
+## Results
+
+{@ results @}
+
+Last run: {@ date @}
+`,
+  { title: 'Spell check report' },
+);
+
+// Each later step fills in what it knows, and passes the rest on.
+const summarized = md.substitutePlaceholders(layout, { summary: md.paragraph('Checked 2 files.') });
+const report = md.substitutePlaceholders(summarized, {
+  results: md.list(['README.md: no issues', 'docs/guide.md: 1 unknown word']),
+});
+
+// `{@ date @}` is left for a later step, such as inject-markdown.
+console.log(report.toString());
 ```
 
-To read or fill a whole file that may start with frontmatter, use `parseDocument` or `templateDocument`. They
-return a document, and keep the frontmatter as written. A value filled into the frontmatter is inserted as is: a
-string as written, and a built value as its Markdown. Each line of a value after the first gets the indentation of
-the placeholder's line, so a multi-line value fits a YAML block:
+```markdown
+# Spell check report
+
+Checked 2 files.
+
+## Results
+
+- README.md: no issues
+- docs/guide.md: 1 unknown word
+
+Last run: {@ date @}
+```
+
+<!--- @@inject-end: examples/build-in-steps/README.md --->
+
+<!--- @@inject: examples/add-frontmatter/README.md --->
+
+## Add frontmatter to a generated page
+
+Sites such as Docusaurus read a page's settings from YAML frontmatter at its start. Put `frontmatter` first in a
+document. Its text is inserted as is, between `---` lines, so making it valid YAML is up to you.
 
 ```ts
-md.templateDocument('---\ndescription: >-\n  {@ description @}\n---\n\n# Settings\n', {
-  description: 'First line\nsecond line',
-});
+import * as md from '@streetsidesoftware/markdown-toolkit';
+
+const title = 'Code Spell Checker';
+
+const page = md.document(
+  md.frontmatter(`# AUTO-GENERATED: edit the script, not this file.
+title: ${title}
+id: code-spell-checker
+`),
+  md.heading(1, title),
+  md.paragraph('Settings that control the behavior of the spell checker.'),
+);
+
+process.stdout.write(page.toString());
 ```
 
 ```markdown
 ---
-description: >-
-  First line
-  second line
+# AUTO-GENERATED: edit the script, not this file.
+title: Code Spell Checker
+id: code-spell-checker
 ---
 
-# Settings
+# Code Spell Checker
+
+Settings that control the behavior of the spell checker.
 ```
 
-Frontmatter starts with a first line of exactly `---` and ends at the next line of exactly `---`. The other
-readers, `parse` and the templates, read fragments, where a leading `---` is a horizontal rule.
+<!--- @@inject-end: examples/add-frontmatter/README.md --->
 
-## Fill placeholders later
+<!--- @@inject: examples/page-from-a-template-file/README.md --->
 
-A placeholder with no value yet is kept as written, so content can be built in steps.
+## Generate a page from a template file
+
+A template for a whole page, such as `template.md`, can start with frontmatter:
+
+```markdown
+---
+title: {@ title @}
+description: >-
+  {@ description @}
+---
+
+# {@ title @}
+
+{@ description @}
+```
+
+`templateDocument` reads it as a whole page, keeps its frontmatter, and fills the placeholders in both. The
+frontmatter is YAML, not Markdown, so a value there is inserted as is. Each line of a value after the first gets the
+indentation of the placeholder's line, so a multi-line value stays inside a YAML block such as `>-`.
 
 ```ts
-const draft = md.document(md.heading(1, 'Report'), md.blockPlaceholder('body'));
-// # Report
-//
-// {@ body @}
+import fs from 'node:fs';
 
-const done = md.substitutePlaceholders(draft, { body: md.list(['All checks passed']) });
-// # Report
-//
-// - All checks passed
+import * as md from '@streetsidesoftware/markdown-toolkit';
+
+const page = md.templateDocument(fs.readFileSync('template.md', 'utf8'), {
+  title: 'CSpell',
+  description: 'Settings for the *cspell* command line tool.\nThey apply to every file it checks.',
+});
+
+process.stdout.write(page.toString());
 ```
 
-## Match an existing style
+```markdown
+---
+title: CSpell
+description: >-
+  Settings for the *cspell* command line tool.
+  They apply to every file it checks.
+---
 
-The default style uses `-` bullets, `_` emphasis, `**` strong and `---` rules. To match a document that already
-exists, detect its style and render in it:
+# CSpell
+
+Settings for the \*cspell\* command line tool.
+They apply to every file it checks.
+```
+
+`parseDocument` reads a whole page without filling anything. `template` and `parse` read a part of a page instead,
+where a leading `---` is a horizontal rule.
+
+<!--- @@inject-end: examples/page-from-a-template-file/README.md --->
+
+<!--- @@inject: examples/match-a-style/README.md --->
+
+## Match the style of the file you're updating
+
+By default, lists use `-` bullets and emphasis uses `_`. To fit into a file that already exists, detect the style
+it uses and render in it:
 
 ```ts
-const style = md.detectStyle(existingMarkdown); // e.g. { bullet: '*', emphasis: '*', ... }
-md.document(md.list(['a', md.emphasis('b')]))
-  .withStyle(style)
-  .toString();
-// * a
-// * *b*
+import * as md from '@streetsidesoftware/markdown-toolkit';
+
+// The file being updated uses `*` bullets and `*` emphasis.
+const existing = '# Fruit\n\n* Apples\n* *Pears*\n';
+
+const section = md.document(md.list(['Plums', md.emphasis('Cherries')])).withStyle(md.detectStyle(existing));
+
+process.stdout.write(section.toString());
 ```
 
-A template or parsed fragment is re-rendered. It tries to keep the style of its own text, but spacing and table
-padding may change.
+```markdown
+* Plums
+* *Cherries*
+```
+
+A template or parsed text keeps the style of its own text, but spacing and table padding may change.
+
+<!--- @@inject-end: examples/match-a-style/README.md --->
 
 ## What's included
 
@@ -192,8 +322,6 @@ padding may change.
   (`parseFragment`), `substitutePlaceholders`
 - Style: `detectStyle`, and `withStyle` on a document
 - Checks: `isMarkdown`, which tells whether a value was made by this package
-
-There are no builders yet for tables, ordered lists, block quotes or images. Write those as a template.
 
 Every value renders with `toString()`. A document ends with a newline; other values don't, so they can be joined.
 
