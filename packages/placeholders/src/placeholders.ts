@@ -124,8 +124,8 @@ function objectResolver(values: object): PlaceholderResolver {
 
 /** The leading whitespace of the line `offset` is on, up to `offset`. */
 function lineIndent(text: string, offset: number): string {
-  const line = text.slice(text.lastIndexOf('\n', offset - 1) + 1, offset);
-  return line.slice(0, line.length - line.trimStart().length);
+  const prefix = text.slice(text.lastIndexOf('\n', offset - 1) + 1, offset);
+  return prefix.slice(0, prefix.length - prefix.trimStart().length);
 }
 
 /** Add `indent` to each line after the first, except an empty one. */
