@@ -25,10 +25,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./placeholders": {
-      "types": "./dist/placeholders.d.ts",
-      "default": "./dist/placeholders.js"
     }
   },
   "main": "./dist/index.js",
