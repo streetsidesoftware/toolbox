@@ -9,6 +9,7 @@ Tools and libraries used across Street Side Software's repositories.
 | Package                                                             | Description                                                                       |
 | ------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | [`@streetsidesoftware/markdown-toolkit`](packages/markdown-toolkit) | A toolkit for generating Markdown: builders, templates and placeholders.          |
+| [`@streetsidesoftware/placeholders`](packages/placeholders)         | Replace placeholders in a string with values. -- Private until verified           |
 | [`@streetsidesoftware/test-each`](packages/test-each)               | Table-driven tests for node:test, written as vitest-style tagged-template tables. |
 | [`@streetsidesoftware/unindent`](packages/unindent)                 | Remove the common indentation from multi-line strings and template literals.      |
 
