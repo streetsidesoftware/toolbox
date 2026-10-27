@@ -1,42 +1,9 @@
+import { replacePlaceholders } from '@streetsidesoftware/placeholders';
+import type { PlaceholderResolver } from '@streetsidesoftware/placeholders';
 import type { Root } from 'mdast';
 import { visit } from 'unist-util-visit';
 
 import type { MdastRoot } from './types.ts';
-
-/**
- * Matches `{​@ name @​}` placeholders.
- * Whitespace immediately inside the delimiters is optional and trimmed by the regex itself.
- */
-export const placeholderRegExp: RegExp = /\{@\s*([A-Za-z0-9_][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_][A-Za-z0-9_-]*)*)\s*@\}/g;
-
-/**
- * Segments that would reach `Object.prototype` if walked or written. They match the placeholder-name
- * grammar, so they have to be rejected by name rather than by the character class.
- */
-const unsafeSegments = new Set(['__proto__', 'constructor', 'prototype']);
-
-const validPlaceholderSegment = /^[A-Za-z0-9_][A-Za-z0-9_-]*$/;
-
-/** A segment that would reach `Object.prototype` if walked or written. */
-export function isUnsafeSegment(segment: string): boolean {
-  return unsafeSegments.has(segment);
-}
-
-/**
- * A placeholder-name segment: `[A-Za-z0-9_][A-Za-z0-9_-]*`.
- * A hyphen may appear inside a segment but never at its start.
- * Prototype-reaching names are excluded.
- */
-export function isValidPlaceholderSegment(name: string): boolean {
-  return validPlaceholderSegment.test(name) && !unsafeSegments.has(name);
-}
-
-/** A dotted placeholder name: one or more valid segments separated by `.`. */
-export function isValidPlaceholderName(name: string): boolean {
-  return name.split('.').every(isValidPlaceholderSegment);
-}
-
-export type PlaceholderResolver = (name: string) => string | undefined;
 
 /**
  * Replace placeholders in a single string.
@@ -48,12 +15,9 @@ export function substituteInString(
   resolve: PlaceholderResolver,
   onUnresolved: (name: string) => void,
 ): string {
-  return text.replace(placeholderRegExp, (match, name: string) => {
+  return replacePlaceholders(text, (name: string) => {
     const value = resolve(name);
-    if (value === undefined) {
-      onUnresolved(name);
-      return match;
-    }
+    if (value === undefined) onUnresolved(name);
     return value;
   });
 }

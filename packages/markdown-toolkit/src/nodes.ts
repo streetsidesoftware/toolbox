@@ -1,7 +1,7 @@
+import { listPlaceholders } from '@streetsidesoftware/placeholders';
 import type { ListItem, BlockContent as MdastBlockContent, PhrasingContent, RootContent } from 'mdast';
 
 import { placeholderNodeAsWritten } from './placeholderNode.ts';
-import { placeholderRegExp } from './placeholderSubstitution.ts';
 import { renderNodes } from './render.ts';
 import type { StyleOptions } from './render.ts';
 import type { AnyContent, BlockContent, InlineContent, ListItemContent, MDKind, MDListItem, MDValue } from './types.ts';
@@ -64,10 +64,10 @@ export function isKind(value: unknown, ...kinds: MDValue['kind'][]): value is MD
 export function textNodes(text: string): PhrasingContent[] {
   const nodes: PhrasingContent[] = [];
   let last = 0;
-  for (const match of text.matchAll(placeholderRegExp)) {
-    if (match.index > last) nodes.push({ type: 'text', value: text.slice(last, match.index) });
-    nodes.push(placeholderNodeAsWritten(match[0]));
-    last = match.index + match[0].length;
+  for (const { start, end } of listPlaceholders(text)) {
+    if (start > last) nodes.push({ type: 'text', value: text.slice(last, start) });
+    nodes.push(placeholderNodeAsWritten(text.slice(start, end)));
+    last = end;
   }
   if (last < text.length) nodes.push({ type: 'text', value: text.slice(last) });
   return nodes;

@@ -1,3 +1,4 @@
+import { listPlaceholders, replacePlaceholders } from '@streetsidesoftware/placeholders';
 import type { Paragraph, Parent, PhrasingContent, Root, RootContent } from 'mdast';
 import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
@@ -18,7 +19,6 @@ import {
 } from './nodes.ts';
 import { asPlaceholderNode, placeholderNodeAsWritten } from './placeholderNode.ts';
 import type { PlaceholderNode } from './placeholderNode.ts';
-import { placeholderRegExp } from './placeholderSubstitution.ts';
 import type { StyleOptions } from './render.ts';
 import type {
   InlineContent,
@@ -187,13 +187,13 @@ function filled(nodes: RootContent[], values: TemplateValues, allowBlocks: boole
  */
 function substituteInText(text: string, values: TemplateValues): string | undefined {
   let onlyText = true;
-  const result = text.replace(placeholderRegExp, (whole, name: string) => {
+  const result = replacePlaceholders(text, (name: string) => {
     const value = resolveValue(values, name);
-    if (value === undefined) return whole;
+    if (value === undefined) return undefined;
     if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
     if (isText(value)) return value.text;
     onlyText = false;
-    return whole;
+    return undefined;
   });
   return onlyText ? result : undefined;
 }
@@ -240,11 +240,10 @@ function splitPlaceholders(parent: Parent): void {
 function placeholderPieces(text: string): PhrasingContent[] {
   const nodes: PhrasingContent[] = [];
   let last = 0;
-  for (const match of text.matchAll(placeholderRegExp)) {
-    const [whole] = match;
-    if (match.index > last) nodes.push({ type: 'text', value: text.slice(last, match.index) });
-    last = match.index + whole.length;
-    nodes.push(placeholderNodeAsWritten(whole));
+  for (const { start, end } of listPlaceholders(text)) {
+    if (start > last) nodes.push({ type: 'text', value: text.slice(last, start) });
+    nodes.push(placeholderNodeAsWritten(text.slice(start, end)));
+    last = end;
   }
   if (last < text.length) nodes.push({ type: 'text', value: text.slice(last) });
   return nodes;
@@ -341,9 +340,9 @@ const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'list', 'li
  */
 function fill(root: Root, values: TemplateValues, allowBlocks: boolean): void {
   const fillCode = (code: string): string =>
-    code.replace(placeholderRegExp, (whole, name: string) => {
+    replacePlaceholders(code, (name: string) => {
       const value = resolveValue(values, name);
-      return value === undefined ? whole : valueAsCode(value, name);
+      return value === undefined ? undefined : valueAsCode(value, name);
     });
 
   /**
@@ -434,7 +433,7 @@ function endsLine(node: RootContent | undefined, lineEnd: RegExp): boolean {
 }
 
 function placeholderName(node: PlaceholderNode): string {
-  return [...node.value.matchAll(placeholderRegExp)][0][1];
+  return listPlaceholders(node.value)[0].name;
 }
 
 function valueAsInline(value: TemplateValue, name: string): PhrasingContent[] {

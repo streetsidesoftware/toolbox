@@ -349,10 +349,10 @@ A builders-specific error class waits until a caller needs to catch one specific
 The builders were built inside inject-markdown first, for rapid development against the scripts that need them, and then moved to toolbox as `@streetsidesoftware/markdown-toolkit`.
 
 - inject-markdown depends on the builders, never the other way around.
-- The placeholder grammar and substitution live in the builders, so injection and templates share one implementation.
+- The placeholder grammar comes from [@streetsidesoftware/placeholders](../../placeholders/README.md), and substitution lives in the builders, so injection and templates share one implementation.
 - The package has two entries:
   - `@streetsidesoftware/markdown-toolkit`: the builders, templates, and `detectStyle`. Its types never mention mdast.
-  - `@streetsidesoftware/markdown-toolkit/placeholders`: for tools such as inject-markdown that fill placeholders in an mdast tree. It has the placeholder name checks, `substituteInString`, `substituteInTree`, and `detectMarkdownStyle`.
+  - `@streetsidesoftware/markdown-toolkit/placeholders`: for tools such as inject-markdown that fill placeholders in an mdast tree. It has `isValidPlaceholderName`, `substituteInString`, `substituteInTree`, and `detectMarkdownStyle`.
 - inject-markdown keeps exporting the builders as `inject-markdown/markdown`, as a pass-through to the package.
 
 ### Tests
