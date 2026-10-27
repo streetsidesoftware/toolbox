@@ -1,10 +1,20 @@
 {
   "name": "@internal/scripts",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/streetsidesoftware/toolbox.git",
+    "directory": "scripts"
+  },
+  "publishConfig": {
+    "access": "restricted",
+    "provenance": true
+  },
   "type": "module",
   "bin": {
     "fix-package-json": "./fix-package-json.ts",
     "gen-readme": "./gen-readme.ts",
+    "new-package": "./new-package.ts",
     "prepare-publication": "./prepare-publication.ts",
     "publication-candidates": "./publication-candidates.ts",
     "release-as": "./release-as.ts",
@@ -14,6 +24,9 @@
   "scripts": {
     "test": "node --test \"lib/**/*.test.ts\"",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@streetsidesoftware/placeholders": "workspace:*"
   },
   "devDependencies": {
     "sort-package-json": "^4.0.0"

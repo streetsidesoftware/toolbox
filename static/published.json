@@ -1,4 +1,6 @@
 {
+  "@streetsidesoftware/markdown-toolkit": { "trustedPublishing": true },
+  "@streetsidesoftware/placeholders": { "trustedPublishing": true },
   "@streetsidesoftware/test-each": { "trustedPublishing": true },
   "@streetsidesoftware/unindent": { "trustedPublishing": true }
 }

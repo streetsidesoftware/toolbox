@@ -9,8 +9,6 @@ or fill a Markdown template, then render the result with `toString()`.
 npm install @streetsidesoftware/markdown-toolkit
 ```
 
-Requires Node.js 22.18 or later. ESM only.
-
 ## Why use it
 
 - **Builders.** Compose a document from headings, paragraphs, lists, links and code, as values rather than
@@ -156,6 +154,14 @@ A template or parsed fragment keeps the style of its own text.
 There are no builders yet for tables, ordered lists, block quotes or images. Write those as a template.
 
 Every value renders with `toString()`. A document ends with a newline; other values don't, so they can be joined.
+
+## Requirements
+
+<!--- @@inject: ../../static/requirements.md#values-file=:package.json --->
+
+Requires Node.js >=22.18.0. ESM only.
+
+<!--- @@inject-end: ../../static/requirements.md#values-file=:package.json --->
 
 ## License
 
