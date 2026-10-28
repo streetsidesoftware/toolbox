@@ -136,7 +136,7 @@ stays as written. Inside inline code, nothing needs escaping, so nothing is.
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
 // Text from a package.json, a user, or anywhere else.
-const name = 'my_package*';
+const name = '@cspell/dict-en_us';
 const description = '1. Use *any* [text] here';
 
 const doc = md.document(
@@ -149,11 +149,11 @@ process.stdout.write(doc.toString());
 ```
 
 ```markdown
-## my_package\*
+## @cspell/dict-en_us
 
 1\. Use \*any\* \[text] here
 
-Install with `npm i my_package*`.
+Install with `npm i @cspell/dict-en_us`.
 ```
 
 Text that is already Markdown, such as a `markdownDescription`, goes in as Markdown with `md.parse(text)`.
@@ -228,7 +228,7 @@ const readme = md.template(
     {@ features @}
   `,
   {
-    name: 'my_package*',
+    name: '@cspell/dict-en_us',
     docs: md.link('the docs', 'https://example.com'),
     features: md.list(['Fast', ['Escapes ', md.inlineCode('*'), ' for you']]),
   },
@@ -238,9 +238,9 @@ console.log(readme.toString());
 ```
 
 ```markdown
-## my_package\*
+## @cspell/dict-en_us
 
-Install with `npm i my_package*`, then see [the docs](https://example.com).
+Install with `npm i @cspell/dict-en_us`, then see [the docs](https://example.com).
 
 - Fast
 - Escapes `*` for you

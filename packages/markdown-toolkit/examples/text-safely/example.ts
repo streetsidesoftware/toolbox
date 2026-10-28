@@ -1,7 +1,7 @@
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
 // Text from a package.json, a user, or anywhere else.
-const name = 'my_package*';
+const name = '@cspell/dict-en_us';
 const description = '1. Use *any* [text] here';
 
 const doc = md.document(

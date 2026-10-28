@@ -22,7 +22,7 @@ const readme = md.template(
     {@ features @}
   `,
   {
-    name: 'my_package*',
+    name: '@cspell/dict-en_us',
     docs: md.link('the docs', 'https://example.com'),
     features: md.list(['Fast', ['Escapes ', md.inlineCode('*'), ' for you']]),
   },
@@ -36,9 +36,9 @@ console.log(readme.toString());
 <!--- @@inject-code: output.md --->
 
 ```markdown
-## my_package\*
+## @cspell/dict-en_us
 
-Install with `npm i my_package*`, then see [the docs](https://example.com).
+Install with `npm i @cspell/dict-en_us`, then see [the docs](https://example.com).
 
 - Fast
 - Escapes `*` for you

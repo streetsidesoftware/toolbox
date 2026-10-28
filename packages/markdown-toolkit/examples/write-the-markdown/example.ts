@@ -10,7 +10,7 @@ const readme = md.template(
     {@ features @}
   `,
   {
-    name: 'my_package*',
+    name: '@cspell/dict-en_us',
     docs: md.link('the docs', 'https://example.com'),
     features: md.list(['Fast', ['Escapes ', md.inlineCode('*'), ' for you']]),
   },
