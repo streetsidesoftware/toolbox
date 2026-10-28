@@ -59,6 +59,20 @@ In a list, each entry is one item. An array entry is one item holding a sequence
 
 The function `toBlock(content)` makes content fit where only blocks can go: blocks come back unchanged, and each run of inline pieces becomes a paragraph. It's how the result of `template()` or `parse()`, which can be either kind, goes where only blocks can go.
 
+### Tables
+
+A table takes a header and rows as arrays: `table(header, rows)`, the shape scripts already have their data in. Each cell holds inline content. Rendering keeps every cell on one line, which a GFM row needs:
+
+- A `|` is escaped wherever it lands, in text, inline code, link text and a URL, so it never ends the cell. On GitHub, `\|` inside a code span displays as `|`.
+- A `lineBreak()` renders as `<br/>`, since a Markdown hard break would end the row.
+- A line ending in text or inline code renders as a space, as it displays elsewhere. One at the start or end of a cell is dropped.
+
+A column is aligned only when the script asks: `{ align: [undefined, 'right'] }`, one entry per column. An entry is `'left'`, `'center'`, `'right'`, `undefined` for none, or the delimiter as written in a table: `:---`, `:---:`, `---:` or `---`, the forms GitHub's docs use. Any number of `-` works, and a plain `---` means none, as in GFM. The type lists the four forms for docs, and is a `string` with a `@pattern`, so it maps to a JSON schema.
+
+A short row is filled with empty cells. A row longer than the header adds a column with an empty title, rather than throwing, so the mistake shows in the output.
+
+A table always renders padded, so its pipes line up. There's no style field for compact tables, and `detectStyle` doesn't look at tables, until a script needs it. A table from a template or `parse()` is re-rendered padded too.
+
 ### Documents and frontmatter
 
 A document is the one element that renders with a trailing newline, because it stands alone as a file. It carries its own style; see [Rendering and style](#rendering-and-style).
@@ -80,20 +94,6 @@ Markdown inside HTML is read only after a blank line, so rendering picks the for
 There are two line-break elements, both inline. A `lineBreak()` is a Markdown hard break. A `br()` is always `<br/>`, never `<br>`, because MDX reads HTML as JSX, where an unclosed `<br>` is a syntax error.
 
 A comment renders as `<!-- … -->`, with two dashes, as third-party bots write them. The renderer keeps the text from ending the comment early.
-
-### Tables
-
-A table takes a header and rows as arrays: `table(header, rows)`, the shape scripts already have their data in. Each cell holds inline content. Rendering keeps every cell on one line, which a GFM row needs:
-
-- A `|` is escaped wherever it lands, in text, inline code, link text and a URL, so it never ends the cell. On GitHub, `\|` inside a code span displays as `|`.
-- A `lineBreak()` renders as `<br/>`, since a Markdown hard break would end the row.
-- A line ending in text or inline code renders as a space, as it displays elsewhere. One at the start or end of a cell is dropped.
-
-A column is aligned only when the script asks: `{ align: [undefined, 'right'] }`, one entry per column. An entry is `'left'`, `'center'`, `'right'`, `undefined` for none, or the delimiter as written in a table: `:---`, `:---:`, `---:` or `---`, the forms GitHub's docs use. Any number of `-` works, and a plain `---` means none, as in GFM. The type lists the four forms for docs, and is a `string` with a `@pattern`, so it maps to a JSON schema.
-
-A short row is filled with empty cells. A row longer than the header adds a column with an empty title, rather than throwing, so the mistake shows in the output.
-
-A table always renders padded, so its pipes line up. There's no style field for compact tables, and `detectStyle` doesn't look at tables, until a script needs it. A table from a template or `parse()` is re-rendered padded too.
 
 ## Placeholders
 
