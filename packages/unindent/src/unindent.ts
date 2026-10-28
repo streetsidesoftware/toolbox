@@ -10,7 +10,7 @@ export interface Unindent {
   /**
    * Tagged template that removes the common leading whitespace from every line.
    * A multi-line value keeps its shape: each of its lines after the first gets the leading whitespace of the
-   * template line it is inserted on.
+   * template line it is inserted on. An empty line stays empty.
    * @param template - template strings
    * @param values - values to insert
    * @returns the unindented string
@@ -55,18 +55,18 @@ export const unindent: Unindent = function unindent(
 };
 
 /**
- * Add padding to each line of a multi-line string.
+ * Add padding to each line of a multi-line string. An empty line after the first stays empty.
  * @param str - multi-line string to indent
  * @param padding - the padding added to every line except the first
  * @param firstLinePadding - the padding added to the first line
  * @returns the indented string
  */
 export function indent(str: string, padding: string, firstLinePadding: string = ''): string {
-  let pad = firstLinePadding;
-  const lines: string[] = [];
-  for (const line of str.split('\n')) {
-    lines.push(pad + line);
-    pad = padding;
+  const [first, ...rest] = str.split('\n');
+  const lines = [firstLinePadding + first];
+  for (const line of rest) {
+    // A lone `\r` is the line ending of an empty CRLF line.
+    lines.push(line === '' || line === '\r' ? line : padding + line);
   }
 
   return lines.join('\n');
@@ -93,8 +93,9 @@ function linePadding(template: TemplateStringsArray, pos: number): string {
   return line.slice(0, padLength(line));
 }
 
+/** The length of the leading whitespace, not counting a `\r`, so unindenting keeps CRLF line endings. */
 function padLength(s: string): number {
-  return s.length - s.trimStart().length;
+  return /^[^\S\r]*/.exec(s)?.[0].length ?? 0;
 }
 
 function unindentString(str: string): string {
@@ -105,5 +106,6 @@ function unindentString(str: string): string {
     curPad = Math.min(curPad, padLength(line));
   }
 
-  return lines.map((line) => line.slice(curPad)).join('\n');
+  // A whitespace-only line can be shorter than curPad.
+  return lines.map((line) => line.slice(Math.min(curPad, padLength(line)))).join('\n');
 }

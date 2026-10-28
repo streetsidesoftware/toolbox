@@ -28,6 +28,10 @@ describe('unindent string', () => {
     assert.equal(unindent('  a\r\n    b\r\n'), 'a\r\n  b\r\n');
   });
 
+  test('keeps the CR of an empty CRLF line', () => {
+    assert.equal(unindent('  a\r\n\r\n  b'), 'a\r\n\r\nb');
+  });
+
   test('returns an empty string for all-blank input', () => {
     assert.equal(unindent('  \n  '), '\n');
     assert.equal(unindent(''), '');
@@ -86,6 +90,43 @@ describe('unindent tagged template', () => {
     assert.equal(s, '\nx:\n\ta\n\tb\n');
   });
 
+  test('leaves an empty line in a value empty', () => {
+    const value = 'a\n\nb';
+    const s = unindent`
+      x:
+        ${value}
+    `;
+    assert.equal(s, '\nx:\n  a\n\n  b\n');
+  });
+
+  test('indents a whitespace-only line in a value', () => {
+    const value = 'a\n   \nb';
+    const s = unindent`
+      x:
+        ${value}
+    `;
+    assert.equal(s, '\nx:\n  a\n     \n  b\n');
+  });
+
+  test('keeps a trailing newline in a value, and the line after it stays empty', () => {
+    const value = 'a\nb\n';
+    const s = unindent`
+      x:
+        ${value}
+      y
+    `;
+    assert.equal(s, '\nx:\n  a\n  b\n\ny\n');
+  });
+
+  test('keeps CRLF line endings in a value', () => {
+    const value = 'a\r\n\r\nb';
+    const s = unindent`
+      x:
+        ${value}
+    `;
+    assert.equal(s, '\nx:\n  a\r\n\r\n  b\n');
+  });
+
   test('converts values to strings', () => {
     assert.equal(unindent`  ${1} ${true} ${null}`, '1 true null');
   });
@@ -139,5 +180,14 @@ describe('indent', () => {
 
   test('pads the first line with firstLinePadding', () => {
     assert.equal(indent('a\nb', '  ', '- '), '- a\n  b');
+  });
+
+  test('leaves empty lines empty', () => {
+    assert.equal(indent('a\n\nb\n', '  '), 'a\n\n  b\n');
+    assert.equal(indent('a\r\n\r\nb', '  '), 'a\r\n\r\n  b');
+  });
+
+  test('pads whitespace-only lines', () => {
+    assert.equal(indent('a\n \nb', '  '), 'a\n   \n  b');
   });
 });

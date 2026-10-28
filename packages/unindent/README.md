@@ -46,7 +46,9 @@ unindent`
 // "\nfruit:\n  apple\n  banana\n"
 ```
 
-The padding is the template line's leading whitespace, tabs included, not the column of the `${}`.
+The padding is the template line's leading whitespace, tabs included, not the column of the `${}`. An empty line
+in the value stays empty, and the rest of the value is kept as given: its own indentation, a trailing newline
+and its line endings.
 
 ### Trimming the first and last lines
 
@@ -71,14 +73,15 @@ u`
 
 ### `indent`
 
-Use `indent` to add padding to every line of a string except the first. An optional third argument pads the
-first line:
+Use `indent` to add padding to every line of a string except the first. An empty line stays empty. An optional
+third argument pads the first line:
 
 ```ts
 import { indent } from '@streetsidesoftware/unindent';
 
 indent('a\nb\nc', '  '); // "a\n  b\n  c"
 indent('a\nb', '  ', '- '); // "- a\n  b"
+indent('a\n\nb', '  '); // "a\n\n  b"
 ```
 
 ## Behavior details
