@@ -1,7 +1,7 @@
 ## Generate a Markdown file from data
 
-Each builder returns a Markdown value, not a string. Put values together with `document`, and render the file with
-`toString()`. A value is escaped for where it ends up, so the `]` in the link text doesn't end the link.
+Each builder returns a Markdown element, not a string. Put elements together with `document`, and render the file
+with `toString()`. An element is escaped for where it ends up, so the `]` in the link text doesn't end the link.
 
 <!--- @@inject: example.ts --->
 

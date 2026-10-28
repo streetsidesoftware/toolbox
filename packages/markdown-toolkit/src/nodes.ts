@@ -4,25 +4,34 @@ import type { ListItem, BlockContent as MdastBlockContent, PhrasingContent, Root
 import { placeholderNodeAsWritten } from './placeholderNode.ts';
 import { renderNodes } from './render.ts';
 import type { StyleOptions } from './render.ts';
-import type { AnyContent, BlockContent, InlineContent, ListItemContent, MDKind, MDListItem, MDValue } from './types.ts';
+import type {
+  AnyContent,
+  BlockContent,
+  InlineContent,
+  ListItemContent,
+  MDElement,
+  MDKind,
+  MDListItem,
+} from './types.ts';
 
 /**
- * The key a value's rendering is stored under. Having it is what makes a value a Markdown value.
- * It comes from the global symbol registry, so another loaded copy of this module recognizes the value too.
+ * The key an element's rendering is stored under. Having it is what makes a value a Markdown element.
+ * It comes from the global symbol registry, so another loaded copy of this module recognizes the element too.
+ * It keeps the older name `.value`, so copies from before the rename still match.
  */
 const renderingKey: unique symbol = Symbol.for('@streetsidesoftware/markdown-toolkit.value');
 
-/** The nodes a value renders as, and the style to render them in. */
+/** The nodes an element renders as, and the style to render them in. */
 interface Rendering {
   nodes: RootContent[];
   style: StyleOptions | undefined;
 }
 
 /**
- * A Markdown value. The public types are interfaces, so the node tree never appears in them.
+ * A Markdown element. The public types are interfaces, so the node tree never appears in them.
  * The literal kind and description types tell the public types apart.
  */
-export class MarkdownValue<K extends MDKind = MDKind, D extends string = string> {
+export class MarkdownElement<K extends MDKind = MDKind, D extends string = string> {
   readonly kind: K;
   readonly description: D;
 
@@ -45,16 +54,16 @@ export class MarkdownValue<K extends MDKind = MDKind, D extends string = string>
   }
 }
 
-/** How a Markdown value renders, or `undefined` for anything else. */
+/** How a Markdown element renders, or `undefined` for anything else. */
 export function renderingOf(value: unknown): Rendering | undefined {
   return typeof value === 'object' && value !== null
     ? (value as Partial<Record<typeof renderingKey, Rendering>>)[renderingKey]
     : undefined;
 }
 
-/** Whether a value is a Markdown value, and of one of the given kinds. */
-export function isKind(value: unknown, ...kinds: MDValue['kind'][]): value is MDValue {
-  return renderingOf(value) !== undefined && kinds.includes((value as MDValue).kind);
+/** Whether a value is a Markdown element, and of one of the given kinds. */
+export function isKind(value: unknown, ...kinds: MDElement['kind'][]): value is MDElement {
+  return renderingOf(value) !== undefined && kinds.includes((value as MDElement).kind);
 }
 
 /**
@@ -96,7 +105,7 @@ export function blockNodes(content: BlockContent, where: string): RootContent[] 
   throw new TypeError(`${where} must be blocks, got ${describe(content)}`);
 }
 
-/** Whether content is blocks: a block value, or a non-empty array of them. */
+/** Whether content is blocks: a block element, or a non-empty array of them. */
 export function isBlockContent(content: unknown): content is BlockContent {
   if (Array.isArray(content)) return content.length > 0 && content.every(isBlockContent);
   return isKind(content, 'block');
@@ -114,7 +123,7 @@ export function isArray<T>(value: T | readonly T[]): value is readonly T[] {
 
 /** What a value is, for error messages. */
 export function describe(value: unknown): string {
-  if (renderingOf(value)) return (value as MDValue).description;
+  if (renderingOf(value)) return (value as MDElement).description;
   if (Array.isArray(value)) return 'an array';
   if (value === null || value === undefined) return String(value);
   return typeof value === 'object' ? 'an object' : `a ${typeof value}`;

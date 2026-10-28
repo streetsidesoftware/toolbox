@@ -1,7 +1,7 @@
 /** The public types of the Markdown builders. This module imports nothing, so every other module can depend on it. */
 
 /**
- * What a value is, which decides where it may go:
+ * What an element is, which decides where it may go:
  * - `inline`: inside a line.
  * - `block`: on its own lines.
  * - `comment`: either one.
@@ -10,16 +10,19 @@
  */
 export type MDKind = 'inline' | 'block' | 'comment' | 'listItem' | 'frontmatter';
 
-/** A Markdown value. Converting it to a string renders it. */
-export interface MDValue {
+/** A Markdown element. Converting it to a string renders it. */
+export interface MDElement {
   readonly kind: MDKind;
-  /** What the value is, for error messages, such as `a list`. */
+  /** What the element is, for error messages, such as `a list`. */
   readonly description: string;
   toString(): string;
 }
 
+/** @deprecated Use {@link MDElement}. */
+export type MDValue = MDElement;
+
 /** Text. A `{@ name @}` placeholder in it is kept as written. */
-export interface MDText extends MDValue {
+export interface MDText extends MDElement {
   readonly kind: 'inline';
   readonly description: 'text';
   /** The text as written, unescaped. */
@@ -27,106 +30,106 @@ export interface MDText extends MDValue {
 }
 
 /** A `{​@ name @​}` placeholder that goes where inline content does. Where it sits decides what it takes. */
-export interface MDPlaceholder extends MDValue {
+export interface MDPlaceholder extends MDElement {
   readonly kind: 'inline';
   readonly description: 'a placeholder';
   readonly name: string;
 }
 
 /** A `{​@ name @​}` placeholder on its own lines. It takes blocks or inline content. */
-export interface MDBlockPlaceholder extends MDValue {
+export interface MDBlockPlaceholder extends MDElement {
   readonly kind: 'block';
   readonly description: 'a block placeholder';
   readonly name: string;
 }
 
-export interface MDLink extends MDValue {
+export interface MDLink extends MDElement {
   readonly kind: 'inline';
   readonly description: 'a link';
 }
 
-export interface MDStrong extends MDValue {
+export interface MDStrong extends MDElement {
   readonly kind: 'inline';
   readonly description: 'strong text';
 }
 
-export interface MDEmphasis extends MDValue {
+export interface MDEmphasis extends MDElement {
   readonly kind: 'inline';
   readonly description: 'emphasized text';
 }
 
-export interface MDStrikethrough extends MDValue {
+export interface MDStrikethrough extends MDElement {
   readonly kind: 'inline';
   readonly description: 'struck-through text';
 }
 
-export interface MDInlineCode extends MDValue {
+export interface MDInlineCode extends MDElement {
   readonly kind: 'inline';
   readonly description: 'inline code';
 }
 
 /** A line break in the form that works where it ends up. */
-export interface MDLineBreak extends MDValue {
+export interface MDLineBreak extends MDElement {
   readonly kind: 'inline';
   readonly description: 'a line break';
 }
 
 /** An HTML line break, `<br/>`. */
-export interface MDBr extends MDValue {
+export interface MDBr extends MDElement {
   readonly kind: 'inline';
   readonly description: 'a <br/>';
 }
 
-export interface MDComment extends MDValue {
+export interface MDComment extends MDElement {
   readonly kind: 'comment';
   readonly description: 'a comment';
 }
 
-export interface MDHeading extends MDValue {
+export interface MDHeading extends MDElement {
   readonly kind: 'block';
   readonly description: 'a heading';
 }
 
-export interface MDParagraph extends MDValue {
+export interface MDParagraph extends MDElement {
   readonly kind: 'block';
   readonly description: 'a paragraph';
 }
 
 /** A line between sections, `---` in the default style. */
-export interface MDHorizontalRule extends MDValue {
+export interface MDHorizontalRule extends MDElement {
   readonly kind: 'block';
   readonly description: 'a horizontal rule';
 }
 
-export interface MDCodeBlock extends MDValue {
+export interface MDCodeBlock extends MDElement {
   readonly kind: 'block';
   readonly description: 'a code block';
 }
 
-export interface MDListItem extends MDValue {
+export interface MDListItem extends MDElement {
   readonly kind: 'listItem';
   readonly description: 'a list item';
 }
 
-export interface MDList extends MDValue {
+export interface MDList extends MDElement {
   readonly kind: 'block';
   readonly description: 'a list';
 }
 
 /** A collapsible `<details>` block with a summary. */
-export interface MDDetails extends MDValue {
+export interface MDDetails extends MDElement {
   readonly kind: 'block';
   readonly description: 'a details block';
 }
 
 /** A `<dl>` definition list. */
-export interface MDDefinitionList extends MDValue {
+export interface MDDefinitionList extends MDElement {
   readonly kind: 'block';
   readonly description: 'a definition list';
 }
 
 /** A whole document. It renders with a trailing newline, as a file should end. */
-export interface MDDocument extends MDValue {
+export interface MDDocument extends MDElement {
   readonly kind: 'block';
   readonly description: 'a document';
   /**
@@ -137,26 +140,26 @@ export interface MDDocument extends MDValue {
 }
 
 /** YAML frontmatter between `---` lines. It goes only first in a document. */
-export interface MDFrontmatter extends MDValue {
+export interface MDFrontmatter extends MDElement {
   readonly kind: 'frontmatter';
   readonly description: 'frontmatter';
 }
 
 /** Blocks made from a string. Markdown text renders in its own style. */
-export interface MDFragment extends MDValue {
+export interface MDFragment extends MDElement {
   readonly kind: 'block';
   readonly description: 'a Markdown fragment';
 }
 
 /** Inline Markdown from Markdown text. */
-export interface MDInlineFragment extends MDValue {
+export interface MDInlineFragment extends MDElement {
   readonly kind: 'inline';
   readonly description: 'an inline Markdown fragment';
 }
 
 export type HeadingDepth = 1 | 2 | 3 | 4 | 5 | 6;
 
-/** A value that goes inside a line. A comment goes either inside a line or on its own. */
+/** An element that goes inside a line. A comment goes either inside a line or on its own. */
 export type MDInline =
   | MDText
   | MDPlaceholder
@@ -170,7 +173,7 @@ export type MDInline =
   | MDComment
   | MDInlineFragment;
 
-/** A value that goes on its own lines. */
+/** An element that goes on its own lines. */
 export type MDBlock =
   | MDHeading
   | MDParagraph

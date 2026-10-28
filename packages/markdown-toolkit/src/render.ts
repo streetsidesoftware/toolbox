@@ -9,7 +9,7 @@ import type { PlaceholderNode } from './placeholderNode.ts';
 
 export type { Options as StyleOptions } from 'remark-stringify';
 
-/** The style for constructs a value carries no style for. */
+/** The style for constructs an element carries no style for. */
 export const defaultStyle: StyleOptions = {
   bullet: '-',
   emphasis: '_',

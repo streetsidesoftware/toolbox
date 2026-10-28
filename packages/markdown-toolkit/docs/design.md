@@ -2,7 +2,7 @@
 
 This doc records the decisions behind `@streetsidesoftware/markdown-toolkit`, for anyone changing it. The README shows how to use it.
 
-The toolkit is for scripts that generate Markdown. A script builds Markdown values, composes them, and calls `toString()` on the outermost one. Escaping happens there, based on where each piece ends up, so the script never needs to know the escaping rules.
+The toolkit is for scripts that generate Markdown. A script builds Markdown elements, composes them, and calls `toString()` on the outermost one. Escaping happens there, based on where each piece ends up, so the script never needs to know the escaping rules.
 
 ```ts
 const extensions = [
@@ -19,11 +19,11 @@ list(extensions.map((e) => [link(e.name, e.url), ` - ${e.description}`])).toStri
 
 The brackets in the link text and the asterisks in the description are escaped, so they show as written.
 
-## Values
+## Elements
 
-A builder returns a Markdown value, not a string. The value keeps its structure until it's rendered, so each piece is escaped for where it ends up. A string that is a whole paragraph is escaped differently from the same string after other text: `document('- b')` renders `\- b`, so it doesn't become a list, but `document(['x ', '- b'])` renders `x - b`.
+A builder returns a Markdown element, not a string. The element keeps its structure until it's rendered, so each piece is escaped for where it ends up. A string that is a whole paragraph is escaped differently from the same string after other text: `document('- b')` renders `\- b`, so it doesn't become a list, but `document(['x ', '- b'])` renders `x - b`.
 
-Every value has a `kind`, which decides where it may go:
+Every element has a `kind`, which decides where it may go:
 
 - **Inline** (`'inline'`) goes inside a line: text, a placeholder, a link, strong, emphasis, strikethrough, inline code, a line break, `<br/>`, and an inline fragment.
 - **Block** (`'block'`) goes on its own lines: a heading, a paragraph, a list, a code block, a horizontal rule, details, a definition list, a document, a fragment, and a block placeholder.
@@ -33,9 +33,9 @@ Every value has a `kind`, which decides where it may go:
 
 A fragment is blocks of Markdown made from text or by substitution: it comes from `parse()`, a template, `blockText()`, or `substitutePlaceholders()`. An inline fragment is the same for inline content, from `parse()`, a template, or `substitutePlaceholders()`. A heading and a paragraph are blocks that hold inline content.
 
-Putting a value where its kind can't go, such as a list inside a heading, is an error. The builder types catch it at compile time, and the builders check again at runtime, for JavaScript callers and `any` values.
+Putting an element where its kind can't go, such as a list inside a heading, is an error. The builder types catch it at compile time, and the builders check again at runtime, for JavaScript callers and `any` values.
 
-Converting a value to a string too early loses its kind. Writing ``text(`see ${link('a', 'u')}`)`` makes the link plain text, and it renders as `see \[a]\(u)`. Scripts compose values, not strings.
+Converting an element to a string too early loses its kind. Writing ``text(`see ${link('a', 'u')}`)`` makes the link plain text, and it renders as `see \[a]\(u)`. Scripts compose elements, not strings.
 
 ## Building content
 
@@ -61,7 +61,7 @@ The function `toBlock(content)` makes content fit where only blocks can go: bloc
 
 ### Documents and frontmatter
 
-A document is the one value that renders with a trailing newline, because it stands alone as a file. It carries its own style; see [Rendering and style](#rendering-and-style).
+A document is the one element that renders with a trailing newline, because it stands alone as a file. It carries its own style; see [Rendering and style](#rendering-and-style).
 
 Frontmatter goes first: `document(frontmatter(yaml), heading(1, title), …)`, so the code reads in file order. Anywhere else in a document, it throws. It takes YAML text, inserted as is between `---` lines. Text keeps comments and needs no YAML dependency. Making it valid YAML is the script's job.
 
@@ -72,12 +72,12 @@ A `<details>` summary and a `<dl>` term are inline. The content and each definit
 Markdown inside HTML is read only after a blank line, so rendering picks the form that works on GitHub:
 
 - A summary or term of plain text is written on one line, `<summary>TypeScript:</summary>`, as in GitHub's own examples. Its `&` and `<` are HTML-escaped, and blank lines are dropped, since one would end the HTML block.
-- A summary or term with any other inline value, such as inline code or a placeholder, gets blank lines around it, so it renders.
+- A summary or term with any other inline element, such as inline code or a placeholder, gets blank lines around it, so it renders.
 - The content and each definition always get blank lines around them.
 
 ### Line breaks and comments
 
-There are two line-break values, both inline. A `lineBreak()` is a Markdown hard break. A `br()` is always `<br/>`, never `<br>`, because MDX reads HTML as JSX, where an unclosed `<br>` is a syntax error.
+There are two line-break elements, both inline. A `lineBreak()` is a Markdown hard break. A `br()` is always `<br/>`, never `<br>`, because MDX reads HTML as JSX, where an unclosed `<br>` is a syntax error.
 
 A comment renders as `<!-- … -->`, with two dashes, as third-party bots write them. The renderer keeps the text from ending the comment early.
 
@@ -115,7 +115,7 @@ A value goes in where its placeholder sits, as [Placeholders](#placeholders) des
 - A string, number, or boolean is inserted as text and escaped.
 - A placeholder that is a whole line splits its paragraph around the blocks it takes, as it would around a list written in place: `Fruit:\n{@ fruit @}` gives `Fruit:` and then the list.
 - Inside code or HTML, a value is inserted as is, with no Markdown escaping. The common case is a package name in an install command. The renderer lengthens a code fence when the inserted text needs it.
-- In frontmatter, a placeholder takes any value, inserted as is: a string as written, and a Markdown value as it renders. Nothing is escaped or checked as YAML. As in `unindent`, each line of a value after the first gets the leading whitespace of the placeholder's line, except an empty line, which stays empty. A multi-line value stays inside a YAML block.
+- In frontmatter, a placeholder takes any value, inserted as is: a string as written, and a Markdown element as it renders. Nothing is escaped or checked as YAML. As in `unindent`, each line of a value after the first gets the leading whitespace of the placeholder's line, except an empty line, which stays empty. A multi-line value stays inside a YAML block.
 
 A placeholder with no value is kept as written. Templates can be chained, so a later template, `substitutePlaceholders`, or injection may fill it. There's no strict option: a script that needs every placeholder filled checks its output with `hasPlaceholders` or `listPlaceholders` from @streetsidesoftware/placeholders.
 
@@ -156,14 +156,14 @@ Whether a leading `---` starts frontmatter or is a rule can't be told from the t
 
 ## Substituting placeholders
 
-The function `substitutePlaceholders(value, values)` puts values in place of the placeholders of a value already made, such as one from `parse()`, so content can be built in steps:
+The function `substitutePlaceholders(element, values)` puts values in place of the placeholders of an element already made, such as one from `parse()`, so content can be built in steps:
 
 - Values go in as in templates, and names resolve the same way.
 - Only the names that `values` has are substituted. The others stay as written, for a later step or injection.
 - A document's frontmatter is filled too.
-- The value given is left unchanged.
+- The element given is left unchanged.
 
-The result is the same type, in the same style, when the value can hold what was substituted. A value that can't becomes a fragment, rather than throwing, so the caller never has to rebuild a value to fit. The return type, `SubstitutedValue<T>`, says which values can change:
+The result is the same type, in the same style, when the element can hold what was substituted. An element that can't becomes a fragment, rather than throwing, so the caller never has to rebuild an element to fit. The return type, `SubstitutionResult<T>`, says which elements can change:
 
 - Text stays text when every value is a string or text. Otherwise it becomes an inline fragment, or a fragment when a whole-line placeholder took blocks.
 - An inline fragment or a paragraph that takes blocks becomes a fragment. That includes `parse('{@ x @}')` given a list, as in `template()`.
@@ -171,9 +171,9 @@ The result is the same type, in the same style, when the value can hold what was
 
 ## Rendering and style
 
-Calling `toString()` renders a value and everything in it, without a trailing newline (except a document). There's no separate render function, and `toString()` takes no options, because a template literal calls it with no arguments. A value also renders inside `${value}`, so it drops into existing templates such as `unindent`.
+Calling `toString()` renders an element and everything in it, without a trailing newline (except a document). There's no separate render function, and `toString()` takes no options, because a template literal calls it with no arguments. An element also renders inside `${element}`, so it drops into existing templates such as `unindent`.
 
-A value renders in a fixed default style: `-` bullets, `_emphasis_`, `**strong**`, backtick fences, and `---` rules. The exceptions:
+An element renders in a fixed default style: `-` bullets, `_emphasis_`, `**strong**`, backtick fences, and `---` rules. The exceptions:
 
 - A fragment from `template()` or `parse()`, or a document from `parseDocument()` or `templateDocument()`, renders in the style detected from its own text.
 - `doc.withStyle(style)` returns a copy of a document that renders in that style. Fields the style leaves out keep the default.
@@ -185,17 +185,17 @@ A line ending or `lineBreak()` at the start or end of a paragraph or heading is 
 
 ## Errors
 
-A value of the wrong kind throws a `TypeError`, such as a block where only inline content can go, or frontmatter that isn't first in a document. Other misuse throws an `Error`, such as a heading depth outside 1–6, an invalid placeholder name, or an inline template that isn't one paragraph. Each message names what was wrong: `heading content must be inline, got a list`.
+An element of the wrong kind throws a `TypeError`, such as a block where only inline content can go, or frontmatter that isn't first in a document. Other misuse throws an `Error`, such as a heading depth outside 1–6, an invalid placeholder name, or an inline template that isn't one paragraph. Each message names what was wrong: `heading content must be inline, got a list`.
 
 A toolkit-specific error class waits until a caller needs to catch one specifically.
 
 ## Internals
 
-A value is made only by a factory function, such as `link(…)` or `list(…)`. The public types (`MDLink`, `MDList`, and so on) are interfaces: a `kind`, a `description` for error messages, and `toString()`. The literal type of `description` tells the public types apart. Underneath, one internal class stores the mdast nodes a value renders as, and its style, under the key `Symbol.for('@streetsidesoftware/markdown-toolkit.value')`. Having that key is what makes a value a Markdown value, and what `isMarkdown(x)` checks.
+An element is made only by a factory function, such as `link(…)` or `list(…)`. The public types (`MDLink`, `MDList`, and so on) are interfaces: a `kind`, a `description` for error messages, and `toString()`. The literal type of `description` tells the public types apart. Underneath, one internal class stores the mdast nodes an element renders as, and its style, under the key `Symbol.for('@streetsidesoftware/markdown-toolkit.value')`. Having that key is what makes a value a Markdown element, and what `isMarkdown(x)` checks.
 
 - The node tree stays internal. The public types never mention mdast.
-- Factories are the only way to make a value, so the internal class can change without changing the API.
-- The key comes from the global symbol registry, so a value made by another loaded copy of the package is recognized.
+- Factories are the only way to make an element, so the internal class can change without changing the API.
+- The key comes from the global symbol registry, so an element made by another loaded copy of the package is recognized. The key keeps the name `.value` from before elements were renamed, so older copies still match.
 - The key names the package. If what's stored under it ever changes incompatibly, a new key such as `….value.1` can be used.
 - The key is a brand, not privacy: anyone can read it.
 

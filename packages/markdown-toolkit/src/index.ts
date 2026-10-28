@@ -26,7 +26,7 @@ export {
 export { frontmatter } from './frontmatter.ts';
 export { definitionList, details, dl } from './htmlBlocks.ts';
 export { detectStyle } from './style.ts';
-export type { SubstitutedValue, TemplateValue, TemplateValues } from './template.ts';
+export type { SubstitutedValue, SubstitutionResult, TemplateValue, TemplateValues } from './template.ts';
 export {
   blockTemplate,
   inlineTemplate,
@@ -59,6 +59,7 @@ export type {
   MDDefinitionList,
   MDDetails,
   MDDocument,
+  MDElement,
   MDEmphasis,
   MDFragment,
   MDFrontmatter,

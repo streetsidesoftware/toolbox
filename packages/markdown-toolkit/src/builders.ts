@@ -1,7 +1,7 @@
 import { isValidPlaceholderName } from '@streetsidesoftware/placeholders';
 import type { ListItem, Paragraph } from 'mdast';
 
-import { DocumentValue } from './documentValue.ts';
+import { DocumentElement } from './documentElement.ts';
 import { isFrontmatter } from './frontmatter.ts';
 import {
   describe,
@@ -11,7 +11,7 @@ import {
   isBlockContent,
   isListItem,
   listItemNode,
-  MarkdownValue,
+  MarkdownElement,
   renderingOf,
   runs,
   textNodes,
@@ -29,6 +29,7 @@ import type {
   MDCodeBlock,
   MDComment,
   MDDocument,
+  MDElement,
   MDEmphasis,
   MDFragment,
   MDFrontmatter,
@@ -44,10 +45,9 @@ import type {
   MDStrikethrough,
   MDStrong,
   MDText,
-  MDValue,
 } from './types.ts';
 
-class TextValue extends MarkdownValue<'inline', 'text'> implements MDText {
+class TextElement extends MarkdownElement<'inline', 'text'> implements MDText {
   readonly text: string;
 
   constructor(text: string) {
@@ -56,7 +56,7 @@ class TextValue extends MarkdownValue<'inline', 'text'> implements MDText {
   }
 }
 
-class PlaceholderValue extends MarkdownValue<'inline', 'a placeholder'> implements MDPlaceholder {
+class PlaceholderElement extends MarkdownElement<'inline', 'a placeholder'> implements MDPlaceholder {
   readonly name: string;
 
   constructor(name: string) {
@@ -65,7 +65,7 @@ class PlaceholderValue extends MarkdownValue<'inline', 'a placeholder'> implemen
   }
 }
 
-class BlockPlaceholderValue extends MarkdownValue<'block', 'a block placeholder'> implements MDBlockPlaceholder {
+class BlockPlaceholderElement extends MarkdownElement<'block', 'a block placeholder'> implements MDBlockPlaceholder {
   readonly name: string;
 
   constructor(name: string) {
@@ -74,8 +74,8 @@ class BlockPlaceholderValue extends MarkdownValue<'block', 'a block placeholder'
   }
 }
 
-/** Whether a value is one of the Markdown values. */
-export function isMarkdown(value: unknown): value is MDValue {
+/** Whether a value is a Markdown element. */
+export function isMarkdown(value: unknown): value is MDElement {
   return renderingOf(value) !== undefined;
 }
 
@@ -92,7 +92,7 @@ function commentSafe(text: string): string {
  * A newline stays in the text, and displays as a space.
  */
 export function inlineText(value: string): MDText {
-  return new TextValue(value);
+  return new TextElement(value);
 }
 
 /** The same as {@link inlineText}. */
@@ -119,7 +119,7 @@ export function blockText(value: string): MDFragment {
     lines.push(line);
   }
   endParagraph();
-  return new MarkdownValue('block', 'a Markdown fragment', paragraphs);
+  return new MarkdownElement('block', 'a Markdown fragment', paragraphs);
 }
 
 /**
@@ -130,7 +130,7 @@ export function blockText(value: string): MDFragment {
  */
 export function placeholder(name: string): MDPlaceholder {
   checkPlaceholderName(name);
-  return new PlaceholderValue(name);
+  return new PlaceholderElement(name);
 }
 
 /**
@@ -139,7 +139,7 @@ export function placeholder(name: string): MDPlaceholder {
  */
 export function blockPlaceholder(name: string): MDBlockPlaceholder {
   checkPlaceholderName(name);
-  return new BlockPlaceholderValue(name);
+  return new BlockPlaceholderElement(name);
 }
 
 function checkPlaceholderName(name: string): void {
@@ -149,35 +149,35 @@ function checkPlaceholderName(name: string): void {
 /** A link, `[content](url)`. */
 export function link(content: InlineContent, url: string | URL): MDLink {
   const href = typeof url === 'string' ? url : url.href;
-  return new MarkdownValue('inline', 'a link', [
+  return new MarkdownElement('inline', 'a link', [
     { type: 'link', url: href, children: inlineNodes(content, 'link content') },
   ]);
 }
 
 /** Strong text, `**content**`. */
 export function strong(content: InlineContent): MDStrong {
-  return new MarkdownValue('inline', 'strong text', [
+  return new MarkdownElement('inline', 'strong text', [
     { type: 'strong', children: inlineNodes(content, 'strong content') },
   ]);
 }
 
 /** Emphasized text, `_content_`. */
 export function emphasis(content: InlineContent): MDEmphasis {
-  return new MarkdownValue('inline', 'emphasized text', [
+  return new MarkdownElement('inline', 'emphasized text', [
     { type: 'emphasis', children: inlineNodes(content, 'emphasis content') },
   ]);
 }
 
 /** Struck-through text, `~~content~~`. */
 export function strikethrough(content: InlineContent): MDStrikethrough {
-  return new MarkdownValue('inline', 'struck-through text', [
+  return new MarkdownElement('inline', 'struck-through text', [
     { type: 'delete', children: inlineNodes(content, 'strikethrough content') },
   ]);
 }
 
 /** Inline code. The code is inserted as is. */
 export function inlineCode(code: string): MDInlineCode {
-  return new MarkdownValue('inline', 'inline code', [{ type: 'inlineCode', value: code }]);
+  return new MarkdownElement('inline', 'inline code', [{ type: 'inlineCode', value: code }]);
 }
 
 /**
@@ -185,17 +185,17 @@ export function inlineCode(code: string): MDInlineCode {
  * In a paragraph or list item it's a Markdown hard break, a `\` at the end of the line.
  */
 export function lineBreak(): MDLineBreak {
-  return new MarkdownValue('inline', 'a line break', [{ type: 'break' }]);
+  return new MarkdownElement('inline', 'a line break', [{ type: 'break' }]);
 }
 
 /** An HTML line break, always `<br/>`. It's self-closed, so it also works in MDX. */
 export function br(): MDBr {
-  return new MarkdownValue('inline', 'a <br/>', [{ type: 'html', value: '<br/>' }]);
+  return new MarkdownElement('inline', 'a <br/>', [{ type: 'html', value: '<br/>' }]);
 }
 
 /** An HTML comment, `<!-- text -->`. It goes inside a line or on its own. */
 export function comment(text: string): MDComment {
-  return new MarkdownValue('comment', 'a comment', [{ type: 'html', value: `<!-- ${commentSafe(text)} -->` }]);
+  return new MarkdownElement('comment', 'a comment', [{ type: 'html', value: `<!-- ${commentSafe(text)} -->` }]);
 }
 
 /** A heading, `## content`. */
@@ -203,7 +203,7 @@ export function heading(depth: HeadingDepth, content: InlineContent): MDHeading 
   if (!Number.isInteger(depth) || depth < 1 || depth > 6) {
     throw new Error(`heading depth must be 1 to 6, got ${String(depth)}`);
   }
-  return new MarkdownValue('block', 'a heading', [
+  return new MarkdownElement('block', 'a heading', [
     { type: 'heading', depth, children: inlineNodes(content, 'heading content') },
   ]);
 }
@@ -214,7 +214,7 @@ export function paragraph(...content: InlineContent[]): MDParagraph {
 }
 
 function paragraphOf(content: readonly InlineContent[], where: string): MDParagraph {
-  return new MarkdownValue('block', 'a paragraph', [{ type: 'paragraph', children: inlineNodes(content, where) }]);
+  return new MarkdownElement('block', 'a paragraph', [{ type: 'paragraph', children: inlineNodes(content, where) }]);
 }
 
 /**
@@ -230,7 +230,7 @@ export function toBlock(content: AnyContent): BlockContent {
 
 /** A horizontal rule, a line between sections: `---` in the default style. */
 export function horizontalRule(): MDHorizontalRule {
-  return new MarkdownValue('block', 'a horizontal rule', [{ type: 'thematicBreak' }]);
+  return new MarkdownElement('block', 'a horizontal rule', [{ type: 'thematicBreak' }]);
 }
 
 /** The same as {@link horizontalRule}. */
@@ -238,12 +238,12 @@ export const hr: typeof horizontalRule = horizontalRule;
 
 /** A fenced code block. The code is inserted as is. */
 export function codeBlock(code: string, lang?: string): MDCodeBlock {
-  return new MarkdownValue('block', 'a code block', [{ type: 'code', lang: lang || null, value: code }]);
+  return new MarkdownElement('block', 'a code block', [{ type: 'code', lang: lang || null, value: code }]);
 }
 
 /** One list item from several pieces, for use in {@link list}. */
 export function listItem(...content: ListItemContent[]): MDListItem {
-  return new MarkdownValue('listItem', 'a list item', [listItemNode(content)]);
+  return new MarkdownElement('listItem', 'a list item', [listItemNode(content)]);
 }
 
 /**
@@ -256,8 +256,8 @@ export function document(...content: AnyContent[]): MDDocument;
 export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument {
   const [first, ...rest] = content;
   if (rest.some(isFrontmatter)) throw new TypeError('frontmatter must be the first content of a document');
-  if (!isFrontmatter(first)) return new DocumentValue(groupedNodes(content as AnyContent[], 'document content'));
-  return new DocumentValue([
+  if (!isFrontmatter(first)) return new DocumentElement(groupedNodes(content as AnyContent[], 'document content'));
+  return new DocumentElement([
     ...(renderingOf(first)?.nodes ?? []),
     ...groupedNodes(rest as AnyContent[], 'document content'),
   ]);
@@ -269,5 +269,5 @@ export function list(entries: readonly ListEntry[]): MDList {
   const items = entries.map((entry) =>
     isListItem(entry) ? (renderingOf(entry)?.nodes[0] as ListItem) : listItemNode(isArray(entry) ? entry : [entry]),
   );
-  return new MarkdownValue('block', 'a list', [{ type: 'list', ordered: false, spread: false, children: items }]);
+  return new MarkdownElement('block', 'a list', [{ type: 'list', ordered: false, spread: false, children: items }]);
 }

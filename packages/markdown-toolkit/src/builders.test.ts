@@ -5,7 +5,7 @@ import { describe, test } from 'node:test';
 import { testEach } from '@streetsidesoftware/test-each';
 
 import type * as Builders from './index.ts';
-import type { MDValue } from './index.ts';
+import type { MDElement } from './index.ts';
 import {
   blockPlaceholder,
   blockText,
@@ -44,7 +44,7 @@ describe('escaping', () => {
         ${text('*not* emphasis')}                           | ${'\\*not\\* emphasis'}
         ${comment('a --> b')}                               | ${'<!-- a -- > b -->'}
         ${comment('cspell:disable')}                        | ${'<!-- cspell:disable -->'}
-    `('$expected', ({ value, expected }: { value: MDValue; expected: string }) => {
+    `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
     assert.equal(value.toString(), expected);
   });
 
@@ -144,7 +144,7 @@ describe('strong, emphasis, strikethrough', () => {
         ${emphasis('note')}                               | ${'_note_'}
         ${strikethrough(inlineCode('cSpell.oldSetting'))} | ${'~~`cSpell.oldSetting`~~'}
         ${strong(['When: ', emphasis('always')])}         | ${'**When: _always_**'}
-    `('$expected', ({ value, expected }: { value: MDValue; expected: string }) => {
+    `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
     assert.equal(value.toString(), expected);
   });
 
@@ -251,7 +251,7 @@ describe('line endings at the edges', () => {
         ${paragraph('a', lineBreak())}                                         | ${'a'}
         ${paragraph(lineBreak(), 'a', lineBreak(), 'b')}                       | ${'a\\\nb'}
         ${document('Fruit:\n', placeholder('fruit'), '\n', 'yummy')}           | ${'Fruit:\n{@ fruit @}\nyummy\n'}
-    `('$expected', ({ value, expected }: { value: MDValue; expected: string }) => {
+    `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
     assert.equal(value.toString(), expected);
   });
 });
