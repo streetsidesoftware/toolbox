@@ -38,13 +38,13 @@ The `description`, such as `a list`, is for error messages. Its literal type als
 
 ## Inline and block
 
-Every value is inline or block, as in Markdown:
+Most values are inline or block, as in Markdown:
 
 - **Inline:** text, placeholder, link, strong, emphasis, strikethrough, inline code, line break, `<br/>`, inline fragment.
 - **Block:** heading, paragraph, list, code block, horizontal rule, details, definition list, document, fragment, block placeholder.
 - **Both:** a comment, so it covers a block notice such as `cspell:disable` and an inline `cspell:ignore`.
 
-A heading and a paragraph are blocks that hold inline content.
+A heading and a paragraph are blocks that hold inline content. A list item and frontmatter are kinds of their own: see [Creating values](#creating-values).
 
 Putting a block where only inline content can go, such as a list inside a heading, is an error. The builder types catch it at compile time, and the builders check again at runtime, for JavaScript callers and `any` values.
 
@@ -98,11 +98,13 @@ A comment renders as `<!-- … -->`, with two dashes, as third-party bots write 
 
 A placeholder renders exactly `{@ name @}`, unescaped, so a later step or inject-markdown can fill it. The grammar comes from [@streetsidesoftware/placeholders](../../placeholders/README.md), which inject-markdown uses too, so both read placeholders the same way. There's no escape: a backslash before `{@` doesn't stop a placeholder, in a string, a template, or `parse()`.
 
+The package has one entry, and it doesn't re-export the placeholder helpers. A script that needs them, such as `listPlaceholders`, imports @streetsidesoftware/placeholders.
+
 A placeholder isn't inline or block by itself. It's a slot, and where it sits decides what it can take:
 
 - Inside a line, it takes only inline content.
 - On a line of its own, where blocks can go, it also takes blocks.
-- Inside code, it takes only a string or text.
+- Inside code or HTML, it takes only a string, text, or a placeholder.
 
 Where a placeholder sits is the same whether it's written in Markdown text, in a string, or made with a builder:
 
@@ -110,7 +112,7 @@ Where a placeholder sits is the same whether it's written in Markdown text, in a
 - `blockPlaceholder(name)` is a block, so it always stands on its own lines and takes blocks or inline content. Inside a line it's an error, as for any block. Two types, rather than one with an `'inline' | 'block'` kind, let the compiler keep a block placeholder out of a line.
 - A placeholder's string form is exactly `{@ name @}`, so it also goes inside code: ``inlineCode(`version: ${placeholder('engine.version')}`)``.
 
-A placeholder is a node type of its own, which the renderer writes as is. As an HTML node, a line ending before it would render as a space, and a placeholder written on its own line would end up inside the line before it.
+A placeholder is a node type of its own, which the renderer writes as is. If it were an HTML node, a line ending before it would render as a space, and a placeholder written on its own line would end up inside the line before it.
 
 ## Templates
 
@@ -124,6 +126,8 @@ A template is Markdown with `{@ name @}` placeholders. A script fills it with va
 - A value of the wrong kind is an error.
 
 A placeholder with no value is kept as written. Templates can be chained, so a later template, `substitutePlaceholders`, or injection may fill it. There's no strict option: a script that needs every placeholder filled checks its output with `hasPlaceholders` or `listPlaceholders` from @streetsidesoftware/placeholders.
+
+The concerns that apply at injection time, such as untrusted values and link rebasing, don't apply here. The same script owns the template and its values, so values aren't sanitized and links aren't rebased.
 
 Each template function fills a template in one call. A script that reuses a template keeps the string and calls the function again.
 
