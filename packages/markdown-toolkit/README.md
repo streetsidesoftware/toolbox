@@ -1,7 +1,7 @@
 # @streetsidesoftware/markdown-toolkit
 
 A toolkit for generating Markdown: builders, templates and placeholders. Compose links, lists, headings and code,
-or fill a Markdown template, then render the result with `toString()`.
+or substitute values into a Markdown template, then render the result with `toString()`.
 
 ## Install
 
@@ -11,9 +11,9 @@ npm install @streetsidesoftware/markdown-toolkit
 
 <!--- @@inject: examples/opening-template/README.md --->
 
-## Write the Markdown, fill in the data
+## Write the Markdown, substitute the data
 
-Write the Markdown you want, mark the gaps with `{@ name @}`, and fill them.
+Write the Markdown you want, mark the gaps with `{@ name @}`, and substitute values for them.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -78,9 +78,9 @@ npm i cspell
 
 - **Builders.** Compose a document from headings, paragraphs, lists, tables, links and code, as elements rather
   than strings.
-- **Templates.** Write the Markdown you want, mark the gaps with `{@ name @}`, and fill them with strings or
-  elements.
-- **Placeholders.** Leave a gap unfilled and fill it in a later step, or hand it to a tool such as inject-markdown.
+- **Templates.** Write the Markdown you want, mark the gaps with `{@ name @}`, and substitute strings or
+  elements for them.
+- **Placeholders.** Leave a placeholder for a later step to substitute, or hand it to a tool such as inject-markdown.
 - **Fits existing documents.** Detect the style a document already uses, such as `*` or `-` bullets, and render in
   that style.
 - **Text stays text.** Text is escaped for where it ends up, so a `*` or `[` in it doesn't turn into Markdown.
@@ -163,7 +163,7 @@ process.stdout.write(doc.toString());
 | `cSpell.toggleEnableSpellChecker` | Toggle Spell Checking<br/>**When:** `editorTextFocus \|\| isMac` |
 ```
 
-A short row is filled with empty cells. To align a column, pass `{ align: [undefined, 'right'] }`, one entry per
+A short row is padded with empty cells. To align a column, pass `{ align: [undefined, 'right'] }`, one entry per
 column. An entry can also be written as in the table: `:---`, `:---:`, `---:` or `---`.
 
 <!--- @@inject-end: examples/make-a-table/README.md --->
@@ -224,9 +224,9 @@ Text that is already Markdown, such as a `markdownDescription`, goes in as Markd
 
 ## Build a page in steps
 
-A page can be built by several steps, each filling in what it knows. `substitutePlaceholders` takes the result of
-one step and fills more of its placeholders. A placeholder that no step has a value for is kept as written, so a
-later step, or a tool such as inject-markdown, can fill it.
+A page can be built by several steps, each substituting what it knows. `substitutePlaceholders` takes the result of
+one step and substitutes more of its placeholders. A placeholder that no step has a value for is kept as written, so a
+later step, or a tool such as inject-markdown, can substitute it.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -248,7 +248,7 @@ const layout = md.template(
   { title: 'Spell check report' },
 );
 
-// Each later step fills in what it knows, and passes the rest on.
+// Each later step substitutes what it knows, and passes the rest on.
 const summarized = md.substitutePlaceholders(layout, { summary: md.paragraph('Checked 2 files.') });
 const report = md.substitutePlaceholders(summarized, {
   results: md.list(['README.md: no issues', 'docs/guide.md: 1 unknown word']),
@@ -336,7 +336,7 @@ description: >-
 {@ description @}
 ```
 
-`templateDocument` reads it as a whole page, keeps its frontmatter, and fills the placeholders in both. The
+`templateDocument` reads it as a whole page, keeps its frontmatter, and substitutes the placeholders in both. The
 frontmatter is YAML, not Markdown, so a value there is inserted as is. Each line of a value after the first gets the
 indentation of the placeholder's line, so a multi-line value stays inside a YAML block such as `>-`.
 
@@ -367,7 +367,7 @@ Settings for the \*cspell\* command line tool.
 They apply to every file it checks.
 ```
 
-`parseDocument` reads a whole page without filling anything. `template` and `parse` read a part of a page instead,
+`parseDocument` reads a whole page without substituting anything. `template` and `parse` read a part of a page instead,
 where a leading `---` is a horizontal rule.
 
 <!--- @@inject-end: examples/page-from-a-template-file/README.md --->

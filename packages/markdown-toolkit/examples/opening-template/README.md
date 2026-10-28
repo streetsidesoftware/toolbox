@@ -1,6 +1,6 @@
-## Write the Markdown, fill in the data
+## Write the Markdown, substitute the data
 
-Write the Markdown you want, mark the gaps with `{@ name @}`, and fill them.
+Write the Markdown you want, mark the gaps with `{@ name @}`, and substitute values for them.
 
 <!--- @@inject: example.ts --->
 

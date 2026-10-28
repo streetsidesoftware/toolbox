@@ -69,7 +69,7 @@ A table takes a header and rows as arrays: `table(header, rows)`, the shape scri
 
 A column is aligned only when the script asks: `{ align: [undefined, 'right'] }`, one entry per column. An entry is `'left'`, `'center'`, `'right'`, `undefined` for none, or the delimiter as written in a table: `:---`, `:---:`, `---:` or `---`, the forms GitHub's docs use. Any number of `-` works, and a plain `---` means none, as in GFM. The type lists the four forms for docs, and is a `string` with a `@pattern`, so it maps to a JSON schema.
 
-A short row is filled with empty cells. A row longer than the header adds a column with an empty title, rather than throwing, so the mistake shows in the output.
+A short row is padded with empty cells. A row longer than the header adds a column with an empty title, rather than throwing, so the mistake shows in the output.
 
 A table always renders padded, so its pipes line up. There's no style field for compact tables, and `detectStyle` doesn't look at tables, until a script needs it. A table from a template or `parse()` is re-rendered padded too.
 
@@ -97,7 +97,7 @@ A comment renders as `<!-- … -->`, with two dashes, as third-party bots write 
 
 ## Placeholders
 
-A placeholder is a `{@ name @}` slot that a later step fills: a template, `substitutePlaceholders`, or [inject-markdown](https://github.com/streetsidesoftware/inject-markdown), which injects generated content into Markdown files. A placeholder renders exactly as written, unescaped.
+A placeholder is a `{@ name @}` slot that a later step substitutes: a template, `substitutePlaceholders`, or [inject-markdown](https://github.com/streetsidesoftware/inject-markdown), which injects generated content into Markdown files. A placeholder renders exactly as written, unescaped.
 
 The grammar comes from [@streetsidesoftware/placeholders](../../placeholders/README.md), which inject-markdown uses too, so both read placeholders the same way. There's no escape: a backslash before `{@` doesn't stop a placeholder, in a string, a template, or `parse()`.
 
@@ -115,11 +115,11 @@ Where a placeholder sits is the same whether it's written in Markdown text, in a
 
 ## Templates and parsing
 
-A template is Markdown text with placeholders. Each template function fills one in one call. A script that reuses a template keeps the string and calls the function again.
+A template is Markdown text with placeholders. Each template function substitutes the values in one call. A script that reuses a template keeps the string and calls the function again.
 
-- `template(markdown, values)` lets the filled result decide its kind: a single paragraph is an inline fragment, without the whitespace around it, and anything else is a fragment. Checking `kind` narrows the result.
+- `template(markdown, values)` lets the result decide its kind: a single paragraph is an inline fragment, without the whitespace around it, and anything else is a fragment. Checking `kind` narrows the result.
 - `blockTemplate(markdown, values)` always returns a fragment. A single paragraph stays a paragraph.
-- `inlineTemplate(markdown, values)` fills text for use inside a line. Its text must be one paragraph, and a blank line throws. Block syntax is parsed as text, so `' - Adds …'` stays text, not a list. Leading and trailing whitespace is kept.
+- `inlineTemplate(markdown, values)` substitutes values in text for use inside a line. Its text must be one paragraph, and a blank line throws. Block syntax is parsed as text, so `' - Adds …'` stays text, not a list. Leading and trailing whitespace is kept.
 - `templateDocument(markdown, values)` reads a whole file, frontmatter included, and returns a document.
 
 ### How values go in
@@ -131,7 +131,7 @@ A value goes in where its placeholder sits, as [Placeholders](#placeholders) des
 - Inside code or HTML, a value is inserted as is, with no Markdown escaping. The common case is a package name in an install command. The renderer lengthens a code fence when the inserted text needs it.
 - In frontmatter, a placeholder takes any value, inserted as is: a string as written, and a Markdown element as it renders. Nothing is escaped or checked as YAML. As in `unindent`, each line of a value after the first gets the leading whitespace of the placeholder's line, except an empty line, which stays empty. A multi-line value stays inside a YAML block.
 
-A placeholder with no value is kept as written. Templates can be chained, so a later template, `substitutePlaceholders`, or injection may fill it. There's no strict option: a script that needs every placeholder filled checks its output with `hasPlaceholders` or `listPlaceholders` from @streetsidesoftware/placeholders.
+A placeholder with no value is kept as written. Templates can be chained, so a later template, `substitutePlaceholders`, or injection may substitute it. There's no strict option: a script that needs every placeholder substituted checks its output with `hasPlaceholders` or `listPlaceholders` from @streetsidesoftware/placeholders.
 
 The concerns that apply at injection time, such as untrusted values and link rebasing, don't apply here. The same script owns the template and its values, so values aren't sanitized and links aren't rebased.
 
@@ -161,7 +161,7 @@ JavaScript moves integer-like keys, such as `'2'`, to the front of the key order
 
 ### Markdown made elsewhere
 
-The function `parse(markdown)` brings in Markdown that is already written, such as a `markdownDescription` from a `package.json`. It's `template()` without the filling: a single paragraph is an inline fragment, anything else is a fragment, and placeholders are kept as written. Its counterpart `parseDocument(markdown)` reads a whole file as a document.
+The function `parse(markdown)` brings in Markdown that is already written, such as a `markdownDescription` from a `package.json`. It's `template()` without the substitution: a single paragraph is an inline fragment, anything else is a fragment, and placeholders are kept as written. Its counterpart `parseDocument(markdown)` reads a whole file as a document.
 
 Whether a leading `---` starts frontmatter or is a rule can't be told from the text alone, so the script says what it reads:
 
@@ -174,7 +174,7 @@ The function `substitutePlaceholders(element, values)` puts values in place of t
 
 - Values go in as in templates, and names resolve the same way.
 - Only the names that `values` has are substituted. The others stay as written, for a later step or injection.
-- A document's frontmatter is filled too.
+- Placeholders in a document's frontmatter are substituted too.
 - The element given is left unchanged.
 
 The result is the same type, in the same style, when the element can hold what was substituted. An element that can't becomes a fragment, rather than throwing, so the caller never has to rebuild an element to fit. The return type, `SubstitutionResult<T>`, says which elements can change:
@@ -237,4 +237,4 @@ A possible feature. The issue it addresses is real: Docusaurus 3 parses even `.m
 
 ## README examples
 
-The README opens with two short examples, one filling a template and one using builders, to show that generating Markdown is easy. It then leads a user through their goals in order: generate a file, make a table from data, write the Markdown yourself, build a page in steps, add frontmatter, generate a page from a template file, and match an existing style. Each goal is a folder under `examples/`, with a complete `example.ts`, the `output.md` it printed, and a `README.md` that injects both. The package README injects each folder's `README.md`. Running `pnpm run build:readme` from the repo root runs the examples, so the output shown is what the code printed. One example shows one idea and has one output.
+The README opens with two short examples, one using a template and one using builders, to show that generating Markdown is easy. It then leads a user through their goals in order: generate a file, make a table from data, write the Markdown yourself, build a page in steps, add frontmatter, generate a page from a template file, and match an existing style. Each goal is a folder under `examples/`, with a complete `example.ts`, the `output.md` it printed, and a `README.md` that injects both. The package README injects each folder's `README.md`. Running `pnpm run build:readme` from the repo root runs the examples, so the output shown is what the code printed. One example shows one idea and has one output.

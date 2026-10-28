@@ -43,5 +43,5 @@ process.stdout.write(doc.toString());
 
 <!--- @@inject-end: output.md --->
 
-A short row is filled with empty cells. To align a column, pass `{ align: [undefined, 'right'] }`, one entry per
+A short row is padded with empty cells. To align a column, pass `{ align: [undefined, 'right'] }`, one entry per
 column. An entry can also be written as in the table: `:---`, `:---:`, `---:` or `---`.
