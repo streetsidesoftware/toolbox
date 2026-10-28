@@ -1,6 +1,7 @@
-## Or build it from data
+## Or build it in code
 
-Each builder returns a Markdown element. Put them together with `document`, and render the file with `toString()`.
+The same page, built in code. Each builder returns a Markdown element. Put them together with `document`, and
+render the file with `toString()`.
 
 <!--- @@inject: example.ts --->
 
@@ -11,8 +12,7 @@ const name = 'cspell';
 
 const doc = md.document(
   md.heading(1, name),
-  md.list([md.link('Docs', 'https://cspell.org'), md.link('Source', 'https://github.com/streetsidesoftware/cspell')]),
-  md.codeBlock(`npm i ${name}`, 'sh'),
+  md.paragraph('Install with ', md.inlineCode(`npm i ${name}`), '.'),
 );
 
 process.stdout.write(doc.toString());
@@ -22,15 +22,10 @@ process.stdout.write(doc.toString());
 
 <!--- @@inject-code: output.md --->
 
-````markdown
+```markdown
 # cspell
 
-- [Docs](https://cspell.org)
-- [Source](https://github.com/streetsidesoftware/cspell)
-
-```sh
-npm i cspell
+Install with `npm i cspell`.
 ```
-````
 
 <!--- @@inject-end: output.md --->

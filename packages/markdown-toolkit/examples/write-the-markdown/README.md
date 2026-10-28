@@ -1,7 +1,8 @@
 ## Write the Markdown yourself, with data in it
 
-A template is Markdown with `{@ name @}` placeholders. A string value is escaped, an element is inserted as
-Markdown, and a placeholder on a line of its own can take blocks, such as a list.
+A template is Markdown with `{@ name @}` placeholders. A string value is inserted as text, an element as Markdown,
+and a placeholder on a line of its own can take blocks, such as a list. If a string is already Markdown, pass
+`md.parse(text)`.
 
 The template is indented to match the code, and `unindent` from [`@streetsidesoftware/unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent) removes the indentation. Imported as
 `markdown`, the tag also tells editors and Prettier that the text is Markdown, so it's highlighted and formatted as
@@ -22,9 +23,9 @@ const readme = md.template(
     {@ features @}
   `,
   {
-    name: '@cspell/dict-en_us',
-    docs: md.link('the docs', 'https://example.com'),
-    features: md.list(['American English words', ['Enabled by default in ', md.inlineCode('cspell')]]),
+    name: '@cspell/dict-nl-nl',
+    docs: md.link('the docs', 'https://github.com/streetsidesoftware/cspell-dicts/tree/main/dictionaries/nl_NL'),
+    features: md.list(['Dutch words', ['Import ', md.inlineCode('@cspell/dict-nl-nl/cspell-ext.json'), ' in your cspell config']]),
   },
 );
 
@@ -36,12 +37,12 @@ console.log(readme.toString());
 <!--- @@inject-code: output.md --->
 
 ```markdown
-## @cspell/dict-en_us
+## @cspell/dict-nl-nl
 
-Install with `npm i @cspell/dict-en_us`, then see [the docs](https://example.com).
+Install with `npm i @cspell/dict-nl-nl`, then see [the docs](https://github.com/streetsidesoftware/cspell-dicts/tree/main/dictionaries/nl_NL).
 
-- American English words
-- Enabled by default in `cspell`
+- Dutch words
+- Import `@cspell/dict-nl-nl/cspell-ext.json` in your cspell config
 ```
 
 <!--- @@inject-end: output.md --->
@@ -51,5 +52,3 @@ A name may be dotted, such as `{@ engines.node @}`, and is looked up in nested o
 - `template` returns inline content when the result is one paragraph, and blocks otherwise.
 - `blockTemplate` always returns blocks.
 - `inlineTemplate` requires one paragraph, for use inside a line.
-
-Text that is already Markdown, such as a `markdownDescription`, goes in as Markdown with `md.parse(text)`.

@@ -2,7 +2,7 @@
 
 This doc records the decisions behind `@streetsidesoftware/markdown-toolkit`, for anyone changing it. The README shows how to use it.
 
-The toolkit is for scripts that generate Markdown. A script builds Markdown elements, composes them, and calls `toString()` on the outermost one. Escaping happens there, based on where each piece ends up, so the script never needs to know the escaping rules.
+The toolkit is for scripts that generate Markdown. A script builds Markdown elements, composes them, and calls `toString()` on the outermost one. Each piece renders correctly for where it ends up, so the script never needs to know Markdown's escaping rules.
 
 ```ts
 const extensions = [

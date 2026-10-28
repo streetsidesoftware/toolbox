@@ -31,7 +31,7 @@ import * as md from '@streetsidesoftware/markdown-toolkit';
 
 const page = md.templateDocument(fs.readFileSync('template.md', 'utf8'), {
   title: 'CSpell',
-  description: 'Settings for the *cspell* command line tool.\nThey apply to every file it checks.',
+  description: 'Settings for the cspell command line tool.\nThey apply to every file it checks.',
 });
 
 process.stdout.write(page.toString());
@@ -45,13 +45,13 @@ process.stdout.write(page.toString());
 ---
 title: CSpell
 description: >-
-  Settings for the *cspell* command line tool.
+  Settings for the cspell command line tool.
   They apply to every file it checks.
 ---
 
 # CSpell
 
-Settings for the \*cspell\* command line tool.
+Settings for the cspell command line tool.
 They apply to every file it checks.
 ```
 

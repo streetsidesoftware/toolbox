@@ -1,6 +1,8 @@
-## Write the Markdown, substitute the data
+## With a template
 
 Write the Markdown you want, mark the gaps with `{@ name @}`, and substitute values for them.
+[`unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent), from `@streetsidesoftware/unindent`, removes
+the indentation.
 
 <!--- @@inject: example.ts --->
 

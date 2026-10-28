@@ -10,9 +10,12 @@ const readme = md.template(
     {@ features @}
   `,
   {
-    name: '@cspell/dict-en_us',
-    docs: md.link('the docs', 'https://example.com'),
-    features: md.list(['American English words', ['Enabled by default in ', md.inlineCode('cspell')]]),
+    name: '@cspell/dict-nl-nl',
+    docs: md.link('the docs', 'https://github.com/streetsidesoftware/cspell-dicts/tree/main/dictionaries/nl_NL'),
+    features: md.list([
+      'Dutch words',
+      ['Import ', md.inlineCode('@cspell/dict-nl-nl/cspell-ext.json'), ' in your cspell config'],
+    ]),
   },
 );
 

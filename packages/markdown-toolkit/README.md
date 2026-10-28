@@ -11,9 +11,11 @@ npm install @streetsidesoftware/markdown-toolkit
 
 <!--- @@inject: examples/opening-template/README.md --->
 
-## Write the Markdown, substitute the data
+## With a template
 
 Write the Markdown you want, mark the gaps with `{@ name @}`, and substitute values for them.
+[`unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent), from `@streetsidesoftware/unindent`, removes
+the indentation.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -43,9 +45,10 @@ Install with `npm i cspell`.
 
 <!--- @@inject: examples/opening-builders/README.md --->
 
-## Or build it from data
+## Or build it in code
 
-Each builder returns a Markdown element. Put them together with `document`, and render the file with `toString()`.
+The same page, built in code. Each builder returns a Markdown element. Put them together with `document`, and
+render the file with `toString()`.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -54,23 +57,17 @@ const name = 'cspell';
 
 const doc = md.document(
   md.heading(1, name),
-  md.list([md.link('Docs', 'https://cspell.org'), md.link('Source', 'https://github.com/streetsidesoftware/cspell')]),
-  md.codeBlock(`npm i ${name}`, 'sh'),
+  md.paragraph('Install with ', md.inlineCode(`npm i ${name}`), '.'),
 );
 
 process.stdout.write(doc.toString());
 ```
 
-````markdown
+```markdown
 # cspell
 
-- [Docs](https://cspell.org)
-- [Source](https://github.com/streetsidesoftware/cspell)
-
-```sh
-npm i cspell
+Install with `npm i cspell`.
 ```
-````
 
 <!--- @@inject-end: examples/opening-builders/README.md --->
 
@@ -83,7 +80,6 @@ npm i cspell
 - **Placeholders.** Leave a placeholder for a later step to substitute, or hand it to a tool such as inject-markdown.
 - **Fits existing documents.** Detect the style a document already uses, such as `*` or `-` bullets, and render in
   that style.
-- **Text stays text.** Text is escaped for where it ends up, so a `*` or `[` in it doesn't turn into Markdown.
 - **Built on remark.** Parsing and rendering use [unified](https://unifiedjs.com) and
   [remark](https://github.com/remarkjs/remark) with GitHub Flavored Markdown, not hand-rolled string rules.
 
@@ -91,14 +87,14 @@ npm i cspell
 
 ## Generate a Markdown file from data
 
-Each builder returns a Markdown element, not a string. Put elements together with `document`, and render the file
-with `toString()`. An element is escaped for where it ends up, so the `]` in the link text doesn't end the link.
+A script usually has its data in arrays and objects. Map each item to an element, here a link in a list, and put
+the elements together with `document`.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
 const links = [
-  { title: 'Docs [beta]', url: 'https://cspell.org' },
+  { title: 'Docs', url: 'https://cspell.org' },
   { title: 'Source', url: 'https://github.com/streetsidesoftware/cspell' },
 ];
 
@@ -114,7 +110,7 @@ process.stdout.write(doc.toString());
 ````markdown
 ## Using `cspell`
 
-- [Docs \[beta\]](https://cspell.org)
+- [Docs](https://cspell.org)
 - [Source](https://github.com/streetsidesoftware/cspell)
 
 ```sh
@@ -129,7 +125,7 @@ npm install -D cspell
 ## Make a table from data
 
 Give `table` the header and one array of cells per row. A cell holds inline content, such as text, inline code, links
-and strong text. A `|` is escaped wherever it lands, even inside inline code, so it doesn't end the cell. A
+and strong text. A
 `lineBreak()` renders as `<br/>`, since a Markdown line break would end the row.
 
 ```ts
@@ -137,7 +133,7 @@ import * as md from '@streetsidesoftware/markdown-toolkit';
 
 const commands = [
   { command: 'cSpell.addWordToDictionary', title: 'Add Words to Dictionary' },
-  { command: 'cSpell.toggleEnableSpellChecker', title: 'Toggle Spell Checking', when: 'editorTextFocus || isMac' },
+  { command: 'cSpell.toggleEnableSpellChecker', title: 'Toggle Spell Checking', when: 'editorTextFocus' },
 ];
 
 const doc = md.document(
@@ -157,10 +153,10 @@ process.stdout.write(doc.toString());
 ```markdown
 ## Commands
 
-| Command                           | Title                                                            |
-| --------------------------------- | ---------------------------------------------------------------- |
-| `cSpell.addWordToDictionary`      | Add Words to Dictionary                                          |
-| `cSpell.toggleEnableSpellChecker` | Toggle Spell Checking<br/>**When:** `editorTextFocus \|\| isMac` |
+| Command                           | Title                                                 |
+| --------------------------------- | ----------------------------------------------------- |
+| `cSpell.addWordToDictionary`      | Add Words to Dictionary                               |
+| `cSpell.toggleEnableSpellChecker` | Toggle Spell Checking<br/>**When:** `editorTextFocus` |
 ```
 
 A short row is padded with empty cells. To align a column, pass `{ align: [undefined, 'right'] }`, one entry per
@@ -172,8 +168,9 @@ column. An entry can also be written as in the table: `:---`, `:---:`, `---:` or
 
 ## Write the Markdown yourself, with data in it
 
-A template is Markdown with `{@ name @}` placeholders. A string value is escaped, an element is inserted as
-Markdown, and a placeholder on a line of its own can take blocks, such as a list.
+A template is Markdown with `{@ name @}` placeholders. A string value is inserted as text, an element as Markdown,
+and a placeholder on a line of its own can take blocks, such as a list. If a string is already Markdown, pass
+`md.parse(text)`.
 
 The template is indented to match the code, and `unindent` from [`@streetsidesoftware/unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent) removes the indentation. Imported as
 `markdown`, the tag also tells editors and Prettier that the text is Markdown, so it's highlighted and formatted as
@@ -192,9 +189,9 @@ const readme = md.template(
     {@ features @}
   `,
   {
-    name: '@cspell/dict-en_us',
-    docs: md.link('the docs', 'https://example.com'),
-    features: md.list(['American English words', ['Enabled by default in ', md.inlineCode('cspell')]]),
+    name: '@cspell/dict-nl-nl',
+    docs: md.link('the docs', 'https://github.com/streetsidesoftware/cspell-dicts/tree/main/dictionaries/nl_NL'),
+    features: md.list(['Dutch words', ['Import ', md.inlineCode('@cspell/dict-nl-nl/cspell-ext.json'), ' in your cspell config']]),
   },
 );
 
@@ -202,12 +199,12 @@ console.log(readme.toString());
 ```
 
 ```markdown
-## @cspell/dict-en_us
+## @cspell/dict-nl-nl
 
-Install with `npm i @cspell/dict-en_us`, then see [the docs](https://example.com).
+Install with `npm i @cspell/dict-nl-nl`, then see [the docs](https://github.com/streetsidesoftware/cspell-dicts/tree/main/dictionaries/nl_NL).
 
-- American English words
-- Enabled by default in `cspell`
+- Dutch words
+- Import `@cspell/dict-nl-nl/cspell-ext.json` in your cspell config
 ```
 
 A name may be dotted, such as `{@ engines.node @}`, and is looked up in nested objects.
@@ -215,8 +212,6 @@ A name may be dotted, such as `{@ engines.node @}`, and is looked up in nested o
 - `template` returns inline content when the result is one paragraph, and blocks otherwise.
 - `blockTemplate` always returns blocks.
 - `inlineTemplate` requires one paragraph, for use inside a line.
-
-Text that is already Markdown, such as a `markdownDescription`, goes in as Markdown with `md.parse(text)`.
 
 <!--- @@inject-end: examples/write-the-markdown/README.md --->
 
@@ -347,7 +342,7 @@ import * as md from '@streetsidesoftware/markdown-toolkit';
 
 const page = md.templateDocument(fs.readFileSync('template.md', 'utf8'), {
   title: 'CSpell',
-  description: 'Settings for the *cspell* command line tool.\nThey apply to every file it checks.',
+  description: 'Settings for the cspell command line tool.\nThey apply to every file it checks.',
 });
 
 process.stdout.write(page.toString());
@@ -357,13 +352,13 @@ process.stdout.write(page.toString());
 ---
 title: CSpell
 description: >-
-  Settings for the *cspell* command line tool.
+  Settings for the cspell command line tool.
   They apply to every file it checks.
 ---
 
 # CSpell
 
-Settings for the \*cspell\* command line tool.
+Settings for the cspell command line tool.
 They apply to every file it checks.
 ```
 
