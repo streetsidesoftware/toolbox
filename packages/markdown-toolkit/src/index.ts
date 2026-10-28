@@ -45,6 +45,8 @@ export type {
   BlockOrInlineContent,
   BulletMarker,
   ColumnAlign,
+  ColumnAlignName,
+  ColumnDelimiter,
   DefinitionEntry,
   EmphasisMarker,
   FenceMarker,

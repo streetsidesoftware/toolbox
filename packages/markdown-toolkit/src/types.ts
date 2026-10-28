@@ -219,8 +219,18 @@ export type ListEntry = InlineContent | MDBlock | MDListItem | readonly ListItem
 /** One entry of a definition list: an inline term and its definition. */
 export type DefinitionEntry = readonly [term: InlineContent, definition: AnyContent];
 
-/** How a table column is aligned: a name, a delimiter such as `:-:` with one or more `-`, or `undefined` for none. */
-export type ColumnAlign = 'left' | 'center' | 'right' | `-${string}` | `:-${string}` | undefined;
+/** How a table column is aligned, by name. */
+export type ColumnAlignName = 'left' | 'center' | 'right';
+
+/**
+ * How a table column is aligned, as its delimiter is written in a table: `:-` left, `:-:` center, `-:` right,
+ * or `-` for none, with one or more `-`.
+ * @pattern ^:?-+:?$
+ */
+export type ColumnDelimiter = string;
+
+/** How a table column is aligned: a name, a delimiter, or `undefined` for none. */
+export type ColumnAlign = ColumnAlignName | ColumnDelimiter | undefined;
 
 export interface TableOptions {
   /** One entry per column. A column without one isn't aligned. */
