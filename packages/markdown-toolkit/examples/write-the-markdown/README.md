@@ -24,7 +24,7 @@ const readme = md.template(
   {
     name: '@cspell/dict-en_us',
     docs: md.link('the docs', 'https://example.com'),
-    features: md.list(['Fast', ['Escapes ', md.inlineCode('*'), ' for you']]),
+    features: md.list(['American English words', ['Enabled by default in ', md.inlineCode('cspell')]]),
   },
 );
 
@@ -40,8 +40,8 @@ console.log(readme.toString());
 
 Install with `npm i @cspell/dict-en_us`, then see [the docs](https://example.com).
 
-- Fast
-- Escapes `*` for you
+- American English words
+- Enabled by default in `cspell`
 ```
 
 <!--- @@inject-end: output.md --->

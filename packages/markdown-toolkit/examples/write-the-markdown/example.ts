@@ -12,7 +12,7 @@ const readme = md.template(
   {
     name: '@cspell/dict-en_us',
     docs: md.link('the docs', 'https://example.com'),
-    features: md.list(['Fast', ['Escapes ', md.inlineCode('*'), ' for you']]),
+    features: md.list(['American English words', ['Enabled by default in ', md.inlineCode('cspell')]]),
   },
 );
 
