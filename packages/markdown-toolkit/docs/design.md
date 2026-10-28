@@ -31,7 +31,7 @@ Every value has a `kind`, which decides where it may go:
 - **List item** (`'listItem'`) goes only directly in a list.
 - **Frontmatter** (`'frontmatter'`) goes only first in a document.
 
-A fragment is blocks of Markdown that no builder made directly: it comes from `parse()`, a template, `blockText()`, or `substitutePlaceholders()`. An inline fragment is the same for inline content, from `parse()`, a template, or `substitutePlaceholders()`. A heading and a paragraph are blocks that hold inline content.
+A fragment is blocks of Markdown made from text or by substitution: it comes from `parse()`, a template, `blockText()`, or `substitutePlaceholders()`. An inline fragment is the same for inline content, from `parse()`, a template, or `substitutePlaceholders()`. A heading and a paragraph are blocks that hold inline content.
 
 Putting a value where its kind can't go, such as a list inside a heading, is an error. The builder types catch it at compile time, and the builders check again at runtime, for JavaScript callers and `any` values.
 
@@ -115,7 +115,7 @@ A value goes in where its placeholder sits, as [Placeholders](#placeholders) des
 - A string, number, or boolean is inserted as text and escaped.
 - A placeholder that is a whole line splits its paragraph around the blocks it takes, as it would around a list written in place: `Fruit:\n{@ fruit @}` gives `Fruit:` and then the list.
 - Inside code or HTML, a value is inserted as is, with no Markdown escaping. The common case is a package name in an install command. The renderer lengthens a code fence when the inserted text needs it.
-- In frontmatter, a placeholder takes any value, inserted as is: a string as written, and a Markdown value as it renders. Nothing is escaped or checked as YAML. As in `unindent`, each line of a value after the first gets the leading whitespace of the placeholder's line, so a multi-line value stays inside a YAML block.
+- In frontmatter, a placeholder takes any value, inserted as is: a string as written, and a Markdown value as it renders. Nothing is escaped or checked as YAML. As in `unindent`, each line of a value after the first gets the leading whitespace of the placeholder's line, except an empty line, which stays empty. A multi-line value stays inside a YAML block.
 
 A placeholder with no value is kept as written. Templates can be chained, so a later template, `substitutePlaceholders`, or injection may fill it. There's no strict option: a script that needs every placeholder filled checks its output with `hasPlaceholders` or `listPlaceholders` from @streetsidesoftware/placeholders.
 
