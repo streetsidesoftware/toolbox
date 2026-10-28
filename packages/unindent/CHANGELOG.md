@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/unindent@1.0.0...@streetsidesoftware/unindent@1.0.1) (2026-10-28)
+
+
+### Updates and Bug Fixes
+
+* **unindent:** leave empty lines in a value empty ([#65](https://github.com/streetsidesoftware/toolbox/issues/65)) ([fdc130d](https://github.com/streetsidesoftware/toolbox/commit/fdc130d7da6cd60322237cfe168860c989e503e2))
+
 ## [1.0.0](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/unindent@0.0.1-alpha.0...@streetsidesoftware/unindent@1.0.0) (2026-10-24)
 
 

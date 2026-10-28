@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/placeholders@1.0.1...@streetsidesoftware/placeholders@1.1.0) (2026-10-28)
+
+
+### Features
+
+* **placeholders:** indent multi-line values to the placeholder's line ([#64](https://github.com/streetsidesoftware/toolbox/issues/64)) ([a0799bc](https://github.com/streetsidesoftware/toolbox/commit/a0799bcabf608ff7df28075aef68c621ae2a7be4))
+
 ## [1.0.1](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/placeholders@1.0.0...@streetsidesoftware/placeholders@1.0.1) (2026-10-27)
 
 

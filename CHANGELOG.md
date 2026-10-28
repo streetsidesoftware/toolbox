@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.0](https://github.com/streetsidesoftware/toolbox/compare/toolbox@1.1.1...toolbox@1.2.0) (2026-10-28)
+
+
+### Features
+
+* **markdown-toolkit:** add details and definitionList builders ([#60](https://github.com/streetsidesoftware/toolbox/issues/60)) ([3cb6dbc](https://github.com/streetsidesoftware/toolbox/commit/3cb6dbce1f1016754711b0aadb02e8bcd90f5000))
+* **markdown-toolkit:** add frontmatter, parseDocument and templateDocument ([#61](https://github.com/streetsidesoftware/toolbox/issues/61)) ([54532f7](https://github.com/streetsidesoftware/toolbox/commit/54532f703d819f85029251510d26e229d9d580c0))
+* **placeholders:** indent multi-line values to the placeholder's line ([#64](https://github.com/streetsidesoftware/toolbox/issues/64)) ([a0799bc](https://github.com/streetsidesoftware/toolbox/commit/a0799bcabf608ff7df28075aef68c621ae2a7be4))
+
+
+### Updates and Bug Fixes
+
+* **unindent:** leave empty lines in a value empty ([#65](https://github.com/streetsidesoftware/toolbox/issues/65)) ([fdc130d](https://github.com/streetsidesoftware/toolbox/commit/fdc130d7da6cd60322237cfe168860c989e503e2))
+
 ## [1.1.1](https://github.com/streetsidesoftware/toolbox/compare/toolbox@1.1.0...toolbox@1.1.1) (2026-10-27)
 
 

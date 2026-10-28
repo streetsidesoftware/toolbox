@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.1.0](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/markdown-toolkit@1.0.1...@streetsidesoftware/markdown-toolkit@1.1.0) (2026-10-28)
+
+
+### Features
+
+* **markdown-toolkit:** add details and definitionList builders ([#60](https://github.com/streetsidesoftware/toolbox/issues/60)) ([3cb6dbc](https://github.com/streetsidesoftware/toolbox/commit/3cb6dbce1f1016754711b0aadb02e8bcd90f5000))
+* **markdown-toolkit:** add frontmatter, parseDocument and templateDocument ([#61](https://github.com/streetsidesoftware/toolbox/issues/61)) ([54532f7](https://github.com/streetsidesoftware/toolbox/commit/54532f703d819f85029251510d26e229d9d580c0))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @streetsidesoftware/placeholders bumped to 1.1.0
+  * devDependencies
+    * @streetsidesoftware/unindent bumped to 1.0.1
+
 ## [1.0.1](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/markdown-toolkit@1.0.0...@streetsidesoftware/markdown-toolkit@1.0.1) (2026-10-27)
 
 
