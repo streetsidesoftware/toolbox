@@ -1,4 +1,4 @@
-import type { PhrasingContent, Root, RootContent, Yaml } from 'mdast';
+import type { Html, Nodes, Parent, PhrasingContent, Root, RootContent, Yaml } from 'mdast';
 import remarkGfm from 'remark-gfm';
 import remarkStringify from 'remark-stringify';
 import type { Options as StyleOptions } from 'remark-stringify';
@@ -35,6 +35,7 @@ export function renderNodes(children: RootContent[], style: StyleOptions | undef
   const root: Root = { type: 'root', children: structuredClone(children) };
   visit(root, (node) => {
     if (node.type === 'paragraph' || node.type === 'heading' || node.type === 'tableCell') trimLines(node.children);
+    if (node.type === 'tableCell') visit(node, oneLine);
   });
   // A field set to `undefined` keeps the default, rather than falling back to remark's own default.
   const given = Object.entries(style ?? {}).filter(([, value]) => value !== undefined);
@@ -61,6 +62,19 @@ function trimLines(children: PhrasingContent[]): void {
     if (last.type === 'text') last.value = trimTrailingLineEndings(last.value);
     if (last.type !== 'break' && (last.type !== 'text' || last.value)) break;
     children.pop();
+  }
+}
+
+/**
+ * Keep a table cell on one line, in place: a line break becomes `<br/>`, and a line ending in text or code a space.
+ * A Markdown hard break would end the row.
+ */
+function oneLine(node: Nodes, index: number | undefined, parent: Parent | undefined): void {
+  if (node.type === 'break' && parent && index !== undefined) {
+    parent.children[index] = { type: 'html', value: '<br/>' } satisfies Html;
+  }
+  if (node.type === 'text' || node.type === 'inlineCode') {
+    node.value = node.value.replace(/\r\n?|\n/g, ' ');
   }
 }
 

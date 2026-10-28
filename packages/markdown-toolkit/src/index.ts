@@ -26,6 +26,7 @@ export {
 export { frontmatter } from './frontmatter.ts';
 export { definitionList, details, dl } from './htmlBlocks.ts';
 export { detectStyle } from './style.ts';
+export { table } from './table.ts';
 export type { SubstitutedValue, SubstitutionResult, TemplateValue, TemplateValues } from './template.ts';
 export {
   blockTemplate,
@@ -43,6 +44,10 @@ export type {
   BlockContent,
   BlockOrInlineContent,
   BulletMarker,
+  ColumnAlign,
+  ColumnAlignName,
+  ColumnDelimiter,
+  ColumnDelimiterExplicit,
   DefinitionEntry,
   EmphasisMarker,
   FenceMarker,
@@ -76,8 +81,10 @@ export type {
   MDPlaceholder,
   MDStrikethrough,
   MDStrong,
+  MDTable,
   MDText,
   MDValue,
   OrderedBulletMarker,
   RuleMarker,
+  TableOptions,
 } from './types.ts';

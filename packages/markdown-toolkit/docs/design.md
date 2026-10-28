@@ -26,7 +26,7 @@ A builder returns a Markdown element, not a string. The element keeps its struct
 Every element has a `kind`, which decides where it may go:
 
 - **Inline** (`'inline'`) goes inside a line: text, a placeholder, a link, strong, emphasis, strikethrough, inline code, a line break, `<br/>`, and an inline fragment.
-- **Block** (`'block'`) goes on its own lines: a heading, a paragraph, a list, a code block, a horizontal rule, details, a definition list, a document, a fragment, and a block placeholder.
+- **Block** (`'block'`) goes on its own lines: a heading, a paragraph, a list, a code block, a horizontal rule, a table, details, a definition list, a document, a fragment, and a block placeholder.
 - **Comment** (`'comment'`) goes either inside a line or on its own lines, so it covers a block notice such as `cspell:disable` and an inline `cspell:ignore`.
 - **List item** (`'listItem'`) goes only directly in a list.
 - **Frontmatter** (`'frontmatter'`) goes only first in a document.
@@ -58,6 +58,20 @@ An array is a sequence. Arrays are flattened.
 In a list, each entry is one item. An array entry is one item holding a sequence, never a nested list. A nested list is a `list(…)` inside an item.
 
 The function `toBlock(content)` makes content fit where only blocks can go: blocks come back unchanged, and each run of inline pieces becomes a paragraph. It's how the result of `template()` or `parse()`, which can be either kind, goes where only blocks can go.
+
+### Tables
+
+A table takes a header and rows as arrays: `table(header, rows)`, the shape scripts already have their data in. Each cell holds inline content. Rendering keeps every cell on one line, which a GFM row needs:
+
+- A `|` is escaped wherever it lands, in text, inline code, link text and a URL, so it never ends the cell. On GitHub, `\|` inside a code span displays as `|`.
+- A `lineBreak()` renders as `<br/>`, since a Markdown hard break would end the row.
+- A line ending in text or inline code renders as a space, as it displays elsewhere. One at the start or end of a cell is dropped.
+
+A column is aligned only when the script asks: `{ align: [undefined, 'right'] }`, one entry per column. An entry is `'left'`, `'center'`, `'right'`, `undefined` for none, or the delimiter as written in a table: `:---`, `:---:`, `---:` or `---`, the forms GitHub's docs use. Any number of `-` works, and a plain `---` means none, as in GFM. The type lists the four forms for docs, and is a `string` with a `@pattern`, so it maps to a JSON schema.
+
+A short row is filled with empty cells. A row longer than the header adds a column with an empty title, rather than throwing, so the mistake shows in the output.
+
+A table always renders padded, so its pipes line up. There's no style field for compact tables, and `detectStyle` doesn't look at tables, until a script needs it. A table from a template or `parse()` is re-rendered padded too.
 
 ### Documents and frontmatter
 
@@ -181,7 +195,7 @@ An element renders in a fixed default style: `-` bullets, `_emphasis_`, `**stron
 
 Everything inside a document renders in the document's style. A fragment's own style applies only when it's rendered by itself. When builder output is injected, inject-markdown re-renders it in the target file's style, so the default shows only when a script writes a file directly.
 
-A line ending or `lineBreak()` at the start or end of a paragraph or heading is dropped. Nothing is on its other side, so it can't display, and kept it would render as `&#xA;` or a literal `\`.
+A line ending or `lineBreak()` at the start or end of a paragraph, heading or table cell is dropped. Nothing is on its other side, so it can't display, and kept it would render as `&#xA;` or a literal `\`.
 
 ## Errors
 
@@ -223,4 +237,4 @@ A possible feature. The issue it addresses is real: Docusaurus 3 parses even `.m
 
 ## README examples
 
-The README leads a user through their goals in order: generate a file, put any text in safely, write the Markdown yourself, build a page in steps, add frontmatter, generate a page from a template file, and match an existing style. Each goal is a folder under `examples/`, with a complete `example.ts`, the `output.md` it printed, and a `README.md` that injects both. The package README injects each folder's `README.md`. Running `pnpm run build:readme` from the repo root runs the examples, so the output shown is what the code printed. One example shows one idea and has one output.
+The README leads a user through their goals in order: generate a file, put any text in safely, make a table from data, write the Markdown yourself, build a page in steps, add frontmatter, generate a page from a template file, and match an existing style. Each goal is a folder under `examples/`, with a complete `example.ts`, the `output.md` it printed, and a `README.md` that injects both. The package README injects each folder's `README.md`. Running `pnpm run build:readme` from the repo root runs the examples, so the output shown is what the code printed. One example shows one idea and has one output.

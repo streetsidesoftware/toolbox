@@ -128,6 +128,12 @@ export interface MDDefinitionList extends MDElement {
   readonly description: 'a definition list';
 }
 
+/** A GFM table. */
+export interface MDTable extends MDElement {
+  readonly kind: 'block';
+  readonly description: 'a table';
+}
+
 /** A whole document. It renders with a trailing newline, as a file should end. */
 export interface MDDocument extends MDElement {
   readonly kind: 'block';
@@ -182,6 +188,7 @@ export type MDBlock =
   | MDHorizontalRule
   | MDDetails
   | MDDefinitionList
+  | MDTable
   | MDComment
   | MDDocument
   | MDFragment
@@ -211,6 +218,28 @@ export type ListEntry = InlineContent | MDBlock | MDListItem | readonly ListItem
 
 /** One entry of a definition list: an inline term and its definition. */
 export type DefinitionEntry = readonly [term: InlineContent, definition: AnyContent];
+
+/** How a table column is aligned, by name. */
+export type ColumnAlignName = 'left' | 'center' | 'right';
+
+/** The table delimiters GitHub's docs use: `:---` left, `:---:` center, `---:` right, `---` none. */
+export type ColumnDelimiterExplicit = ':---' | ':---:' | '---:' | '---';
+
+/**
+ * How a table column is aligned, as its delimiter is written in a table: `:---` left, `:---:` center, `---:` right,
+ * or `---` for none. Any number of `-` works, one or more.
+ * @pattern ^:?-+:?$
+ * @example ':---:'
+ */
+export type ColumnDelimiter = string;
+
+/** How a table column is aligned: a name, a delimiter, or `undefined` for none. */
+export type ColumnAlign = ColumnAlignName | ColumnDelimiter | ColumnDelimiterExplicit | undefined;
+
+export interface TableOptions {
+  /** One entry per column. A column without one isn't aligned. */
+  align?: readonly ColumnAlign[] | undefined;
+}
 
 export type BulletMarker = '*' | '+' | '-';
 export type OrderedBulletMarker = '.' | ')';

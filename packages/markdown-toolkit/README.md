@@ -11,7 +11,7 @@ npm install @streetsidesoftware/markdown-toolkit
 
 ## Features
 
-- **Builders.** Compose a document from headings, paragraphs, lists, links and code, as elements rather
+- **Builders.** Compose a document from headings, paragraphs, lists, tables, links and code, as elements rather
   than strings.
 - **Templates.** Write the Markdown you want, mark the gaps with `{@ name @}`, and fill them with strings or
   elements.
@@ -94,6 +94,50 @@ Install with `npm i my_package*`.
 Text that is already Markdown, such as a `markdownDescription`, goes in as Markdown with `md.parse(text)`.
 
 <!--- @@inject-end: examples/text-safely/README.md --->
+
+<!--- @@inject: examples/make-a-table/README.md --->
+
+## Make a table from data
+
+Give `table` the header and one array of cells per row. A cell holds inline content, such as text, inline code, links
+and strong text. A `|` is escaped wherever it lands, even inside inline code, so it doesn't end the cell. A
+`lineBreak()` renders as `<br/>`, since a Markdown line break would end the row.
+
+```ts
+import * as md from '@streetsidesoftware/markdown-toolkit';
+
+const commands = [
+  { command: 'cSpell.addWordToDictionary', title: 'Add Words to Dictionary' },
+  { command: 'cSpell.toggleEnableSpellChecker', title: 'Toggle Spell Checking', when: 'editorTextFocus || isMac' },
+];
+
+const doc = md.document(
+  md.heading(2, 'Commands'),
+  md.table(
+    ['Command', 'Title'],
+    commands.map((c) => [
+      md.inlineCode(c.command),
+      c.when ? [c.title, md.lineBreak(), md.strong('When:'), ' ', md.inlineCode(c.when)] : c.title,
+    ]),
+  ),
+);
+
+process.stdout.write(doc.toString());
+```
+
+```markdown
+## Commands
+
+| Command                           | Title                                                            |
+| --------------------------------- | ---------------------------------------------------------------- |
+| `cSpell.addWordToDictionary`      | Add Words to Dictionary                                          |
+| `cSpell.toggleEnableSpellChecker` | Toggle Spell Checking<br/>**When:** `editorTextFocus \|\| isMac` |
+```
+
+A short row is filled with empty cells. To align a column, pass `{ align: [undefined, 'right'] }`, one entry per
+column. An entry can also be written as in the table: `:---`, `:---:`, `---:` or `---`.
+
+<!--- @@inject-end: examples/make-a-table/README.md --->
 
 <!--- @@inject: examples/write-the-markdown/README.md --->
 
@@ -330,7 +374,7 @@ A template or parsed text keeps the style of its own text, but spacing and table
 - Inline: `text` (`inlineText`), `inlineCode`, `link`, `strong`, `emphasis`, `strikethrough`, `lineBreak`, `br`,
   `comment`, `placeholder`
 - Blocks: `heading`, `paragraph`, `blockText`, `list`, `listItem`, `codeBlock`, `horizontalRule` (`hr`),
-  `blockPlaceholder`, `toBlock`
+  `table`, `blockPlaceholder`, `toBlock`
 - HTML blocks: `details` for a collapsible `<details>` section, and `definitionList` (`dl`) for a `<dl>` definition list
 - A whole document: `document`, `frontmatter`, `parseDocument`, `templateDocument`
 - Templates and placeholders: `template` (`templateFragment`), `blockTemplate`, `inlineTemplate`, `parse`
