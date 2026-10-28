@@ -128,6 +128,12 @@ export interface MDDefinitionList extends MDElement {
   readonly description: 'a definition list';
 }
 
+/** A GFM table. */
+export interface MDTable extends MDElement {
+  readonly kind: 'block';
+  readonly description: 'a table';
+}
+
 /** A whole document. It renders with a trailing newline, as a file should end. */
 export interface MDDocument extends MDElement {
   readonly kind: 'block';
@@ -182,6 +188,7 @@ export type MDBlock =
   | MDHorizontalRule
   | MDDetails
   | MDDefinitionList
+  | MDTable
   | MDComment
   | MDDocument
   | MDFragment
@@ -211,6 +218,14 @@ export type ListEntry = InlineContent | MDBlock | MDListItem | readonly ListItem
 
 /** One entry of a definition list: an inline term and its definition. */
 export type DefinitionEntry = readonly [term: InlineContent, definition: AnyContent];
+
+/** How a table column is aligned: a name, a delimiter such as `:-:` with one or more `-`, or `undefined` for none. */
+export type ColumnAlign = 'left' | 'center' | 'right' | `-${string}` | `:-${string}` | undefined;
+
+export interface TableOptions {
+  /** One entry per column. A column without one isn't aligned. */
+  align?: readonly ColumnAlign[] | undefined;
+}
 
 export type BulletMarker = '*' | '+' | '-';
 export type OrderedBulletMarker = '.' | ')';
