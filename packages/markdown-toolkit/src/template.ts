@@ -54,7 +54,7 @@ export interface TemplateValues {
  * - A string is inserted as text and escaped.
  * - A placeholder inside a line takes only inline values.
  * - A placeholder that is a whole line also takes blocks. Its paragraph splits around them.
- * - A placeholder inside inline code or a code block takes only a string or text, inserted as is.
+ * - A placeholder inside code or HTML takes only a string, text, or a placeholder, inserted as is.
  *
  * The filled result decides its kind:
  * - A single paragraph is inline, without the whitespace around it.
@@ -380,10 +380,10 @@ const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'list', 'li
  * @param allowBlocks - the root's children may be blocks.
  */
 function fill(root: Root, values: TemplateValues, allowBlocks: boolean): void {
-  const fillCode = (code: string): string =>
+  const fillCode = (code: string, inside: 'code' | 'HTML'): string =>
     replacePlaceholders(code, (name: string) => {
       const value = resolveValue(values, name);
-      return value === undefined ? undefined : valueAsCode(value, name);
+      return value === undefined ? undefined : valueAsCode(value, name, inside);
     });
 
   /**
@@ -414,9 +414,11 @@ function fill(root: Root, values: TemplateValues, allowBlocks: boolean): void {
           });
           return [node];
         case 'html':
+          node.value = fillCode(node.value, 'HTML');
+          return [node];
         case 'inlineCode':
         case 'code':
-          node.value = fillCode(node.value);
+          node.value = fillCode(node.value, 'code');
           return [node];
         default:
           if ('children' in node) {
@@ -490,12 +492,14 @@ function valueAsInline(value: TemplateValue, name: string): PhrasingContent[] {
   return inlineNodes(value as InlineContent, `{@ ${name} @}`);
 }
 
-/** A value inside code: only a string or text, inserted as is. */
-function valueAsCode(value: TemplateValue, name: string): string {
+/** A value inside code or HTML, as `inside` says: only a string, text, or a placeholder, inserted as is. */
+function valueAsCode(value: TemplateValue, name: string, inside: 'code' | 'HTML'): string {
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
   if (isText(value)) return value.text;
   if (isKind(value, 'inline') && value.description === 'a placeholder') return value.toString();
-  throw new TypeError(`{@ ${name} @} is inside code and takes only a string or text, got ${describe(value)}`);
+  throw new TypeError(
+    `{@ ${name} @} is inside ${inside} and takes only a string, text, or a placeholder, got ${describe(value)}`,
+  );
 }
 
 /** A value inside frontmatter, inserted as is: a string as written, and a Markdown element as rendered. */

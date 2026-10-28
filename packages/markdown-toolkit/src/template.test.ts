@@ -122,11 +122,19 @@ describe('template', () => {
     assert.equal(md.toString(), '```yaml\nsteps:\n  - run: |\n      npm ci\n\n      npm test\n```');
   });
 
-  test('code takes only a string or text', () => {
+  testEach`
+        tpl                       | inside
+        ${'<div>{@ x @}</div>'}   | ${'HTML'}
+        ${'`{@ x @}`'}            | ${'code'}
+        ${'```\n{@ x @}\n```'}    | ${'code'}
+    `('a link inside $inside throws: $tpl', ({ tpl, inside }: { tpl: string; inside: string }) => {
     assert.throws(
-      () => template('`{@ x @}`', { x: link('a', 'b') }),
-      new TypeError('{@ x @} is inside code and takes only a string or text, got a link'),
+      () => template(tpl, { x: link('a', 'b') }),
+      new TypeError(`{@ x @} is inside ${inside} and takes only a string, text, or a placeholder, got a link`),
     );
+  });
+
+  test('code takes text', () => {
     assert.equal(template('`{@ x @}`', { x: text('a*b') }).toString(), '`a*b`');
   });
 
@@ -332,7 +340,7 @@ describe('substitutePlaceholders', () => {
     assert.equal(substitutePlaceholders(md, { pkg: '*a*' }).toString(), '```\nnpm i *a*\n```\n\n`*a*`\n');
     assert.throws(
       () => substitutePlaceholders(codeBlock('{@ x @}'), { x: link('a', 'u') }),
-      new TypeError('{@ x @} is inside code and takes only a string or text, got a link'),
+      new TypeError('{@ x @} is inside code and takes only a string, text, or a placeholder, got a link'),
     );
   });
 
