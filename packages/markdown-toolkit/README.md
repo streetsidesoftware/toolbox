@@ -124,42 +124,6 @@ npm install -D cspell
 
 <!--- @@inject-end: examples/generate-a-file/README.md --->
 
-<!--- @@inject: examples/text-safely/README.md --->
-
-## Put any text into Markdown safely
-
-Text that comes from elsewhere, such as a `package.json` or a user, can contain characters that mean something in
-Markdown. A string given to a builder is always text: it's escaped for where it ends up, so a `*`, `[` or `1.` in it
-stays as written. Inside inline code, nothing needs escaping, so nothing is.
-
-```ts
-import * as md from '@streetsidesoftware/markdown-toolkit';
-
-// Text from a package.json, a user, or anywhere else.
-const name = '@cspell/dict-en_us';
-const description = '1. Use *any* [text] here';
-
-const doc = md.document(
-  md.heading(2, name),
-  md.paragraph(description),
-  md.paragraph('Install with ', md.inlineCode(`npm i ${name}`), '.'),
-);
-
-process.stdout.write(doc.toString());
-```
-
-```markdown
-## @cspell/dict-en_us
-
-1\. Use \*any\* \[text] here
-
-Install with `npm i @cspell/dict-en_us`.
-```
-
-Text that is already Markdown, such as a `markdownDescription`, goes in as Markdown with `md.parse(text)`.
-
-<!--- @@inject-end: examples/text-safely/README.md --->
-
 <!--- @@inject: examples/make-a-table/README.md --->
 
 ## Make a table from data
@@ -246,12 +210,13 @@ Install with `npm i @cspell/dict-en_us`, then see [the docs](https://example.com
 - Escapes `*` for you
 ```
 
-The name is escaped in the heading, but not inside the inline code. A name may be dotted, such as
-`{@ engines.node @}`, and is looked up in nested objects.
+A name may be dotted, such as `{@ engines.node @}`, and is looked up in nested objects.
 
 - `template` returns inline content when the result is one paragraph, and blocks otherwise.
 - `blockTemplate` always returns blocks.
 - `inlineTemplate` requires one paragraph, for use inside a line.
+
+Text that is already Markdown, such as a `markdownDescription`, goes in as Markdown with `md.parse(text)`.
 
 <!--- @@inject-end: examples/write-the-markdown/README.md --->
 

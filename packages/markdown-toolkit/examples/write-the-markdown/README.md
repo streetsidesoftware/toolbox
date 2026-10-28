@@ -46,9 +46,10 @@ Install with `npm i @cspell/dict-en_us`, then see [the docs](https://example.com
 
 <!--- @@inject-end: output.md --->
 
-The name is escaped in the heading, but not inside the inline code. A name may be dotted, such as
-`{@ engines.node @}`, and is looked up in nested objects.
+A name may be dotted, such as `{@ engines.node @}`, and is looked up in nested objects.
 
 - `template` returns inline content when the result is one paragraph, and blocks otherwise.
 - `blockTemplate` always returns blocks.
 - `inlineTemplate` requires one paragraph, for use inside a line.
+
+Text that is already Markdown, such as a `markdownDescription`, goes in as Markdown with `md.parse(text)`.
