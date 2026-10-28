@@ -116,6 +116,12 @@ describe('template', () => {
     assert.equal(md.toString(), '```sh\nnpm install -D @cspell/dict-*\n```\n\nVersion `>=8`');
   });
 
+  test('a multi-line value inside code gets the leading whitespace of its line', () => {
+    const tpl = '```yaml\nsteps:\n  - run: |\n      {@ script @}\n```\n';
+    const md = template(tpl, { script: 'npm ci\n\nnpm test' });
+    assert.equal(md.toString(), '```yaml\nsteps:\n  - run: |\n      npm ci\n\n      npm test\n```');
+  });
+
   test('code takes only a string or text', () => {
     assert.throws(
       () => template('`{@ x @}`', { x: link('a', 'b') }),
