@@ -97,7 +97,7 @@ describe('parseDocument', () => {
     assert.equal(templateFragment, template);
   });
 
-  test('substitutePlaceholders fills its frontmatter', () => {
+  test('substitutePlaceholders substitutes into its frontmatter', () => {
     const md = substitutePlaceholders(parseDocument('---\ntitle: {@ title @}\n---\n\n# {@ title @}\n'), {
       title: 'A *b*',
     });
@@ -105,14 +105,14 @@ describe('parseDocument', () => {
   });
 });
 
-interface FillRow {
+interface SubstitutionRow {
   markdown: string;
   value: unknown;
   expected: string;
 }
 
 describe('templateDocument', () => {
-  test('fills a page with frontmatter', () => {
+  test('substitutes into a page with frontmatter', () => {
     const md = templateDocument(page.replaceAll('CSpell', '{@ title @}').replace('cspell', '{@ id @}'), {
       title: 'Code *Spell*',
       id: 'code-spell',
@@ -133,7 +133,7 @@ describe('templateDocument', () => {
         ${'a CRLF empty line'}   | ${'---\na: |\n  {@ v @}\n---\n'}   | ${'one\r\n\r\ntwo'}         | ${'---\na: |\n  one\r\n\r\n  two\n---\n'}
         ${'a list'}              | ${'---\na: |\n    {@ v @}\n---\n'} | ${list(['x', 'y'])}         | ${'---\na: |\n    - x\n    - y\n---\n'}
         ${'a sequence'}          | ${'---\na: {@ v @}\n---\n'}        | ${['See ', link('A', 'a')]} | ${'---\na: See [A](a)\n---\n'}
-    `('$kind', ({ markdown, value, expected }: FillRow) => {
+    `('$kind', ({ markdown, value, expected }: SubstitutionRow) => {
     assert.equal(templateDocument(markdown, { v: value as never }).toString(), expected);
   });
 

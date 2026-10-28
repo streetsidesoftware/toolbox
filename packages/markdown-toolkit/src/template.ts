@@ -50,37 +50,37 @@ export interface TemplateValues {
 }
 
 /**
- * Fill a Markdown template's `{@ name @}` placeholders.
+ * Substitute values for a Markdown template's `{@ name @}` placeholders.
  * - A string is inserted as text and escaped.
  * - A placeholder inside a line takes only inline values.
  * - A placeholder that is a whole line also takes blocks. Its paragraph splits around them.
  * - A placeholder inside code or HTML takes only a string, text, or a placeholder, inserted as is.
  *
- * The filled result decides its kind:
+ * The result decides its kind:
  * - A single paragraph is inline, without the whitespace around it.
  * - Anything else is blocks, rendered in the template's own style.
  *
- * A placeholder with no value is kept as written, so it can be filled later.
+ * A placeholder with no value is kept as written, so it can be substituted later.
  * @throws if a value doesn't fit where its placeholder is.
  */
 export function template(markdown: string, values: TemplateValues): MDFragment | MDInlineFragment {
   const root = templateTree(markdown, false);
-  fill(root, values, true);
+  substituteInTree(root, values, true);
   return fragment(root, markdown);
 }
 
 /**
- * Fill a Markdown template as blocks, the same way as {@link template}.
+ * Substitute values for a Markdown template's placeholders as blocks, the same way as {@link template}.
  * A single paragraph stays a paragraph.
  */
 export function blockTemplate(markdown: string, values: TemplateValues): MDFragment {
   const root = templateTree(markdown, false);
-  fill(root, values, true);
+  substituteInTree(root, values, true);
   return new MarkdownElement('block', 'a Markdown fragment', root.children, detectMarkdownStyle(root, markdown));
 }
 
 /**
- * Fill an inline template, for use inside a line.
+ * Substitute values for an inline template's placeholders, for use inside a line.
  * The text must be one paragraph. Block syntax, such as a leading `-`, is read as text.
  * @throws if the text isn't one paragraph, or a value isn't inline.
  */
@@ -93,7 +93,7 @@ export function inlineTemplate(markdown: string, values: TemplateValues): MDInli
   if (root.children.length > 1 || (root.children[0] && root.children[0].type !== 'paragraph')) {
     throw new Error('inline template text must be one paragraph');
   }
-  fill(root, values, false);
+  substituteInTree(root, values, false);
   const children = root.children[0]?.type === 'paragraph' ? root.children[0].children : [];
   return new MarkdownElement('inline', 'an inline Markdown fragment', [
     ...textNodes(lead),
@@ -128,7 +128,7 @@ export function parseDocument(markdown: string): MDDocument {
 }
 
 /**
- * Fill a whole file's placeholders, the same way as {@link template}, as a document.
+ * Substitute values for a whole file's placeholders, the same way as {@link template}, as a document.
  * Frontmatter at its start is kept. A value in it is inserted as is: a string as written, and a Markdown element as rendered.
  * Each line of the value after the first gets the leading whitespace of the placeholder's line.
  * @throws if a value doesn't fit where its placeholder is.
@@ -178,9 +178,12 @@ export function substitutePlaceholders(element: MDElement, values: TemplateValue
   switch (element.description) {
     case 'text':
     case 'an inline Markdown fragment':
-      return fragmentOf(filled([{ type: 'paragraph', children: nodes as PhrasingContent[] }], values, true), style);
+      return fragmentOf(
+        substitutedTree([{ type: 'paragraph', children: nodes as PhrasingContent[] }], values, true),
+        style,
+      );
     case 'a paragraph': {
-      const root = filled(nodes, values, true);
+      const root = substitutedTree(nodes, values, true);
       if (root.children.length === 1 && root.children[0].type === 'paragraph') {
         return new MarkdownElement('block', 'a paragraph', root.children, style);
       }
@@ -188,26 +191,29 @@ export function substitutePlaceholders(element: MDElement, values: TemplateValue
     }
     case 'a placeholder':
       if (resolveValue(values, (element as MDPlaceholder).name) === undefined) return element;
-      return fragmentOf(filled([{ type: 'paragraph', children: nodes as PhrasingContent[] }], values, true), style);
+      return fragmentOf(
+        substitutedTree([{ type: 'paragraph', children: nodes as PhrasingContent[] }], values, true),
+        style,
+      );
     case 'a block placeholder':
       if (resolveValue(values, (element as MDBlockPlaceholder).name) === undefined) return element;
-      return new MarkdownElement('block', 'a Markdown fragment', filled(nodes, values, true).children, style);
+      return new MarkdownElement('block', 'a Markdown fragment', substitutedTree(nodes, values, true).children, style);
     case 'a document':
-      return new DocumentElement(filled(nodes, values, true).children, style);
+      return new DocumentElement(substitutedTree(nodes, values, true).children, style);
     default:
       return new MarkdownElement(
         element.kind,
         element.description,
-        filled(nodes, values, element.kind !== 'inline').children,
+        substitutedTree(nodes, values, element.kind !== 'inline').children,
         style,
       );
   }
 }
 
 /** A tree of nodes with the placeholders that have values replaced. */
-function filled(nodes: RootContent[], values: TemplateValues, allowBlocks: boolean): Root {
+function substitutedTree(nodes: RootContent[], values: TemplateValues, allowBlocks: boolean): Root {
   const root: Root = { type: 'root', children: nodes };
-  fill(root, values, allowBlocks);
+  substituteInTree(root, values, allowBlocks);
   return root;
 }
 
@@ -228,14 +234,14 @@ function substituteInText(text: string, values: TemplateValues): string | undefi
   return onlyText ? result : undefined;
 }
 
-/** A whole file as a document, its body read by `read`, and filled when there are values. */
+/** A whole file as a document, its body read by `read`, with values substituted when there are any. */
 function documentOf(markdown: string, read: (body: string) => Root, values?: TemplateValues): MDDocument {
   const front = readFrontmatter(markdown);
   const body = front ? markdown.slice(front.end) : markdown;
   const root = read(body);
   const style = detectMarkdownStyle(root, body);
   if (front) root.children.unshift(yamlNode(front.yaml));
-  if (values) fill(root, values, true);
+  if (values) substituteInTree(root, values, true);
   return new DocumentElement(root.children, style);
 }
 
@@ -379,8 +385,8 @@ const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'list', 'li
  *   The paragraph splits around them.
  * @param allowBlocks - the root's children may be blocks.
  */
-function fill(root: Root, values: TemplateValues, allowBlocks: boolean): void {
-  const fillCode = (code: string, inside: 'code' | 'HTML'): string =>
+function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boolean): void {
+  const substituteInCode = (code: string, inside: 'code' | 'HTML'): string =>
     replacePlaceholders(code, (name: string) => {
       const value = resolveValue(values, name);
       return value === undefined ? undefined : valueAsCode(value, name, inside);
@@ -390,7 +396,7 @@ function fill(root: Root, values: TemplateValues, allowBlocks: boolean): void {
    * @param lines - the nodes are a paragraph's children, and a whole-line placeholder may take blocks.
    * @param blocks - the nodes may be blocks.
    */
-  const fillNodes = (nodes: RootContent[], lines: boolean, blocks: boolean): Piece[] =>
+  const substituteInNodes = (nodes: RootContent[], lines: boolean, blocks: boolean): Piece[] =>
     nodes.flatMap((node, i): Piece[] => {
       const placeholder = asPlaceholderNode(node);
       if (placeholder) {
@@ -404,7 +410,7 @@ function fill(root: Root, values: TemplateValues, allowBlocks: boolean): void {
       }
       switch (node.type) {
         case 'paragraph': {
-          const pieces = fillNodes(node.children, blocks, false);
+          const pieces = substituteInNodes(node.children, blocks, false);
           return splitParagraph(node, pieces);
         }
         case 'yaml':
@@ -414,25 +420,25 @@ function fill(root: Root, values: TemplateValues, allowBlocks: boolean): void {
           });
           return [node];
         case 'html':
-          node.value = fillCode(node.value, 'HTML');
+          node.value = substituteInCode(node.value, 'HTML');
           return [node];
         case 'inlineCode':
         case 'code':
-          node.value = fillCode(node.value, 'code');
+          node.value = substituteInCode(node.value, 'code');
           return [node];
         default:
           if ('children' in node) {
-            const children = fillNodes(node.children, false, blocks && blockContainers.has(node.type));
+            const children = substituteInNodes(node.children, false, blocks && blockContainers.has(node.type));
             node.children = children as typeof node.children;
           }
           return [node];
       }
     });
 
-  root.children = fillNodes(root.children, false, allowBlocks) as RootContent[];
+  root.children = substituteInNodes(root.children, false, allowBlocks) as RootContent[];
 }
 
-/** A paragraph from its filled children, split around the blocks among them. */
+/** A paragraph from its children after substitution, split around the blocks among them. */
 function splitParagraph(paragraph: Paragraph, pieces: Piece[]): RootContent[] {
   if (!pieces.some(isBlockSlot)) {
     paragraph.children = pieces as PhrasingContent[];
