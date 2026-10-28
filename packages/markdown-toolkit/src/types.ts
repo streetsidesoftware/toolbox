@@ -223,11 +223,12 @@ export type DefinitionEntry = readonly [term: InlineContent, definition: AnyCont
 export type ColumnAlignName = 'left' | 'center' | 'right';
 
 /**
- * How a table column is aligned, as its delimiter is written in a table: `:-` left, `:-:` center, `-:` right,
- * or `-` for none, with one or more `-`.
+ * How a table column is aligned, as its delimiter is written in a table: `:---` left, `:---:` center, `---:` right,
+ * or `---` for none. Any number of `-` works, one or more.
  * @pattern ^:?-+:?$
+ * @example ':---:'
  */
-export type ColumnDelimiter = string;
+export type ColumnDelimiter = ':---' | ':---:' | '---:' | '---' | string;
 
 /** How a table column is aligned: a name, a delimiter, or `undefined` for none. */
 export type ColumnAlign = ColumnAlignName | ColumnDelimiter | undefined;

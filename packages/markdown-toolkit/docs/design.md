@@ -83,7 +83,7 @@ A table takes a header and rows as arrays: `table(header, rows)`, the shape scri
 - A `lineBreak()` renders as `<br/>`, since a Markdown hard break would end the row.
 - A line ending in text or inline code renders as a space, as it displays elsewhere. One at the start or end of a cell is dropped.
 
-A column is aligned only when the script asks: `{ align: [undefined, 'right'] }`, one entry per column. An entry is `'left'`, `'center'`, `'right'`, `undefined` for none, or the delimiter as written in a table, such as `:-:`, with one or more `-`. A plain `-` means none, as in GFM.
+A column is aligned only when the script asks: `{ align: [undefined, 'right'] }`, one entry per column. An entry is `'left'`, `'center'`, `'right'`, `undefined` for none, or the delimiter as written in a table: `:---`, `:---:`, `---:` or `---`, the forms GitHub's docs use. Any number of `-` works, and a plain `---` means none, as in GFM. The type lists the four forms for docs, and is a `string` with a `@pattern`, so it maps to a JSON schema.
 
 A short row is filled with empty cells. A row longer than the header adds a column with an empty title, rather than throwing, so the mistake shows in the output.
 

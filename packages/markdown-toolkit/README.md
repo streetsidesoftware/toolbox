@@ -135,7 +135,7 @@ process.stdout.write(doc.toString());
 ```
 
 A short row is filled with empty cells. To align a column, pass `{ align: [undefined, 'right'] }`, one entry per
-column. An entry can also be written as in the table, such as `:-:` or `-:`.
+column. An entry can also be written as in the table: `:---`, `:---:`, `---:` or `---`.
 
 <!--- @@inject-end: examples/make-a-table/README.md --->
 
