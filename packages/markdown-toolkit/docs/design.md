@@ -25,13 +25,13 @@ A builder returns a Markdown value, not a string. The value keeps its structure 
 
 Every value has a `kind`, which decides where it may go:
 
-- **Inline** goes inside a line: text, a placeholder, a link, strong, emphasis, strikethrough, inline code, a line break, `<br/>`, and an inline fragment.
-- **Block** goes on its own lines: a heading, a paragraph, a list, a code block, a horizontal rule, details, a definition list, a document, a fragment, and a block placeholder.
-- **Comment** goes either inside a line or on its own lines, so it covers a block notice such as `cspell:disable` and an inline `cspell:ignore`.
-- **List item** goes only directly in a list.
-- **Frontmatter** goes only first in a document.
+- **Inline** (`'inline'`) goes inside a line: text, a placeholder, a link, strong, emphasis, strikethrough, inline code, a line break, `<br/>`, and an inline fragment.
+- **Block** (`'block'`) goes on its own lines: a heading, a paragraph, a list, a code block, a horizontal rule, details, a definition list, a document, a fragment, and a block placeholder.
+- **Comment** (`'comment'`) goes either inside a line or on its own lines, so it covers a block notice such as `cspell:disable` and an inline `cspell:ignore`.
+- **List item** (`'listItem'`) goes only directly in a list.
+- **Frontmatter** (`'frontmatter'`) goes only first in a document.
 
-A fragment is blocks made from text, by `parse()`, a template, or `blockText()`. An inline fragment is the content of one paragraph made from text, by `parse()` or a template. A heading and a paragraph are blocks that hold inline content.
+A fragment is blocks of Markdown that no builder made directly: it comes from `parse()`, a template, `blockText()`, or `substitutePlaceholders()`. An inline fragment is the same for inline content, from `parse()`, a template, or `substitutePlaceholders()`. A heading and a paragraph are blocks that hold inline content.
 
 Putting a value where its kind can't go, such as a list inside a heading, is an error. The builder types catch it at compile time, and the builders check again at runtime, for JavaScript callers and `any` values.
 
@@ -123,10 +123,10 @@ The concerns that apply at injection time, such as untrusted values and link reb
 
 ### Resolving names
 
-The values are a plain object, and dotted names walk into it: `template(tpl, { pkg: { name: '@cspell/dict-grc' } })`. The object resolves names the way inject-markdown resolves declarations:
+The values are a plain object, and dotted names walk into it: `template(tpl, { pkg: { name: '@cspell/dict-grc' } })`. The object resolves names the same way inject-markdown does:
 
-- Each top-level key acts as a declaration, in the object's key order. A top-level key may be a dotted name. Below the top level, a key is a single segment, and only own properties count.
-- The newest declaration wins: keys are tried from last to first.
+- The top-level keys are candidates, in the object's key order. A top-level key may be a dotted name. Below the top level, a key is a single segment, and only own properties count.
+- The last key wins: keys are tried from last to first.
 - A key matches when it equals the name, or when it equals a leading part of it and the rest of the name resolves inside its value.
 - A key that doesn't hold the rest of the name doesn't stop the search. The next earlier key is tried.
 
