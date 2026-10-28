@@ -75,6 +75,12 @@ Markdown inside HTML is read only after a blank line, so rendering picks the for
 - A summary or term with any other inline element, such as inline code or a placeholder, gets blank lines around it, so it renders.
 - The content and each definition always get blank lines around them.
 
+### Line breaks and comments
+
+There are two line-break elements, both inline. A `lineBreak()` is a Markdown hard break. A `br()` is always `<br/>`, never `<br>`, because MDX reads HTML as JSX, where an unclosed `<br>` is a syntax error.
+
+A comment renders as `<!-- … -->`, with two dashes, as third-party bots write them. The renderer keeps the text from ending the comment early.
+
 ### Tables
 
 A table takes a header and rows as arrays: `table(header, rows)`, the shape scripts already have their data in. Each cell holds inline content. Rendering keeps every cell on one line, which a GFM row needs:
@@ -88,12 +94,6 @@ A column is aligned only when the script asks: `{ align: [undefined, 'right'] }`
 A short row is filled with empty cells. A row longer than the header adds a column with an empty title, rather than throwing, so the mistake shows in the output.
 
 A table always renders padded, so its pipes line up. There's no style field for compact tables, and `detectStyle` doesn't look at tables, until a script needs it. A table from a template or `parse()` is re-rendered padded too.
-
-### Line breaks and comments
-
-There are two line-break elements, both inline. A `lineBreak()` is a Markdown hard break. A `br()` is always `<br/>`, never `<br>`, because MDX reads HTML as JSX, where an unclosed `<br>` is a syntax error.
-
-A comment renders as `<!-- … -->`, with two dashes, as third-party bots write them. The renderer keeps the text from ending the comment early.
 
 ## Placeholders
 
