@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/streetsidesoftware/toolbox/compare/toolbox@1.2.0...toolbox@1.2.1) (2026-10-28)
+
+
+### Updates and Bug Fixes
+
+* **markdown-toolkit:** leave empty lines in a frontmatter value empty ([#69](https://github.com/streetsidesoftware/toolbox/issues/69)) ([9c27dd1](https://github.com/streetsidesoftware/toolbox/commit/9c27dd1124edcdceb2d8e7e36a744e97f37ed829))
+* **markdown-toolkit:** rename Markdown values to elements ([#72](https://github.com/streetsidesoftware/toolbox/issues/72)) ([0ff128a](https://github.com/streetsidesoftware/toolbox/commit/0ff128a89e1c9a22e93a660d88d2aaa671101a1f))
+
 ## [1.2.0](https://github.com/streetsidesoftware/toolbox/compare/toolbox@1.1.1...toolbox@1.2.0) (2026-10-28)
 
 
