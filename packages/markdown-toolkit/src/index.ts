@@ -47,6 +47,7 @@ export type {
   ColumnAlign,
   ColumnAlignName,
   ColumnDelimiter,
+  ColumnDelimiterExplicit,
   DefinitionEntry,
   EmphasisMarker,
   FenceMarker,

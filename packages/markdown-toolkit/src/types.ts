@@ -222,16 +222,19 @@ export type DefinitionEntry = readonly [term: InlineContent, definition: AnyCont
 /** How a table column is aligned, by name. */
 export type ColumnAlignName = 'left' | 'center' | 'right';
 
+/** The table delimiters GitHub's docs use: `:---` left, `:---:` center, `---:` right, `---` none. */
+export type ColumnDelimiterExplicit = ':---' | ':---:' | '---:' | '---';
+
 /**
  * How a table column is aligned, as its delimiter is written in a table: `:---` left, `:---:` center, `---:` right,
  * or `---` for none. Any number of `-` works, one or more.
  * @pattern ^:?-+:?$
  * @example ':---:'
  */
-export type ColumnDelimiter = ':---' | ':---:' | '---:' | '---' | string;
+export type ColumnDelimiter = string;
 
 /** How a table column is aligned: a name, a delimiter, or `undefined` for none. */
-export type ColumnAlign = ColumnAlignName | ColumnDelimiter | undefined;
+export type ColumnAlign = ColumnAlignName | ColumnDelimiter | ColumnDelimiterExplicit | undefined;
 
 export interface TableOptions {
   /** One entry per column. A column without one isn't aligned. */
