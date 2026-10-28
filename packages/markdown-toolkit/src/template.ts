@@ -405,7 +405,10 @@ function fill(root: Root, values: TemplateValues, allowBlocks: boolean): void {
           return splitParagraph(node, pieces);
         }
         case 'yaml':
-          node.value = fillFrontmatter(node.value, values);
+          node.value = replacePlaceholders(node.value, (name: string) => {
+            const value = resolveValue(values, name);
+            return value === undefined ? undefined : valueAsFrontmatter(value);
+          });
           return [node];
         case 'html':
         case 'inlineCode':
@@ -490,21 +493,6 @@ function valueAsCode(value: TemplateValue, name: string): string {
   if (isText(value)) return value.text;
   if (isKind(value, 'inline') && value.description === 'a placeholder') return value.toString();
   throw new TypeError(`{@ ${name} @} is inside code and takes only a string or text, got ${describe(value)}`);
-}
-
-/** Frontmatter with its placeholders filled. A value's later lines get the leading whitespace of its placeholder's line. */
-function fillFrontmatter(yaml: string, values: TemplateValues): string {
-  let result = '';
-  let last = 0;
-  for (const { start, end, name } of listPlaceholders(yaml)) {
-    const value = resolveValue(values, name);
-    if (value === undefined) continue;
-    const lineStart = yaml.lastIndexOf('\n', start - 1) + 1;
-    const indent = /^[ \t]*/.exec(yaml.slice(lineStart))?.[0] ?? '';
-    result += yaml.slice(last, start) + valueAsFrontmatter(value).replaceAll('\n', '\n' + indent);
-    last = end;
-  }
-  return result + yaml.slice(last);
 }
 
 /** A value inside frontmatter, inserted as is: a string as written, and a Markdown value as rendered. */
