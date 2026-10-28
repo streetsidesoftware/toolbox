@@ -9,6 +9,71 @@ or fill a Markdown template, then render the result with `toString()`.
 npm install @streetsidesoftware/markdown-toolkit
 ```
 
+<!--- @@inject: examples/opening-template/README.md --->
+
+## Write the Markdown, fill in the data
+
+Write the Markdown you want, mark the gaps with `{@ name @}`, and fill them.
+
+```ts
+import * as md from '@streetsidesoftware/markdown-toolkit';
+import { unindent as markdown } from '@streetsidesoftware/unindent';
+
+const name = 'cspell';
+
+const doc = md.templateDocument(
+  markdown`
+    # {@ name @}
+
+    Install with \`npm i {@ name @}\`.
+  `,
+  { name },
+);
+
+process.stdout.write(doc.toString());
+```
+
+```markdown
+# cspell
+
+Install with `npm i cspell`.
+```
+
+<!--- @@inject-end: examples/opening-template/README.md --->
+
+<!--- @@inject: examples/opening-builders/README.md --->
+
+## Or build it from data
+
+Each builder returns a Markdown element. Put them together with `document`, and render the file with `toString()`.
+
+```ts
+import * as md from '@streetsidesoftware/markdown-toolkit';
+
+const name = 'cspell';
+
+const doc = md.document(
+  md.heading(1, name),
+  md.list([md.link('Docs', 'https://cspell.org'), md.link('Source', 'https://github.com/streetsidesoftware/cspell')]),
+  md.codeBlock(`npm i ${name}`, 'sh'),
+);
+
+process.stdout.write(doc.toString());
+```
+
+````markdown
+# cspell
+
+- [Docs](https://cspell.org)
+- [Source](https://github.com/streetsidesoftware/cspell)
+
+```sh
+npm i cspell
+```
+````
+
+<!--- @@inject-end: examples/opening-builders/README.md --->
+
 ## Features
 
 - **Builders.** Compose a document from headings, paragraphs, lists, tables, links and code, as elements rather
