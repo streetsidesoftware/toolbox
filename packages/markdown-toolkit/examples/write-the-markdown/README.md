@@ -1,6 +1,6 @@
 ## Write the Markdown yourself, with data in it
 
-A template is Markdown with `{@ name @}` placeholders. A string value is escaped, a built value is inserted as
+A template is Markdown with `{@ name @}` placeholders. A string value is escaped, an element is inserted as
 Markdown, and a placeholder on a line of its own can take blocks, such as a list.
 
 The template is indented to match the code, and `unindent` from [`@streetsidesoftware/unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent) removes the indentation. Imported as

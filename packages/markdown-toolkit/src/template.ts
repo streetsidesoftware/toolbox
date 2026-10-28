@@ -6,7 +6,7 @@ import { unified } from 'unified';
 
 import { inlineText } from './builders.ts';
 import { detectMarkdownStyle } from './detectStyle.ts';
-import { DocumentValue } from './documentValue.ts';
+import { DocumentElement } from './documentElement.ts';
 import { readFrontmatter, yamlNode } from './frontmatter.ts';
 import {
   blockNodes,
@@ -16,7 +16,7 @@ import {
   isArray,
   isBlockContent,
   isKind,
-  MarkdownValue,
+  MarkdownElement,
   renderingOf,
   textNodes,
 } from './nodes.ts';
@@ -28,16 +28,16 @@ import type {
   InlineContent,
   MDBlockPlaceholder,
   MDDocument,
+  MDElement,
   MDFragment,
   MDInlineFragment,
   MDParagraph,
   MDPlaceholder,
   MDText,
-  MDValue,
 } from './types.ts';
 
 /** A value a template placeholder can take. */
-export type TemplateValue = string | number | boolean | MDValue | readonly TemplateValue[];
+export type TemplateValue = string | number | boolean | MDElement | readonly TemplateValue[];
 
 /**
  * The values for a template.
@@ -76,7 +76,7 @@ export function template(markdown: string, values: TemplateValues): MDFragment |
 export function blockTemplate(markdown: string, values: TemplateValues): MDFragment {
   const root = templateTree(markdown, false);
   fill(root, values, true);
-  return new MarkdownValue('block', 'a Markdown fragment', root.children, detectMarkdownStyle(root, markdown));
+  return new MarkdownElement('block', 'a Markdown fragment', root.children, detectMarkdownStyle(root, markdown));
 }
 
 /**
@@ -95,7 +95,7 @@ export function inlineTemplate(markdown: string, values: TemplateValues): MDInli
   }
   fill(root, values, false);
   const children = root.children[0]?.type === 'paragraph' ? root.children[0].children : [];
-  return new MarkdownValue('inline', 'an inline Markdown fragment', [
+  return new MarkdownElement('inline', 'an inline Markdown fragment', [
     ...textNodes(lead),
     ...children,
     ...textNodes(tail),
@@ -103,7 +103,7 @@ export function inlineTemplate(markdown: string, values: TemplateValues): MDInli
 }
 
 /**
- * Markdown text as a value, for Markdown made elsewhere.
+ * Markdown text as an element, for Markdown made elsewhere.
  * - A single paragraph is inline, without the whitespace around it.
  * - Anything else is blocks, rendered in the text's own style.
  *
@@ -129,7 +129,7 @@ export function parseDocument(markdown: string): MDDocument {
 
 /**
  * Fill a whole file's placeholders, the same way as {@link template}, as a document.
- * Frontmatter at its start is kept. A value in it is inserted as is: a string as written, and a Markdown value as rendered.
+ * Frontmatter at its start is kept. A value in it is inserted as is: a string as written, and a Markdown element as rendered.
  * Each line of the value after the first gets the leading whitespace of the placeholder's line.
  * @throws if a value doesn't fit where its placeholder is.
  */
@@ -138,13 +138,13 @@ export function templateDocument(markdown: string, values: TemplateValues): MDDo
 }
 
 /**
- * What {@link substitutePlaceholders} returns for a value.
- * A value that can't hold what was substituted into it becomes a fragment of what it holds:
+ * What {@link substitutePlaceholders} returns for an element.
+ * An element that can't hold what was substituted into it becomes a fragment of what it holds:
  * - Text with a value that isn't a string or text, or with blocks on a line of their own.
  * - An inline fragment or a paragraph with blocks on a line of their own.
  * - A placeholder with a value.
  */
-export type SubstitutedValue<T extends MDValue> = T extends MDText
+export type SubstitutionResult<T extends MDElement> = T extends MDText
   ? MDText | MDInlineFragment | MDFragment
   : T extends MDInlineFragment
     ? MDInlineFragment | MDFragment
@@ -156,46 +156,49 @@ export type SubstitutedValue<T extends MDValue> = T extends MDText
           ? MDBlockPlaceholder | MDFragment
           : T;
 
+/** @deprecated Use {@link SubstitutionResult}. */
+export type SubstitutedValue<T extends MDElement> = SubstitutionResult<T>;
+
 /**
- * Substitute values for the placeholders in a Markdown value.
+ * Substitute values for the placeholders in a Markdown element.
  * - Values go in as in {@link template}.
  * - A placeholder with no value is kept as written, so it can be substituted later.
- * - The result is the same type of value, in the same style, when it can hold the values.
+ * - The result is the same type of element, in the same style, when it can hold the values.
  *   Otherwise it's a fragment of the same kind, or blocks where a placeholder that is a whole line took blocks.
  * @throws if a value doesn't fit where its placeholder is.
  */
-export function substitutePlaceholders<T extends MDValue>(value: T, values: TemplateValues): SubstitutedValue<T>;
-export function substitutePlaceholders(value: MDValue, values: TemplateValues): MDValue {
-  const rendering = renderingOf(value);
-  if (!rendering) throw new TypeError(`expected a Markdown value, got ${describe(value)}`);
-  const substituted = isText(value) ? substituteInText(value.text, values) : undefined;
+export function substitutePlaceholders<T extends MDElement>(element: T, values: TemplateValues): SubstitutionResult<T>;
+export function substitutePlaceholders(element: MDElement, values: TemplateValues): MDElement {
+  const rendering = renderingOf(element);
+  if (!rendering) throw new TypeError(`expected a Markdown element, got ${describe(element)}`);
+  const substituted = isText(element) ? substituteInText(element.text, values) : undefined;
   if (substituted !== undefined) return inlineText(substituted);
   const { style } = rendering;
   const nodes = structuredClone(rendering.nodes);
-  switch (value.description) {
+  switch (element.description) {
     case 'text':
     case 'an inline Markdown fragment':
       return fragmentOf(filled([{ type: 'paragraph', children: nodes as PhrasingContent[] }], values, true), style);
     case 'a paragraph': {
       const root = filled(nodes, values, true);
       if (root.children.length === 1 && root.children[0].type === 'paragraph') {
-        return new MarkdownValue('block', 'a paragraph', root.children, style);
+        return new MarkdownElement('block', 'a paragraph', root.children, style);
       }
-      return new MarkdownValue('block', 'a Markdown fragment', root.children, style);
+      return new MarkdownElement('block', 'a Markdown fragment', root.children, style);
     }
     case 'a placeholder':
-      if (resolveValue(values, (value as MDPlaceholder).name) === undefined) return value;
+      if (resolveValue(values, (element as MDPlaceholder).name) === undefined) return element;
       return fragmentOf(filled([{ type: 'paragraph', children: nodes as PhrasingContent[] }], values, true), style);
     case 'a block placeholder':
-      if (resolveValue(values, (value as MDBlockPlaceholder).name) === undefined) return value;
-      return new MarkdownValue('block', 'a Markdown fragment', filled(nodes, values, true).children, style);
+      if (resolveValue(values, (element as MDBlockPlaceholder).name) === undefined) return element;
+      return new MarkdownElement('block', 'a Markdown fragment', filled(nodes, values, true).children, style);
     case 'a document':
-      return new DocumentValue(filled(nodes, values, true).children, style);
+      return new DocumentElement(filled(nodes, values, true).children, style);
     default:
-      return new MarkdownValue(
-        value.kind,
-        value.description,
-        filled(nodes, values, value.kind !== 'inline').children,
+      return new MarkdownElement(
+        element.kind,
+        element.description,
+        filled(nodes, values, element.kind !== 'inline').children,
         style,
       );
   }
@@ -233,21 +236,21 @@ function documentOf(markdown: string, read: (body: string) => Root, values?: Tem
   const style = detectMarkdownStyle(root, body);
   if (front) root.children.unshift(yamlNode(front.yaml));
   if (values) fill(root, values, true);
-  return new DocumentValue(root.children, style);
+  return new DocumentElement(root.children, style);
 }
 
-/** A parsed tree as a value, in the style of its text. */
+/** A parsed tree as an element, in the style of its text. */
 function fragment(root: Root, markdown: string): MDFragment | MDInlineFragment {
   return fragmentOf(root, detectMarkdownStyle(root, markdown));
 }
 
-/** A tree as a value. A single paragraph is inline, and anything else is blocks. */
+/** A tree as an element. A single paragraph is inline, and anything else is blocks. */
 function fragmentOf(root: Root, style: StyleOptions | undefined): MDFragment | MDInlineFragment {
   const [only, ...rest] = root.children;
   if (only?.type === 'paragraph' && !rest.length) {
-    return new MarkdownValue('inline', 'an inline Markdown fragment', only.children, style);
+    return new MarkdownElement('inline', 'an inline Markdown fragment', only.children, style);
   }
-  return new MarkdownValue('block', 'a Markdown fragment', root.children, style);
+  return new MarkdownElement('block', 'a Markdown fragment', root.children, style);
 }
 
 /** Make the placeholders in text raw, in place, so rendering can't escape them. */
@@ -495,13 +498,13 @@ function valueAsCode(value: TemplateValue, name: string): string {
   throw new TypeError(`{@ ${name} @} is inside code and takes only a string or text, got ${describe(value)}`);
 }
 
-/** A value inside frontmatter, inserted as is: a string as written, and a Markdown value as rendered. */
+/** A value inside frontmatter, inserted as is: a string as written, and a Markdown element as rendered. */
 function valueAsFrontmatter(value: TemplateValue): string {
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
   if (isText(value)) return value.text;
   // A template value can be any kind. groupedNodes throws when a piece isn't Markdown content.
   if (!isArray(value)) return value.toString();
-  return new MarkdownValue('block', 'content', groupedNodes(value as AnyContent, 'frontmatter value')).toString();
+  return new MarkdownElement('block', 'content', groupedNodes(value as AnyContent, 'frontmatter value')).toString();
 }
 
 function isText(value: unknown): value is MDText {

@@ -11,14 +11,14 @@ npm install @streetsidesoftware/markdown-toolkit
 
 ## Features
 
-- **Builders.** Compose a document from headings, paragraphs, lists, links and code, as values rather than
-  strings.
+- **Builders.** Compose a document from headings, paragraphs, lists, links and code, as elements rather
+  than strings.
 - **Templates.** Write the Markdown you want, mark the gaps with `{@ name @}`, and fill them with strings or
-  built values.
+  elements.
 - **Placeholders.** Leave a gap unfilled and fill it in a later step, or hand it to a tool such as inject-markdown.
 - **Fits existing documents.** Detect the style a document already uses, such as `*` or `-` bullets, and render in
   that style.
-- **Text stays text.** A value is escaped for where it ends up, so a `*` or `[` in it doesn't turn into Markdown.
+- **Text stays text.** Text is escaped for where it ends up, so a `*` or `[` in it doesn't turn into Markdown.
 - **Built on remark.** Parsing and rendering use [unified](https://unifiedjs.com) and
   [remark](https://github.com/remarkjs/remark) with GitHub Flavored Markdown, not hand-rolled string rules.
 
@@ -26,8 +26,8 @@ npm install @streetsidesoftware/markdown-toolkit
 
 ## Generate a Markdown file from data
 
-Each builder returns a Markdown value, not a string. Put values together with `document`, and render the file with
-`toString()`. A value is escaped for where it ends up, so the `]` in the link text doesn't end the link.
+Each builder returns a Markdown element, not a string. Put elements together with `document`, and render the file
+with `toString()`. An element is escaped for where it ends up, so the `]` in the link text doesn't end the link.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -99,7 +99,7 @@ Text that is already Markdown, such as a `markdownDescription`, goes in as Markd
 
 ## Write the Markdown yourself, with data in it
 
-A template is Markdown with `{@ name @}` placeholders. A string value is escaped, a built value is inserted as
+A template is Markdown with `{@ name @}` placeholders. A string value is escaped, an element is inserted as
 Markdown, and a placeholder on a line of its own can take blocks, such as a list.
 
 The template is indented to match the code, and `unindent` from [`@streetsidesoftware/unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent) removes the indentation. Imported as
@@ -338,7 +338,7 @@ A template or parsed text keeps the style of its own text, but spacing and table
 - Style: `detectStyle`, and `withStyle` on a document
 - Checks: `isMarkdown`, which tells whether a value was made by this package
 
-Every value renders with `toString()`. A document ends with a newline; other values don't, so they can be joined.
+Every element renders with `toString()`. A document ends with a newline; other elements don't, so they can be joined.
 
 ## Requirements
 

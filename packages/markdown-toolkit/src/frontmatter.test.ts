@@ -19,7 +19,7 @@ import {
   templateDocument,
   templateFragment,
 } from './index.ts';
-import type { MDValue } from './index.ts';
+import type { MDElement } from './index.ts';
 
 const page = '---\n# AUTO-GENERATED\ntitle: CSpell\nid: cspell\n---\n\n# CSpell\n';
 
@@ -67,13 +67,13 @@ describe('frontmatter', () => {
   });
 
   test('anywhere but first in a document throws', () => {
-    assert.throws(() => document(heading(1, 'A'), frontmatter('a: 1') as unknown as MDValue as never), {
+    assert.throws(() => document(heading(1, 'A'), frontmatter('a: 1') as unknown as MDElement as never), {
       message: 'frontmatter must be the first content of a document',
     });
   });
 
   test('outside a document throws', () => {
-    assert.throws(() => listItem(frontmatter('a: 1') as unknown as MDValue as never), TypeError);
+    assert.throws(() => listItem(frontmatter('a: 1') as unknown as MDElement as never), TypeError);
   });
 });
 

@@ -1,6 +1,6 @@
 import type { Html, RootContent } from 'mdast';
 
-import { describe, groupedNodes, inlineNodes, isArray, MarkdownValue } from './nodes.ts';
+import { describe, groupedNodes, inlineNodes, isArray, MarkdownElement } from './nodes.ts';
 import type { AnyContent, DefinitionEntry, InlineContent, MDDefinitionList, MDDetails } from './types.ts';
 
 /**
@@ -8,7 +8,7 @@ import type { AnyContent, DefinitionEntry, InlineContent, MDDefinitionList, MDDe
  * A plain-text summary is written on one line, `<summary>text</summary>`. Inline Markdown in it gets blank lines.
  */
 export function details(summary: InlineContent, ...content: AnyContent[]): MDDetails {
-  return new MarkdownValue('block', 'a details block', [
+  return new MarkdownElement('block', 'a details block', [
     ...wrapped('<details>\n', 'summary', summary, '', 'details summary'),
     ...groupedNodes(content, 'details content'),
     html('</details>'),
@@ -35,7 +35,7 @@ export function definitionList(entries: readonly DefinitionEntry[]): MDDefinitio
       html('</dd>'),
     ];
   });
-  return new MarkdownValue('block', 'a definition list', [html('<dl>'), ...nodes, html('</dl>')]);
+  return new MarkdownElement('block', 'a definition list', [html('<dl>'), ...nodes, html('</dl>')]);
 }
 
 /** The same as {@link definitionList}. */
