@@ -129,6 +129,8 @@ describe('templateDocument', () => {
         ${'a number'}            | ${'---\na: {@ v @}\n---\n'}        | ${3}                        | ${'---\na: 3\n---\n'}
         ${'a link as rendered'}  | ${'---\na: {@ v @}\n---\n'}        | ${link('A', 'a.md')}        | ${'---\na: [A](a.md)\n---\n'}
         ${'a multi-line string'} | ${'---\na: >-\n  {@ v @}\n---\n'}  | ${'one\ntwo'}               | ${'---\na: >-\n  one\n  two\n---\n'}
+        ${'an empty line'}       | ${'---\na: |\n  {@ v @}\n---\n'}   | ${'one\n\ntwo'}             | ${'---\na: |\n  one\n\n  two\n---\n'}
+        ${'a CRLF empty line'}   | ${'---\na: |\n  {@ v @}\n---\n'}   | ${'one\r\n\r\ntwo'}         | ${'---\na: |\n  one\r\n\r\n  two\n---\n'}
         ${'a list'}              | ${'---\na: |\n    {@ v @}\n---\n'} | ${list(['x', 'y'])}         | ${'---\na: |\n    - x\n    - y\n---\n'}
         ${'a sequence'}          | ${'---\na: {@ v @}\n---\n'}        | ${['See ', link('A', 'a')]} | ${'---\na: See [A](a)\n---\n'}
     `('$kind', ({ markdown, value, expected }: FillRow) => {
