@@ -1,6 +1,15 @@
 import type { Html, PhrasingContent, RootContent } from 'mdast';
 
-import { blockNodes, describe, groupedNodes, inlineNodes, isArray, isText, MarkdownElement, runs } from './nodes.ts';
+import {
+  blockNodes,
+  describe,
+  groupedNodes,
+  inlineNodes,
+  isArray,
+  isText,
+  mapParagraphsAndBlocks,
+  MarkdownElement,
+} from './nodes.ts';
 import { alignOf } from './table.ts';
 import type {
   AnyContent,
@@ -149,10 +158,10 @@ function htmlEscape(text: string): string {
 
 /** The blocks of a table cell, grouped as in a document, with each line ending in a string as a line break. */
 function cellNodes(content: AnyContent): RootContent[] {
-  return runs(content).flatMap((run): RootContent[] =>
-    'inline' in run
-      ? [{ type: 'paragraph', children: run.inline.flatMap(cellInlineNodes) }]
-      : blockNodes(run.block, 'table cell'),
+  return mapParagraphsAndBlocks(
+    content,
+    (inline): RootContent => ({ type: 'paragraph', children: inline.flatMap(cellInlineNodes) }),
+    (block) => blockNodes(block, 'table cell'),
   );
 }
 

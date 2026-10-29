@@ -11,9 +11,9 @@ import {
   isBlockContent,
   isListItem,
   listItemNode,
+  mapParagraphsAndBlocks,
   MarkdownElement,
   renderingOf,
-  runs,
   textNodes,
 } from './nodes.ts';
 import { placeholderNode } from './placeholderNode.ts';
@@ -347,7 +347,11 @@ function paragraphOf(content: readonly InlineContent[], where: string): MDParagr
  */
 export function toBlock(content: AnyContent): BlockContent {
   if (isBlockContent(content)) return content;
-  const blocks = runs(content).map((run) => ('inline' in run ? paragraphOf(run.inline, 'block content') : run.block));
+  const blocks = mapParagraphsAndBlocks(
+    content,
+    (inline) => paragraphOf(inline, 'block content'),
+    (block) => block,
+  );
   return blocks.length === 1 ? blocks[0] : blocks;
 }
 
