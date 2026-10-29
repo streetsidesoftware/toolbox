@@ -64,6 +64,18 @@ A short row is padded with empty cells. A row longer than the header adds a colu
 
 A table always renders padded, so its pipes line up. There's no style field for compact tables, and `detectStyle` doesn't look at tables, until a script needs it. A table from a template or `parse()` is re-rendered padded too.
 
+### HTML tables
+
+A GFM row is one line, so its cells hold only inline content. When a cell needs a list, a code block or a second paragraph, `htmlTable(header, rows)` writes a `<table>` instead. It takes the same arguments and options as `table()`, so a script can switch between them, and each cell holds any content, like a document. The output follows inject-markdown's HTML tables:
+
+- `<table>`, `<thead>`, `<tbody>`, each `<tr>` and its closing tag go on their own lines.
+- A cell of plain text stays on its tag's line, `<td>42</td>`, with `&` and `<` HTML-escaped. An empty cell is `<td></td>`.
+- Any other cell, with inline code, a link, a placeholder or blocks, gets blank lines around it, so it renders.
+- A line ending in a string shows as a line break, which is what someone writing a cell expects to see: `<br/>` in a plain-text cell, a hard break in a cell with Markdown. One at the start or end of a cell is dropped. Text from `parse()` is Markdown, so its line endings keep their Markdown meaning.
+- An aligned column puts `align="…"` on each of its cells. GitHub keeps the `align` attribute and strips `style`.
+- Every row, the header included, is filled with empty cells to the widest row, as in `table()`.
+- An empty header leaves out `<thead>`. Several header rows wait until a script needs them.
+
 ### Details and definition lists
 
 A `<details>` summary and a `<dl>` term are inline. The content and each definition are like a document's. A definition list takes `[term, definition]` pairs.
@@ -73,18 +85,6 @@ Markdown inside HTML is read only after a blank line, so rendering picks the for
 - A summary or term of plain text is written on one line, `<summary>TypeScript:</summary>`, as in GitHub's own examples. Its `&` and `<` are HTML-escaped, and blank lines are dropped, since one would end the HTML block.
 - A summary or term with any other inline element, such as inline code or a placeholder, gets blank lines around it, so it renders.
 - The content and each definition always get blank lines around them.
-
-### HTML tables
-
-A GFM row is one line, so its cells hold only inline content. When a cell needs a list, a code block or a second paragraph, `htmlTable(header, rows)` writes a `<table>` instead. It takes the same arguments and options as `table()`, so a script can switch between them, and each cell holds any content, like a definition. The output follows inject-markdown's HTML tables:
-
-- `<table>`, `<thead>`, `<tbody>`, each `<tr>` and its closing tag go on their own lines.
-- A cell of plain text stays on its tag's line, `<td>42</td>`, with `&` and `<` HTML-escaped. An empty cell is `<td></td>`.
-- Any other cell, with inline code, a link, a placeholder or blocks, gets blank lines around it, so it renders.
-- A line ending in a string shows as a line break, which is what someone writing a cell expects to see: `<br/>` in a plain-text cell, a hard break in a cell with Markdown. One at the start or end of a cell is dropped. Text from `parse()` is Markdown, so its line endings keep their Markdown meaning.
-- An aligned column puts `align="…"` on each of its cells. GitHub keeps the `align` attribute and strips `style`.
-- Every row, the header included, is filled with empty cells to the widest row, as in `table()`.
-- An empty header leaves out `<thead>`. Several header rows wait until a script needs them.
 
 ### Documents and frontmatter
 
@@ -234,7 +234,7 @@ A possible feature. The issue it addresses is real: Docusaurus 3 parses even `.m
 
 ## README examples
 
-The README opens with two examples that make the same page, one with a template and one with builders, to show that generating Markdown from data is easy. A guide follows, in parts: Build in code, Templates, Whole pages, and Match an existing file's style. Each part goes from common and simple elements to rare ones, so text and headings come first, tables after lists, and the HTML blocks last: details, definition lists and HTML tables.
+The README opens with two examples that make the same page, one with a template and one with builders, to show that generating Markdown from data is easy. A guide follows, in parts: Build in code, Templates, Whole pages, and Match an existing file's style. Each part goes from common and simple elements to rare ones, so text and headings come first, tables after lists, then details and definition lists last.
 
 - Each section teaches the main path. A rule stays only if a reader would get it wrong without it; the full rules are in the JSDoc.
 - Steps are imperative, behavior is in the present tense, and the text never says "you".
