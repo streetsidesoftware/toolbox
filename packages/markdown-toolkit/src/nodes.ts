@@ -97,12 +97,24 @@ export function sourceTextNodes(text: string): PhrasingContent[] {
 
 function lineBreaks(node: PhrasingContent): PhrasingContent[] {
   if (node.type !== 'text') return [node];
-  return node.value
-    .split(/[ \t]*(?:\r\n?|\n)[ \t]*/)
-    .flatMap((value, i): PhrasingContent[] => [
-      ...(i ? [{ type: 'break' } as const] : []),
-      ...(value ? [{ type: 'text', value } as const] : []),
-    ]);
+  const lines = node.value.split(/\r\n?|\n/);
+  return lines.flatMap((line, i): PhrasingContent[] => {
+    const value = trimSpaces(line, i > 0, i < lines.length - 1);
+    return [...(i ? [{ type: 'break' } as const] : []), ...(value ? [{ type: 'text', value } as const] : [])];
+  });
+}
+
+/** The line without the spaces and tabs at its start, its end, or both. A loop, since a regex would be quadratic. */
+function trimSpaces(line: string, start: boolean, end: boolean): string {
+  let from = 0;
+  let to = line.length;
+  while (start && from < to && isSpace(line[from])) ++from;
+  while (end && to > from && isSpace(line[to - 1])) --to;
+  return line.slice(from, to);
+}
+
+function isSpace(c: string): boolean {
+  return c === ' ' || c === '\t';
 }
 
 /**
