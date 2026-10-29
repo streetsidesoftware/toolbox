@@ -1,15 +1,30 @@
 import * as md from '@streetsidesoftware/markdown-toolkit';
 import { unindent as markdown } from '@streetsidesoftware/unindent';
 
-const name = 'cspell';
+const dictionaries = [
+  { language: 'Dutch', name: '@cspell/dict-nl-nl' },
+  { language: 'French', name: '@cspell/dict-fr-fr' },
+  { language: 'German', name: '@cspell/dict-de-de' },
+];
 
-const doc = md.templateDocument(
+const page = md.templateDocument(
   markdown`
-    # {@ name @}
+    # Dictionaries
 
-    Install with \`npm i {@ name @}\`.
+    Language dictionaries for {@ cspell @}.
+
+    {@ dictionaries @}
   `,
-  { name },
+  {
+    cspell: md.link('cspell', 'https://cspell.org'),
+    dictionaries: md.list(
+      dictionaries.map((d) => md.link(d.language, npmUrl(d.name))),
+    ),
+  },
 );
 
-process.stdout.write(doc.toString());
+console.log(page.toString());
+
+function npmUrl(name: string): string {
+  return `https://www.npmjs.com/package/${name}`;
+}

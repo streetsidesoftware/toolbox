@@ -7,14 +7,16 @@ import { describe, test } from 'node:test';
 import { findExamples, OUTPUT_FILE, runExample, updateExampleOutput } from './examples.ts';
 
 describe('findExamples', () => {
-  test('finds each example folder of each package, sorted', async () => {
+  test('finds each example folder of each package, nested ones included, sorted', async () => {
     await withTempDir(async (dir) => {
       await writeExample(dir, 'packages/b/examples/one', 'console.log(1);\n');
       await writeExample(dir, 'packages/a/examples/two', 'console.log(2);\n');
       await writeExample(dir, 'packages/a/examples/one', 'console.log(3);\n');
+      await writeExample(dir, 'packages/a/examples/part/three', 'console.log(5);\n');
       await writeExample(dir, 'packages/a/src', 'console.log(4);\n');
       assert.deepEqual(await findExamples(dir), [
         'packages/a/examples/one/example.ts',
+        'packages/a/examples/part/three/example.ts',
         'packages/a/examples/two/example.ts',
         'packages/b/examples/one/example.ts',
       ]);

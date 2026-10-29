@@ -1,8 +1,9 @@
 ## With a template
 
-Write the Markdown you want, mark the gaps with `{@ name @}`, and substitute values for them.
-[`unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent), from `@streetsidesoftware/unindent`, removes
-the indentation.
+Write the page as Markdown, mark each gap with a `{@ name @}` placeholder, and substitute values for them. A value
+can be a string or an element, such as a link or a list.
+[`unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent) removes the template's indentation.
+Imported as `markdown`, it also gets editors to highlight the template as Markdown.
 
 <!--- @@inject: example.ts --->
 
@@ -10,18 +11,33 @@ the indentation.
 import * as md from '@streetsidesoftware/markdown-toolkit';
 import { unindent as markdown } from '@streetsidesoftware/unindent';
 
-const name = 'cspell';
+const dictionaries = [
+  { language: 'Dutch', name: '@cspell/dict-nl-nl' },
+  { language: 'French', name: '@cspell/dict-fr-fr' },
+  { language: 'German', name: '@cspell/dict-de-de' },
+];
 
-const doc = md.templateDocument(
+const page = md.templateDocument(
   markdown`
-    # {@ name @}
+    # Dictionaries
 
-    Install with \`npm i {@ name @}\`.
+    Language dictionaries for {@ cspell @}.
+
+    {@ dictionaries @}
   `,
-  { name },
+  {
+    cspell: md.link('cspell', 'https://cspell.org'),
+    dictionaries: md.list(
+      dictionaries.map((d) => md.link(d.language, npmUrl(d.name))),
+    ),
+  },
 );
 
-process.stdout.write(doc.toString());
+console.log(page.toString());
+
+function npmUrl(name: string): string {
+  return `https://www.npmjs.com/package/${name}`;
+}
 ```
 
 <!--- @@inject-end: example.ts --->
@@ -29,9 +45,13 @@ process.stdout.write(doc.toString());
 <!--- @@inject-code: output.md --->
 
 ```markdown
-# cspell
+# Dictionaries
 
-Install with `npm i cspell`.
+Language dictionaries for [cspell](https://cspell.org).
+
+- [Dutch](https://www.npmjs.com/package/@cspell/dict-nl-nl)
+- [French](https://www.npmjs.com/package/@cspell/dict-fr-fr)
+- [German](https://www.npmjs.com/package/@cspell/dict-de-de)
 ```
 
 <!--- @@inject-end: output.md --->

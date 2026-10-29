@@ -1,8 +1,10 @@
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
-// The file being updated uses `*` bullets and `*` emphasis.
-const existing = '# Fruit\n\n* Apples\n* *Pears*\n';
+// The README being updated uses `*` bullets.
+const existing = '# Dictionaries\n\n* Dutch\n* French\n';
 
-const section = md.document(md.list(['Plums', md.emphasis('Cherries')])).withStyle(md.detectStyle(existing));
+const section = md
+  .document(md.list(['German', 'Spanish']))
+  .withStyle(md.detectStyle(existing));
 
-process.stdout.write(section.toString());
+console.log(section.toString());

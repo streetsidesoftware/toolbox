@@ -141,6 +141,7 @@ export interface MDDocument extends MDElement {
   /**
    * A copy of the document that renders in the given style.
    * The style replaces any style the document had. Everything inside the document renders in it.
+   * Without it, a template or parsed text keeps the style of its own text, though spacing and table padding may change.
    */
   withStyle(style: MarkdownStyle): MDDocument;
 }

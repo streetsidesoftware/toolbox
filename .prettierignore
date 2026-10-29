@@ -9,5 +9,5 @@ static/published.json
 .vscode/settings.json
 .claude/worktrees/**
 # An example's output and data files, kept exactly as written.
-packages/*/examples/*/*.md
-!packages/*/examples/*/README.md
+packages/*/examples/**/*.md
+!packages/*/examples/**/README.md
