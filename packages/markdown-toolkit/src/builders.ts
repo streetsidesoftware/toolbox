@@ -11,9 +11,9 @@ import {
   isBlockContent,
   isListItem,
   listItemNode,
+  mapParagraphsAndBlocks,
   MarkdownElement,
   renderingOf,
-  runs,
   textNodes,
 } from './nodes.ts';
 import { placeholderNode } from './placeholderNode.ts';
@@ -267,12 +267,16 @@ function paragraphOf(content: readonly InlineContent[], where: string): MDParagr
 /**
  * Content as blocks, for where only blocks can go.
  * - Blocks are returned unchanged.
- * - Each run of inline pieces becomes a paragraph, as in a list item.
+ * - The inline pieces between blocks become a paragraph, as in a list item.
  * @category elements
  */
 export function toBlock(content: AnyContent): BlockContent {
   if (isBlockContent(content)) return content;
-  const blocks = runs(content).map((run) => ('inline' in run ? paragraphOf(run.inline, 'block content') : run.block));
+  const blocks = mapParagraphsAndBlocks(
+    content,
+    (inline) => paragraphOf(inline, 'block content'),
+    (block) => block,
+  );
   return blocks.length === 1 ? blocks[0] : blocks;
 }
 

@@ -9,6 +9,7 @@ import type {
   BlockContent,
   InlineContent,
   ListItemContent,
+  MDBlock,
   MDElement,
   MDKind,
   MDListItem,
@@ -138,19 +139,24 @@ export function describe(value: unknown): string {
   return typeof value === 'object' ? 'an object' : `a ${typeof value}`;
 }
 
-/** A run of inline pieces that form one line, or a single block. */
-export type Run = { readonly inline: InlineContent[] } | { readonly block: BlockContent };
-
 /**
- * Pieces in order, as runs of inline pieces and the blocks between them.
- * Arrays are flattened.
+ * Mixed content mapped in order: the inline pieces between blocks as one paragraph each, and each block on its own.
+ * Arrays are flattened, in the content and in what a mapper returns.
  */
-export function runs(content: AnyContent | readonly AnyContent[]): Run[] {
-  const result: Run[] = [];
-  let line: InlineContent[] = [];
-  function endLine(): void {
-    if (line.length) result.push({ inline: line });
-    line = [];
+export function mapParagraphsAndBlocks<T>(
+  content: AnyContent | readonly AnyContent[],
+  mapParagraph: (inline: InlineContent[]) => T | readonly T[],
+  mapBlock: (block: MDBlock) => T | readonly T[],
+): T[] {
+  const result: T[] = [];
+  let paragraph: InlineContent[] = [];
+  function emit(mapped: T | readonly T[]): void {
+    if (isArray(mapped)) result.push(...mapped);
+    else result.push(mapped);
+  }
+  function endParagraph(): void {
+    if (paragraph.length) emit(mapParagraph(paragraph));
+    paragraph = [];
   }
   function add(piece: AnyContent | readonly AnyContent[]): void {
     if (isArray(piece)) {
@@ -158,26 +164,26 @@ export function runs(content: AnyContent | readonly AnyContent[]): Run[] {
       return;
     }
     if (isBlockContent(piece)) {
-      endLine();
-      result.push({ block: piece });
+      endParagraph();
+      emit(mapBlock(piece));
       return;
     }
-    line.push(piece);
+    paragraph.push(piece);
   }
   add(content);
-  endLine();
+  endParagraph();
   return result;
 }
 
 /**
- * The blocks for mixed content: each run of inline pieces forms a paragraph, and blocks follow.
+ * The blocks for mixed content: the inline pieces between blocks form a paragraph, and blocks follow.
  * @param where - what the content is for, for error messages.
  */
 export function groupedNodes(content: AnyContent | readonly AnyContent[], where: string): MdastBlockContent[] {
-  return runs(content).flatMap((run): MdastBlockContent[] =>
-    'inline' in run
-      ? [{ type: 'paragraph', children: inlineNodes(run.inline, where) }]
-      : (blockNodes(run.block, where) as MdastBlockContent[]),
+  return mapParagraphsAndBlocks(
+    content,
+    (inline): MdastBlockContent => ({ type: 'paragraph', children: inlineNodes(inline, where) }),
+    (block) => blockNodes(block, where) as MdastBlockContent[],
   );
 }
 
