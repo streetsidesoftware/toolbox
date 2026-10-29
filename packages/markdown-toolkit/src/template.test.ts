@@ -17,6 +17,7 @@ import {
   paragraph,
   parse,
   placeholder,
+  strong,
   substitutePlaceholders,
   template,
   text,
@@ -164,6 +165,15 @@ describe('template', () => {
   test('the template keeps its own style', () => {
     const md = template('* {@ a @}\n* *b*\n', { a: 'one' });
     assert.equal(md.toString(), '* one\n* *b*');
+  });
+
+  test('a link value inside a link throws', () => {
+    assert.throws(
+      () => template('[see {@ x @}](u)', { x: strong(link('a', 'v')) }),
+      new TypeError("{@ x @} is inside a link and can't take a link, got strong text"),
+    );
+    assert.throws(() => substitutePlaceholders(link(placeholder('x'), 'u'), { x: link('a', 'v') }), TypeError);
+    assert.equal(template('[see {@ x @}](u)', { x: strong('a') }).toString(), '[see **a**](u)');
   });
 
   test('numbers and booleans are text', () => {

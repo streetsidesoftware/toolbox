@@ -6,6 +6,7 @@ import { isFrontmatter } from './frontmatter.ts';
 import {
   describe,
   groupedNodes,
+  hasLink,
   inlineNodes,
   isArray,
   isBlockContent,
@@ -183,6 +184,8 @@ function checkPlaceholderName(name: string): void {
 /**
  * Creates a link that shows `content` and goes to `url`.
  *
+ * The content can hold text, formatting and code, but not another link: a page can't show a link inside a link.
+ *
  * @example
  * md.link('the docs', 'https://example.com');
  * // [the docs](https://example.com)
@@ -190,9 +193,9 @@ function checkPlaceholderName(name: string): void {
  */
 export function link(content: InlineContent, url: string | URL): MDLink {
   const href = typeof url === 'string' ? url : url.href;
-  return new MarkdownElement('inline', 'link', 'a link', [
-    { type: 'link', url: href, children: inlineNodes(content, 'link content') },
-  ]);
+  const children = inlineNodes(content, 'link content');
+  if (hasLink(children)) throw new TypeError("link content can't hold a link, got a link");
+  return new MarkdownElement('inline', 'link', 'a link', [{ type: 'link', url: href, children }]);
 }
 
 /**

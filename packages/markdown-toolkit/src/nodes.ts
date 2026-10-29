@@ -99,6 +99,11 @@ export function inlineNodes(content: InlineContent, where: string): PhrasingCont
   throw new TypeError(`${where} must be inline, got ${describe(content)}`);
 }
 
+/** Whether any of the nodes is a link, or holds one. */
+export function hasLink(nodes: readonly RootContent[]): boolean {
+  return nodes.some((node) => node.type === 'link' || ('children' in node && hasLink(node.children)));
+}
+
 /**
  * The nodes for block content.
  * @param where - what the content is for, for error messages.

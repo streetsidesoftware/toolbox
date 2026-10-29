@@ -12,6 +12,7 @@ import {
   blockNodes,
   describe,
   groupedNodes,
+  hasLink,
   inlineNodes,
   isArray,
   isBlockContent,
@@ -464,6 +465,9 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
       return value === undefined ? undefined : valueAsCode(value, name, inside);
     });
 
+  // Whether the nodes being substituted are inside a link, which can't hold a link.
+  let insideLink = false;
+
   /**
    * @param lines - the nodes are a paragraph's children, and a whole-line placeholder may take blocks.
    * @param blocks - the nodes may be blocks.
@@ -478,7 +482,11 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
         if (lines && isWholeLine(nodes, i) && isBlockContent(value)) {
           return [{ blocks: blockNodes(value, `{@ ${name} @}`) }];
         }
-        return valueAsInline(value, name);
+        const inline = valueAsInline(value, name);
+        if (insideLink && hasLink(inline)) {
+          throw new TypeError(`{@ ${name} @} is inside a link and can't take a link, got ${describe(value)}`);
+        }
+        return inline;
       }
       switch (node.type) {
         case 'paragraph': {
@@ -500,7 +508,9 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
           return [node];
         default:
           if ('children' in node) {
+            if (node.type === 'link') insideLink = true;
             const children = substituteInNodes(node.children, false, blocks && blockContainers.has(node.type));
+            if (node.type === 'link') insideLink = false;
             node.children = children as typeof node.children;
           }
           return [node];

@@ -401,6 +401,15 @@ describe('errors', () => {
     assert.throws(() => paragraph(['a', codeBlock('x')]), TypeError);
   });
 
+  testEach`
+    content
+    ${['see ', link('inner', 'u')]}
+    ${strong(link('inner', 'u'))}
+    ${template('[inner](u)', {})}
+  `('a link inside a link', ({ content }: { content: Builders.InlineContent }) => {
+    assert.throws(() => link(content, 'v'), new TypeError("link content can't hold a link, got a link"));
+  });
+
   test('a heading depth outside 1 to 6', () => {
     // @ts-expect-error 7 is not a heading depth
     assert.throws(() => heading(7, 'x'), /heading depth must be 1 to 6, got 7/);

@@ -20,6 +20,8 @@ A fragment is blocks of Markdown made from text or by substitution: it comes fro
 
 Putting an element where its kind can't go, such as a list inside a heading, is an error. The builder types catch it at compile time, and the builders check again at runtime, for JavaScript callers and `any` values.
 
+A link inside a link's content is an error too, at any depth and from any source: `link(strong(link(…)), …)`, a link from `parse()`, or a link value substituted into link text. HTML can't nest links, so the page would show the outer link as broken text. The types can't catch a link nested inside other formatting, so this check is at runtime only.
+
 Converting an element to a string too early loses its kind. Writing ``text(`see ${link('a', 'u')}`)`` makes the link plain text, and it renders as `see \[a]\(u)`. Scripts compose elements, not strings.
 
 ## Building content
