@@ -213,6 +213,9 @@ export function paragraph(...content: InlineContent[]): MDParagraph {
   return paragraphOf(content, 'paragraph content');
 }
 
+/** The same as {@link paragraph}. */
+export const p: typeof paragraph = paragraph;
+
 function paragraphOf(content: readonly InlineContent[], where: string): MDParagraph {
   return new MarkdownElement('block', 'a paragraph', [{ type: 'paragraph', children: inlineNodes(content, where) }]);
 }
