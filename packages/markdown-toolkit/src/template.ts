@@ -4,7 +4,7 @@ import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import { unified } from 'unified';
 
-import { inlineText } from './builders.ts';
+import { text } from './builders.ts';
 import { detectMarkdownStyle } from './detectStyle.ts';
 import { DocumentElement } from './documentElement.ts';
 import { readFrontmatter, yamlNode } from './frontmatter.ts';
@@ -51,18 +51,20 @@ export interface TemplateValues {
 }
 
 /**
- * Substitute values for a Markdown template's `{@ name @}` placeholders.
- * - A string is inserted as text and escaped.
- * - A placeholder inside a line takes only inline values.
- * - A placeholder that is a whole line also takes blocks. Its paragraph splits around them.
- * - A placeholder inside code or HTML takes only a string, text, or a placeholder, inserted as is.
+ * Creates Markdown from a template by substituting values for its `{​@ name @​}` placeholders.
  *
- * The result decides its kind:
- * - A single paragraph is inline, without the whitespace around it.
- * - Anything else is blocks, rendered in the template's own style.
+ * - A string value shows exactly as given.
+ * - A placeholder within a sentence takes text, links, formatting or code.
+ * - A placeholder on a line of its own can also take a list, table or other block.
+ * - A placeholder inside code or HTML takes only a string, which goes in as given.
+ * - A placeholder without a value stays in place, so a later call can substitute it.
  *
- * A placeholder with no value is kept as written, so it can be substituted later.
- * @throws if a value doesn't fit where its placeholder is.
+ * A result of one paragraph can go anywhere a string can. A longer one goes where paragraphs can.
+ *
+ * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
+ * @example
+ * md.template('Install {@name@} with npm.', { name: 'cspell' });
+ * // Install cspell with npm.
  * @category templates
  */
 export function template(markdown: string, values: TemplateValues): MDFragment | MDInlineFragment {
@@ -72,9 +74,18 @@ export function template(markdown: string, values: TemplateValues): MDFragment |
 }
 
 /**
- * Substitute values for a Markdown template's placeholders as blocks, the same way as {@link template}.
+ * Creates paragraphs and other blocks from a template by substituting values for its `{​@ name @​}` placeholders.
  *
- * A single paragraph stays a paragraph.
+ * - A string value shows exactly as given.
+ * - A placeholder within a sentence takes text, links, formatting or code.
+ * - A placeholder on a line of its own can also take a list, table or other block.
+ * - A placeholder inside code or HTML takes only a string, which goes in as given.
+ * - A placeholder without a value stays in place, so a later call can substitute it.
+ *
+ * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
+ * @example
+ * md.blockTemplate('Hello {@name@}.', { name: 'world' });
+ * // Hello world.
  * @category templates
  */
 export function blockTemplate(markdown: string, values: TemplateValues): MDFragment {
@@ -90,10 +101,18 @@ export function blockTemplate(markdown: string, values: TemplateValues): MDFragm
 }
 
 /**
- * Substitute values for an inline template's placeholders, for use inside a line.
+ * Creates a line of Markdown from a template by substituting values for its `{​@ name @​}` placeholders.
  *
- * The text must be one paragraph. Block syntax, such as a leading `-`, is read as text.
- * @throws if the text isn't one paragraph, or a value isn't inline.
+ * Use the result in a heading, a table cell, a link or a sentence.
+ *
+ * - A string or number shows exactly as given.
+ * - A value can be text, a link, formatting or code.
+ * - A placeholder without a value stays in place, so a later call can substitute it.
+ *
+ * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
+ * @example
+ * md.inlineTemplate('Version {@version@}', { version: '2.0' });
+ * // Version 2.0
  * @category templates
  */
 export function inlineTemplate(markdown: string, values: TemplateValues): MDInlineFragment {
@@ -115,11 +134,14 @@ export function inlineTemplate(markdown: string, values: TemplateValues): MDInli
 }
 
 /**
- * Markdown text as an element, for Markdown made elsewhere.
- * - A single paragraph is inline, without the whitespace around it.
- * - Anything else is blocks, rendered in the text's own style.
+ * Parses Markdown text so it can be added to a page with its formatting.
  *
- * A `{​@ name @​}` placeholder is kept as written, the same as in `text()`.
+ * Text of one paragraph can go anywhere a string can, even in a heading.
+ * Longer text goes where paragraphs can, such as in a document or a list item.
+ *
+ * @example
+ * md.parse('Some **bold** text.');
+ * // On the page, "bold" is bold.
  * @category text
  */
 export function parse(markdown: string): MDFragment | MDInlineFragment {
@@ -129,9 +151,15 @@ export function parse(markdown: string): MDFragment | MDInlineFragment {
 }
 
 /**
- * A whole file as a document. Frontmatter at its start is kept as written.
+ * Parses a whole Markdown file, frontmatter included.
  *
- * A `{​@ name @​}` placeholder is kept as written, the same as in {@link parse}.
+ * Its frontmatter, formatting and `{​@ name @​}` placeholders stay as they are, ready for {@link substitutePlaceholders}.
+ *
+ * @example
+ * md.parseDocument('# Title\n\n* item\n');
+ * // # Title
+ * //
+ * // * item
  * @category documents
  */
 export function parseDocument(markdown: string): MDDocument {
@@ -143,11 +171,22 @@ export function parseDocument(markdown: string): MDDocument {
 }
 
 /**
- * Substitute values for a whole file's placeholders, the same way as {@link template}, as a document.
+ * Creates a whole Markdown file from a template by substituting values for its `{​@ name @​}` placeholders.
  *
- * Frontmatter at its start is kept. A value in it is inserted as is: a string as written, and a Markdown element as rendered.
- * Each line of the value after the first gets the leading whitespace of the placeholder's line.
- * @throws if a value doesn't fit where its placeholder is.
+ * Placeholders in the frontmatter work too, and a value there goes in as given.
+ *
+ * - A string value shows exactly as given.
+ * - A placeholder within a sentence takes text, links, formatting or code.
+ * - A placeholder on a line of its own can also take a list, table or other block.
+ * - A placeholder inside code or HTML takes only a string, which goes in as given.
+ * - A placeholder without a value stays in place, so a later call can substitute it.
+ *
+ * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
+ * @example
+ * md.templateDocument('# {@title@}\n\nBody.', { title: 'Dictionaries' });
+ * // # Dictionaries
+ * //
+ * // Body.
  * @category templates
  */
 export function templateDocument(markdown: string, values: TemplateValues): MDDocument {
@@ -177,12 +216,20 @@ export type SubstitutionResult<T extends MDElement> = T extends MDText
 export type SubstitutedValue<T extends MDElement> = SubstitutionResult<T>;
 
 /**
- * Substitute values for the placeholders in a Markdown element.
- * - Values go in as in {@link template}.
- * - A placeholder with no value is kept as written, so it can be substituted later.
- * - The result is the same type of element, in the same style, when it can hold the values.
- *   Otherwise it's a fragment of the same kind, or blocks where a placeholder that is a whole line took blocks.
- * @throws if a value doesn't fit where its placeholder is.
+ * Substitutes values for the `{​@ name @​}` placeholders in an element you've already built, such as a parsed file.
+ *
+ * Placeholders without a value stay in place, so you can substitute values in steps.
+ *
+ * - A string value shows exactly as given.
+ * - A placeholder within a sentence takes text, links, formatting or code.
+ * - A placeholder on a line of its own can also take a list, table or other block.
+ * - A placeholder inside code or HTML takes only a string, which goes in as given.
+ *
+ * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
+ * @example
+ * const page = md.p('Hello ', md.placeholder('name'), '.');
+ * md.substitutePlaceholders(page, { name: 'world' });
+ * // Hello world.
  * @category templates
  */
 export function substitutePlaceholders<T extends MDElement>(element: T, values: TemplateValues): SubstitutionResult<T>;
@@ -190,7 +237,7 @@ export function substitutePlaceholders(element: MDElement, values: TemplateValue
   const rendering = renderingOf(element);
   if (!rendering) throw new TypeError(`expected a Markdown element, got ${describe(element)}`);
   const substituted = isText(element) ? substituteInText(element.text, values) : undefined;
-  if (substituted !== undefined) return inlineText(substituted);
+  if (substituted !== undefined) return text(substituted);
   const { style } = rendering;
   const nodes = structuredClone(rendering.nodes);
   switch (element.type) {
