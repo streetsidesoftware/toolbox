@@ -245,7 +245,7 @@ The [examples README](../examples/README.md) describes the folder layout. Runnin
 
 ## Function reference
 
-The README ends with a `## Functions` section that `gen-api-reference` writes from the code into `static/api-reference.md`, so the README never carries a hand-edited list of exports. It lists every function `src/index.ts` exports, one line each: its parameter names, its other names, such as `p` for `paragraph`, and its summary.
+The README ends with a `## Functions` section that `gen-api-reference` writes from the code into `static/api-reference.md`, so the README never carries a hand-edited list of exports. It lists every function `src/index.ts` exports, one line each: its parameter names, its other names, such as `paragraph` for `p`, and its summary.
 
 - Each exported function's JSDoc has a `@category` tag that says what the function is, such as `style` or `line-breaks`. Users see it in editor hovers, so it describes the function, not the README's layout.
 - `.api-referencerc.json` lays out the reference. It lists the groups in order, each with its heading and the categories under it, so several small categories can share one heading. Changing a heading or the order never touches `src/`, and neither does renaming a guide section.

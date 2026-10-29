@@ -701,61 +701,61 @@ console.log(section.toString());
 
 ### Text
 
-- `paragraph(...content)` (also `p`): A paragraph: inline content as a block.
-- `inlineText(value)` (also `text`): Text, for use inside a line. A `{@ name @}` placeholder in it is kept as written.
-- `blockText(value)`: Plain text as paragraphs.
-- `parse(markdown)` (also `parseFragment`): Markdown text as an element, for Markdown made elsewhere.
-- `lineBreak()`: A line break in the form that works where it ends up.
-- `br()`: An HTML line break, always `<br/>`. It's self-closed, so it also works in MDX.
-- `comment(text)`: An HTML comment, `<!-- text -->`. It goes inside a line or on its own.
+- `p(...content)` (also `paragraph`): Creates a paragraph from one or more pieces, such as strings and links.
+- `text(value)` (also `inlineText`): Creates text that shows exactly as given, even if it contains Markdown or HTML.
+- `blockText(value)`: Creates paragraphs from plain text, starting a new one at each blank line.
+- `parse(markdown)` (also `parseFragment`): Parses Markdown text so it can be added to a page with its formatting.
+- `lineBreak()`: Starts a new line without starting a new paragraph.
+- `br()`: Starts a new line with an HTML `<br/>` tag.
+- `comment(text)`: Creates an HTML comment, `<!-- text -->`, which the page doesn't show.
 
 ### Links and formatting
 
-- `link(content, url)`: A link, `[content](url)`.
-- `strong(content)`: Strong text, `**content**`.
-- `emphasis(content)`: Emphasized text, `_content_`.
-- `strikethrough(content)`: Struck-through text, `~~content~~`.
+- `link(content, url)`: Creates a link that shows `content` and goes to `url`.
+- `strong(content)`: Creates bold text.
+- `emphasis(content)`: Creates italic text.
+- `strikethrough(content)`: Creates text with a line through it.
 
 ### Headings and sections
 
-- `heading(depth, content)`: A heading, `## content`.
-- `horizontalRule()` (also `hr`): A horizontal rule, a line between sections: `---` in the default style.
-- `details(summary, ...content)`: A collapsible `<details>` block. Its content goes after the summary, with blank lines around it so Markdown renders.
+- `heading(depth, content)`: Creates a heading.
+- `hr()` (also `horizontalRule`): Creates a line across the page, to separate sections.
+- `details(summary, ...content)`: Creates a collapsible section: the reader sees `summary` and clicks it to show the content.
 
 ### Lists and tables
 
-- `list(entries)`: A bulleted list, one item per entry.
-- `listItem(...content)`: One list item from several pieces, for use in `list`.
-- `table(header, rows, options?)`: A GFM table: a header row, then one row per entry. Each cell is inline content.
-- `htmlTable(header, rows, options?)`: An HTML `<table>`: a header row, then one row per entry. A cell holds any content, blocks included.
-- `definitionList(entries)` (also `dl`): A `<dl>` definition list, one `[term, definition]` pair per entry.
+- `list(entries)`: Creates a bulleted list, one item per entry.
+- `listItem(...content)`: Creates one list item from several pieces, for use in `list`.
+- `table(header, rows, options?)`: Creates a table with a header row, then one row per entry.
+- `htmlTable(header, rows, options?)`: Creates a table whose cells can hold anything, including lists and paragraphs.
+- `dl(entries)` (also `definitionList`): Creates a list of terms, each followed by its definition.
 
 ### Code
 
-- `codeBlock(code, lang?)`: A fenced code block. The code is inserted as is.
-- `inlineCode(code)`: Inline code. The code is inserted as is.
+- `codeBlock(code, lang?)`: Creates a block of code, shown exactly as given.
+- `inlineCode(code)`: Creates code within a line of text, shown exactly as given.
 
 ### Templates
 
-- `template(markdown, values)` (also `templateFragment`): Substitute values for a Markdown template's `{@ name @}` placeholders.
-- `inlineTemplate(markdown, values)`: Substitute values for an inline template's placeholders, for use inside a line.
-- `blockTemplate(markdown, values)`: Substitute values for a Markdown template's placeholders as blocks, the same way as `template`.
-- `templateDocument(markdown, values)`: Substitute values for a whole file's placeholders, the same way as `template`, as a document.
-- `substitutePlaceholders(element, values)`: Substitute values for the placeholders in a Markdown element.
-- `placeholder(name)`: A `{@ name @}` placeholder that goes where inline content does, rendered exactly as written so it can be substituted later.
-- `blockPlaceholder(name)`: A `{@ name @}` placeholder on its own lines, rendered exactly as written so it can be substituted later.
+- `template(markdown, values)` (also `templateFragment`): Creates Markdown from a template by substituting values for its `{@ name @}` placeholders.
+- `inlineTemplate(markdown, values)`: Creates a line of Markdown from a template by substituting values for its `{@ name @}` placeholders.
+- `blockTemplate(markdown, values)`: Creates paragraphs and other blocks from a template by substituting values for its `{@ name @}` placeholders.
+- `templateDocument(markdown, values)`: Creates a whole Markdown file from a template by substituting values for its `{@ name @}` placeholders.
+- `substitutePlaceholders(element, values)`: Substitutes values for the `{@ name @}` placeholders in an element you've already built, such as a parsed file.
+- `placeholder(name)`: Creates a `{@ name @}` placeholder for a value to be substituted later.
+- `blockPlaceholder(name)`: Creates a `{@ name @}` placeholder on lines of its own, for a value to be substituted later.
 
 ### Documents
 
-- `document(...content)`: A whole document. Arrays are flattened.
-- `frontmatter(yaml)`: YAML frontmatter, for the start of a document. The text is inserted as is, between `---` lines.
-- `detectStyle(markdown)`: The style an existing Markdown text uses. A construct the text doesn't use gets the default.
-- `parseDocument(markdown)`: A whole file as a document. Frontmatter at its start is kept as written.
+- `document(...content)`: Creates a whole Markdown file from its parts, in order.
+- `frontmatter(yaml)`: Creates YAML frontmatter for the start of a file, between `---` lines.
+- `detectStyle(markdown)`: Detects how an existing Markdown text is written, such as its bullet and emphasis markers.
+- `parseDocument(markdown)`: Parses a whole Markdown file, frontmatter included.
 
 ### Elements
 
-- `isMarkdown(value)`: Whether a value is a Markdown element.
-- `toBlock(content)`: Content as blocks, for where only blocks can go.
+- `isMarkdown(value)`: Checks whether a value is an element made by this library, such as a paragraph or a link.
+- `toBlock(content)`: Puts text, links and other pieces in a paragraph of their own, and leaves paragraphs, lists and other blocks as they are.
 
 <!--- @@inject-end: static/api-reference.md --->
 

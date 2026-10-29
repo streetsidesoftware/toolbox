@@ -4,10 +4,17 @@ import { describe, inlineNodes, isArray, MarkdownElement } from './nodes.ts';
 import type { ColumnAlign, InlineContent, MDTable, TableOptions } from './types.ts';
 
 /**
- * A GFM table: a header row, then one row per entry. Each cell is inline content.
- * - A `|` in a cell is escaped, and a line break renders as `<br/>`.
- * - A short row is padded with empty cells.
- * - `align` aligns each column: `'left'`, `'center'`, `'right'`, a delimiter such as `:-:`, or `undefined` for none.
+ * Creates a table with a header row, then one row per entry.
+ *
+ * A cell holds text, links, formatting or code, but not lists or paragraphs. For those, use {@link htmlTable}.
+ *
+ * @param options - `align` sets each column's alignment: `'left'`, `'center'` or `'right'`.
+ * @example
+ * md.table(['Language', 'Code'], [['Dutch', 'nl'], ['French', 'fr']]);
+ * // | Language | Code |
+ * // | -------- | ---- |
+ * // | Dutch    | nl   |
+ * // | French   | fr   |
  * @category tables
  */
 export function table(

@@ -3,7 +3,7 @@
     {
       "heading": "Text",
       "categories": ["text", "line-breaks", "comments"],
-      "functions": ["paragraph", "inlineText", "blockText", "parse", "lineBreak"]
+      "functions": ["p", "text", "blockText", "parse", "lineBreak"]
     },
     {
       "heading": "Links and formatting",
@@ -13,7 +13,7 @@
     {
       "heading": "Headings and sections",
       "categories": ["headings", "sections"],
-      "functions": ["heading", "horizontalRule"]
+      "functions": ["heading", "hr"]
     },
     {
       "heading": "Lists and tables",

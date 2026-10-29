@@ -77,7 +77,13 @@ class BlockPlaceholderElement extends MarkdownElement<'block', 'blockPlaceholder
 }
 
 /**
- * Whether a value is a Markdown element.
+ * Checks whether a value is an element made by this library, such as a paragraph or a link.
+ *
+ * @example
+ * md.isMarkdown(md.p('Hi'));
+ * // true
+ * md.isMarkdown('Hi');
+ * // false
  * @category elements
  */
 export function isMarkdown(value: unknown): value is MDElement {
@@ -93,23 +99,30 @@ function commentSafe(text: string): string {
 }
 
 /**
- * Text, for use inside a line. A `{​@ name @​}` placeholder in it is kept as written.
+ * Creates text that shows exactly as given, even if it contains Markdown or HTML.
  *
- * A newline stays in the text, and displays as a space.
+ * @example
+ * md.text('Use <details> for *long* notes');
+ * // The page shows: Use <details> for *long* notes
  * @category text
  */
-export function inlineText(value: string): MDText {
+export function text(value: string): MDText {
   return new TextElement(value);
 }
 
-/** The same as {@link inlineText}. */
-export const text: typeof inlineText = inlineText;
+/** The same as {@link text}. */
+export const inlineText: typeof text = text;
 
 /**
- * Plain text as paragraphs.
- * - A blank line, or a line of only spaces and tabs, ends a paragraph.
- * - Other lines are escaped, as in {@link inlineText}, and a newline between them displays as a space.
- * - Blank lines at the start and end are dropped.
+ * Creates paragraphs from plain text, starting a new one at each blank line.
+ *
+ * The text shows exactly as given, even if it contains Markdown or HTML.
+ *
+ * @example
+ * md.blockText('First paragraph.\n\nSecond paragraph.');
+ * // First paragraph.
+ * //
+ * // Second paragraph.
  * @category text
  */
 export function blockText(value: string): MDFragment {
@@ -131,10 +144,15 @@ export function blockText(value: string): MDFragment {
 }
 
 /**
- * A `{​@ name @​}` placeholder that goes where inline content does, rendered exactly as written so it can be substituted later.
- * - Inside a line, it takes only inline content.
- * - On a line of its own, where blocks can go, it also takes blocks.
- * - It is also accepted inside code.
+ * Creates a `{​@ name @​}` placeholder for a value to be substituted later.
+ *
+ * - Within a sentence, it takes text, links, formatting or code.
+ * - On a line of its own, it can also take a list, table or other block.
+ *
+ * @example
+ * const page = md.p('Hello ', md.placeholder('name'), '.');
+ * md.substitutePlaceholders(page, { name: 'world' });
+ * // Hello world.
  * @category placeholders
  */
 export function placeholder(name: string): MDPlaceholder {
@@ -143,9 +161,14 @@ export function placeholder(name: string): MDPlaceholder {
 }
 
 /**
- * A `{​@ name @​}` placeholder on its own lines, rendered exactly as written so it can be substituted later.
+ * Creates a `{​@ name @​}` placeholder on lines of its own, for a value to be substituted later.
  *
- * It takes blocks or inline content.
+ * It takes any value, including a list, table or other block.
+ *
+ * @example
+ * md.substitutePlaceholders(md.blockPlaceholder('languages'), { languages: md.list(['Dutch', 'French']) });
+ * // - Dutch
+ * // - French
  * @category placeholders
  */
 export function blockPlaceholder(name: string): MDBlockPlaceholder {
@@ -158,7 +181,11 @@ function checkPlaceholderName(name: string): void {
 }
 
 /**
- * A link, `[content](url)`.
+ * Creates a link that shows `content` and goes to `url`.
+ *
+ * @example
+ * md.link('the docs', 'https://example.com');
+ * // [the docs](https://example.com)
  * @category links
  */
 export function link(content: InlineContent, url: string | URL): MDLink {
@@ -169,7 +196,11 @@ export function link(content: InlineContent, url: string | URL): MDLink {
 }
 
 /**
- * Strong text, `**content**`.
+ * Creates bold text.
+ *
+ * @example
+ * md.strong('important');
+ * // **important**
  * @category formatting
  */
 export function strong(content: InlineContent): MDStrong {
@@ -179,7 +210,11 @@ export function strong(content: InlineContent): MDStrong {
 }
 
 /**
- * Emphasized text, `_content_`.
+ * Creates italic text.
+ *
+ * @example
+ * md.emphasis('maybe');
+ * // _maybe_
  * @category formatting
  */
 export function emphasis(content: InlineContent): MDEmphasis {
@@ -189,7 +224,11 @@ export function emphasis(content: InlineContent): MDEmphasis {
 }
 
 /**
- * Struck-through text, `~~content~~`.
+ * Creates text with a line through it.
+ *
+ * @example
+ * md.strikethrough('old price');
+ * // ~~old price~~
  * @category formatting
  */
 export function strikethrough(content: InlineContent): MDStrikethrough {
@@ -199,7 +238,11 @@ export function strikethrough(content: InlineContent): MDStrikethrough {
 }
 
 /**
- * Inline code. The code is inserted as is.
+ * Creates code within a line of text, shown exactly as given.
+ *
+ * @example
+ * md.inlineCode('npm install');
+ * // `npm install`
  * @category code
  */
 export function inlineCode(code: string): MDInlineCode {
@@ -207,9 +250,13 @@ export function inlineCode(code: string): MDInlineCode {
 }
 
 /**
- * A line break in the form that works where it ends up.
+ * Starts a new line without starting a new paragraph.
  *
- * In a paragraph or list item it's a Markdown hard break, a `\` at the end of the line.
+ * It works anywhere a string can go, even in a heading or a table cell.
+ *
+ * @example
+ * md.p('Line one', md.lineBreak(), 'line two');
+ * // The page shows "Line one" and "line two" on separate lines.
  * @category line-breaks
  */
 export function lineBreak(): MDLineBreak {
@@ -217,7 +264,13 @@ export function lineBreak(): MDLineBreak {
 }
 
 /**
- * An HTML line break, always `<br/>`. It's self-closed, so it also works in MDX.
+ * Starts a new line with an HTML `<br/>` tag.
+ *
+ * The Markdown always contains `<br/>`, wherever it goes.
+ *
+ * @example
+ * md.p('Line one', md.br(), 'line two');
+ * // Line one<br/>line two
  * @category line-breaks
  */
 export function br(): MDBr {
@@ -225,7 +278,13 @@ export function br(): MDBr {
 }
 
 /**
- * An HTML comment, `<!-- text -->`. It goes inside a line or on its own.
+ * Creates an HTML comment, `<!-- text -->`, which the page doesn't show.
+ *
+ * It works anywhere a string can go, or on its own line between paragraphs.
+ *
+ * @example
+ * md.comment('cspell:ignore gezellig');
+ * // <!-- cspell:ignore gezellig -->
  * @category comments
  */
 export function comment(text: string): MDComment {
@@ -235,7 +294,12 @@ export function comment(text: string): MDComment {
 }
 
 /**
- * A heading, `## content`.
+ * Creates a heading.
+ *
+ * @param depth - 1 for the page title, 2 for its sections, and so on down to 6.
+ * @example
+ * md.heading(2, 'Install');
+ * // ## Install
  * @category headings
  */
 export function heading(depth: HeadingDepth, content: InlineContent): MDHeading {
@@ -248,15 +312,24 @@ export function heading(depth: HeadingDepth, content: InlineContent): MDHeading 
 }
 
 /**
- * A paragraph: inline content as a block.
+ * Creates a paragraph from one or more pieces, such as strings and links.
+ *
+ * The pieces are joined as given, with no spaces added. A string is always text, even if it looks like Markdown.
+ *
+ * - For a string that's already Markdown, use {@link parse}.
+ * - For plain text where blank lines should separate paragraphs, use {@link blockText}.
+ *
+ * @example
+ * md.p('One sentence.', ' Another one.');
+ * // One sentence. Another one.
  * @category text
  */
-export function paragraph(...content: InlineContent[]): MDParagraph {
+export function p(...content: InlineContent[]): MDParagraph {
   return paragraphOf(content, 'paragraph content');
 }
 
-/** The same as {@link paragraph}. */
-export const p: typeof paragraph = paragraph;
+/** The same as {@link p}. */
+export const paragraph: typeof p = p;
 
 function paragraphOf(content: readonly InlineContent[], where: string): MDParagraph {
   return new MarkdownElement('block', 'paragraph', 'a paragraph', [
@@ -265,9 +338,11 @@ function paragraphOf(content: readonly InlineContent[], where: string): MDParagr
 }
 
 /**
- * Content as blocks, for where only blocks can go.
- * - Blocks are returned unchanged.
- * - The inline pieces between blocks become a paragraph, as in a list item.
+ * Puts text, links and other pieces in a paragraph of their own, and leaves paragraphs, lists and other blocks as they are.
+ *
+ * @example
+ * md.toBlock(['Some ', md.strong('bold'), ' text.']);
+ * // Some **bold** text.
  * @category elements
  */
 export function toBlock(content: AnyContent): BlockContent {
@@ -281,18 +356,29 @@ export function toBlock(content: AnyContent): BlockContent {
 }
 
 /**
- * A horizontal rule, a line between sections: `---` in the default style.
+ * Creates a line across the page, to separate sections.
+ *
+ * @example
+ * md.hr();
+ * // ---
  * @category sections
  */
-export function horizontalRule(): MDHorizontalRule {
+export function hr(): MDHorizontalRule {
   return new MarkdownElement('block', 'horizontalRule', 'a horizontal rule', [{ type: 'thematicBreak' }]);
 }
 
-/** The same as {@link horizontalRule}. */
-export const hr: typeof horizontalRule = horizontalRule;
+/** The same as {@link hr}. */
+export const horizontalRule: typeof hr = hr;
 
 /**
- * A fenced code block. The code is inserted as is.
+ * Creates a block of code, shown exactly as given.
+ *
+ * @param lang - the language, such as `ts` or `sh`, so the page can highlight the code.
+ * @example
+ * md.codeBlock('npm install', 'sh');
+ * // ```sh
+ * // npm install
+ * // ```
  * @category code
  */
 export function codeBlock(code: string, lang?: string): MDCodeBlock {
@@ -300,7 +386,14 @@ export function codeBlock(code: string, lang?: string): MDCodeBlock {
 }
 
 /**
- * One list item from several pieces, for use in {@link list}.
+ * Creates one list item from several pieces, for use in {@link list}.
+ *
+ * Pieces in a row join into one line. A paragraph, list or other block goes on its own lines below them.
+ *
+ * @example
+ * md.listItem('Dutch', md.list(['Flemish']));
+ * // - Dutch
+ * //   - Flemish
  * @category lists
  */
 export function listItem(...content: ListItemContent[]): MDListItem {
@@ -308,10 +401,16 @@ export function listItem(...content: ListItemContent[]): MDListItem {
 }
 
 /**
- * A whole document. Arrays are flattened.
+ * Creates a whole Markdown file from its parts, in order.
  *
- * Inline pieces in a row form a paragraph, and blocks follow, as in a list item.
- * Frontmatter goes first.
+ * - Frontmatter, if any, goes first.
+ * - An array of parts works the same as passing them one by one.
+ *
+ * @example
+ * md.document(md.heading(1, 'Title'), md.p('Body.'));
+ * // # Title
+ * //
+ * // Body.
  * @category documents
  */
 export function document(frontmatter: MDFrontmatter, ...content: AnyContent[]): MDDocument;
@@ -327,7 +426,21 @@ export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument
 }
 
 /**
- * A bulleted list, one item per entry.
+ * Creates a bulleted list, one item per entry.
+ *
+ * An entry can be an array of pieces, and a list among them makes a nested list.
+ *
+ * @example <caption>A list</caption>
+ * md.list(['Dutch', 'French', 'German']);
+ * // - Dutch
+ * // - French
+ * // - German
+ * @example <caption>Nested lists</caption>
+ * md.list([['Nested:', md.list(['Item 1', 'Item 2'])], 'Item 3']);
+ * // - Nested:
+ * //   - Item 1
+ * //   - Item 2
+ * // - Item 3
  * @category lists
  */
 export function list(entries: readonly ListEntry[]): MDList {

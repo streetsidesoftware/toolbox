@@ -22,9 +22,13 @@ import type {
 } from './types.ts';
 
 /**
- * A collapsible `<details>` block. Its content goes after the summary, with blank lines around it so Markdown renders.
+ * Creates a collapsible section: the reader sees `summary` and clicks it to show the content.
  *
- * A plain-text summary is written on one line, `<summary>text</summary>`. Inline Markdown in it gets blank lines.
+ * The content can hold anything a page can, such as paragraphs, lists and tables.
+ *
+ * @example
+ * md.details('Show more', 'Hidden text.');
+ * // The page shows "Show more"; clicking it reveals "Hidden text."
  * @category sections
  */
 export function details(summary: InlineContent, ...content: AnyContent[]): MDDetails {
@@ -36,13 +40,16 @@ export function details(summary: InlineContent, ...content: AnyContent[]): MDDet
 }
 
 /**
- * A `<dl>` definition list, one `[term, definition]` pair per entry.
+ * Creates a list of terms, each followed by its definition.
  *
- * A plain-text term is written on one line, `<dt>term</dt>`. Inline Markdown in it gets blank lines.
- * The definition gets blank lines around it, so Markdown renders.
+ * Give one `[term, definition]` pair per entry. A definition can hold anything, including lists and paragraphs.
+ *
+ * @example
+ * md.dl([['words', 'Words to accept as correct.']]);
+ * // The page shows "words", with "Words to accept as correct." below it.
  * @category lists
  */
-export function definitionList(entries: readonly DefinitionEntry[]): MDDefinitionList {
+export function dl(entries: readonly DefinitionEntry[]): MDDefinitionList {
   if (!Array.isArray(entries)) {
     throw new TypeError(`definition list entries must be an array, got ${describe(entries)}`);
   }
@@ -60,15 +67,18 @@ export function definitionList(entries: readonly DefinitionEntry[]): MDDefinitio
   return new MarkdownElement('block', 'definitionList', 'a definition list', [html('<dl>'), ...nodes, html('</dl>')]);
 }
 
-/** The same as {@link definitionList}. */
-export const dl: typeof definitionList = definitionList;
+/** The same as {@link dl}. */
+export const definitionList: typeof dl = dl;
 
 /**
- * An HTML `<table>`: a header row, then one row per entry. A cell holds any content, blocks included.
- * - A plain-text cell is written on one line, `<td>text</td>`, HTML-escaped. Any other cell gets blank lines, so it renders.
- * - A line ending in a string shows as a line break.
- * - Every row is filled with empty cells to the widest row. An empty header leaves out `<thead>`.
- * - `align` aligns each column, as in `table()`.
+ * Creates a table whose cells can hold anything, including lists and paragraphs.
+ *
+ * With an empty header, the table has no header row.
+ *
+ * @param options - `align` sets each column's alignment: `'left'`, `'center'` or `'right'`.
+ * @example
+ * md.htmlTable(['Language', 'Dialects'], [['Dutch', md.list(['Flemish', 'Limburgish'])]]);
+ * // The page shows a table with a bulleted list in the Dialects cell.
  * @category tables
  */
 export function htmlTable(

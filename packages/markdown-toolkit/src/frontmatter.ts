@@ -21,9 +21,15 @@ export function readFrontmatter(markdown: string): FrontmatterMatch | undefined 
 }
 
 /**
- * YAML frontmatter, for the start of a document. The text is inserted as is, between `---` lines.
+ * Creates YAML frontmatter for the start of a file, between `---` lines.
  *
- * Making it valid YAML is up to the caller.
+ * The YAML goes in as given, so it's up to you to make it valid.
+ *
+ * @example
+ * md.frontmatter('title: Hello');
+ * // ---
+ * // title: Hello
+ * // ---
  * @category documents
  */
 export function frontmatter(yaml: string): MDFrontmatter {
