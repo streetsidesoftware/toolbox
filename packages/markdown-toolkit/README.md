@@ -739,6 +739,7 @@ console.log(section.toString());
 - `template(markdown, values)` (also `templateFragment`): Substitute values for a Markdown template's `{@ name @}` placeholders.
 - `inlineTemplate(markdown, values)`: Substitute values for an inline template's placeholders, for use inside a line.
 - `blockTemplate(markdown, values)`: Substitute values for a Markdown template's placeholders as blocks, the same way as `template`.
+- `templateDocument(markdown, values)`: Substitute values for a whole file's placeholders, the same way as `template`, as a document.
 - `substitutePlaceholders(element, values)`: Substitute values for the placeholders in a Markdown element.
 - `placeholder(name)`: A `{@ name @}` placeholder that goes where inline content does, rendered exactly as written so it can be substituted later.
 - `blockPlaceholder(name)`: A `{@ name @}` placeholder on its own lines, rendered exactly as written so it can be substituted later.
@@ -750,7 +751,6 @@ console.log(section.toString());
 - `comment(text)`: An HTML comment, `<!-- text -->`. It goes inside a line or on its own.
 - `detectStyle(markdown)`: The style an existing Markdown text uses. A construct the text doesn't use gets the default.
 - `parseDocument(markdown)`: A whole file as a document. Frontmatter at its start is kept as written.
-- `templateDocument(markdown, values)`: Substitute values for a whole file's placeholders, the same way as `template`, as a document.
 
 ### Elements
 

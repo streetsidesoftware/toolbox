@@ -27,7 +27,14 @@
     {
       "heading": "Templates",
       "categories": ["templates", "placeholders"],
-      "functions": ["template", "inlineTemplate", "blockTemplate", "substitutePlaceholders", "placeholder"]
+      "functions": [
+        "template",
+        "inlineTemplate",
+        "blockTemplate",
+        "templateDocument",
+        "substitutePlaceholders",
+        "placeholder"
+      ]
     },
     {
       "heading": "Documents",
