@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import Path from 'node:path';
 
+import type { Nodes } from 'mdast';
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import type { BindingPattern, BindingRestElement, Comment, ParamPattern, Statement } from 'oxc-parser';
 import { parseSync } from 'oxc-parser';
@@ -216,19 +217,33 @@ export function firstParagraph(markdown: string): string {
 
 /**
  * A summary ready for the reference: zero-width spaces removed and `{@link name}` as code.
- * @throws if it's empty, longer than {@link SUMMARY_LIMIT}, or has another inline tag.
+ * @throws if it's empty, longer than {@link SUMMARY_LIMIT}, or has another inline tag or raw HTML.
  */
 function summaryOf(where: string, text: string): string {
   const summary = text.replaceAll('\u200B', '').replace(/\{@link\s+([\w$.]+)\s*\}/g, '`$1`');
   if (!summary) throw new Error(`${where} has no summary: start its JSDoc with one, or add @summary`);
   const tag = /\{@\w+[^}]*\}?/.exec(summary);
   if (tag) throw new Error(`${where} has an unsupported inline tag in its summary: ${tag[0]}`);
+  // Raw HTML is almost always a tag meant as text, and it would vanish on npm and in editor hovers.
+  const html = rawHtml(fromMarkdown(summary));
+  if (html) throw new Error(`${where} has raw HTML in its summary: ${html}; put it in backticks`);
   if (summary.length > SUMMARY_LIMIT) {
     throw new Error(
       `${where} has a summary of ${summary.length} characters, over ${SUMMARY_LIMIT}: shorten it, or add @summary`,
     );
   }
   return summary;
+}
+
+/** The first raw HTML in a Markdown tree, outside code. */
+function rawHtml(node: Nodes): string | undefined {
+  if (node.type === 'html') return node.value;
+  if (!('children' in node)) return undefined;
+  for (const child of node.children) {
+    const html = rawHtml(child);
+    if (html) return html;
+  }
+  return undefined;
 }
 
 function joinLines(lines: readonly string[]): string {

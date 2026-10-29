@@ -29,7 +29,7 @@ These scripts are used to help maintain the repo.
   whose `README.md` injects it with `<!--- @@inject: ../../static/api-reference/<name>.md --->`. It reads
   `src/index.ts` with [oxc-parser](https://www.npmjs.com/package/oxc-parser), follows its re-exports, and lists
   each exported function with its parameter names, its aliases and its summary, grouped by the function's
-  `@category` tag. The summary is the JSDoc's first paragraph, or its `@summary` tag, and at most 140 characters. A
+  `@category` tag. The summary is the JSDoc's first paragraph, or its `@summary` tag, at most 140 characters and with no raw HTML. A
   function without a `@category` or a summary fails the run. It renders the list with markdown-toolkit, so build it
   first.
 - `run-examples.ts` runs each `example.ts` under `packages/*/examples/`, at any depth, with Node, in its own folder and

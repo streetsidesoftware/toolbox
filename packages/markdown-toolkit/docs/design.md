@@ -252,5 +252,5 @@ The README ends with a `## Functions` section that `gen-api-reference` writes fr
 - Groups and functions are in alphabetical order.
 - An alias, a `const` that names a function or a renamed re-export, needs no tag of its own.
 - The summary is the first paragraph of the JSDoc, as Markdown renders it, so a blank line ends it. A `@summary` tag replaces it.
-- A summary is at most 140 characters, the length of a comment line. The only inline tag it may use is `{@link name}`.
+- A summary is at most 140 characters, the length of a comment line. The only inline tag it may use is `{@link name}`, and raw HTML fails, since it's almost always a tag meant as text: write `` `<details>` ``.
 - A function without JSDoc, a `@category` or a summary fails `pnpm run build:readme` and the `scripts` tests.

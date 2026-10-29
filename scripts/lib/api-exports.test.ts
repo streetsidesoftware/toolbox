@@ -232,6 +232,15 @@ describe('readApiFunctions', () => {
     });
   });
 
+  test('throws on raw HTML in a summary, but not on HTML in code', async () => {
+    await withFunction(['Wraps the text in <kbd> tags.', '@category C'], async (_fn, error) => {
+      assert.match(String(error), /f in .* has raw HTML in its summary: <kbd>; put it in backticks/);
+    });
+    await withFunction(['A collapsible `<details>` block.', '@category C'], async (fn) => {
+      assert.equal(fn.summary, 'A collapsible `<details>` block.');
+    });
+  });
+
   test('leaves out a this parameter', async () => {
     await withModules(
       { 'index.ts': '/**\n * F.\n * @category C\n */\nexport function f(this: Window, a: string): void {}\n' },
