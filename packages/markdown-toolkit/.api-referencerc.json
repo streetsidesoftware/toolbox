@@ -2,7 +2,7 @@
   "groups": [
     {
       "heading": "Text",
-      "categories": ["text", "line-breaks"],
+      "categories": ["text", "line-breaks", "comments"],
       "functions": ["paragraph", "inlineText", "blockText", "parse", "lineBreak"]
     },
     {
@@ -38,7 +38,7 @@
     },
     {
       "heading": "Documents",
-      "categories": ["documents", "comments", "style"],
+      "categories": ["documents", "style"],
       "functions": ["document", "frontmatter"]
     },
     {

@@ -8,6 +8,7 @@
 - `parse(markdown)` (also `parseFragment`): Markdown text as an element, for Markdown made elsewhere.
 - `lineBreak()`: A line break in the form that works where it ends up.
 - `br()`: An HTML line break, always `<br/>`. It's self-closed, so it also works in MDX.
+- `comment(text)`: An HTML comment, `<!-- text -->`. It goes inside a line or on its own.
 
 ### Links and formatting
 
@@ -49,7 +50,6 @@
 
 - `document(...content)`: A whole document. Arrays are flattened.
 - `frontmatter(yaml)`: YAML frontmatter, for the start of a document. The text is inserted as is, between `---` lines.
-- `comment(text)`: An HTML comment, `<!-- text -->`. It goes inside a line or on its own.
 - `detectStyle(markdown)`: The style an existing Markdown text uses. A construct the text doesn't use gets the default.
 - `parseDocument(markdown)`: A whole file as a document. Frontmatter at its start is kept as written.
 
