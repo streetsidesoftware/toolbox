@@ -25,7 +25,10 @@ const readme = md.template(
   {
     name: '@cspell/dict-nl-nl',
     docs: md.link('the docs', 'https://github.com/streetsidesoftware/cspell-dicts/tree/main/dictionaries/nl_NL'),
-    features: md.list(['Dutch words', ['Import ', md.inlineCode('@cspell/dict-nl-nl/cspell-ext.json'), ' in your cspell config']]),
+    features: md.list([
+      'Dutch words',
+      ['Import ', md.inlineCode('@cspell/dict-nl-nl/cspell-ext.json'), ' in your cspell config'],
+    ]),
   },
 );
 

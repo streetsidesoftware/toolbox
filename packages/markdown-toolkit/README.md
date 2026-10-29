@@ -55,10 +55,7 @@ import * as md from '@streetsidesoftware/markdown-toolkit';
 
 const name = 'cspell';
 
-const doc = md.document(
-  md.heading(1, name),
-  md.paragraph('Install with ', md.inlineCode(`npm i ${name}`), '.'),
-);
+const doc = md.document(md.heading(1, name), md.paragraph('Install with ', md.inlineCode(`npm i ${name}`), '.'));
 
 process.stdout.write(doc.toString());
 ```
@@ -191,7 +188,10 @@ const readme = md.template(
   {
     name: '@cspell/dict-nl-nl',
     docs: md.link('the docs', 'https://github.com/streetsidesoftware/cspell-dicts/tree/main/dictionaries/nl_NL'),
-    features: md.list(['Dutch words', ['Import ', md.inlineCode('@cspell/dict-nl-nl/cspell-ext.json'), ' in your cspell config']]),
+    features: md.list([
+      'Dutch words',
+      ['Import ', md.inlineCode('@cspell/dict-nl-nl/cspell-ext.json'), ' in your cspell config'],
+    ]),
   },
 );
 
