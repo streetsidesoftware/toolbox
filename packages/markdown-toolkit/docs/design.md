@@ -4,21 +4,6 @@ This doc records the decisions behind `@streetsidesoftware/markdown-toolkit`, fo
 
 The toolkit is for scripts that generate Markdown. A script builds Markdown elements, composes them, and calls `toString()` on the outermost one. Each piece renders correctly for where it ends up, so the script never needs to know Markdown's escaping rules.
 
-```ts
-const extensions = [
-  { name: 'Greek [Ancient]', url: 'https://example.com/grc', description: 'Adds *Ancient Greek* words' },
-  { name: 'Arabic', url: 'https://example.com/ar', description: 'Adds Arabic words' },
-];
-list(extensions.map((e) => [link(e.name, e.url), ` - ${e.description}`])).toString();
-```
-
-```markdown
-- [Greek \[Ancient\]](https://example.com/grc) - Adds \*Ancient Greek\* words
-- [Arabic](https://example.com/ar) - Adds Arabic words
-```
-
-The brackets in the link text and the asterisks in the description are escaped, so they show as written.
-
 ## Elements
 
 A builder returns a Markdown element, not a string. The element keeps its structure until it's rendered, so each piece is escaped for where it ends up. A string that is a whole paragraph is escaped differently from the same string after other text: `document('- b')` renders `\- b`, so it doesn't become a list, but `document(['x ', '- b'])` renders `x - b`.
@@ -59,6 +44,12 @@ In a list, each entry is one item. An array entry is one item holding a sequence
 
 The function `toBlock(content)` makes content fit where only blocks can go: blocks come back unchanged, and each run of inline pieces becomes a paragraph. It's how the result of `template()` or `parse()`, which can be either kind, goes where only blocks can go.
 
+### Line breaks and comments
+
+There are two line-break elements, both inline. A `lineBreak()` is a Markdown hard break. A `br()` is always `<br/>`, never `<br>`, because MDX reads HTML as JSX, where an unclosed `<br>` is a syntax error.
+
+A comment renders as `<!-- … -->`, with two dashes, as third-party bots write them. The renderer keeps the text from ending the comment early.
+
 ### Tables
 
 A table takes a header and rows as arrays: `table(header, rows)`, the shape scripts already have their data in. Each cell holds inline content. Rendering keeps every cell on one line, which a GFM row needs:
@@ -73,12 +64,6 @@ A short row is padded with empty cells. A row longer than the header adds a colu
 
 A table always renders padded, so its pipes line up. There's no style field for compact tables, and `detectStyle` doesn't look at tables, until a script needs it. A table from a template or `parse()` is re-rendered padded too.
 
-### Documents and frontmatter
-
-A document is the one element that renders with a trailing newline, because it stands alone as a file. It carries its own style; see [Rendering and style](#rendering-and-style).
-
-Frontmatter goes first: `document(frontmatter(yaml), heading(1, title), …)`, so the code reads in file order. Anywhere else in a document, it throws. It takes YAML text, inserted as is between `---` lines. Text keeps comments and needs no YAML dependency. Making it valid YAML is the script's job.
-
 ### Details and definition lists
 
 A `<details>` summary and a `<dl>` term are inline. The content and each definition are like a document's. A definition list takes `[term, definition]` pairs.
@@ -89,11 +74,11 @@ Markdown inside HTML is read only after a blank line, so rendering picks the for
 - A summary or term with any other inline element, such as inline code or a placeholder, gets blank lines around it, so it renders.
 - The content and each definition always get blank lines around them.
 
-### Line breaks and comments
+### Documents and frontmatter
 
-There are two line-break elements, both inline. A `lineBreak()` is a Markdown hard break. A `br()` is always `<br/>`, never `<br>`, because MDX reads HTML as JSX, where an unclosed `<br>` is a syntax error.
+A document is the one element that renders with a trailing newline, because it stands alone as a file. It carries its own style; see [Rendering and style](#rendering-and-style).
 
-A comment renders as `<!-- … -->`, with two dashes, as third-party bots write them. The renderer keeps the text from ending the comment early.
+Frontmatter goes first: `document(frontmatter(yaml), heading(1, title), …)`, so the code reads in file order. Anywhere else in a document, it throws. It takes YAML text, inserted as is between `---` lines. Text keeps comments and needs no YAML dependency. Making it valid YAML is the script's job.
 
 ## Placeholders
 
@@ -237,4 +222,11 @@ A possible feature. The issue it addresses is real: Docusaurus 3 parses even `.m
 
 ## README examples
 
-The README opens with two short examples, one using a template and one using builders, to show that generating Markdown is easy. It then leads a user through their goals in order: generate a file, make a table from data, write the Markdown yourself, build a page in steps, add frontmatter, generate a page from a template file, and match an existing style. Each goal is a folder under `examples/`, with a complete `example.ts`, the `output.md` it printed, and a `README.md` that injects both. The package README injects each folder's `README.md`. Running `pnpm run build:readme` from the repo root runs the examples, so the output shown is what the code printed. One example shows one idea and has one output.
+The README opens with two examples that make the same page, one with a template and one with builders, to show that generating Markdown from data is easy. A guide follows, in parts: Build in code, Templates, Whole pages, and Match an existing file's style. Each part goes from common and simple elements to rare ones, so text and headings come first, tables after lists, and details and definition lists last.
+
+- Each section teaches the main path. A rule stays only if a reader would get it wrong without it; the full rules are in the JSDoc.
+- Steps are imperative, behavior is in the present tense, and the text never says "you".
+- Every example prints with `console.log(x.toString())`, names its result for what it is, and uses realistic cspell data.
+- Code and output fit in 70 columns, since npmjs.com scrolls a wider code block. A Prettier override sets that width for example code.
+
+The [examples README](../examples/README.md) describes the folder layout. Running `pnpm run build:readme` from the repo root runs the examples, so the output shown is what the code printed. One example shows one idea and has one output.

@@ -1,7 +1,7 @@
 # @streetsidesoftware/markdown-toolkit
 
-A toolkit for generating Markdown: builders, templates and placeholders. Compose links, lists, headings and code,
-or substitute values into a Markdown template, then render the result with `toString()`.
+A toolkit for generating GitHub Flavored Markdown. Build a page from elements in code, or write it as a template and
+substitute values for its placeholders. Either way, render it with `toString()`.
 
 ## Install
 
@@ -13,32 +13,52 @@ npm install @streetsidesoftware/markdown-toolkit
 
 ## With a template
 
-Write the Markdown you want, mark the gaps with `{@ name @}`, and substitute values for them.
-[`unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent), from `@streetsidesoftware/unindent`, removes
-the indentation.
+Write the page as Markdown, mark each gap with a `{@ name @}` placeholder, and substitute values for them. A value
+can be a string or an element, such as a link or a list.
+[`unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent) removes the template's indentation.
+Imported as `markdown`, it also gets editors to highlight the template as Markdown.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
 import { unindent as markdown } from '@streetsidesoftware/unindent';
 
-const name = 'cspell';
+const dictionaries = [
+  { language: 'Dutch', name: '@cspell/dict-nl-nl' },
+  { language: 'French', name: '@cspell/dict-fr-fr' },
+  { language: 'German', name: '@cspell/dict-de-de' },
+];
 
-const doc = md.templateDocument(
+const page = md.templateDocument(
   markdown`
-    # {@ name @}
+    # Dictionaries
 
-    Install with \`npm i {@ name @}\`.
+    Language dictionaries for {@ cspell @}.
+
+    {@ dictionaries @}
   `,
-  { name },
+  {
+    cspell: md.link('cspell', 'https://cspell.org'),
+    dictionaries: md.list(
+      dictionaries.map((d) => md.link(d.language, npmUrl(d.name))),
+    ),
+  },
 );
 
-process.stdout.write(doc.toString());
+console.log(page.toString());
+
+function npmUrl(name: string): string {
+  return `https://www.npmjs.com/package/${name}`;
+}
 ```
 
 ```markdown
-# cspell
+# Dictionaries
 
-Install with `npm i cspell`.
+Language dictionaries for [cspell](https://cspell.org).
+
+- [Dutch](https://www.npmjs.com/package/@cspell/dict-nl-nl)
+- [French](https://www.npmjs.com/package/@cspell/dict-fr-fr)
+- [German](https://www.npmjs.com/package/@cspell/dict-de-de)
 ```
 
 <!--- @@inject-end: examples/opening-template/README.md --->
@@ -47,187 +67,401 @@ Install with `npm i cspell`.
 
 ## Or build it in code
 
-The same page, built in code. Each builder returns a Markdown element. Put them together with `document`, and
-render the file with `toString()`.
+The same page, built from elements. Each builder returns an element, and `document` puts them together into a page.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
-const name = 'cspell';
+const dictionaries = [
+  { language: 'Dutch', name: '@cspell/dict-nl-nl' },
+  { language: 'French', name: '@cspell/dict-fr-fr' },
+  { language: 'German', name: '@cspell/dict-de-de' },
+];
 
-const doc = md.document(md.heading(1, name), md.paragraph('Install with ', md.inlineCode(`npm i ${name}`), '.'));
+const page = md.document(
+  md.heading(1, 'Dictionaries'),
+  md.p(
+    'Language dictionaries for ',
+    md.link('cspell', 'https://cspell.org'),
+    '.',
+  ),
+  md.list(
+    dictionaries.map((d) => md.link(d.language, npmUrl(d.name))),
+  ),
+);
 
-process.stdout.write(doc.toString());
+console.log(page.toString());
+
+function npmUrl(name: string): string {
+  return `https://www.npmjs.com/package/${name}`;
+}
+```
+
+```markdown
+# Dictionaries
+
+Language dictionaries for [cspell](https://cspell.org).
+
+- [Dutch](https://www.npmjs.com/package/@cspell/dict-nl-nl)
+- [French](https://www.npmjs.com/package/@cspell/dict-fr-fr)
+- [German](https://www.npmjs.com/package/@cspell/dict-de-de)
+```
+
+<!--- @@inject-end: examples/opening-builders/README.md --->
+
+<!--- @@inject: examples/build-in-code/README.md --->
+
+## Build in code
+
+Each builder returns an element. Put elements together with `document`, and render the page with `toString()`. A
+document ends with a newline; other elements don't, so they can be joined. Strings are text, shown as written.
+
+### Text and paragraphs
+
+Pass one or more pieces to `p` (`paragraph`) to make a paragraph. The pieces are joined as given, with no spaces
+added. To turn plain text into paragraphs, use `blockText`: each blank line starts a new paragraph.
+
+```ts
+import * as md from '@streetsidesoftware/markdown-toolkit';
+
+const summary = 'A spell checker for code.';
+const notes = [
+  'It checks comments, strings and Markdown.',
+  '',
+  'It runs in CI and in the editor.',
+].join('\n');
+
+const page = md.document(
+  md.p(summary, ' It works offline.'),
+  md.blockText(notes),
+);
+
+console.log(page.toString());
+```
+
+```markdown
+A spell checker for code. It works offline.
+
+It checks comments, strings and Markdown.
+
+It runs in CI and in the editor.
+```
+
+### Headings
+
+Give `heading` a depth from 1 to 6 and its text. The text can be several pieces, such as text and inline code. To
+separate sections with a line, use `horizontalRule()` (`hr()`).
+
+```ts
+import * as md from '@streetsidesoftware/markdown-toolkit';
+
+const page = md.document(
+  md.heading(1, 'cspell'),
+  md.p('A spell checker for code.'),
+  md.heading(2, ['Using ', md.inlineCode('cspell')]),
+  md.p('Run it on every file in the project.'),
+);
+
+console.log(page.toString());
 ```
 
 ```markdown
 # cspell
 
-Install with `npm i cspell`.
+A spell checker for code.
+
+## Using `cspell`
+
+Run it on every file in the project.
 ```
 
-<!--- @@inject-end: examples/opening-builders/README.md --->
+### Links and inline formatting
 
-## Features
-
-- **Builders.** Compose a document from headings, paragraphs, lists, tables, links and code, as elements rather
-  than strings.
-- **Templates.** Write the Markdown you want, mark the gaps with `{@ name @}`, and substitute strings or
-  elements for them.
-- **Placeholders.** Leave a placeholder for a later step to substitute, or hand it to a tool such as inject-markdown.
-- **Fits existing documents.** Detect the style a document already uses, such as `*` or `-` bullets, and render in
-  that style.
-- **Built on remark.** Parsing and rendering use [unified](https://unifiedjs.com) and
-  [remark](https://github.com/remarkjs/remark) with GitHub Flavored Markdown, not hand-rolled string rules.
-
-<!--- @@inject: examples/generate-a-file/README.md --->
-
-## Generate a Markdown file from data
-
-A script usually has its data in arrays and objects. Map each item to an element, here a link in a list, and put
-the elements together with `document`.
+These go inside a line: `link`, `inlineCode`, `strong`, `emphasis` and `strikethrough`. Each one except
+`inlineCode` takes inline content, so they nest, as in a link with strong text.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
-const links = [
-  { title: 'Docs', url: 'https://cspell.org' },
-  { title: 'Source', url: 'https://github.com/streetsidesoftware/cspell' },
-];
+const page = md.document(
+  md.p(
+    'Run ',
+    md.inlineCode('npx cspell .'),
+    ' to check ',
+    md.strong('every'),
+    ' file.',
+  ),
+  md.p(
+    'See ',
+    md.link('the docs', 'https://cspell.org'),
+    ' for options.',
+  ),
+);
 
-const doc = md.document(
-  md.heading(2, ['Using ', md.inlineCode('cspell')]),
-  md.list(links.map(({ title, url }) => md.link(title, url))),
+console.log(page.toString());
+```
+
+```markdown
+Run `npx cspell .` to check **every** file.
+
+See [the docs](https://cspell.org) for options.
+```
+
+### Lists
+
+Give `list` an array with one entry per item. An entry can be an array of pieces, and a `list` among them makes a
+nested list.
+
+```ts
+import * as md from '@streetsidesoftware/markdown-toolkit';
+
+const dictionaries = {
+  Languages: ['Dutch', 'French', 'German'],
+  Programming: ['Python', 'Rust', 'TypeScript'],
+};
+
+const page = md.document(
+  md.list(
+    Object.entries(dictionaries).map(([group, names]) => [
+      group,
+      md.list(names),
+    ]),
+  ),
+);
+
+console.log(page.toString());
+```
+
+```markdown
+- Languages
+  - Dutch
+  - French
+  - German
+- Programming
+  - Python
+  - Rust
+  - TypeScript
+```
+
+### Code blocks
+
+Give `codeBlock` the code and, optionally, its language. The code goes in as written.
+
+```ts
+import * as md from '@streetsidesoftware/markdown-toolkit';
+
+const page = md.document(
+  md.p('Install cspell as a dev dependency:'),
   md.codeBlock('npm install -D cspell', 'sh'),
 );
 
-process.stdout.write(doc.toString());
+console.log(page.toString());
 ```
 
 ````markdown
-## Using `cspell`
-
-- [Docs](https://cspell.org)
-- [Source](https://github.com/streetsidesoftware/cspell)
+Install cspell as a dev dependency:
 
 ```sh
 npm install -D cspell
 ```
 ````
 
-<!--- @@inject-end: examples/generate-a-file/README.md --->
+### Line breaks and comments
 
-<!--- @@inject: examples/make-a-table/README.md --->
-
-## Make a table from data
-
-Give `table` the header and one array of cells per row. A cell holds inline content, such as text, inline code, links
-and strong text. A
-`lineBreak()` renders as `<br/>`, since a Markdown line break would end the row.
+A `lineBreak()` starts a new line in the same paragraph. For HTML or MDX, `br()` always writes `<br/>`. A
+`comment` is an HTML comment, which isn't displayed, such as a `cspell:ignore` line for a spell checker.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
-const commands = [
-  { command: 'cSpell.addWordToDictionary', title: 'Add Words to Dictionary' },
-  { command: 'cSpell.toggleEnableSpellChecker', title: 'Toggle Spell Checking', when: 'editorTextFocus' },
+const page = md.document(
+  md.comment('cspell:ignore gezellig'),
+  md.p('Knows Dutch words such as ', md.emphasis('gezellig'), '.'),
+  md.p('Maintained by', md.lineBreak(), 'Street Side Software'),
+);
+
+console.log(page.toString());
+```
+
+```markdown
+<!-- cspell:ignore gezellig -->
+
+Knows Dutch words such as _gezellig_.
+
+Maintained by\
+Street Side Software
+```
+
+### Tables
+
+Give `table` the header and one array of cells per row. A cell holds inline content, such as text, inline code and
+links. To align a column, pass `{ align: ['left', 'right'] }`, one entry per column.
+
+```ts
+import * as md from '@streetsidesoftware/markdown-toolkit';
+
+const dictionaries = [
+  { language: 'Dutch', name: '@cspell/dict-nl-nl', locale: 'nl' },
+  { language: 'French', name: '@cspell/dict-fr-fr', locale: 'fr' },
+  { language: 'German', name: '@cspell/dict-de-de', locale: 'de' },
 ];
 
-const doc = md.document(
-  md.heading(2, 'Commands'),
+const page = md.document(
   md.table(
-    ['Command', 'Title'],
-    commands.map((c) => [
-      md.inlineCode(c.command),
-      c.when ? [c.title, md.lineBreak(), md.strong('When:'), ' ', md.inlineCode(c.when)] : c.title,
+    ['Language', 'Package', 'Locale'],
+    dictionaries.map((d) => [
+      d.language,
+      md.inlineCode(d.name),
+      d.locale,
     ]),
   ),
 );
 
-process.stdout.write(doc.toString());
+console.log(page.toString());
 ```
 
 ```markdown
-## Commands
-
-| Command                           | Title                                                 |
-| --------------------------------- | ----------------------------------------------------- |
-| `cSpell.addWordToDictionary`      | Add Words to Dictionary                               |
-| `cSpell.toggleEnableSpellChecker` | Toggle Spell Checking<br/>**When:** `editorTextFocus` |
+| Language | Package              | Locale |
+| -------- | -------------------- | ------ |
+| Dutch    | `@cspell/dict-nl-nl` | nl     |
+| French   | `@cspell/dict-fr-fr` | fr     |
+| German   | `@cspell/dict-de-de` | de     |
 ```
 
-A short row is padded with empty cells. To align a column, pass `{ align: [undefined, 'right'] }`, one entry per
-column. An entry can also be written as in the table: `:---`, `:---:`, `---:` or `---`.
+### Details and definition lists
 
-<!--- @@inject-end: examples/make-a-table/README.md --->
+These are HTML blocks, which GitHub renders. Give `details` a summary and the content it hides. Give
+`definitionList` (`dl`) one `[term, definition]` pair per entry.
 
-<!--- @@inject: examples/write-the-markdown/README.md --->
+```ts
+import * as md from '@streetsidesoftware/markdown-toolkit';
 
-## Write the Markdown yourself, with data in it
+const page = md.document(
+  md.details(
+    'Supported file types',
+    md.list(['Markdown', 'Python', 'TypeScript']),
+  ),
+  md.dl([
+    ['language', 'The languages to check, such as en or nl.'],
+    ['words', 'Words to accept as correct.'],
+  ]),
+);
 
-A template is Markdown with `{@ name @}` placeholders. A string value is inserted as text, an element as Markdown,
-and a placeholder on a line of its own can take blocks, such as a list. If a string is already Markdown, pass
-`md.parse(text)`.
+console.log(page.toString());
+```
 
-The template is indented to match the code, and `unindent` from [`@streetsidesoftware/unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent) removes the indentation. Imported as
-`markdown`, the tag also tells editors and Prettier that the text is Markdown, so it's highlighted and formatted as
-Markdown.
+```markdown
+<details>
+<summary>Supported file types</summary>
+
+- Markdown
+- Python
+- TypeScript
+
+</details>
+
+<dl>
+
+<dt>language</dt>
+<dd>
+
+The languages to check, such as en or nl.
+
+</dd>
+
+<dt>words</dt>
+<dd>
+
+Words to accept as correct.
+
+</dd>
+
+</dl>
+```
+
+<!--- @@inject-end: examples/build-in-code/README.md --->
+
+<!--- @@inject: examples/templates/README.md --->
+
+## Templates
+
+A template is Markdown with `{@ name @}` placeholders. It suits a page that is mostly fixed text, with data in a few
+places.
+
+### Placeholders
+
+Each `{@ name @}` takes the value of the same name. A string goes in as text, and an element as Markdown. A
+placeholder on a line of its own also takes blocks, such as a list or a table. A dotted name, such as
+`{@ pkg.name @}`, looks up a nested object, and a placeholder works inside code too.
+
+Use `inlineTemplate` for a template that goes inside a line, and `blockTemplate` for one that must be blocks.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
 import { unindent as markdown } from '@streetsidesoftware/unindent';
 
-const readme = md.template(
+const pkg = {
+  name: '@cspell/dict-nl-nl',
+  description: 'Dutch dictionary for cspell.',
+};
+
+const section = md.template(
   markdown`
-    ## {@ name @}
+    ## {@ pkg.name @}
 
-    Install with \`npm i {@ name @}\`, then see {@ docs @}.
+    {@ pkg.description @}
 
-    {@ features @}
+    Install with \`npm i -D {@ pkg.name @}\`.
   `,
-  {
-    name: '@cspell/dict-nl-nl',
-    docs: md.link('the docs', 'https://github.com/streetsidesoftware/cspell-dicts/tree/main/dictionaries/nl_NL'),
-    features: md.list([
-      'Dutch words',
-      ['Import ', md.inlineCode('@cspell/dict-nl-nl/cspell-ext.json'), ' in your cspell config'],
-    ]),
-  },
+  { pkg },
 );
 
-console.log(readme.toString());
+console.log(section.toString());
 ```
 
 ```markdown
 ## @cspell/dict-nl-nl
 
-Install with `npm i @cspell/dict-nl-nl`, then see [the docs](https://github.com/streetsidesoftware/cspell-dicts/tree/main/dictionaries/nl_NL).
+Dutch dictionary for cspell.
 
-- Dutch words
-- Import `@cspell/dict-nl-nl/cspell-ext.json` in your cspell config
+Install with `npm i -D @cspell/dict-nl-nl`.
 ```
 
-A name may be dotted, such as `{@ engines.node @}`, and is looked up in nested objects.
+### Markdown from elsewhere
 
-- `template` returns inline content when the result is one paragraph, and blocks otherwise.
-- `blockTemplate` always returns blocks.
-- `inlineTemplate` requires one paragraph, for use inside a line.
+A string is always text. For a string that is already Markdown, such as a description from another file, pass
+`parse(text)` instead. Like a template, it gives inline content or blocks, and `toBlock` makes either fit where
+only blocks can go.
 
-<!--- @@inject-end: examples/write-the-markdown/README.md --->
+```ts
+import * as md from '@streetsidesoftware/markdown-toolkit';
 
-<!--- @@inject: examples/build-in-steps/README.md --->
+// From the dictionary's own docs, already written as Markdown.
+const about =
+  'Adds **Dutch** words. See [cspell.org](https://cspell.org).';
 
-## Build a page in steps
+const page = md.document(md.heading(2, 'About'), md.parse(about));
 
-A page can be built by several steps, each substituting what it knows. `substitutePlaceholders` takes the result of
-one step and substitutes more of its placeholders. A placeholder that no step has a value for is kept as written, so a
-later step, or a tool such as inject-markdown, can substitute it.
+console.log(page.toString());
+```
+
+```markdown
+## About
+
+Adds **Dutch** words. See [cspell.org](https://cspell.org).
+```
+
+### Build a page in steps
+
+Several steps can each substitute what they know. Pass the result of one step to `substitutePlaceholders` to
+substitute more of its placeholders. A placeholder with no value yet is kept as written, so a later step, or a tool
+such as [inject-markdown](https://github.com/streetsidesoftware/inject-markdown), can substitute it. In code,
+`placeholder(name)` leaves the same gap inside a line, and `blockPlaceholder(name)` on lines of its own.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
 import { unindent as markdown } from '@streetsidesoftware/unindent';
 
-// The layout, with the title this step knows.
 const layout = md.template(
   markdown`
     # {@ title @}
@@ -243,13 +477,16 @@ const layout = md.template(
   { title: 'Spell check report' },
 );
 
-// Each later step substitutes what it knows, and passes the rest on.
-const summarized = md.substitutePlaceholders(layout, { summary: md.paragraph('Checked 2 files.') });
+const summarized = md.substitutePlaceholders(layout, {
+  summary: md.p('Checked 2 files.'),
+});
 const report = md.substitutePlaceholders(summarized, {
-  results: md.list(['README.md: no issues', 'docs/guide.md: 1 unknown word']),
+  results: md.list([
+    'README.md: no issues',
+    'docs/guide.md: 1 unknown word',
+  ]),
 });
 
-// `{@ date @}` is left for a later step, such as inject-markdown.
 console.log(report.toString());
 ```
 
@@ -266,44 +503,43 @@ Checked 2 files.
 Last run: {@ date @}
 ```
 
-<!--- @@inject-end: examples/build-in-steps/README.md --->
+<!--- @@inject-end: examples/templates/README.md --->
 
-<!--- @@inject: examples/add-frontmatter/README.md --->
+<!--- @@inject: examples/whole-pages/README.md --->
 
-## Add frontmatter to a generated page
+## Whole pages
 
-Sites such as Docusaurus read a page's settings from YAML frontmatter at its start. Put `frontmatter` first in a
-document. Its text is inserted as is, between `---` lines, so making it valid YAML is up to you.
+A page for a site such as Docusaurus often starts with YAML frontmatter.
 
-The YAML here is written with an `unindent` from [`@streetsidesoftware/unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent) that also drops the newline after the opening backtick, so the
-frontmatter doesn't start with a blank line.
+### Frontmatter
+
+Put `frontmatter` first in a document. Its text is YAML and goes in as written, between `---` lines.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
-import { createUnindent } from '@streetsidesoftware/unindent';
-
-const yaml = createUnindent({ trimFirstNewline: true });
 
 const title = 'Code Spell Checker';
 
+const yaml = [
+  '# Generated: edit the script, not this file.',
+  `title: ${title}`,
+  'sidebar_position: 1',
+].join('\n');
+
 const page = md.document(
-  md.frontmatter(yaml`
-    # AUTO-GENERATED: edit the script, not this file.
-    title: ${title}
-    id: code-spell-checker
-  `),
+  md.frontmatter(yaml),
   md.heading(1, title),
-  md.paragraph('Settings that control the behavior of the spell checker.'),
+  md.p('Settings that control the behavior of the spell checker.'),
 );
 
-process.stdout.write(page.toString());
+console.log(page.toString());
 ```
 
 ```markdown
 ---
-# AUTO-GENERATED: edit the script, not this file.
+# Generated: edit the script, not this file.
 title: Code Spell Checker
-id: code-spell-checker
+sidebar_position: 1
 ---
 
 # Code Spell Checker
@@ -311,11 +547,7 @@ id: code-spell-checker
 Settings that control the behavior of the spell checker.
 ```
 
-<!--- @@inject-end: examples/add-frontmatter/README.md --->
-
-<!--- @@inject: examples/page-from-a-template-file/README.md --->
-
-## Generate a page from a template file
+### Template files
 
 A template for a whole page, such as `template.md`, can start with frontmatter:
 
@@ -331,21 +563,26 @@ description: >-
 {@ description @}
 ```
 
-`templateDocument` reads it as a whole page, keeps its frontmatter, and substitutes the placeholders in both. The
-frontmatter is YAML, not Markdown, so a value there is inserted as is. Each line of a value after the first gets the
-indentation of the placeholder's line, so a multi-line value stays inside a YAML block such as `>-`.
+Read it with `templateDocument`, which keeps the frontmatter and substitutes the placeholders in both parts. A value
+in the frontmatter goes in as written, since it's YAML.
 
 ```ts
 import fs from 'node:fs';
 
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
-const page = md.templateDocument(fs.readFileSync('template.md', 'utf8'), {
-  title: 'CSpell',
-  description: 'Settings for the cspell command line tool.\nThey apply to every file it checks.',
-});
+const page = md.templateDocument(
+  fs.readFileSync('template.md', 'utf8'),
+  {
+    title: 'CSpell',
+    description: [
+      'Settings for the cspell command line tool.',
+      'They apply to every file it checks.',
+    ].join('\n'),
+  },
+);
 
-process.stdout.write(page.toString());
+console.log(page.toString());
 ```
 
 ```markdown
@@ -362,52 +599,36 @@ Settings for the cspell command line tool.
 They apply to every file it checks.
 ```
 
-`parseDocument` reads a whole page without substituting anything. `template` and `parse` read a part of a page instead,
-where a leading `---` is a horizontal rule.
+To read a whole page without substituting anything, use `parseDocument`.
 
-<!--- @@inject-end: examples/page-from-a-template-file/README.md --->
+<!--- @@inject-end: examples/whole-pages/README.md --->
 
 <!--- @@inject: examples/match-a-style/README.md --->
 
-## Match the style of the file you're updating
+## Match an existing file's style
 
-By default, lists use `-` bullets and emphasis uses `_`. To fit into a file that already exists, detect the style
-it uses and render in it:
+Lists use `-` bullets and emphasis uses `_` by default. To add to a file that uses another style, detect its style
+and render in it.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
-// The file being updated uses `*` bullets and `*` emphasis.
-const existing = '# Fruit\n\n* Apples\n* *Pears*\n';
+// The README being updated uses `*` bullets.
+const existing = '# Dictionaries\n\n* Dutch\n* French\n';
 
-const section = md.document(md.list(['Plums', md.emphasis('Cherries')])).withStyle(md.detectStyle(existing));
+const section = md
+  .document(md.list(['German', 'Spanish']))
+  .withStyle(md.detectStyle(existing));
 
-process.stdout.write(section.toString());
+console.log(section.toString());
 ```
 
 ```markdown
-* Plums
-* *Cherries*
+* German
+* Spanish
 ```
 
-A template or parsed text keeps the style of its own text, but spacing and table padding may change.
-
 <!--- @@inject-end: examples/match-a-style/README.md --->
-
-## What's included
-
-- Inline: `text` (`inlineText`), `inlineCode`, `link`, `strong`, `emphasis`, `strikethrough`, `lineBreak`, `br`,
-  `comment`, `placeholder`
-- Blocks: `heading`, `paragraph` (`p`), `blockText`, `list`, `listItem`, `codeBlock`, `horizontalRule` (`hr`),
-  `table`, `blockPlaceholder`, `toBlock`
-- HTML blocks: `details` for a collapsible `<details>` section, and `definitionList` (`dl`) for a `<dl>` definition list
-- A whole document: `document`, `frontmatter`, `parseDocument`, `templateDocument`
-- Templates and placeholders: `template` (`templateFragment`), `blockTemplate`, `inlineTemplate`, `parse`
-  (`parseFragment`), `substitutePlaceholders`
-- Style: `detectStyle`, and `withStyle` on a document
-- Checks: `isMarkdown`, which tells whether a value was made by this package
-
-Every element renders with `toString()`. A document ends with a newline; other elements don't, so they can be joined.
 
 ## Requirements
 

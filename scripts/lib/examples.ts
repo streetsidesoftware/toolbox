@@ -6,8 +6,8 @@ import { promisify } from 'node:util';
 import { REPO_ROOT_DIR } from './consts.ts';
 import { compare } from './packages.ts';
 
-/** A package's README examples, relative to the repo root. Each folder is one example. */
-export const EXAMPLE_GLOB = 'packages/*/examples/*/example.ts';
+/** A package's README examples, relative to the repo root. Each folder with an `example.ts`, at any depth, is one example. */
+export const EXAMPLE_GLOB = 'packages/*/examples/**/example.ts';
 
 /** The file next to an example that holds what it printed. */
 export const OUTPUT_FILE = 'output.md';

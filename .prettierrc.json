@@ -8,9 +8,15 @@
   "importOrderCaseInsensitive": true,
   "overrides": [
     {
-      "files": ["packages/*/README.md", "packages/*/examples/*/README.md"],
+      "files": ["packages/*/README.md", "packages/*/examples/**/README.md"],
       "options": {
         "embeddedLanguageFormatting": "off"
+      }
+    },
+    {
+      "files": ["packages/*/examples/**/*.ts"],
+      "options": {
+        "printWidth": 70
       }
     }
   ]
