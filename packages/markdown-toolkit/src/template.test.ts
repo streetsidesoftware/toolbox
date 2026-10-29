@@ -281,10 +281,10 @@ describe('substitutePlaceholders', () => {
     const fragment = parse('Fruit:\n{@ fruit @}');
     if (fragment.kind !== 'inline') throw new Error('expected inline');
     const md = substitutePlaceholders(paragraph(fragment), { fruit: list(['apple']) });
-    assert.equal(md.description, 'a Markdown fragment');
+    assert.equal(md.type, 'fragment');
     assert.equal(md.toString(), 'Fruit:\n\n- apple');
     const kept = substitutePlaceholders(paragraph(placeholder('a')), { a: 'x' });
-    assert.equal(kept.description, 'a paragraph');
+    assert.equal(kept.type, 'paragraph');
   });
 
   test('a placeholder inside a line takes only inline values', () => {
@@ -312,9 +312,9 @@ describe('substitutePlaceholders', () => {
       () => substitutePlaceholders(document('Fruit: ', placeholder('fruit')), { fruit }),
       new TypeError('{@ fruit @} must be inline, got a list'),
     );
-    assert.equal(substitutePlaceholders(placeholder('fruit'), { fruit }).description, 'a Markdown fragment');
+    assert.equal(substitutePlaceholders(placeholder('fruit'), { fruit }).type, 'fragment');
     const inline = substitutePlaceholders(placeholder('x'), { x: link('a', 'u') });
-    assert.equal(inline.description, 'an inline Markdown fragment');
+    assert.equal(inline.type, 'inlineFragment');
     assert.equal(inline.toString(), '[a](u)');
   });
 

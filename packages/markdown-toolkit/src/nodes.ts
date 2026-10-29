@@ -13,6 +13,7 @@ import type {
   MDKind,
   MDListItem,
   MDText,
+  MDType,
 } from './types.ts';
 
 /**
@@ -30,14 +31,16 @@ interface Rendering {
 
 /**
  * A Markdown element. The public types are interfaces, so the node tree never appears in them.
- * The literal kind and description types tell the public types apart.
+ * The literal types of `kind` and `type` tell the public types apart.
  */
-export class MarkdownElement<K extends MDKind = MDKind, D extends string = string> {
+export class MarkdownElement<K extends MDKind = MDKind, T extends MDType = MDType> {
   readonly kind: K;
-  readonly description: D;
+  readonly type: T;
+  readonly description: string;
 
-  constructor(kind: K, description: D, nodes: RootContent[], style?: StyleOptions) {
+  constructor(kind: K, type: T, description: string, nodes: RootContent[], style?: StyleOptions) {
     this.kind = kind;
+    this.type = type;
     this.description = description;
     // Set rather than declared: isolatedDeclarations rejects a computed key on a class.
     Object.assign(this, { [renderingKey]: { nodes, style } });
@@ -119,7 +122,7 @@ export function isListItem(value: unknown): value is MDListItem {
 
 /** Whether a value is text made by `text` or `inlineText`. */
 export function isText(value: unknown): value is MDText {
-  return isKind(value, 'inline') && value.description === 'text';
+  return isKind(value, 'inline') && value.type === 'text';
 }
 
 /** `Array.isArray`, narrowing readonly arrays too. */

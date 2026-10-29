@@ -202,7 +202,7 @@ A toolkit-specific error class waits until a caller needs to catch one specifica
 
 ## Internals
 
-An element is made only by a factory function, such as `link(…)` or `list(…)`. The public types (`MDLink`, `MDList`, and so on) are interfaces: a `kind`, a `description` for error messages, and `toString()`. The literal type of `description` tells the public types apart. Underneath, one internal class stores the mdast nodes an element renders as, and its style, under the key `Symbol.for('@streetsidesoftware/markdown-toolkit.value')`. Having that key is what makes a value a Markdown element, and what `isMarkdown(x)` checks.
+An element is made only by a factory function, such as `link(…)` or `list(…)`. The public types (`MDLink`, `MDList`, and so on) are interfaces: a `kind`, which says where the element may go, a `type`, which says which element it is, a `description` for error messages, and `toString()`. The literal type of `type` tells the public types apart, and code branches on `type`, never on `description`, so rewording a message changes no type and no behavior. Underneath, one internal class stores the mdast nodes an element renders as, and its style, under the key `Symbol.for('@streetsidesoftware/markdown-toolkit.value')`. Having that key is what makes a value a Markdown element, and what `isMarkdown(x)` checks.
 
 - The node tree stays internal. The public types never mention mdast.
 - Factories are the only way to make an element, so the internal class can change without changing the API.

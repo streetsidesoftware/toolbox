@@ -16,7 +16,7 @@ export function table(
 ): MDTable {
   if (!isArray(header)) throw new TypeError(`table header must be an array, got ${describe(header)}`);
   if (!isArray(rows)) throw new TypeError(`table rows must be an array, got ${describe(rows)}`);
-  return new MarkdownElement('block', 'a table', [
+  return new MarkdownElement('block', 'table', 'a table', [
     {
       type: 'table',
       align: (options?.align ?? []).map(alignOf),
