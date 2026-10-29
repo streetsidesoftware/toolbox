@@ -242,3 +242,15 @@ The README opens with two examples that make the same page, one with a template 
 - Code and output fit in 70 columns, since npmjs.com scrolls a wider code block. A Prettier override sets that width for example code.
 
 The [examples README](../examples/README.md) describes the folder layout. Running `pnpm run build:readme` from the repo root runs the examples, so the output shown is what the code printed. One example shows one idea and has one output.
+
+## Function reference
+
+The README ends with a `## Functions` section that `gen-api-reference` writes from the code into `static/api-reference.md`, so the README never carries a hand-edited list of exports. It lists every function `src/index.ts` exports, one line each: its parameter names, its other names, such as `p` for `paragraph`, and its summary.
+
+- Each exported function's JSDoc has a `@category` tag, which names its group in the reference. The groups belong to the code, not to the guide's parts, so renaming a guide section never touches `src/`.
+- A group is named for what a reader wants to do, such as Code, Lists and tables or Whole pages, not for Markdown's block and inline split. A new function joins an existing group when one fits.
+- Groups and functions are in alphabetical order.
+- An alias, a `const` that names a function or a renamed re-export, needs no tag of its own.
+- The summary is the first paragraph of the JSDoc, as Markdown renders it, so a blank line ends it. A `@summary` tag replaces it.
+- A summary is at most 140 characters, the length of a comment line. The only inline tag it may use is `{@link name}`, and raw HTML fails, since it's almost always a tag meant as text: write `` `<details>` ``.
+- A function without JSDoc, a `@category` or a summary fails `pnpm run build:readme` and the `scripts` tests.
