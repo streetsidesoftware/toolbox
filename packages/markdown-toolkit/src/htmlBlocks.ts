@@ -1,15 +1,6 @@
-import type { Html, PhrasingContent, RootContent } from 'mdast';
+import type { Break, Html, PhrasingContent, RootContent, Text } from 'mdast';
 
-import {
-  blockNodes,
-  describe,
-  groupedNodes,
-  inlineNodes,
-  isArray,
-  isText,
-  mapParagraphsAndBlocks,
-  MarkdownElement,
-} from './nodes.ts';
+import { describe, groupedNodes, inlineNodes, isArray, MarkdownElement } from './nodes.ts';
 import { alignOf } from './table.ts';
 import type {
   AnyContent,
@@ -138,10 +129,8 @@ export function htmlTable(
  */
 function wrapped(before: string, tag: string, content: InlineContent, after: string, where: string): RootContent[] {
   const children = inlineNodes(content, where);
-  if (children.every((node) => node.type === 'text')) {
-    const text = htmlEscape(children.map((node) => node.value).join(''));
-    return [html(`${before}<${tag}>${text}</${tag}>${after}`)];
-  }
+  const text = plainHtml(children);
+  if (text !== undefined) return [html(`${before}<${tag}>${text}</${tag}>${after}`)];
   return [html(`${before}<${tag}>`), { type: 'paragraph', children }, html(`</${tag}>${after}`)];
 }
 
@@ -156,30 +145,9 @@ function htmlEscape(text: string): string {
     .replace(/</g, '&lt;');
 }
 
-/** The blocks of a table cell, grouped as in a document, with each line ending in a string as a line break. */
+/** The blocks of a table cell, grouped as in a document. */
 function cellNodes(content: AnyContent): RootContent[] {
-  return mapParagraphsAndBlocks(
-    content,
-    (inline): RootContent => ({ type: 'paragraph', children: inline.flatMap(cellInlineNodes) }),
-    (block) => blockNodes(block, 'table cell'),
-  );
-}
-
-function cellInlineNodes(content: InlineContent): PhrasingContent[] {
-  if (isArray(content)) return content.flatMap(cellInlineNodes);
-  const nodes = inlineNodes(content, 'table cell');
-  return typeof content === 'string' || isText(content) ? nodes.flatMap(lineBreaks) : nodes;
-}
-
-/** A text node with each line ending, and the spaces around it, as a line break. */
-function lineBreaks(node: PhrasingContent): PhrasingContent[] {
-  if (node.type !== 'text') return [node];
-  return node.value
-    .split(/[ \t]*(?:\r\n?|\n)[ \t]*/)
-    .flatMap((value, i): PhrasingContent[] => [
-      ...(i ? [{ type: 'break' } as const] : []),
-      ...(value ? [{ type: 'text', value } as const] : []),
-    ]);
+  return groupedNodes(content, 'table cell');
 }
 
 /**
@@ -190,12 +158,21 @@ function plainText(blocks: RootContent[]): string | undefined {
   if (!blocks.length) return '';
   const [first] = blocks;
   if (blocks.length !== 1 || first.type !== 'paragraph') return undefined;
-  const children = first.children;
-  if (!children.every((node) => node.type === 'text' || node.type === 'break')) return undefined;
+  return plainHtml(first.children);
+}
+
+/** Text and line breaks as HTML, or `undefined` when there's anything else. */
+function plainHtml(children: PhrasingContent[]): string | undefined {
+  if (!children.every((node): node is Text | Break => node.type === 'text' || node.type === 'break')) return undefined;
+  const lines = [''];
+  for (const node of children) {
+    if (node.type === 'break') lines.push('');
+    else lines[lines.length - 1] += node.value;
+  }
   // A line break at the start or end can't display, as in a paragraph.
-  return children
-    .map((node) => (node.type === 'text' ? node.value.replace(/&/g, '&amp;').replace(/</g, '&lt;') : '<br/>'))
-    .join('')
+  return lines
+    .map(htmlEscape)
+    .join('<br/>')
     .replace(/^(?:<br\/>)+|(?:<br\/>)+$/g, '');
 }
 

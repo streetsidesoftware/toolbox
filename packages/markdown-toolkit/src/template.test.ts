@@ -169,6 +169,10 @@ describe('template', () => {
   test('numbers and booleans are text', () => {
     assert.equal(template('{@ n @} {@ b @}', { n: 1, b: true }).toString(), '1 true');
   });
+
+  test('a newline in a string value is a line break, and one in the template stays soft', () => {
+    assert.equal(template('Hello\n{@ name @}!', { name: 'a\nb' }).toString(), 'Hello\na\\\nb!');
+  });
 });
 
 describe('inlineTemplate', () => {
@@ -263,6 +267,7 @@ describe('substitutePlaceholders', () => {
     assert.equal(substitutePlaceholders(parse('Fruit:\n{@ fruit @}\nMore\n'), { fruit }).toString(), expected);
     assert.equal(substitutePlaceholders(parse('Fruit:\n\n{@ fruit @}\n\nMore\n'), { fruit }).toString(), expected);
     assert.equal(template('Fruit:\n{@ fruit @}\nMore\n', { fruit }).toString(), expected);
+    assert.equal(substitutePlaceholders(text('Fruit:\n{@ fruit @}\nMore'), { fruit }).toString(), expected);
   });
 
   test('with an inline value, a whole-line placeholder stays in its line', () => {

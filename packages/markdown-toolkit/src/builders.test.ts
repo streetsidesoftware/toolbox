@@ -238,8 +238,17 @@ describe('text', () => {
     assert.equal(text, inlineText);
   });
 
-  test('a newline stays in the text', () => {
-    assert.equal(paragraph(inlineText('a\n- b')).toString(), 'a\n\\- b');
+  testEach`
+    value                                          | expected
+    ${paragraph(inlineText('a\n- b'))}              | ${'a\\\n\\- b'}
+    ${paragraph('a  \r\n\tb')}                      | ${'a\\\nb'}
+    ${heading(3, 'a\nb')}                          | ${'### a<br/>b'}
+    ${heading(1, 'a\nb')}                          | ${'# a<br/>b'}
+    ${paragraph(link('a\nb', 'u'))}                | ${'[a\\\nb](u)'}
+    ${list(['a\nb'])}                              | ${'- a\\\n  b'}
+    ${paragraph(inlineCode('a\nb'))}               | ${'`a\nb`'}
+  `('a newline in text is a line break: $expected', ({ value, expected }: { value: MDElement; expected: string }) => {
+    assert.equal(value.toString(), expected);
   });
 });
 
@@ -293,7 +302,7 @@ describe('line endings at the edges', () => {
         ${document('Fruit:\n', blockPlaceholder('fruit'))}                     | ${'Fruit:\n\n{@ fruit @}\n'}
         ${document('Intro', '\n', list(['x']))}                                | ${'Intro\n\n- x\n'}
         ${list([listItem('Langs\n', list(['en']))])}                           | ${'- Langs\n  - en'}
-        ${paragraph('\n\na\nb\nc  \n\n')}                                      | ${'a\nb\nc'}
+        ${paragraph('\n\na\nb\nc  \n\n')}                                      | ${'a\\\nb\\\nc'}
         ${heading(2, 'Title\n')}                                               | ${'## Title'}
         ${paragraph('a', lineBreak())}                                         | ${'a'}
         ${paragraph(lineBreak(), 'a', lineBreak(), 'b')}                       | ${'a\\\nb'}
@@ -381,7 +390,7 @@ describe('document', () => {
   });
 
   test('a string is inline text and never splits', () => {
-    assert.equal(document('a\n\nb').toString(), 'a&#xA;&#xA;b\n');
+    assert.equal(document('a\n\nb').toString(), 'a\\\n\\\nb\n');
   });
 
   test('a list item is not document content', () => {

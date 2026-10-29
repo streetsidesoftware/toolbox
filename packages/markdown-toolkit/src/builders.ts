@@ -14,6 +14,7 @@ import {
   mapParagraphsAndBlocks,
   MarkdownElement,
   renderingOf,
+  sourceTextNodes,
   textNodes,
 } from './nodes.ts';
 import { placeholderNode } from './placeholderNode.ts';
@@ -101,9 +102,15 @@ function commentSafe(text: string): string {
 /**
  * Creates text that shows exactly as given, even if it contains Markdown or HTML.
  *
+ * - Each newline starts a new line, as {@link lineBreak} does.
+ * - A `{​@ name @​}` placeholder in it stays a placeholder, which a template or `substitutePlaceholders` can replace later.
+ *
  * @example
  * md.text('Use <details> for *long* notes');
  * // The page shows: Use <details> for *long* notes
+ * @example
+ * md.p(md.text('Line one\nline two'));
+ * // The page shows "Line one" and "line two" on separate lines.
  * @category text
  */
 export function text(value: string): MDText {
@@ -116,7 +123,8 @@ export const inlineText: typeof text = text;
 /**
  * Creates paragraphs from plain text, starting a new one at each blank line.
  *
- * The text shows exactly as given, even if it contains Markdown or HTML.
+ * The text shows exactly as given, even if it contains Markdown or HTML. Any other newline shows as a space, so text
+ * wrapped at a fixed width reads as normal paragraphs.
  *
  * @example
  * md.blockText('First paragraph.\n\nSecond paragraph.');
@@ -129,7 +137,7 @@ export function blockText(value: string): MDFragment {
   const paragraphs: Paragraph[] = [];
   let lines: string[] = [];
   const endParagraph = (): void => {
-    if (lines.length) paragraphs.push({ type: 'paragraph', children: textNodes(lines.join('\n')) });
+    if (lines.length) paragraphs.push({ type: 'paragraph', children: sourceTextNodes(lines.join('\n')) });
     lines = [];
   };
   for (const line of value.split(/\r\n?|\n/)) {

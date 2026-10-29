@@ -28,9 +28,9 @@ Converting an element to a string too early loses its kind. Writing ``text(`see 
 
 Wherever inline content goes, a plain string is text and is escaped. A `{@ name @}` placeholder in it is kept as written. Inline code and code blocks take their string as code, inserted as is.
 
-A string is inline text everywhere, even where blocks can go. A newline in it stays in the text and displays as a space. A string never splits into paragraphs by itself, because the same string would then mean something different in a list item than in a paragraph.
+A string is inline text everywhere, even where blocks can go. A newline in it is a line break, as `lineBreak()` is, and the spaces and tabs around the newline are dropped. A string never splits into paragraphs by itself, because the same string would then mean something different in a list item than in a paragraph.
 
-To turn plain text into paragraphs, a script calls `blockText(text)`. A blank line, or a line of only spaces and tabs, ends a paragraph. A newline between other lines is a soft break, so text wrapped at 80 columns reads as normal paragraphs. Each line is escaped, so a line such as `- b` stays text. The result is always a fragment, even for one paragraph.
+To turn plain text into paragraphs, a script calls `blockText(text)`. A blank line, or a line of only spaces and tabs, ends a paragraph. A newline between other lines is a soft break, unlike in a string, so text wrapped at 80 columns reads as normal paragraphs. Each line is escaped, so a line such as `- b` stays text. The result is always a fragment, even for one paragraph.
 
 ### Sequences and lists
 
@@ -46,7 +46,7 @@ The function `toBlock(content)` makes content fit where only blocks can go: bloc
 
 ### Line breaks and comments
 
-There are two line-break elements, both inline. A `lineBreak()` is a Markdown hard break. A `br()` is always `<br/>`, never `<br>`, because MDX reads HTML as JSX, where an unclosed `<br>` is a syntax error.
+There are two line-break elements, both inline. A `lineBreak()` is a Markdown hard break, except in a heading, where it's written as `<br/>`: a heading on one line, `### Title`, can't hold a hard break. A `br()` is always `<br/>`, never `<br>`, because MDX reads HTML as JSX, where an unclosed `<br>` is a syntax error.
 
 A comment renders as `<!-- … -->`, with two dashes, as third-party bots write them. The renderer keeps the text from ending the comment early.
 
@@ -55,8 +55,8 @@ A comment renders as `<!-- … -->`, with two dashes, as third-party bots write 
 A table takes a header and rows as arrays: `table(header, rows)`, the shape scripts already have their data in. Each cell holds inline content. Rendering keeps every cell on one line, which a GFM row needs:
 
 - A `|` is escaped wherever it lands, in text, inline code, link text and a URL, so it never ends the cell. On GitHub, `\|` inside a code span displays as `|`.
-- A `lineBreak()` renders as `<br/>`, since a Markdown hard break would end the row.
-- A line ending in text or inline code renders as a space, as it displays elsewhere. One at the start or end of a cell is dropped.
+- A line break, from `lineBreak()` or a newline in a string, renders as `<br/>`, since a Markdown hard break would end the row.
+- A line ending in inline code, or in text from `parse()`, renders as a space, as it displays elsewhere. One at the start or end of a cell is dropped.
 
 A column is aligned only when the script asks: `{ align: [undefined, 'right'] }`, one entry per column. An entry is `'left'`, `'center'`, `'right'`, `undefined` for none, or the delimiter as written in a table: `:---`, `:---:`, `---:` or `---`, the forms GitHub's docs use. Any number of `-` works, and a plain `---` means none, as in GFM. The type lists the four forms for docs, and is a `string` with a `@pattern`, so it maps to a JSON schema.
 
@@ -71,7 +71,7 @@ A GFM row is one line, so its cells hold only inline content. When a cell needs 
 - `<table>`, `<thead>`, `<tbody>`, each `<tr>` and its closing tag go on their own lines.
 - A cell of plain text stays on its tag's line, `<td>42</td>`, with `&` and `<` HTML-escaped. An empty cell is `<td></td>`.
 - Any other cell, with inline code, a link, a placeholder or blocks, gets blank lines around it, so it renders.
-- A line ending in a string shows as a line break, which is what someone writing a cell expects to see: `<br/>` in a plain-text cell, a hard break in a cell with Markdown. One at the start or end of a cell is dropped. Text from `parse()` is Markdown, so its line endings keep their Markdown meaning.
+- A line ending in a string shows as a line break, as it does everywhere: `<br/>` in a plain-text cell, a hard break in a cell with Markdown. One at the start or end of a cell is dropped. Text from `parse()` is Markdown, so its line endings keep their Markdown meaning.
 - An aligned column puts `align="…"` on each of its cells. GitHub keeps the `align` attribute and strips `style`.
 - Every row, the header included, is filled with empty cells to the widest row, as in `table()`.
 - An empty header leaves out `<thead>`. Several header rows wait until a script needs them.
@@ -82,7 +82,7 @@ A `<details>` summary and a `<dl>` term are inline. The content and each definit
 
 Markdown inside HTML is read only after a blank line, so rendering picks the form that works on GitHub:
 
-- A summary or term of plain text is written on one line, `<summary>TypeScript:</summary>`, as in GitHub's own examples. Its `&` and `<` are HTML-escaped, and blank lines are dropped, since one would end the HTML block.
+- A summary or term of plain text is written on one line, `<summary>TypeScript:</summary>`, as in GitHub's own examples. Its `&` and `<` are HTML-escaped, a line break is `<br/>`, and blank lines are dropped, since one would end the HTML block.
 - A summary or term with any other inline element, such as inline code or a placeholder, gets blank lines around it, so it renders.
 - The content and each definition always get blank lines around them.
 
@@ -106,7 +106,7 @@ A placeholder isn't inline or block by itself. Where it sits decides what it can
 
 Where a placeholder sits is the same whether it's written in Markdown text, in a string, or made with a builder:
 
-- `placeholder(name)` goes anywhere inline content does. In `document('Fruit:\n', placeholder('fruit'))` it's on a line of its own, so it can take a list. In `document('Fruit:', placeholder('fruit'))` it's inside the line.
+- `placeholder(name)` goes anywhere inline content does. In `document('Fruit:\n', placeholder('fruit'))` it's on a line of its own, so it can take a list. The newlines around it stay plain line endings, not hard breaks, so a later step reading the Markdown sees it on its own line too. In `document('Fruit:', placeholder('fruit'))` it's inside the line.
 - `blockPlaceholder(name)` is a block, so it always stands on its own lines and takes blocks or inline content. Inside a line it's an error, as for any block. Two types, rather than one with an `'inline' | 'block'` kind, let the compiler keep a block placeholder out of a line.
 - A placeholder's string form is exactly `{@ name @}`, so it also goes inside code: ``inlineCode(`version: ${placeholder('engine.version')}`)``.
 

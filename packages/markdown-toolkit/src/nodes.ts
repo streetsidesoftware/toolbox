@@ -72,10 +72,18 @@ export function isKind(value: unknown, ...kinds: MDElement['kind'][]): value is 
 }
 
 /**
- * Text nodes for a string.
- * A placeholder is kept as written, so escaping never touches `{@ name @}`.
+ * Nodes for a string shown as given: each line ending, and the spaces and tabs around it, is a line break.
+ * A placeholder is kept as written.
  */
 export function textNodes(text: string): PhrasingContent[] {
+  return sourceTextNodes(text).flatMap(lineBreaks);
+}
+
+/**
+ * Text nodes for text from Markdown source, where a line ending is a soft break.
+ * A placeholder is kept as written, so escaping never touches `{@ name @}`.
+ */
+export function sourceTextNodes(text: string): PhrasingContent[] {
   const nodes: PhrasingContent[] = [];
   let last = 0;
   for (const { start, end } of listPlaceholders(text)) {
@@ -85,6 +93,16 @@ export function textNodes(text: string): PhrasingContent[] {
   }
   if (last < text.length) nodes.push({ type: 'text', value: text.slice(last) });
   return nodes;
+}
+
+function lineBreaks(node: PhrasingContent): PhrasingContent[] {
+  if (node.type !== 'text') return [node];
+  return node.value
+    .split(/[ \t]*(?:\r\n?|\n)[ \t]*/)
+    .flatMap((value, i): PhrasingContent[] => [
+      ...(i ? [{ type: 'break' } as const] : []),
+      ...(value ? [{ type: 'text', value } as const] : []),
+    ]);
 }
 
 /**

@@ -47,7 +47,8 @@ describe('details', () => {
     summary                         | expected
     ${'a < b & c'}                  | ${'<summary>a &lt; b &amp; c</summary>'}
     ${'*not* emphasis'}             | ${'<summary>*not* emphasis</summary>'}
-    ${text('a\n\n  b ')}            | ${'<summary>a\nb</summary>'}
+    ${text('a\n\n  b ')}            | ${'<summary>a<br/><br/>b</summary>'}
+    ${parse('soft\nbreak')}         | ${'<summary>soft\nbreak</summary>'}
     ${['Use ', text('<x>')]}        | ${'<summary>Use &lt;x></summary>'}
   `('summary text is HTML-escaped: $expected', ({ summary, expected }: { summary: string; expected: string }) => {
     assert.equal(details(summary).toString(), `<details>\n${expected}\n\n</details>`);

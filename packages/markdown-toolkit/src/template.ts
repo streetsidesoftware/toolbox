@@ -19,6 +19,7 @@ import {
   isText,
   MarkdownElement,
   renderingOf,
+  sourceTextNodes,
   textNodes,
 } from './nodes.ts';
 import { asPlaceholderNode, placeholderNodeAsWritten } from './placeholderNode.ts';
@@ -127,9 +128,9 @@ export function inlineTemplate(markdown: string, values: TemplateValues): MDInli
   substituteInTree(root, values, false);
   const children = root.children[0]?.type === 'paragraph' ? root.children[0].children : [];
   return new MarkdownElement('inline', 'inlineFragment', 'an inline Markdown fragment', [
-    ...textNodes(lead),
+    ...sourceTextNodes(lead),
     ...children,
-    ...textNodes(tail),
+    ...sourceTextNodes(tail),
   ]);
 }
 
@@ -334,7 +335,7 @@ function fragmentOf(root: Root, style: StyleOptions | undefined): MDFragment | M
 /** Make the placeholders in text raw, in place, so rendering can't escape them. */
 function keepPlaceholders(parent: Parent): void {
   parent.children = parent.children.flatMap((child): RootContent[] => {
-    if (child.type === 'text') return textNodes(child.value);
+    if (child.type === 'text') return sourceTextNodes(child.value);
     if ('children' in child) keepPlaceholders(child);
     return [child];
   });

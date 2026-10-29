@@ -5,6 +5,7 @@ import type { Options as StyleOptions } from 'remark-stringify';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
+import { asPlaceholderNode } from './placeholderNode.ts';
 import type { PlaceholderNode } from './placeholderNode.ts';
 
 export type { Options as StyleOptions } from 'remark-stringify';
@@ -35,7 +36,9 @@ export function renderNodes(children: RootContent[], style: StyleOptions | undef
   const root: Root = { type: 'root', children: structuredClone(children) };
   visit(root, (node) => {
     if (node.type === 'paragraph' || node.type === 'heading' || node.type === 'tableCell') trimLines(node.children);
+    if (node.type === 'paragraph') keepPlaceholderLines(node.children);
     if (node.type === 'tableCell') visit(node, oneLine);
+    if (node.type === 'heading') visit(node, 'break', htmlBreak);
   });
   // A field set to `undefined` keeps the default, rather than falling back to remark's own default.
   const given = Object.entries(style ?? {}).filter(([, value]) => value !== undefined);
@@ -66,15 +69,35 @@ function trimLines(children: PhrasingContent[]): void {
 }
 
 /**
+ * Give a placeholder alone on its line plain line endings, in place, so a later step reading the Markdown can substitute
+ * blocks for it. A Markdown hard break would leave a `\` before them.
+ */
+function keepPlaceholderLines(children: PhrasingContent[]): void {
+  children.forEach((node, i) => {
+    if (!asPlaceholderNode(node)) return;
+    const before = children[i - 1];
+    const after = children[i + 1];
+    if ((before && before.type !== 'break') || (after && after.type !== 'break')) return;
+    if (before) children[i - 1] = { type: 'text', value: '\n' };
+    if (after) children[i + 1] = { type: 'text', value: '\n' };
+  });
+}
+
+/**
  * Keep a table cell on one line, in place: a line break becomes `<br/>`, and a line ending in text or code a space.
  * A Markdown hard break would end the row.
  */
 function oneLine(node: Nodes, index: number | undefined, parent: Parent | undefined): void {
-  if (node.type === 'break' && parent && index !== undefined) {
-    parent.children[index] = { type: 'html', value: '<br/>' } satisfies Html;
-  }
+  if (node.type === 'break') htmlBreak(node, index, parent);
   if (node.type === 'text' || node.type === 'inlineCode') {
     node.value = node.value.replace(/\r\n?|\n/g, ' ');
+  }
+}
+
+/** A line break as `<br/>`, in place. A heading on one line, like `### Title`, would drop a Markdown hard break. */
+function htmlBreak(node: Nodes, index: number | undefined, parent: Parent | undefined): void {
+  if (node.type === 'break' && parent && index !== undefined) {
+    parent.children[index] = { type: 'html', value: '<br/>' } satisfies Html;
   }
 }
 
