@@ -5,29 +5,39 @@ import Path from 'node:path';
 import { describe, test } from 'node:test';
 
 import type { ApiFunction } from './api-exports.ts';
+import { CONFIG_FILE } from './api-reference-config.ts';
 import {
   API_REFERENCE_MARKER,
+  buildApiReference,
   findApiReferencePackages,
   renderApiReference,
   updateApiReference,
 } from './api-reference.ts';
 
 describe('renderApiReference', () => {
-  test('lists the functions under a heading per category, both in alphabetical order', () => {
-    const functions: ApiFunction[] = [
-      fn({ name: 'paragraph', params: ['...content'], category: 'Blocks', aliases: ['p'], summary: 'A paragraph.' }),
-      fn({ name: 'template', params: ['markdown', 'values'], category: 'Templates', aliases: ['a', 'b'] }),
-      fn({ name: 'heading', params: ['depth', 'content'], category: 'Blocks', summary: 'A heading, `## content`.' }),
+  test('lists each group under its heading, one line per function, in the order given', () => {
+    const groups = [
+      {
+        heading: 'Blocks',
+        functions: [
+          fn({ name: 'paragraph', params: ['...content'], aliases: ['p'], summary: 'A paragraph.' }),
+          fn({ name: 'heading', params: ['depth', 'content'], summary: 'A heading, `## content`.' }),
+        ],
+      },
+      {
+        heading: 'Templates',
+        functions: [fn({ name: 'template', params: ['markdown', 'values'], aliases: ['a', 'b'] })],
+      },
     ];
     assert.equal(
-      renderApiReference(functions),
+      renderApiReference(groups),
       [
         '## Functions',
         '',
         '### Blocks',
         '',
-        '- `heading(depth, content)`: A heading, `## content`.',
         '- `paragraph(...content)` (also `p`): A paragraph.',
+        '- `heading(depth, content)`: A heading, `## content`.',
         '',
         '### Templates',
         '',
@@ -38,7 +48,9 @@ describe('renderApiReference', () => {
   });
 
   test('keeps the summary as Markdown, block syntax and placeholders included', () => {
-    const reference = renderApiReference([fn({ summary: '- A `{@ name @}` **placeholder**, kept as written.' })]);
+    const reference = renderApiReference([
+      { heading: 'C', functions: [fn({ summary: '- A `{@ name @}` **placeholder**, kept as written.' })] },
+    ]);
     assert.equal(reference, '## Functions\n\n### C\n\n- `f()`: - A `{@ name @}` **placeholder**, kept as written.\n');
   });
 });
@@ -58,8 +70,10 @@ describe('updateApiReference', () => {
   test('writes the reference of a package, only when it changed', async () => {
     await withTempDir(async (dir) => {
       await writePackage(dir, 'packages/a', '');
+      const config = { groups: [{ heading: 'Greetings', categories: ['greetings'] }] };
+      await fs.writeFile(Path.join(dir, 'packages/a', CONFIG_FILE), JSON.stringify(config));
       const source =
-        '/**\n * Says hi.\n * @category Greetings\n */\nexport function hi(name: string): string {\n  return name;\n}\n';
+        '/**\n * Says hi.\n * @category greetings\n */\nexport function hi(name: string): string {\n  return name;\n}\n';
       await fs.mkdir(Path.join(dir, 'packages/a/src'));
       await fs.writeFile(Path.join(dir, 'packages/a/src/index.ts'), source);
       assert.equal(await updateApiReference('packages/a', dir), true);
@@ -69,6 +83,24 @@ describe('updateApiReference', () => {
       );
       assert.equal(await updateApiReference('packages/a', dir), false);
     });
+  });
+
+  test('throws when the package has no config', async () => {
+    await withTempDir(async (dir) => {
+      await writePackage(dir, 'packages/a', '');
+      await assert.rejects(updateApiReference('packages/a', dir), /packages\/a\/\.api-referencerc\.json is missing/);
+    });
+  });
+});
+
+describe('buildApiReference', () => {
+  // build:readme only runs on main, so a JSDoc or config that doesn't match would otherwise first fail there.
+  test('builds the reference of every package that injects one', async () => {
+    const packageDirs = await findApiReferencePackages();
+    assert.ok(packageDirs.includes('packages/markdown-toolkit'));
+    for (const packageDir of packageDirs) {
+      assert.match(await buildApiReference(packageDir), /^## Functions\n/, packageDir);
+    }
   });
 });
 

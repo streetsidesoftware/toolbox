@@ -63,7 +63,7 @@ export interface TemplateValues {
  *
  * A placeholder with no value is kept as written, so it can be substituted later.
  * @throws if a value doesn't fit where its placeholder is.
- * @category Templates
+ * @category templates
  */
 export function template(markdown: string, values: TemplateValues): MDFragment | MDInlineFragment {
   const root = templateTree(markdown, false);
@@ -75,7 +75,7 @@ export function template(markdown: string, values: TemplateValues): MDFragment |
  * Substitute values for a Markdown template's placeholders as blocks, the same way as {@link template}.
  *
  * A single paragraph stays a paragraph.
- * @category Templates
+ * @category templates
  */
 export function blockTemplate(markdown: string, values: TemplateValues): MDFragment {
   const root = templateTree(markdown, false);
@@ -94,7 +94,7 @@ export function blockTemplate(markdown: string, values: TemplateValues): MDFragm
  *
  * The text must be one paragraph. Block syntax, such as a leading `-`, is read as text.
  * @throws if the text isn't one paragraph, or a value isn't inline.
- * @category Templates
+ * @category templates
  */
 export function inlineTemplate(markdown: string, values: TemplateValues): MDInlineFragment {
   const start = markdown.trimStart();
@@ -120,7 +120,7 @@ export function inlineTemplate(markdown: string, values: TemplateValues): MDInli
  * - Anything else is blocks, rendered in the text's own style.
  *
  * A `{​@ name @​}` placeholder is kept as written, the same as in `text()`.
- * @category Existing Markdown
+ * @category text
  */
 export function parse(markdown: string): MDFragment | MDInlineFragment {
   const root = parseTree(markdown, false);
@@ -132,7 +132,7 @@ export function parse(markdown: string): MDFragment | MDInlineFragment {
  * A whole file as a document. Frontmatter at its start is kept as written.
  *
  * A `{​@ name @​}` placeholder is kept as written, the same as in {@link parse}.
- * @category Whole pages
+ * @category documents
  */
 export function parseDocument(markdown: string): MDDocument {
   return documentOf(markdown, (body) => {
@@ -148,7 +148,7 @@ export function parseDocument(markdown: string): MDDocument {
  * Frontmatter at its start is kept. A value in it is inserted as is: a string as written, and a Markdown element as rendered.
  * Each line of the value after the first gets the leading whitespace of the placeholder's line.
  * @throws if a value doesn't fit where its placeholder is.
- * @category Whole pages
+ * @category templates
  */
 export function templateDocument(markdown: string, values: TemplateValues): MDDocument {
   return documentOf(markdown, (body) => templateTree(body, false), values);
@@ -183,7 +183,7 @@ export type SubstitutedValue<T extends MDElement> = SubstitutionResult<T>;
  * - The result is the same type of element, in the same style, when it can hold the values.
  *   Otherwise it's a fragment of the same kind, or blocks where a placeholder that is a whole line took blocks.
  * @throws if a value doesn't fit where its placeholder is.
- * @category Templates
+ * @category templates
  */
 export function substitutePlaceholders<T extends MDElement>(element: T, values: TemplateValues): SubstitutionResult<T>;
 export function substitutePlaceholders(element: MDElement, values: TemplateValues): MDElement {

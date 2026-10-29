@@ -16,7 +16,7 @@ import type {
  * A collapsible `<details>` block. Its content goes after the summary, with blank lines around it so Markdown renders.
  *
  * A plain-text summary is written on one line, `<summary>text</summary>`. Inline Markdown in it gets blank lines.
- * @category Headings and sections
+ * @category sections
  */
 export function details(summary: InlineContent, ...content: AnyContent[]): MDDetails {
   return new MarkdownElement('block', 'details', 'a details block', [
@@ -31,7 +31,7 @@ export function details(summary: InlineContent, ...content: AnyContent[]): MDDet
  *
  * A plain-text term is written on one line, `<dt>term</dt>`. Inline Markdown in it gets blank lines.
  * The definition gets blank lines around it, so Markdown renders.
- * @category Lists and tables
+ * @category lists
  */
 export function definitionList(entries: readonly DefinitionEntry[]): MDDefinitionList {
   if (!Array.isArray(entries)) {
@@ -60,7 +60,7 @@ export const dl: typeof definitionList = definitionList;
  * - A line ending in a string shows as a line break.
  * - Every row is filled with empty cells to the widest row. An empty header leaves out `<thead>`.
  * - `align` aligns each column, as in `table()`.
- * @category Lists and tables
+ * @category tables
  */
 export function htmlTable(
   header: readonly AnyContent[],

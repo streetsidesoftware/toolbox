@@ -247,10 +247,12 @@ The [examples README](../examples/README.md) describes the folder layout. Runnin
 
 The README ends with a `## Functions` section that `gen-api-reference` writes from the code into `static/api-reference.md`, so the README never carries a hand-edited list of exports. It lists every function `src/index.ts` exports, one line each: its parameter names, its other names, such as `p` for `paragraph`, and its summary.
 
-- Each exported function's JSDoc has a `@category` tag, which names its group in the reference. The groups belong to the code, not to the guide's parts, so renaming a guide section never touches `src/`.
-- A group is named for what a reader wants to do, such as Code, Lists and tables or Whole pages, not for Markdown's block and inline split. A new function joins an existing group when one fits.
-- Groups and functions are in alphabetical order.
+- Each exported function's JSDoc has a `@category` tag that says what the function is, such as `style` or `line-breaks`. Users see it in editor hovers, so it describes the function, not the README's layout.
+- `.api-referencerc.json` lays out the reference. It lists the groups in order, each with its heading and the categories under it, so several small categories can share one heading. Changing a heading or the order never touches `src/`, and neither does renaming a guide section.
+- A heading is named for what a reader wants to do, such as Code, Lists and tables or Documents, not for Markdown's block and inline split.
+- Groups go from common to rare, as the guide does. Within a group, the config's `functions` list leads with the main functions, then their variants; the rest follow alphabetically.
+- A new function needs a category, and a new category needs a group in the config. A category in no group, in two, or used by no function fails.
 - An alias, a `const` that names a function or a renamed re-export, needs no tag of its own.
 - The summary is the first paragraph of the JSDoc, as Markdown renders it, so a blank line ends it. A `@summary` tag replaces it.
 - A summary is at most 140 characters, the length of a comment line. The only inline tag it may use is `{@link name}`, and raw HTML fails, since it's almost always a tag meant as text: write `` `<details>` ``.
-- A function without JSDoc, a `@category` or a summary fails `pnpm run build:readme` and the `scripts` tests.
+- A function without JSDoc, a `@category` or a summary fails `pnpm run build:readme` and the `scripts` tests. So does a config that doesn't match the code.

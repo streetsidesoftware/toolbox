@@ -24,7 +24,7 @@ export function readFrontmatter(markdown: string): FrontmatterMatch | undefined 
  * YAML frontmatter, for the start of a document. The text is inserted as is, between `---` lines.
  *
  * Making it valid YAML is up to the caller.
- * @category Whole pages
+ * @category documents
  */
 export function frontmatter(yaml: string): MDFrontmatter {
   // The closing `---` starts its own line, so a line ending at the end of the text is that line's.

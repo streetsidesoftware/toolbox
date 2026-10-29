@@ -6,8 +6,10 @@ import * as md from '@streetsidesoftware/markdown-toolkit';
 
 import type { ApiFunction } from './api-exports.ts';
 import { readApiFunctions } from './api-exports.ts';
+import type { ApiGroup } from './api-reference-config.ts';
+import { CONFIG_FILE, groupFunctions, readApiReferenceConfig } from './api-reference-config.ts';
 import { REPO_ROOT_DIR } from './consts.ts';
-import { compare, findPackages } from './packages.ts';
+import { findPackages } from './packages.ts';
 
 /** Where a package's function reference is written, relative to the package. */
 export const API_REFERENCE_FILE = 'static/api-reference.md';
@@ -28,31 +30,31 @@ export async function findApiReferencePackages(rootDir: string = REPO_ROOT_DIR):
   return found;
 }
 
-/**
- * The `## Functions` section of a README: a `###` heading for each category, then one line per function.
- * Categories and functions are in alphabetical order.
- */
-export function renderApiReference(functions: readonly ApiFunction[]): string {
-  const byCategory = Map.groupBy(functions, (fn) => fn.category);
-  const categories = [...byCategory.keys()].sort(compare);
+/** The `## Functions` section of a README: a `###` heading for each group, then one line per function. */
+export function renderApiReference(groups: readonly ApiGroup[]): string {
   return md
     .document(
       md.heading(2, 'Functions'),
-      categories.map((category) => [
-        md.heading(3, category),
-        md.list(
-          (byCategory.get(category) ?? []).toSorted((a, b) => compare(a.name, b.name)).map((fn) => functionLine(fn)),
-        ),
-      ]),
+      groups.map((group) => [md.heading(3, group.heading), md.list(group.functions.map((fn) => functionLine(fn)))]),
     )
     .toString();
 }
 
+/**
+ * Reads a package's code and config and renders its reference.
+ * @throws if the code's JSDoc or the config is invalid, or they don't match.
+ */
+export async function buildApiReference(packageDir: string, rootDir: string = REPO_ROOT_DIR): Promise<string> {
+  const configName = Path.posix.join(packageDir, CONFIG_FILE);
+  const config = await readApiReferenceConfig(Path.join(rootDir, packageDir, CONFIG_FILE), configName);
+  const functions = await readApiFunctions(Path.join(rootDir, packageDir, ENTRY_FILE));
+  return renderApiReference(groupFunctions(functions, config, configName));
+}
+
 /** Writes a package's reference. Returns whether the file changed. */
 export async function updateApiReference(packageDir: string, rootDir: string = REPO_ROOT_DIR): Promise<boolean> {
-  const functions = await readApiFunctions(Path.join(rootDir, packageDir, ENTRY_FILE));
   const file = Path.join(rootDir, packageDir, API_REFERENCE_FILE);
-  const reference = renderApiReference(functions);
+  const reference = await buildApiReference(packageDir, rootDir);
   if (reference === (await fs.readFile(file, 'utf8').catch(() => undefined))) return false;
   await fs.mkdir(Path.dirname(file), { recursive: true });
   await fs.writeFile(file, reference, 'utf8');

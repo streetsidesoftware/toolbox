@@ -6,7 +6,6 @@ import { describe, test } from 'node:test';
 
 import { firstParagraph, parseJsDoc, readApiFunctions, SUMMARY_LIMIT } from './api-exports.ts';
 import type { ApiFunction } from './api-exports.ts';
-import { REPO_ROOT_DIR } from './consts.ts';
 
 describe('readApiFunctions', () => {
   test('reads each function through re-exports, with its parameters, summary and category', async () => {
@@ -253,13 +252,6 @@ describe('readApiFunctions', () => {
       { 'index.ts': '/**\n * F.\n * @category C\n */\nfunction f(): void {}\nexport { f as default, f };\n' },
       async (index) => assert.rejects(readApiFunctions(index), /export default isn't supported/),
     );
-  });
-
-  test('reads every function markdown-toolkit exports', async () => {
-    const functions = await readApiFunctions(Path.join(REPO_ROOT_DIR, 'packages/markdown-toolkit/src/index.ts'));
-    const paragraph = functions.find((fn) => fn.name === 'paragraph');
-    assert.deepEqual(paragraph?.aliases, ['p']);
-    assert.ok(functions.every((fn) => fn.summary && fn.category));
   });
 });
 

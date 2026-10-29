@@ -30,6 +30,7 @@ words:
   - gitdir
   - inlines
   - lerna
+  - referencerc
   - setext
   - sigstore
   - stringifying
