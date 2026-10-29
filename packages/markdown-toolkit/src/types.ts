@@ -10,7 +10,7 @@
  */
 export type MDKind = 'inline' | 'block' | 'comment' | 'listItem' | 'frontmatter';
 
-/** Which element it is. Each public element type has its own. */
+/** The types that distinguish the MDElement interfaces, one for each. See {@link MDElement.type}. */
 export type MDType =
   | 'text'
   | 'placeholder'
@@ -41,7 +41,7 @@ export type MDType =
 /** A Markdown element. Converting it to a string renders it. */
 export interface MDElement {
   readonly kind: MDKind;
-  /** Which element it is, such as `list`. Code tells elements apart by it. */
+  /** The type that distinguishes each MDElement interface from the others, such as `'link'` for {@link MDLink}. */
   readonly type: MDType;
   /** What the element is, for error messages only, such as `a list`. */
   readonly description: string;
