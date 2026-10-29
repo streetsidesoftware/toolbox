@@ -150,7 +150,7 @@ It runs in CI and in the editor.
 ### Headings
 
 Give `heading` a depth from 1 to 6 and its text. The text can be several pieces, such as text and inline code. To
-separate sections with a line, use `horizontalRule()` (`hr()`).
+separate sections with a line, use `hr()` (`horizontalRule()`).
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -396,7 +396,7 @@ The languages to check:
 ### Details and definition lists
 
 These are HTML blocks, which GitHub renders. Give `details` a summary and the content it hides. Give
-`definitionList` (`dl`) one `[term, definition]` pair per entry.
+`dl` (`definitionList`) one `[term, definition]` pair per entry.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
