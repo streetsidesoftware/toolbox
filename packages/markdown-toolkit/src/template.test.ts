@@ -22,7 +22,7 @@ import {
   text,
   toBlock,
 } from './index.ts';
-import type { TemplateValue, TemplateValues } from './index.ts';
+import type { MDFragment, MDInlineFragment, MDText, TemplateValue, TemplateValues } from './index.ts';
 import { resolveValue } from './template.ts';
 
 interface ResolveRow {
@@ -237,6 +237,13 @@ describe('substitutePlaceholders', () => {
     const step = substitutePlaceholders(md, { a: '*x*' });
     assert.equal(step.toString(), '\\*x\\* and {@ _b_ @}');
     assert.equal(substitutePlaceholders(step, { _b_: 'y' }).toString(), '\\*x\\* and y');
+  });
+
+  test('a string is text', () => {
+    const result: MDText | MDInlineFragment | MDFragment = substitutePlaceholders('Version: {@ v @}', { v: '1.2.3' });
+    assert.equal(result.toString(), 'Version: 1.2.3');
+    assert.equal(substitutePlaceholders('*a* {@ x @}', { x: 'b' }).toString(), '\\*a\\* b');
+    assert.equal(substitutePlaceholders('Fruit:\n{@ x @}', { x: list(['a']) }).toString(), 'Fruit:\n\n- a');
   });
 
   test('the value given is not changed', () => {

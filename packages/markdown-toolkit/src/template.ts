@@ -194,13 +194,13 @@ export function templateDocument(markdown: string, values: TemplateValues): MDDo
 }
 
 /**
- * What {@link substitutePlaceholders} returns for an element.
+ * What {@link substitutePlaceholders} returns for an element, or for a string, which is text.
  * An element that can't hold what was substituted into it becomes a fragment of what it holds:
  * - Text with a value that isn't a string or text, or with blocks on a line of their own.
  * - An inline fragment or a paragraph with blocks on a line of their own.
  * - A placeholder with a value.
  */
-export type SubstitutionResult<T extends MDElement> = T extends MDText
+export type SubstitutionResult<T extends MDElement | string> = T extends string | MDText
   ? MDText | MDInlineFragment | MDFragment
   : T extends MDInlineFragment
     ? MDInlineFragment | MDFragment
@@ -218,7 +218,8 @@ export type SubstitutedValue<T extends MDElement> = SubstitutionResult<T>;
 /**
  * Substitutes values for the `{​@ name @​}` placeholders in an element you've already built, such as a parsed file.
  *
- * Placeholders without a value stay in place, so you can substitute values in steps.
+ * Placeholders without a value stay in place, so you can substitute values in steps. A string is text, as given to
+ * {@link text}, so Markdown in it shows exactly as written.
  *
  * - A string value shows exactly as given.
  * - A placeholder within a sentence takes text, links, formatting or code.
@@ -230,10 +231,17 @@ export type SubstitutedValue<T extends MDElement> = SubstitutionResult<T>;
  * const page = md.p('Hello ', md.placeholder('name'), '.');
  * md.substitutePlaceholders(page, { name: 'world' });
  * // Hello world.
+ * @example
+ * String(md.substitutePlaceholders('Version: {@version@}', { version: '1.2.3' }));
+ * // 'Version: 1.2.3'
  * @category templates
  */
-export function substitutePlaceholders<T extends MDElement>(element: T, values: TemplateValues): SubstitutionResult<T>;
-export function substitutePlaceholders(element: MDElement, values: TemplateValues): MDElement {
+export function substitutePlaceholders<T extends MDElement | string>(
+  element: T,
+  values: TemplateValues,
+): SubstitutionResult<T>;
+export function substitutePlaceholders(element: MDElement | string, values: TemplateValues): MDElement {
+  if (typeof element === 'string') return substitutePlaceholders(text(element), values);
   const rendering = renderingOf(element);
   if (!rendering) throw new TypeError(`expected a Markdown element, got ${describe(element)}`);
   const substituted = isText(element) ? substituteInText(element.text, values) : undefined;

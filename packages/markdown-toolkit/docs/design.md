@@ -173,6 +173,7 @@ The function `substitutePlaceholders(element, values)` puts values in place of t
 - Only the names that `values` has are substituted. The others stay as written, for a later step or injection.
 - Placeholders in a document's frontmatter are substituted too.
 - The element given is left unchanged.
+- A string is text, as everywhere else: `substitutePlaceholders('Version: {@ v @}', values)` is the same as passing `text(…)`, and Markdown in it shows as written. Markdown text goes through `template()` instead.
 
 The result is the same type, in the same style, when the element can hold what was substituted. An element that can't becomes a fragment, rather than throwing, so the caller never has to rebuild an element to fit. The return type, `SubstitutionResult<T>`, says which elements can change:
 
