@@ -1,6 +1,6 @@
 import type { Html, PhrasingContent, RootContent } from 'mdast';
 
-import { blockNodes, describe, groupedNodes, inlineNodes, isArray, isKind, MarkdownElement, runs } from './nodes.ts';
+import { blockNodes, describe, groupedNodes, inlineNodes, isArray, isText, MarkdownElement, runs } from './nodes.ts';
 import { alignOf } from './table.ts';
 import type {
   AnyContent,
@@ -67,7 +67,7 @@ export function htmlTable(
   for (const row of rows) {
     if (!isArray(row)) throw new TypeError(`table row must be an array, got ${describe(row)}`);
   }
-  const columns = Math.max(header.length, ...rows.map((row) => row.length));
+  const columns = rows.reduce((n, row) => Math.max(n, row.length), header.length);
   const align = (options?.align ?? []).map(alignOf);
   const nodes: RootContent[] = [];
   // Tags written since the last cell with Markdown. They form one HTML node, since nodes are joined by blank lines.
@@ -144,8 +144,7 @@ function cellNodes(content: AnyContent): RootContent[] {
 function cellInlineNodes(content: InlineContent): PhrasingContent[] {
   if (isArray(content)) return content.flatMap(cellInlineNodes);
   const nodes = inlineNodes(content, 'table cell');
-  const isText = typeof content === 'string' || (isKind(content, 'inline') && content.description === 'text');
-  return isText ? nodes.flatMap(lineBreaks) : nodes;
+  return typeof content === 'string' || isText(content) ? nodes.flatMap(lineBreaks) : nodes;
 }
 
 /** A text node with each line ending, and the spaces around it, as a line break. */

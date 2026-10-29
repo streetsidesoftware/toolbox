@@ -12,6 +12,7 @@ import type {
   MDElement,
   MDKind,
   MDListItem,
+  MDText,
 } from './types.ts';
 
 /**
@@ -114,6 +115,11 @@ export function isBlockContent(content: unknown): content is BlockContent {
 /** Whether a value is a list item made by `listItem`. */
 export function isListItem(value: unknown): value is MDListItem {
   return isKind(value, 'listItem');
+}
+
+/** Whether a value is text made by `text` or `inlineText`. */
+export function isText(value: unknown): value is MDText {
+  return isKind(value, 'inline') && value.description === 'text';
 }
 
 /** `Array.isArray`, narrowing readonly arrays too. */
