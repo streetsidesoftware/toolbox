@@ -26,6 +26,7 @@ words:
   - commonmark
   - COMMIT_EDITMSG
   - frontmatter
+  - gezellig
   - gitdir
   - inlines
   - lerna
