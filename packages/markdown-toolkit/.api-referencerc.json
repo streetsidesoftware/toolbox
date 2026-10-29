@@ -1,0 +1,42 @@
+{
+  "groups": [
+    {
+      "heading": "Text",
+      "categories": ["text", "line-breaks"],
+      "functions": ["paragraph", "inlineText", "blockText", "parse", "lineBreak"]
+    },
+    {
+      "heading": "Links and formatting",
+      "categories": ["links", "formatting"],
+      "functions": ["link", "strong", "emphasis"]
+    },
+    {
+      "heading": "Headings and sections",
+      "categories": ["headings", "sections"],
+      "functions": ["heading", "horizontalRule"]
+    },
+    {
+      "heading": "Lists and tables",
+      "categories": ["lists", "tables"],
+      "functions": ["list", "listItem", "table", "htmlTable"]
+    },
+    {
+      "heading": "Code",
+      "categories": ["code"]
+    },
+    {
+      "heading": "Templates",
+      "categories": ["templates", "placeholders"],
+      "functions": ["template", "inlineTemplate", "blockTemplate", "substitutePlaceholders", "placeholder"]
+    },
+    {
+      "heading": "Documents",
+      "categories": ["documents", "comments", "style"],
+      "functions": ["document", "frontmatter"]
+    },
+    {
+      "heading": "Elements",
+      "categories": ["elements"]
+    }
+  ]
+}
