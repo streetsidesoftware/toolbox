@@ -695,7 +695,7 @@ console.log(section.toString());
 
 <!--- @@inject-end: examples/match-a-style/README.md --->
 
-<!--- @@inject: ../../static/api-reference/markdown-toolkit.md --->
+<!--- @@inject: static/api-reference.md --->
 
 ## Functions
 
@@ -763,7 +763,7 @@ console.log(section.toString());
 - `parseDocument(markdown)`: A whole file as a document. Frontmatter at its start is kept as written.
 - `templateDocument(markdown, values)`: Substitute values for a whole file's placeholders, the same way as `template`, as a document.
 
-<!--- @@inject-end: ../../static/api-reference/markdown-toolkit.md --->
+<!--- @@inject-end: static/api-reference.md --->
 
 ## Requirements
 

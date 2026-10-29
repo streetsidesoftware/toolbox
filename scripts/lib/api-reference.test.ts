@@ -6,22 +6,11 @@ import { describe, test } from 'node:test';
 
 import type { ApiFunction } from './api-exports.ts';
 import {
-  apiReferenceFile,
-  apiReferenceMarker,
+  API_REFERENCE_MARKER,
   findApiReferencePackages,
   renderApiReference,
   updateApiReference,
 } from './api-reference.ts';
-
-describe('apiReferenceFile', () => {
-  test('is named after the package folder', () => {
-    assert.equal(apiReferenceFile('packages/markdown-toolkit'), 'static/api-reference/markdown-toolkit.md');
-    assert.equal(
-      apiReferenceMarker('packages/markdown-toolkit'),
-      '<!--- @@inject: ../../static/api-reference/markdown-toolkit.md --->',
-    );
-  });
-});
 
 describe('renderApiReference', () => {
   test('lists the functions under a heading per category, both in alphabetical order', () => {
@@ -55,11 +44,11 @@ describe('renderApiReference', () => {
 });
 
 describe('findApiReferencePackages', () => {
-  test('finds each package whose README injects its own reference', async () => {
+  test('finds each package whose README injects the reference in its own folder', async () => {
     await withTempDir(async (dir) => {
-      await writePackage(dir, 'packages/a', `# a\n\n${apiReferenceMarker('packages/a')}\n`);
+      await writePackage(dir, 'packages/a', `# a\n\n${API_REFERENCE_MARKER}\n`);
       await writePackage(dir, 'packages/b', '# b\n');
-      await writePackage(dir, 'packages/c', `# c\n\n${apiReferenceMarker('packages/a')}\n`);
+      await writePackage(dir, 'packages/c', '# c\n\n<!--- @@inject: ../../static/api-reference.md --->\n');
       assert.deepEqual(await findApiReferencePackages(dir), ['packages/a']);
     });
   });
@@ -75,7 +64,7 @@ describe('updateApiReference', () => {
       await fs.writeFile(Path.join(dir, 'packages/a/src/index.ts'), source);
       assert.equal(await updateApiReference('packages/a', dir), true);
       assert.equal(
-        await fs.readFile(Path.join(dir, 'static/api-reference/a.md'), 'utf8'),
+        await fs.readFile(Path.join(dir, 'packages/a/static/api-reference.md'), 'utf8'),
         '## Functions\n\n### Greetings\n\n- `hi(name)`: Says hi.\n',
       );
       assert.equal(await updateApiReference('packages/a', dir), false);

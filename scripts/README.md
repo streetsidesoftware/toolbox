@@ -25,8 +25,8 @@ These scripts are used to help maintain the repo.
   ([inject-markdown#930](https://github.com/streetsidesoftware/inject-markdown/issues/930)), so the second run picks
   up READMEs the first one changed. A change three levels deep can still need another run, which the workflow makes.
   The Update READMEs workflow runs `build:readme` on `main` and opens a PR with any change.
-- `gen-api-reference.ts` writes `static/api-reference/<name>.md`, the function reference of each `packages/<name>`
-  whose `README.md` injects it with `<!--- @@inject: ../../static/api-reference/<name>.md --->`. It reads
+- `gen-api-reference.ts` writes `static/api-reference.md`, the function reference, in each `packages/<name>` whose
+  `README.md` injects it with `<!--- @@inject: static/api-reference.md --->`. It reads
   `src/index.ts` with [oxc-parser](https://www.npmjs.com/package/oxc-parser), follows its re-exports, and lists
   each exported function with its parameter names, its aliases and its summary, grouped by the function's
   `@category` tag. The summary is the JSDoc's first paragraph, or its `@summary` tag, at most 140 characters and with no raw HTML. A

@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
+import Path from 'node:path';
 import { parseArgs } from 'node:util';
 
 import {
-  apiReferenceFile,
-  apiReferenceMarker,
+  API_REFERENCE_FILE,
+  API_REFERENCE_MARKER,
   ENTRY_FILE,
   findApiReferencePackages,
   updateApiReference,
@@ -12,9 +13,8 @@ import {
 
 const HELP = `Usage: gen-api-reference [options]
 
-Writes the function reference of each package whose README injects it, such as
-${apiReferenceFile('packages/markdown-toolkit')} for a README with
-${apiReferenceMarker('packages/markdown-toolkit')}
+Writes ${API_REFERENCE_FILE}, the function reference, in each package whose README injects it with
+${API_REFERENCE_MARKER}
 
 It lists the functions ${ENTRY_FILE} exports, grouped by the @category tag in their JSDoc.
 \`pnpm run build:readme\` runs this; build the packages first.
@@ -31,7 +31,7 @@ async function main() {
   }
 
   for (const dir of await findApiReferencePackages()) {
-    if (await updateApiReference(dir)) console.error('Updated %s', apiReferenceFile(dir));
+    if (await updateApiReference(dir)) console.error('Updated %s', Path.posix.join(dir, API_REFERENCE_FILE));
   }
 }
 
