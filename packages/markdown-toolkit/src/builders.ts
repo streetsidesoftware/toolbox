@@ -76,7 +76,7 @@ class BlockPlaceholderElement extends MarkdownElement<'block', 'a block placehol
 
 /**
  * Whether a value is a Markdown element.
- * @category Utilities
+ * @category Existing Markdown
  */
 export function isMarkdown(value: unknown): value is MDElement {
   return renderingOf(value) !== undefined;
@@ -155,7 +155,7 @@ function checkPlaceholderName(name: string): void {
 
 /**
  * A link, `[content](url)`.
- * @category Inline
+ * @category Links and formatting
  */
 export function link(content: InlineContent, url: string | URL): MDLink {
   const href = typeof url === 'string' ? url : url.href;
@@ -166,7 +166,7 @@ export function link(content: InlineContent, url: string | URL): MDLink {
 
 /**
  * Strong text, `**content**`.
- * @category Inline
+ * @category Links and formatting
  */
 export function strong(content: InlineContent): MDStrong {
   return new MarkdownElement('inline', 'strong text', [
@@ -176,7 +176,7 @@ export function strong(content: InlineContent): MDStrong {
 
 /**
  * Emphasized text, `_content_`.
- * @category Inline
+ * @category Links and formatting
  */
 export function emphasis(content: InlineContent): MDEmphasis {
   return new MarkdownElement('inline', 'emphasized text', [
@@ -186,7 +186,7 @@ export function emphasis(content: InlineContent): MDEmphasis {
 
 /**
  * Struck-through text, `~~content~~`.
- * @category Inline
+ * @category Links and formatting
  */
 export function strikethrough(content: InlineContent): MDStrikethrough {
   return new MarkdownElement('inline', 'struck-through text', [
@@ -196,7 +196,7 @@ export function strikethrough(content: InlineContent): MDStrikethrough {
 
 /**
  * Inline code. The code is inserted as is.
- * @category Inline
+ * @category Code
  */
 export function inlineCode(code: string): MDInlineCode {
   return new MarkdownElement('inline', 'inline code', [{ type: 'inlineCode', value: code }]);
@@ -205,7 +205,7 @@ export function inlineCode(code: string): MDInlineCode {
 /**
  * A line break in the form that works where it ends up.
  * In a paragraph or list item it's a Markdown hard break, a `\` at the end of the line.
- * @category Inline
+ * @category Line breaks and comments
  */
 export function lineBreak(): MDLineBreak {
   return new MarkdownElement('inline', 'a line break', [{ type: 'break' }]);
@@ -213,7 +213,7 @@ export function lineBreak(): MDLineBreak {
 
 /**
  * An HTML line break, always `<br/>`. It's self-closed, so it also works in MDX.
- * @category Inline
+ * @category Line breaks and comments
  */
 export function br(): MDBr {
   return new MarkdownElement('inline', 'a <br/>', [{ type: 'html', value: '<br/>' }]);
@@ -221,7 +221,7 @@ export function br(): MDBr {
 
 /**
  * An HTML comment, `<!-- text -->`. It goes inside a line or on its own.
- * @category Inline
+ * @category Line breaks and comments
  */
 export function comment(text: string): MDComment {
   return new MarkdownElement('comment', 'a comment', [{ type: 'html', value: `<!-- ${commentSafe(text)} -->` }]);
@@ -229,7 +229,7 @@ export function comment(text: string): MDComment {
 
 /**
  * A heading, `## content`.
- * @category Blocks
+ * @category Headings and sections
  */
 export function heading(depth: HeadingDepth, content: InlineContent): MDHeading {
   if (!Number.isInteger(depth) || depth < 1 || depth > 6) {
@@ -242,7 +242,7 @@ export function heading(depth: HeadingDepth, content: InlineContent): MDHeading 
 
 /**
  * A paragraph: inline content as a block.
- * @category Blocks
+ * @category Text
  */
 export function paragraph(...content: InlineContent[]): MDParagraph {
   return paragraphOf(content, 'paragraph content');
@@ -259,7 +259,7 @@ function paragraphOf(content: readonly InlineContent[], where: string): MDParagr
  * Content as blocks, for where only blocks can go.
  * - Blocks are returned unchanged.
  * - Each run of inline pieces becomes a paragraph, as in a list item.
- * @category Utilities
+ * @category Existing Markdown
  */
 export function toBlock(content: AnyContent): BlockContent {
   if (isBlockContent(content)) return content;
@@ -269,7 +269,7 @@ export function toBlock(content: AnyContent): BlockContent {
 
 /**
  * A horizontal rule, a line between sections: `---` in the default style.
- * @category Blocks
+ * @category Headings and sections
  */
 export function horizontalRule(): MDHorizontalRule {
   return new MarkdownElement('block', 'a horizontal rule', [{ type: 'thematicBreak' }]);
@@ -280,7 +280,7 @@ export const hr: typeof horizontalRule = horizontalRule;
 
 /**
  * A fenced code block. The code is inserted as is.
- * @category Blocks
+ * @category Code
  */
 export function codeBlock(code: string, lang?: string): MDCodeBlock {
   return new MarkdownElement('block', 'a code block', [{ type: 'code', lang: lang || null, value: code }]);
@@ -288,7 +288,7 @@ export function codeBlock(code: string, lang?: string): MDCodeBlock {
 
 /**
  * One list item from several pieces, for use in {@link list}.
- * @category Blocks
+ * @category Lists and tables
  */
 export function listItem(...content: ListItemContent[]): MDListItem {
   return new MarkdownElement('listItem', 'a list item', [listItemNode(content)]);
@@ -298,7 +298,7 @@ export function listItem(...content: ListItemContent[]): MDListItem {
  * A whole document. Arrays are flattened.
  * Inline pieces in a row form a paragraph, and blocks follow, as in a list item.
  * Frontmatter goes first.
- * @category Documents
+ * @category Whole pages
  */
 export function document(frontmatter: MDFrontmatter, ...content: AnyContent[]): MDDocument;
 export function document(...content: AnyContent[]): MDDocument;
@@ -314,7 +314,7 @@ export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument
 
 /**
  * A bulleted list, one item per entry.
- * @category Blocks
+ * @category Lists and tables
  */
 export function list(entries: readonly ListEntry[]): MDList {
   if (!Array.isArray(entries)) throw new TypeError(`list entries must be an array, got ${describe(entries)}`);

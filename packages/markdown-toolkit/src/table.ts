@@ -8,7 +8,7 @@ import type { ColumnAlign, InlineContent, MDTable, TableOptions } from './types.
  * - A `|` in a cell is escaped, and a line break renders as `<br/>`.
  * - A short row is padded with empty cells.
  * - `align` aligns each column: `'left'`, `'center'`, `'right'`, a delimiter such as `:-:`, or `undefined` for none.
- * @category Blocks
+ * @category Lists and tables
  */
 export function table(
   header: readonly InlineContent[],

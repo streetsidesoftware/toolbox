@@ -112,7 +112,7 @@ export function inlineTemplate(markdown: string, values: TemplateValues): MDInli
  * - Anything else is blocks, rendered in the text's own style.
  *
  * A `{​@ name @​}` placeholder is kept as written, the same as in `text()`.
- * @category Parsing
+ * @category Existing Markdown
  */
 export function parse(markdown: string): MDFragment | MDInlineFragment {
   const root = parseTree(markdown, false);
@@ -123,7 +123,7 @@ export function parse(markdown: string): MDFragment | MDInlineFragment {
 /**
  * A whole file as a document. Frontmatter at its start is kept as written.
  * A `{​@ name @​}` placeholder is kept as written, the same as in {@link parse}.
- * @category Parsing
+ * @category Whole pages
  */
 export function parseDocument(markdown: string): MDDocument {
   return documentOf(markdown, (body) => {
@@ -138,7 +138,7 @@ export function parseDocument(markdown: string): MDDocument {
  * Frontmatter at its start is kept. A value in it is inserted as is: a string as written, and a Markdown element as rendered.
  * Each line of the value after the first gets the leading whitespace of the placeholder's line.
  * @throws if a value doesn't fit where its placeholder is.
- * @category Templates
+ * @category Whole pages
  */
 export function templateDocument(markdown: string, values: TemplateValues): MDDocument {
   return documentOf(markdown, (body) => templateTree(body, false), values);
