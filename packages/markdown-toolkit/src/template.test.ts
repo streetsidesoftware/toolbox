@@ -174,7 +174,7 @@ describe('template', () => {
 describe('inlineTemplate', () => {
   test('a fragment inside a list item', () => {
     const e = { name: 'German', url: '../de.md' };
-    const md = list([listItem(link(e.name, e.url), inlineTemplate(' - Adds {@ name @} spell checking', e))]);
+    const md = list([listItem([link(e.name, e.url), inlineTemplate(' - Adds {@ name @} spell checking', e)])]);
     assert.equal(md.toString(), '- [German](../de.md) - Adds German spell checking');
   });
 
@@ -302,14 +302,14 @@ describe('substitutePlaceholders', () => {
   test('placeholder() follows its position', () => {
     const fruit = list(['apple', 'orange']);
     const url = 'https://x';
-    const md = document('Fruit:\n', placeholder('fruit'), '\n', link('images', url));
+    const md = document(['Fruit:\n', placeholder('fruit'), '\n', link('images', url)]);
     assert.equal(md.toString(), 'Fruit:\n{@ fruit @}\n[images](https://x)\n');
     assert.equal(
       substitutePlaceholders(md, { fruit }).toString(),
       'Fruit:\n\n- apple\n- orange\n\n[images](https://x)\n',
     );
     assert.throws(
-      () => substitutePlaceholders(document('Fruit: ', placeholder('fruit')), { fruit }),
+      () => substitutePlaceholders(document(['Fruit: ', placeholder('fruit')]), { fruit }),
       new TypeError('{@ fruit @} must be inline, got a list'),
     );
     assert.equal(substitutePlaceholders(placeholder('fruit'), { fruit }).type, 'fragment');

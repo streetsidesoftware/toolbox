@@ -38,7 +38,9 @@ An array is a sequence. Arrays are flattened.
 
 - Inline pieces are joined exactly as given, with no added spaces: `['Ref: ', link('German', '../g.md')]`. A space would need a way to suppress it before a comma, or in `` `x`s ``.
 - Where only inline content can go, a block in the array is an error.
-- Where blocks can go, in a document, a list item, details content, a definition, or an HTML table cell, inline pieces in a row form a paragraph and blocks follow, as in a Markdown list item: `document('See ', link(…), '.')` is one paragraph.
+- Where blocks can go, in a document, a list item, details content, a definition, or an HTML table cell, inline pieces in a row form a paragraph and blocks follow, as in a Markdown list item: `document(['See ', link(…), '.'])` is one paragraph.
+- In `document`, `listItem` and `details`, which take their content as separate arguments, each argument goes on its own lines, as each entry of a list is one item. `details('More', 'First.', 'Second.')` is two paragraphs, where joining them would give `First.Second.`. Inline pieces that belong in one paragraph go in one array argument, or in `p(…)`.
+- Pieces that are only whitespace, such as `'\n'`, form no paragraph, since it would show nothing.
 
 In a list, each entry is one item. An array entry is one item holding a sequence, never a nested list. A nested list is a `list(…)` inside an item.
 
@@ -106,7 +108,7 @@ A placeholder isn't inline or block by itself. Where it sits decides what it can
 
 Where a placeholder sits is the same whether it's written in Markdown text, in a string, or made with a builder:
 
-- `placeholder(name)` goes anywhere inline content does. In `document('Fruit:\n', placeholder('fruit'))` it's on a line of its own, so it can take a list. In `document('Fruit:', placeholder('fruit'))` it's inside the line.
+- `placeholder(name)` goes anywhere inline content does. In `document(['Fruit:\n', placeholder('fruit')])` it's on a line of its own, so it can take a list. In `document(['Fruit:', placeholder('fruit')])` it's inside the line.
 - `blockPlaceholder(name)` is a block, so it always stands on its own lines and takes blocks or inline content. Inside a line it's an error, as for any block. Two types, rather than one with an `'inline' | 'block'` kind, let the compiler keep a block placeholder out of a line.
 - A placeholder's string form is exactly `{@ name @}`, so it also goes inside code: ``inlineCode(`version: ${placeholder('engine.version')}`)``.
 

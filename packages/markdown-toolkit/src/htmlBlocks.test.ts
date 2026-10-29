@@ -82,7 +82,7 @@ describe('details', () => {
 
   test('inline content is a paragraph, and blocks follow', () => {
     assert.equal(
-      details('S', 'See ', inlineCode('x'), '.', list(['a'])).toString(),
+      details('S', ['See ', inlineCode('x'), '.', list(['a'])]).toString(),
       md`
         <details>
         <summary>S</summary>

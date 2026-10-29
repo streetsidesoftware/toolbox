@@ -4,10 +4,10 @@ import type { ListItem, Paragraph } from 'mdast';
 import { DocumentElement } from './documentElement.ts';
 import { isFrontmatter } from './frontmatter.ts';
 import {
+  argumentNodes,
   describe,
   groupedNodes,
   inlineNodes,
-  isArray,
   isBlockContent,
   isListItem,
   listItemNode,
@@ -388,7 +388,7 @@ export function codeBlock(code: string, lang?: string): MDCodeBlock {
 /**
  * Creates one list item from several pieces, for use in {@link list}.
  *
- * Pieces in a row join into one line. A paragraph, list or other block goes on its own lines below them.
+ * Each piece goes on its own lines, below the one before. Pieces that belong on one line go in one array.
  *
  * @example
  * md.listItem('Dutch', md.list(['Flemish']));
@@ -397,14 +397,17 @@ export function codeBlock(code: string, lang?: string): MDCodeBlock {
  * @category lists
  */
 export function listItem(...content: ListItemContent[]): MDListItem {
-  return new MarkdownElement('listItem', 'listItem', 'a list item', [listItemNode(content)]);
+  return new MarkdownElement('listItem', 'listItem', 'a list item', [
+    listItemNode(argumentNodes(content, 'list item content')),
+  ]);
 }
 
 /**
  * Creates a whole Markdown file from its parts, in order.
  *
  * - Frontmatter, if any, goes first.
- * - An array of parts works the same as passing them one by one.
+ * - Each part goes on its own lines. A string is a paragraph of its own.
+ * - An array is one part: its text, links and other pieces in a row form one paragraph, and blocks follow.
  *
  * @example
  * md.document(md.heading(1, 'Title'), md.p('Body.'));
@@ -418,10 +421,10 @@ export function document(...content: AnyContent[]): MDDocument;
 export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument {
   const [first, ...rest] = content;
   if (rest.some(isFrontmatter)) throw new TypeError('frontmatter must be the first content of a document');
-  if (!isFrontmatter(first)) return new DocumentElement(groupedNodes(content as AnyContent[], 'document content'));
+  if (!isFrontmatter(first)) return new DocumentElement(argumentNodes(content as AnyContent[], 'document content'));
   return new DocumentElement([
     ...(renderingOf(first)?.nodes ?? []),
-    ...groupedNodes(rest as AnyContent[], 'document content'),
+    ...argumentNodes(rest as AnyContent[], 'document content'),
   ]);
 }
 
@@ -446,7 +449,9 @@ export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument
 export function list(entries: readonly ListEntry[]): MDList {
   if (!Array.isArray(entries)) throw new TypeError(`list entries must be an array, got ${describe(entries)}`);
   const items = entries.map((entry) =>
-    isListItem(entry) ? (renderingOf(entry)?.nodes[0] as ListItem) : listItemNode(isArray(entry) ? entry : [entry]),
+    isListItem(entry)
+      ? (renderingOf(entry)?.nodes[0] as ListItem)
+      : listItemNode(groupedNodes(entry, 'list item content')),
   );
   return new MarkdownElement('block', 'list', 'a list', [
     { type: 'list', ordered: false, spread: false, children: items },

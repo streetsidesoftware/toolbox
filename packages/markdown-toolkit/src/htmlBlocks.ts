@@ -1,6 +1,7 @@
 import type { Html, PhrasingContent, RootContent } from 'mdast';
 
 import {
+  argumentNodes,
   blockNodes,
   describe,
   groupedNodes,
@@ -24,7 +25,8 @@ import type {
 /**
  * Creates a collapsible section: the reader sees `summary` and clicks it to show the content.
  *
- * The content can hold anything a page can, such as paragraphs, lists and tables.
+ * The content can hold anything a page can, such as paragraphs, lists and tables. Each piece of content goes on its
+ * own lines, so pieces that belong in one paragraph go in one array.
  *
  * @example
  * md.details('Show more', 'Hidden text.');
@@ -34,7 +36,7 @@ import type {
 export function details(summary: InlineContent, ...content: AnyContent[]): MDDetails {
   return new MarkdownElement('block', 'details', 'a details block', [
     ...wrapped('<details>\n', 'summary', summary, '', 'details summary'),
-    ...groupedNodes(content, 'details content'),
+    ...argumentNodes(content, 'details content'),
     html('</details>'),
   ]);
 }

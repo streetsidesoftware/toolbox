@@ -189,7 +189,7 @@ describe('strong, emphasis, strikethrough', () => {
   });
 
   test('in a list item', () => {
-    const md = list([listItem(link('Danish', '../da.md'), ' ', strong('pre-release'), ' - Adds Danish')]);
+    const md = list([listItem([link('Danish', '../da.md'), ' ', strong('pre-release'), ' - Adds Danish'])]);
     assert.equal(md.toString(), '- [Danish](../da.md) **pre-release** - Adds Danish');
   });
 
@@ -288,8 +288,8 @@ describe('horizontalRule', () => {
 describe('line endings at the edges', () => {
   testEach`
         value                                                                  | expected
-        ${document('Fruit:\n', placeholder('fruit'), '\n')}                    | ${'Fruit:\n{@ fruit @}\n'}
-        ${document(document('Fruit:\n', placeholder('fruit'), '\n'), 'yummy')} | ${'Fruit:\n{@ fruit @}\n\nyummy\n'}
+        ${document(['Fruit:\n', placeholder('fruit'), '\n'])}                  | ${'Fruit:\n{@ fruit @}\n'}
+        ${document(document(['Fruit:\n', placeholder('fruit'), '\n']), 'yummy')} | ${'Fruit:\n{@ fruit @}\n\nyummy\n'}
         ${document('Fruit:\n', blockPlaceholder('fruit'))}                     | ${'Fruit:\n\n{@ fruit @}\n'}
         ${document('Intro', '\n', list(['x']))}                                | ${'Intro\n\n- x\n'}
         ${list([listItem('Langs\n', list(['en']))])}                           | ${'- Langs\n  - en'}
@@ -297,7 +297,7 @@ describe('line endings at the edges', () => {
         ${heading(2, 'Title\n')}                                               | ${'## Title'}
         ${paragraph('a', lineBreak())}                                         | ${'a'}
         ${paragraph(lineBreak(), 'a', lineBreak(), 'b')}                       | ${'a\\\nb'}
-        ${document('Fruit:\n', placeholder('fruit'), '\n', 'yummy')}           | ${'Fruit:\n{@ fruit @}\nyummy\n'}
+        ${document(['Fruit:\n', placeholder('fruit'), '\n', 'yummy'])}         | ${'Fruit:\n{@ fruit @}\nyummy\n'}
     `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
     assert.equal(value.toString(), expected);
   });
@@ -375,9 +375,19 @@ describe('document', () => {
     );
   });
 
-  test('inline pieces in a row form a paragraph, as in a list item', () => {
-    const md = document('See ', link('the docs', 'u'), '.', list(['a']), 'More');
+  test('each argument is its own block, and an array of inline pieces is one paragraph', () => {
+    assert.equal(document('First.', 'Second.').toString(), 'First.\n\nSecond.\n');
+    const md = document(['See ', link('the docs', 'u'), '.', list(['a']), 'More']);
     assert.equal(md.toString(), 'See [the docs](u).\n\n- a\n\nMore\n');
+    assert.equal(listItem('First.', 'Second.').toString(), '- First.\n\n  Second.');
+  });
+
+  test('two one-line template results are two paragraphs', () => {
+    assert.equal(document(template('One', {}), template('Two', {})).toString(), 'One\n\nTwo\n');
+  });
+
+  test('an argument of only whitespace renders nothing', () => {
+    assert.equal(document('Intro', '\n', ' ', list(['x'])).toString(), 'Intro\n\n- x\n');
   });
 
   test('a string is inline text and never splits', () => {

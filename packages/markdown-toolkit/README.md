@@ -114,7 +114,8 @@ Language dictionaries for [cspell](https://cspell.org).
 ## Build in code
 
 Each builder returns an element. Put elements together with `document`, and render the page with `toString()`. A
-document ends with a newline; other elements don't, so they can be joined. Strings are text, shown as written.
+document ends with a newline; other elements don't, so they can be joined. Strings are text, shown as written. Each
+element or string passed to `document` goes on its own lines; to put several pieces in one paragraph, use `p`.
 
 ### Text and paragraphs
 

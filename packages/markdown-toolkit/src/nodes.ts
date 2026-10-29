@@ -8,7 +8,6 @@ import type {
   AnyContent,
   BlockContent,
   InlineContent,
-  ListItemContent,
   MDBlock,
   MDElement,
   MDKind,
@@ -173,17 +172,32 @@ export function mapParagraphsAndBlocks<T>(
 
 /**
  * The blocks for mixed content: the inline pieces between blocks form a paragraph, and blocks follow.
+ * Pieces that are only whitespace form no paragraph, since it would show nothing.
  * @param where - what the content is for, for error messages.
  */
 export function groupedNodes(content: AnyContent | readonly AnyContent[], where: string): MdastBlockContent[] {
   return mapParagraphsAndBlocks(
     content,
-    (inline): MdastBlockContent => ({ type: 'paragraph', children: inlineNodes(inline, where) }),
+    (inline): MdastBlockContent[] => {
+      const children = inlineNodes(inline, where);
+      return children.every(isBlank) ? [] : [{ type: 'paragraph', children }];
+    },
     (block) => blockNodes(block, where) as MdastBlockContent[],
   );
 }
 
-/** A list item from its pieces, grouped as in {@link groupedNodes}. */
-export function listItemNode(content: readonly ListItemContent[]): ListItem {
-  return { type: 'listItem', spread: false, children: groupedNodes(content, 'list item content') };
+function isBlank(node: PhrasingContent): boolean {
+  return node.type === 'break' || (node.type === 'text' && /^[ \t\r\n]*$/.test(node.value));
+}
+
+/**
+ * The blocks for content given as separate arguments: each argument goes on its own lines, grouped as in
+ * {@link groupedNodes}, so inline pieces form a paragraph only within one argument.
+ */
+export function argumentNodes(args: readonly AnyContent[], where: string): MdastBlockContent[] {
+  return args.flatMap((arg) => groupedNodes(arg, where));
+}
+
+export function listItemNode(children: MdastBlockContent[]): ListItem {
+  return { type: 'listItem', spread: false, children };
 }

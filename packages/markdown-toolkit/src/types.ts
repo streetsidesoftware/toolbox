@@ -248,7 +248,7 @@ export type BlockOrInlineContent = InlineContent | BlockContent;
 /** Block or inline content, or an array that mixes them. */
 export type AnyContent = BlockOrInlineContent | readonly BlockOrInlineContent[];
 
-/** A piece of a list item. Inline pieces in a row form a line, and blocks follow on their own lines. */
+/** A piece of a list item. In an array, inline pieces in a row form a line, and blocks follow on their own lines. */
 export type ListItemContent = BlockOrInlineContent;
 
 /** One item of a list. */
