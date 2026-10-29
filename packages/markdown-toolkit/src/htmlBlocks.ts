@@ -15,6 +15,7 @@ import type {
 /**
  * A collapsible `<details>` block. Its content goes after the summary, with blank lines around it so Markdown renders.
  * A plain-text summary is written on one line, `<summary>text</summary>`. Inline Markdown in it gets blank lines.
+ * @category HTML blocks
  */
 export function details(summary: InlineContent, ...content: AnyContent[]): MDDetails {
   return new MarkdownElement('block', 'a details block', [
@@ -28,6 +29,7 @@ export function details(summary: InlineContent, ...content: AnyContent[]): MDDet
  * A `<dl>` definition list, one `[term, definition]` pair per entry.
  * A plain-text term is written on one line, `<dt>term</dt>`. Inline Markdown in it gets blank lines.
  * The definition gets blank lines around it, so Markdown renders.
+ * @category HTML blocks
  */
 export function definitionList(entries: readonly DefinitionEntry[]): MDDefinitionList {
   if (!Array.isArray(entries)) {

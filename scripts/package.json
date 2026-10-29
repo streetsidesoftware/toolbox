@@ -13,6 +13,7 @@
   "type": "module",
   "bin": {
     "fix-package-json": "./fix-package-json.ts",
+    "gen-api-reference": "./gen-api-reference.ts",
     "gen-readme": "./gen-readme.ts",
     "new-package": "./new-package.ts",
     "prepare-publication": "./prepare-publication.ts",
@@ -27,9 +28,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@streetsidesoftware/markdown-toolkit": "workspace:*",
     "@streetsidesoftware/placeholders": "workspace:*"
   },
   "devDependencies": {
+    "oxc-parser": "^0.156.0",
     "sort-package-json": "^4.0.0"
   },
   "engines": {
