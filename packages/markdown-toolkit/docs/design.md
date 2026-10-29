@@ -194,6 +194,8 @@ Everything inside a document renders in the document's style. A fragment's own s
 
 A line ending or `lineBreak()` at the start or end of a paragraph, heading or table cell is dropped. Nothing is on its other side, so it can't display, and kept it would render as `&#xA;` or a literal `\`.
 
+Empty bold, italic or struck-through text, and a link with no content, render nothing. With nothing between them, their markers would show as text, as in `a****b`, and an empty link can't be seen or clicked. That includes formatting that holds only empty formatting, and an empty value substituted later. Whitespace isn't empty: `strong(' ')` renders.
+
 ## Errors
 
 An element of the wrong kind throws a `TypeError`, such as a block where only inline content can go, or frontmatter that isn't first in a document. Other misuse throws an `Error`, such as a heading depth outside 1–6, an invalid placeholder name, or an inline template that isn't one paragraph. Each message names what was wrong: `heading content must be inline, got a list`.

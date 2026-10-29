@@ -183,6 +183,8 @@ function checkPlaceholderName(name: string): void {
 /**
  * Creates a link that shows `content` and goes to `url`.
  *
+ * With empty content, the link renders nothing.
+ *
  * @example
  * md.link('the docs', 'https://example.com');
  * // [the docs](https://example.com)
@@ -198,6 +200,8 @@ export function link(content: InlineContent, url: string | URL): MDLink {
 /**
  * Creates bold text.
  *
+ * Empty content renders nothing.
+ *
  * @example
  * md.strong('important');
  * // **important**
@@ -212,6 +216,8 @@ export function strong(content: InlineContent): MDStrong {
 /**
  * Creates italic text.
  *
+ * Empty content renders nothing.
+ *
  * @example
  * md.emphasis('maybe');
  * // _maybe_
@@ -225,6 +231,8 @@ export function emphasis(content: InlineContent): MDEmphasis {
 
 /**
  * Creates text with a line through it.
+ *
+ * Empty content renders nothing.
  *
  * @example
  * md.strikethrough('old price');

@@ -33,6 +33,7 @@ const handlers = {
  */
 export function renderNodes(children: RootContent[], style: StyleOptions | undefined): string {
   const root: Root = { type: 'root', children: structuredClone(children) };
+  dropEmptyFormatting(root);
   visit(root, (node) => {
     if (node.type === 'paragraph' || node.type === 'heading' || node.type === 'tableCell') trimLines(node.children);
     if (node.type === 'tableCell') visit(node, oneLine);
@@ -44,6 +45,18 @@ export function renderNodes(children: RootContent[], style: StyleOptions | undef
     .use(remarkStringify, { ...defaultStyle, ...Object.fromEntries(given), handlers })
     .stringify(root);
   return md.replace(/\n$/, '');
+}
+
+/** Formatting that would show its markers, or a link that couldn't be seen, with nothing in it. */
+const droppedWhenEmpty = new Set(['strong', 'emphasis', 'delete', 'link']);
+
+/** Remove empty formatting and links, in place, including those that hold only empty ones. */
+function dropEmptyFormatting(parent: Parent): void {
+  parent.children = parent.children.filter((child) => {
+    if (!('children' in child)) return true;
+    dropEmptyFormatting(child);
+    return child.children.length > 0 || !droppedWhenEmpty.has(child.type);
+  });
 }
 
 /**

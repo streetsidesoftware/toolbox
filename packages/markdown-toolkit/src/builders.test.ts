@@ -5,7 +5,7 @@ import { describe, test } from 'node:test';
 import { testEach } from '@streetsidesoftware/test-each';
 
 import type * as Builders from './index.ts';
-import type { MDElement } from './index.ts';
+import type { MDElement, MDInline } from './index.ts';
 import {
   blockPlaceholder,
   blockText,
@@ -34,6 +34,7 @@ import {
   placeholder,
   strikethrough,
   strong,
+  substitutePlaceholders,
   table,
   template,
   text,
@@ -186,6 +187,27 @@ describe('strong, emphasis, strikethrough', () => {
         ${strong(['When: ', emphasis('always')])}         | ${'**When: _always_**'}
     `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
     assert.equal(value.toString(), expected);
+  });
+
+  testEach`
+        value
+        ${strong('')}
+        ${emphasis([])}
+        ${strikethrough('')}
+        ${strong(emphasis(''))}
+        ${link('', 'u')}
+        ${link(strong(''), 'u')}
+    `('empty, $value.description renders nothing', ({ value }: { value: MDInline }) => {
+    assert.equal(paragraph('a', value, 'b').toString(), 'ab');
+  });
+
+  test('a space is not empty', () => {
+    assert.equal(paragraph('a', strong(' '), 'b').toString(), '&#x61;**&#x20;**&#x62;');
+  });
+
+  test('an empty value substituted later renders nothing', () => {
+    const md = paragraph('a', strong(placeholder('x')), 'b');
+    assert.equal(substitutePlaceholders(md, { x: '' }).toString(), 'ab');
   });
 
   test('in a list item', () => {
