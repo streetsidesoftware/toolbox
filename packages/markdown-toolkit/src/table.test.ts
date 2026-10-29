@@ -99,20 +99,20 @@ describe('table', () => {
     assert.throws(() => table(['a'], [], { align: [align] }), { name: 'Error', message: /invalid column alignment/ });
   });
 
-  test('a short row is filled with empty cells, and a long row adds a column', () => {
+  test('a short row is padded with empty cells, and a long row adds a column', () => {
     assert.equal(
       table(['A', 'B'], [['1', '', '3'], ['x']]).toString(),
       ['| A | B |   |', '| - | - | - |', '| 1 |   | 3 |', '| x |   |   |'].join('\n'),
     );
   });
 
-  test('a placeholder in a cell is kept, and filled later like any other', () => {
+  test('a placeholder in a cell is kept, and substituted later like any other', () => {
     const t = table(['Name'], [[placeholder('name')]]);
     assert.equal(t.toString(), '| Name       |\n| ---------- |\n| {@ name @} |');
     const value = ['a', lineBreak(), inlineCode('b|c')];
-    const filled = '| Name         |\n| ------------ |\n| a<br/>`b\\|c` |';
-    assert.equal(substitutePlaceholders(t, { name: value }).toString(), filled);
-    assert.equal(template('| Name |\n| - |\n| {@ name @} |', { name: value }).toString(), filled);
+    const substituted = '| Name         |\n| ------------ |\n| a<br/>`b\\|c` |';
+    assert.equal(substitutePlaceholders(t, { name: value }).toString(), substituted);
+    assert.equal(template('| Name |\n| - |\n| {@ name @} |', { name: value }).toString(), substituted);
   });
 
   test('a table is a block in a document', () => {

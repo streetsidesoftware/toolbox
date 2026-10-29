@@ -123,7 +123,7 @@ export function blockText(value: string): MDFragment {
 }
 
 /**
- * A `{​@ name @​}` placeholder that goes where inline content does, rendered exactly as written so it can be filled later.
+ * A `{​@ name @​}` placeholder that goes where inline content does, rendered exactly as written so it can be substituted later.
  * - Inside a line, it takes only inline content.
  * - On a line of its own, where blocks can go, it also takes blocks.
  * - It is also accepted inside code.
@@ -134,7 +134,7 @@ export function placeholder(name: string): MDPlaceholder {
 }
 
 /**
- * A `{​@ name @​}` placeholder on its own lines, rendered exactly as written so it can be filled later.
+ * A `{​@ name @​}` placeholder on its own lines, rendered exactly as written so it can be substituted later.
  * It takes blocks or inline content.
  */
 export function blockPlaceholder(name: string): MDBlockPlaceholder {
