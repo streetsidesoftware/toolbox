@@ -1,7 +1,7 @@
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
 const links = [
-  { title: 'Docs [beta]', url: 'https://cspell.org' },
+  { title: 'Docs', url: 'https://cspell.org' },
   { title: 'Source', url: 'https://github.com/streetsidesoftware/cspell' },
 ];
 

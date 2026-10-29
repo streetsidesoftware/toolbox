@@ -1,6 +1,6 @@
 ## Using `cspell`
 
-- [Docs \[beta\]](https://cspell.org)
+- [Docs](https://cspell.org)
 - [Source](https://github.com/streetsidesoftware/cspell)
 
 ```sh

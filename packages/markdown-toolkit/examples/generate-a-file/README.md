@@ -1,7 +1,7 @@
 ## Generate a Markdown file from data
 
-Each builder returns a Markdown element, not a string. Put elements together with `document`, and render the file
-with `toString()`. An element is escaped for where it ends up, so the `]` in the link text doesn't end the link.
+A script usually has its data in arrays and objects. Map each item to an element, here a link in a list, and put
+the elements together with `document`.
 
 <!--- @@inject: example.ts --->
 
@@ -9,7 +9,7 @@ with `toString()`. An element is escaped for where it ends up, so the `]` in the
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
 const links = [
-  { title: 'Docs [beta]', url: 'https://cspell.org' },
+  { title: 'Docs', url: 'https://cspell.org' },
   { title: 'Source', url: 'https://github.com/streetsidesoftware/cspell' },
 ];
 
@@ -29,7 +29,7 @@ process.stdout.write(doc.toString());
 ````markdown
 ## Using `cspell`
 
-- [Docs \[beta\]](https://cspell.org)
+- [Docs](https://cspell.org)
 - [Source](https://github.com/streetsidesoftware/cspell)
 
 ```sh

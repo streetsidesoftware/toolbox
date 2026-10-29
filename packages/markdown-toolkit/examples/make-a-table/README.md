@@ -1,7 +1,7 @@
 ## Make a table from data
 
 Give `table` the header and one array of cells per row. A cell holds inline content, such as text, inline code, links
-and strong text. A `|` is escaped wherever it lands, even inside inline code, so it doesn't end the cell. A
+and strong text. A
 `lineBreak()` renders as `<br/>`, since a Markdown line break would end the row.
 
 <!--- @@inject: example.ts --->
@@ -11,7 +11,7 @@ import * as md from '@streetsidesoftware/markdown-toolkit';
 
 const commands = [
   { command: 'cSpell.addWordToDictionary', title: 'Add Words to Dictionary' },
-  { command: 'cSpell.toggleEnableSpellChecker', title: 'Toggle Spell Checking', when: 'editorTextFocus || isMac' },
+  { command: 'cSpell.toggleEnableSpellChecker', title: 'Toggle Spell Checking', when: 'editorTextFocus' },
 ];
 
 const doc = md.document(
@@ -35,13 +35,13 @@ process.stdout.write(doc.toString());
 ```markdown
 ## Commands
 
-| Command                           | Title                                                            |
-| --------------------------------- | ---------------------------------------------------------------- |
-| `cSpell.addWordToDictionary`      | Add Words to Dictionary                                          |
-| `cSpell.toggleEnableSpellChecker` | Toggle Spell Checking<br/>**When:** `editorTextFocus \|\| isMac` |
+| Command                           | Title                                                 |
+| --------------------------------- | ----------------------------------------------------- |
+| `cSpell.addWordToDictionary`      | Add Words to Dictionary                               |
+| `cSpell.toggleEnableSpellChecker` | Toggle Spell Checking<br/>**When:** `editorTextFocus` |
 ```
 
 <!--- @@inject-end: output.md --->
 
-A short row is filled with empty cells. To align a column, pass `{ align: [undefined, 'right'] }`, one entry per
+A short row is padded with empty cells. To align a column, pass `{ align: [undefined, 'right'] }`, one entry per
 column. An entry can also be written as in the table: `:---`, `:---:`, `---:` or `---`.

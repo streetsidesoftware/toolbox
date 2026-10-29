@@ -2,7 +2,7 @@ import * as md from '@streetsidesoftware/markdown-toolkit';
 
 const commands = [
   { command: 'cSpell.addWordToDictionary', title: 'Add Words to Dictionary' },
-  { command: 'cSpell.toggleEnableSpellChecker', title: 'Toggle Spell Checking', when: 'editorTextFocus || isMac' },
+  { command: 'cSpell.toggleEnableSpellChecker', title: 'Toggle Spell Checking', when: 'editorTextFocus' },
 ];
 
 const doc = md.document(

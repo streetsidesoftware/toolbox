@@ -1,8 +1,8 @@
 ## Build a page in steps
 
-A page can be built by several steps, each filling in what it knows. `substitutePlaceholders` takes the result of
-one step and fills more of its placeholders. A placeholder that no step has a value for is kept as written, so a
-later step, or a tool such as inject-markdown, can fill it.
+A page can be built by several steps, each substituting what it knows. `substitutePlaceholders` takes the result of
+one step and substitutes more of its placeholders. A placeholder that no step has a value for is kept as written, so a
+later step, or a tool such as inject-markdown, can substitute it.
 
 <!--- @@inject: example.ts --->
 
@@ -26,7 +26,7 @@ const layout = md.template(
   { title: 'Spell check report' },
 );
 
-// Each later step fills in what it knows, and passes the rest on.
+// Each later step substitutes what it knows, and passes the rest on.
 const summarized = md.substitutePlaceholders(layout, { summary: md.paragraph('Checked 2 files.') });
 const report = md.substitutePlaceholders(summarized, {
   results: md.list(['README.md: no issues', 'docs/guide.md: 1 unknown word']),
