@@ -248,6 +248,7 @@ The [examples README](../examples/README.md) describes the folder layout. Runnin
 The README ends with a `## Functions` section that `gen-api-reference` writes from the code, so the README never carries a hand-edited list of exports. It lists every function `src/index.ts` exports, one line each: its parameter names, its other names, such as `p` for `paragraph`, and the first line of its JSDoc.
 
 - Each exported function's JSDoc has a `@category` tag, which names its group in the reference. The groups belong to the code, not to the guide's parts, so renaming a guide section never touches `src/`.
+- A group is named for what a reader wants to do, such as Code, Lists and tables or Whole pages, not for Markdown's block and inline split. A new function joins an existing group when one fits.
 - Groups and functions are in alphabetical order.
 - An alias, a `const` that names a function or a renamed re-export, needs no tag of its own.
 - A function without JSDoc or a `@category` fails `pnpm run build:readme` and the `scripts` tests.
