@@ -16,6 +16,7 @@ export {
   link,
   list,
   listItem,
+  p,
   paragraph,
   placeholder,
   strikethrough,

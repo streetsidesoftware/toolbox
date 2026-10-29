@@ -398,7 +398,7 @@ A template or parsed text keeps the style of its own text, but spacing and table
 
 - Inline: `text` (`inlineText`), `inlineCode`, `link`, `strong`, `emphasis`, `strikethrough`, `lineBreak`, `br`,
   `comment`, `placeholder`
-- Blocks: `heading`, `paragraph`, `blockText`, `list`, `listItem`, `codeBlock`, `horizontalRule` (`hr`),
+- Blocks: `heading`, `paragraph` (`p`), `blockText`, `list`, `listItem`, `codeBlock`, `horizontalRule` (`hr`),
   `table`, `blockPlaceholder`, `toBlock`
 - HTML blocks: `details` for a collapsible `<details>` section, and `definitionList` (`dl`) for a `<dl>` definition list
 - A whole document: `document`, `frontmatter`, `parseDocument`, `templateDocument`

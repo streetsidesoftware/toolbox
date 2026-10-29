@@ -25,6 +25,7 @@ import {
   link,
   list,
   listItem,
+  p,
   paragraph,
   placeholder,
   strikethrough,
@@ -221,6 +222,13 @@ describe('placeholders', () => {
 
   test('an invalid name throws', () => {
     assert.throws(() => blockPlaceholder('a..b'), new Error('invalid placeholder name: "a..b"'));
+  });
+});
+
+describe('paragraph', () => {
+  test('p is the same function', () => {
+    assert.equal(p, paragraph);
+    assert.equal(document(p('A'), p('B')).toString(), 'A\n\nB\n');
   });
 });
 
