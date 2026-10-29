@@ -16,6 +16,7 @@ import {
   isArray,
   isBlockContent,
   isKind,
+  isText,
   MarkdownElement,
   renderingOf,
   textNodes,
@@ -515,8 +516,4 @@ function valueAsFrontmatter(value: TemplateValue): string {
   // A template value can be any kind. groupedNodes throws when a piece isn't Markdown content.
   if (!isArray(value)) return value.toString();
   return new MarkdownElement('block', 'content', groupedNodes(value as AnyContent, 'frontmatter value')).toString();
-}
-
-function isText(value: unknown): value is MDText {
-  return isKind(value, 'inline') && value.description === 'text';
 }

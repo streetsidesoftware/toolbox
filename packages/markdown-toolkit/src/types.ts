@@ -134,6 +134,12 @@ export interface MDTable extends MDElement {
   readonly description: 'a table';
 }
 
+/** An HTML `<table>`, whose cells can hold blocks. */
+export interface MDHtmlTable extends MDElement {
+  readonly kind: 'block';
+  readonly description: 'an HTML table';
+}
+
 /** A whole document. It renders with a trailing newline, as a file should end. */
 export interface MDDocument extends MDElement {
   readonly kind: 'block';
@@ -190,6 +196,7 @@ export type MDBlock =
   | MDDetails
   | MDDefinitionList
   | MDTable
+  | MDHtmlTable
   | MDComment
   | MDDocument
   | MDFragment

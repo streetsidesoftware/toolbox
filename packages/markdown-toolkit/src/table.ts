@@ -33,7 +33,8 @@ function rowNode(cells: readonly InlineContent[]): TableRow {
   };
 }
 
-function alignOf(align: ColumnAlign): AlignType {
+/** The alignment of a column, or `null` for none. */
+export function alignOf(align: ColumnAlign): AlignType {
   if (align === undefined || align === 'left' || align === 'center' || align === 'right') return align ?? null;
   const delimiter = /^(:?)-+(:?)$/.exec(align);
   if (!delimiter) throw new Error(`invalid column alignment: "${String(align)}"`);
