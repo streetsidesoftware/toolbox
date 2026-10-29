@@ -157,7 +157,7 @@ import * as md from '@streetsidesoftware/markdown-toolkit';
 
 const page = md.document(
   md.p('Install cspell as a dev dependency:'),
-  md.codeBlock('npm install -D cspell', 'sh'),
+  md.codeBlock('npm install --save-dev cspell', 'sh'),
 );
 
 console.log(page.toString());
@@ -167,7 +167,7 @@ console.log(page.toString());
 Install cspell as a dev dependency:
 
 ```sh
-npm install -D cspell
+npm install --save-dev cspell
 ```
 ````
 
