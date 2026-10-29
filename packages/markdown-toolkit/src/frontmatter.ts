@@ -26,7 +26,7 @@ export function readFrontmatter(markdown: string): FrontmatterMatch | undefined 
  */
 export function frontmatter(yaml: string): MDFrontmatter {
   // The closing `---` starts its own line, so a line ending at the end of the text is that line's.
-  return new MarkdownElement('frontmatter', 'frontmatter', [yamlNode(yaml.replace(/\r?\n$/, ''))]);
+  return new MarkdownElement('frontmatter', 'frontmatter', 'frontmatter', [yamlNode(yaml.replace(/\r?\n$/, ''))]);
 }
 
 export function yamlNode(yaml: string): Yaml {

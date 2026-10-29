@@ -17,7 +17,7 @@ import type {
  * A plain-text summary is written on one line, `<summary>text</summary>`. Inline Markdown in it gets blank lines.
  */
 export function details(summary: InlineContent, ...content: AnyContent[]): MDDetails {
-  return new MarkdownElement('block', 'a details block', [
+  return new MarkdownElement('block', 'details', 'a details block', [
     ...wrapped('<details>\n', 'summary', summary, '', 'details summary'),
     ...groupedNodes(content, 'details content'),
     html('</details>'),
@@ -44,7 +44,7 @@ export function definitionList(entries: readonly DefinitionEntry[]): MDDefinitio
       html('</dd>'),
     ];
   });
-  return new MarkdownElement('block', 'a definition list', [html('<dl>'), ...nodes, html('</dl>')]);
+  return new MarkdownElement('block', 'definitionList', 'a definition list', [html('<dl>'), ...nodes, html('</dl>')]);
 }
 
 /** The same as {@link definitionList}. */
@@ -105,7 +105,7 @@ export function htmlTable(
   rows.forEach((row) => addRow('td', row));
   tags += '</tbody>\n</table>';
   flush();
-  return new MarkdownElement('block', 'an HTML table', nodes);
+  return new MarkdownElement('block', 'htmlTable', 'an HTML table', nodes);
 }
 
 /**

@@ -10,10 +10,40 @@
  */
 export type MDKind = 'inline' | 'block' | 'comment' | 'listItem' | 'frontmatter';
 
+/** The types that distinguish the MDElement interfaces, one for each. See {@link MDElement.type}. */
+export type MDType =
+  | 'text'
+  | 'placeholder'
+  | 'blockPlaceholder'
+  | 'link'
+  | 'strong'
+  | 'emphasis'
+  | 'strikethrough'
+  | 'inlineCode'
+  | 'lineBreak'
+  | 'br'
+  | 'comment'
+  | 'heading'
+  | 'paragraph'
+  | 'horizontalRule'
+  | 'codeBlock'
+  | 'listItem'
+  | 'list'
+  | 'details'
+  | 'definitionList'
+  | 'table'
+  | 'htmlTable'
+  | 'document'
+  | 'frontmatter'
+  | 'fragment'
+  | 'inlineFragment';
+
 /** A Markdown element. Converting it to a string renders it. */
 export interface MDElement {
   readonly kind: MDKind;
-  /** What the element is, for error messages, such as `a list`. */
+  /** The type that distinguishes each MDElement interface from the others, such as `'link'` for {@link MDLink}. */
+  readonly type: MDType;
+  /** What the element is, for error messages only, such as `a list`. */
   readonly description: string;
   toString(): string;
 }
@@ -24,7 +54,7 @@ export type MDValue = MDElement;
 /** Text. A `{@ name @}` placeholder in it is kept as written. */
 export interface MDText extends MDElement {
   readonly kind: 'inline';
-  readonly description: 'text';
+  readonly type: 'text';
   /** The text as written, unescaped. */
   readonly text: string;
 }
@@ -32,118 +62,118 @@ export interface MDText extends MDElement {
 /** A `{​@ name @​}` placeholder that goes where inline content does. Where it sits decides what it takes. */
 export interface MDPlaceholder extends MDElement {
   readonly kind: 'inline';
-  readonly description: 'a placeholder';
+  readonly type: 'placeholder';
   readonly name: string;
 }
 
 /** A `{​@ name @​}` placeholder on its own lines. It takes blocks or inline content. */
 export interface MDBlockPlaceholder extends MDElement {
   readonly kind: 'block';
-  readonly description: 'a block placeholder';
+  readonly type: 'blockPlaceholder';
   readonly name: string;
 }
 
 export interface MDLink extends MDElement {
   readonly kind: 'inline';
-  readonly description: 'a link';
+  readonly type: 'link';
 }
 
 export interface MDStrong extends MDElement {
   readonly kind: 'inline';
-  readonly description: 'strong text';
+  readonly type: 'strong';
 }
 
 export interface MDEmphasis extends MDElement {
   readonly kind: 'inline';
-  readonly description: 'emphasized text';
+  readonly type: 'emphasis';
 }
 
 export interface MDStrikethrough extends MDElement {
   readonly kind: 'inline';
-  readonly description: 'struck-through text';
+  readonly type: 'strikethrough';
 }
 
 export interface MDInlineCode extends MDElement {
   readonly kind: 'inline';
-  readonly description: 'inline code';
+  readonly type: 'inlineCode';
 }
 
 /** A line break in the form that works where it ends up. */
 export interface MDLineBreak extends MDElement {
   readonly kind: 'inline';
-  readonly description: 'a line break';
+  readonly type: 'lineBreak';
 }
 
 /** An HTML line break, `<br/>`. */
 export interface MDBr extends MDElement {
   readonly kind: 'inline';
-  readonly description: 'a <br/>';
+  readonly type: 'br';
 }
 
 export interface MDComment extends MDElement {
   readonly kind: 'comment';
-  readonly description: 'a comment';
+  readonly type: 'comment';
 }
 
 export interface MDHeading extends MDElement {
   readonly kind: 'block';
-  readonly description: 'a heading';
+  readonly type: 'heading';
 }
 
 export interface MDParagraph extends MDElement {
   readonly kind: 'block';
-  readonly description: 'a paragraph';
+  readonly type: 'paragraph';
 }
 
 /** A line between sections, `---` in the default style. */
 export interface MDHorizontalRule extends MDElement {
   readonly kind: 'block';
-  readonly description: 'a horizontal rule';
+  readonly type: 'horizontalRule';
 }
 
 export interface MDCodeBlock extends MDElement {
   readonly kind: 'block';
-  readonly description: 'a code block';
+  readonly type: 'codeBlock';
 }
 
 export interface MDListItem extends MDElement {
   readonly kind: 'listItem';
-  readonly description: 'a list item';
+  readonly type: 'listItem';
 }
 
 export interface MDList extends MDElement {
   readonly kind: 'block';
-  readonly description: 'a list';
+  readonly type: 'list';
 }
 
 /** A collapsible `<details>` block with a summary. */
 export interface MDDetails extends MDElement {
   readonly kind: 'block';
-  readonly description: 'a details block';
+  readonly type: 'details';
 }
 
 /** A `<dl>` definition list. */
 export interface MDDefinitionList extends MDElement {
   readonly kind: 'block';
-  readonly description: 'a definition list';
+  readonly type: 'definitionList';
 }
 
 /** A GFM table. */
 export interface MDTable extends MDElement {
   readonly kind: 'block';
-  readonly description: 'a table';
+  readonly type: 'table';
 }
 
 /** An HTML `<table>`, whose cells can hold blocks. */
 export interface MDHtmlTable extends MDElement {
   readonly kind: 'block';
-  readonly description: 'an HTML table';
+  readonly type: 'htmlTable';
 }
 
 /** A whole document. It renders with a trailing newline, as a file should end. */
 export interface MDDocument extends MDElement {
   readonly kind: 'block';
-  readonly description: 'a document';
+  readonly type: 'document';
   /**
    * A copy of the document that renders in the given style.
    * The style replaces any style the document had. Everything inside the document renders in it.
@@ -155,19 +185,19 @@ export interface MDDocument extends MDElement {
 /** YAML frontmatter between `---` lines. It goes only first in a document. */
 export interface MDFrontmatter extends MDElement {
   readonly kind: 'frontmatter';
-  readonly description: 'frontmatter';
+  readonly type: 'frontmatter';
 }
 
 /** Blocks made from a string. Markdown text renders in its own style. */
 export interface MDFragment extends MDElement {
   readonly kind: 'block';
-  readonly description: 'a Markdown fragment';
+  readonly type: 'fragment';
 }
 
 /** Inline Markdown from Markdown text. */
 export interface MDInlineFragment extends MDElement {
   readonly kind: 'inline';
-  readonly description: 'an inline Markdown fragment';
+  readonly type: 'inlineFragment';
 }
 
 export type HeadingDepth = 1 | 2 | 3 | 4 | 5 | 6;

@@ -12,12 +12,16 @@ import {
   br,
   codeBlock,
   comment,
+  definitionList,
+  details,
   detectStyle,
   document,
   emphasis,
+  frontmatter,
   heading,
   horizontalRule,
   hr,
+  htmlTable,
   inlineCode,
   inlineText,
   isMarkdown,
@@ -30,10 +34,45 @@ import {
   placeholder,
   strikethrough,
   strong,
+  table,
   template,
   text,
   toBlock,
 } from './index.ts';
+
+describe('element types', () => {
+  testEach`
+        value                                   | type                  | description
+        ${text('a')}                            | ${'text'}             | ${'text'}
+        ${placeholder('a')}                     | ${'placeholder'}      | ${'a placeholder'}
+        ${blockPlaceholder('a')}                | ${'blockPlaceholder'} | ${'a block placeholder'}
+        ${link('a', 'u')}                       | ${'link'}             | ${'a link'}
+        ${strong('a')}                          | ${'strong'}           | ${'strong text'}
+        ${emphasis('a')}                        | ${'emphasis'}         | ${'emphasized text'}
+        ${strikethrough('a')}                   | ${'strikethrough'}    | ${'struck-through text'}
+        ${inlineCode('a')}                      | ${'inlineCode'}       | ${'inline code'}
+        ${lineBreak()}                          | ${'lineBreak'}        | ${'a line break'}
+        ${br()}                                 | ${'br'}               | ${'a <br/>'}
+        ${comment('a')}                         | ${'comment'}          | ${'a comment'}
+        ${heading(1, 'a')}                      | ${'heading'}          | ${'a heading'}
+        ${paragraph('a')}                       | ${'paragraph'}        | ${'a paragraph'}
+        ${horizontalRule()}                     | ${'horizontalRule'}   | ${'a horizontal rule'}
+        ${codeBlock('a')}                       | ${'codeBlock'}        | ${'a code block'}
+        ${listItem('a')}                        | ${'listItem'}         | ${'a list item'}
+        ${list(['a'])}                          | ${'list'}             | ${'a list'}
+        ${details('a', 'b')}                    | ${'details'}          | ${'a details block'}
+        ${definitionList([['a', 'b']])}         | ${'definitionList'}   | ${'a definition list'}
+        ${table(['a'], [['b']])}                | ${'table'}            | ${'a table'}
+        ${htmlTable(['a'], [['b']])}            | ${'htmlTable'}        | ${'an HTML table'}
+        ${document('a')}                        | ${'document'}         | ${'a document'}
+        ${frontmatter('a: 1')}                  | ${'frontmatter'}      | ${'frontmatter'}
+        ${blockText('a')}                       | ${'fragment'}         | ${'a Markdown fragment'}
+        ${template('a', {})}                    | ${'inlineFragment'}   | ${'an inline Markdown fragment'}
+    `('$type', ({ value, type, description }: { value: MDElement; type: string; description: string }) => {
+    assert.equal(value.type, type);
+    assert.equal(value.description, description);
+  });
+});
 
 describe('escaping', () => {
   testEach`
@@ -126,7 +165,7 @@ describe('composing', () => {
   test('isMarkdown', () => {
     assert.equal(isMarkdown(text('x')), true);
     assert.equal(isMarkdown('x'), false);
-    assert.equal(isMarkdown({ kind: 'inline', description: 'text', text: 'x' }), false);
+    assert.equal(isMarkdown({ kind: 'inline', type: 'text', description: 'text', text: 'x' }), false);
   });
 
   test('a value from another loaded copy is recognized', async () => {
@@ -206,8 +245,8 @@ describe('text', () => {
 
 describe('placeholders', () => {
   test('placeholder() is inline, and blockPlaceholder() is a block', () => {
-    assert.partialDeepStrictEqual(placeholder('a.b'), { kind: 'inline', description: 'a placeholder', name: 'a.b' });
-    assert.partialDeepStrictEqual(blockPlaceholder('a.b'), { kind: 'block', description: 'a block placeholder' });
+    assert.partialDeepStrictEqual(placeholder('a.b'), { kind: 'inline', type: 'placeholder', name: 'a.b' });
+    assert.partialDeepStrictEqual(blockPlaceholder('a.b'), { kind: 'block', type: 'blockPlaceholder' });
     assert.equal(heading(2, ['v', placeholder('v')]).toString(), '## v{@ v @}');
     assert.equal(document('Intro', blockPlaceholder('x')).toString(), 'Intro\n\n{@ x @}\n');
   });

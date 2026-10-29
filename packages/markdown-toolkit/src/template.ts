@@ -77,7 +77,13 @@ export function template(markdown: string, values: TemplateValues): MDFragment |
 export function blockTemplate(markdown: string, values: TemplateValues): MDFragment {
   const root = templateTree(markdown, false);
   substituteInTree(root, values, true);
-  return new MarkdownElement('block', 'a Markdown fragment', root.children, detectMarkdownStyle(root, markdown));
+  return new MarkdownElement(
+    'block',
+    'fragment',
+    'a Markdown fragment',
+    root.children,
+    detectMarkdownStyle(root, markdown),
+  );
 }
 
 /**
@@ -96,7 +102,7 @@ export function inlineTemplate(markdown: string, values: TemplateValues): MDInli
   }
   substituteInTree(root, values, false);
   const children = root.children[0]?.type === 'paragraph' ? root.children[0].children : [];
-  return new MarkdownElement('inline', 'an inline Markdown fragment', [
+  return new MarkdownElement('inline', 'inlineFragment', 'an inline Markdown fragment', [
     ...textNodes(lead),
     ...children,
     ...textNodes(tail),
@@ -176,34 +182,41 @@ export function substitutePlaceholders(element: MDElement, values: TemplateValue
   if (substituted !== undefined) return inlineText(substituted);
   const { style } = rendering;
   const nodes = structuredClone(rendering.nodes);
-  switch (element.description) {
+  switch (element.type) {
     case 'text':
-    case 'an inline Markdown fragment':
+    case 'inlineFragment':
       return fragmentOf(
         substitutedTree([{ type: 'paragraph', children: nodes as PhrasingContent[] }], values, true),
         style,
       );
-    case 'a paragraph': {
+    case 'paragraph': {
       const root = substitutedTree(nodes, values, true);
       if (root.children.length === 1 && root.children[0].type === 'paragraph') {
-        return new MarkdownElement('block', 'a paragraph', root.children, style);
+        return new MarkdownElement('block', 'paragraph', 'a paragraph', root.children, style);
       }
-      return new MarkdownElement('block', 'a Markdown fragment', root.children, style);
+      return new MarkdownElement('block', 'fragment', 'a Markdown fragment', root.children, style);
     }
-    case 'a placeholder':
+    case 'placeholder':
       if (resolveValue(values, (element as MDPlaceholder).name) === undefined) return element;
       return fragmentOf(
         substitutedTree([{ type: 'paragraph', children: nodes as PhrasingContent[] }], values, true),
         style,
       );
-    case 'a block placeholder':
+    case 'blockPlaceholder':
       if (resolveValue(values, (element as MDBlockPlaceholder).name) === undefined) return element;
-      return new MarkdownElement('block', 'a Markdown fragment', substitutedTree(nodes, values, true).children, style);
-    case 'a document':
+      return new MarkdownElement(
+        'block',
+        'fragment',
+        'a Markdown fragment',
+        substitutedTree(nodes, values, true).children,
+        style,
+      );
+    case 'document':
       return new DocumentElement(substitutedTree(nodes, values, true).children, style);
     default:
       return new MarkdownElement(
         element.kind,
+        element.type,
         element.description,
         substitutedTree(nodes, values, element.kind !== 'inline').children,
         style,
@@ -255,9 +268,9 @@ function fragment(root: Root, markdown: string): MDFragment | MDInlineFragment {
 function fragmentOf(root: Root, style: StyleOptions | undefined): MDFragment | MDInlineFragment {
   const [only, ...rest] = root.children;
   if (only?.type === 'paragraph' && !rest.length) {
-    return new MarkdownElement('inline', 'an inline Markdown fragment', only.children, style);
+    return new MarkdownElement('inline', 'inlineFragment', 'an inline Markdown fragment', only.children, style);
   }
-  return new MarkdownElement('block', 'a Markdown fragment', root.children, style);
+  return new MarkdownElement('block', 'fragment', 'a Markdown fragment', root.children, style);
 }
 
 /** Make the placeholders in text raw, in place, so rendering can't escape them. */
@@ -503,7 +516,7 @@ function valueAsInline(value: TemplateValue, name: string): PhrasingContent[] {
 function valueAsCode(value: TemplateValue, name: string, inside: 'code' | 'HTML'): string {
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
   if (isText(value)) return value.text;
-  if (isKind(value, 'inline') && value.description === 'a placeholder') return value.toString();
+  if (isKind(value, 'inline') && value.type === 'placeholder') return value.toString();
   throw new TypeError(
     `{@ ${name} @} is inside ${inside} and takes only a string, text, or a placeholder, got ${describe(value)}`,
   );
@@ -515,5 +528,10 @@ function valueAsFrontmatter(value: TemplateValue): string {
   if (isText(value)) return value.text;
   // A template value can be any kind. groupedNodes throws when a piece isn't Markdown content.
   if (!isArray(value)) return value.toString();
-  return new MarkdownElement('block', 'content', groupedNodes(value as AnyContent, 'frontmatter value')).toString();
+  return new MarkdownElement(
+    'block',
+    'fragment',
+    'content',
+    groupedNodes(value as AnyContent, 'frontmatter value'),
+  ).toString();
 }
