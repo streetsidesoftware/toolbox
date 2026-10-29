@@ -55,14 +55,14 @@ describe('parseApiReferenceConfig', () => {
     );
   });
 
-  test('throws on an unknown key, such as a misspelled one', () => {
+  test('throws on an unknown key', () => {
     assert.throws(
       () => parseApiReferenceConfig({ groups: [], group: [] }, NAME),
       /packages\/a\/\.api-referencerc\.json has an unknown key "group"/,
     );
     assert.throws(
-      () => parseApiReferenceConfig({ groups: [{ heading: 'A', categories: ['a'], functons: ['f'] }] }, NAME),
-      /groups\[0\] has an unknown key "functons"/,
+      () => parseApiReferenceConfig({ groups: [{ heading: 'A', categories: ['a'], methods: ['f'] }] }, NAME),
+      /groups\[0\] has an unknown key "methods"/,
     );
   });
 
