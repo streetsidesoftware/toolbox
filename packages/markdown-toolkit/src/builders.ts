@@ -92,6 +92,7 @@ function commentSafe(text: string): string {
 
 /**
  * Text, for use inside a line. A `{​@ name @​}` placeholder in it is kept as written.
+ *
  * A newline stays in the text, and displays as a space.
  * @category Text
  */
@@ -141,6 +142,7 @@ export function placeholder(name: string): MDPlaceholder {
 
 /**
  * A `{​@ name @​}` placeholder on its own lines, rendered exactly as written so it can be substituted later.
+ *
  * It takes blocks or inline content.
  * @category Templates
  */
@@ -204,6 +206,7 @@ export function inlineCode(code: string): MDInlineCode {
 
 /**
  * A line break in the form that works where it ends up.
+ *
  * In a paragraph or list item it's a Markdown hard break, a `\` at the end of the line.
  * @category Line breaks and comments
  */
@@ -296,6 +299,7 @@ export function listItem(...content: ListItemContent[]): MDListItem {
 
 /**
  * A whole document. Arrays are flattened.
+ *
  * Inline pieces in a row form a paragraph, and blocks follow, as in a list item.
  * Frontmatter goes first.
  * @category Whole pages

@@ -28,9 +28,10 @@ These scripts are used to help maintain the repo.
 - `gen-api-reference.ts` writes `static/api-reference/<name>.md`, the function reference of each `packages/<name>`
   whose `README.md` injects it with `<!--- @@inject: ../../static/api-reference/<name>.md --->`. It reads
   `src/index.ts` with [oxc-parser](https://www.npmjs.com/package/oxc-parser), follows its re-exports, and lists
-  each exported function with its parameter names, its aliases and the first line of its JSDoc, grouped by the
-  function's `@category` tag. A function without one fails the run. It renders the list with markdown-toolkit, so
-  build it first.
+  each exported function with its parameter names, its aliases and its summary, grouped by the function's
+  `@category` tag. The summary is the JSDoc's first paragraph, or its `@summary` tag, and at most 140 characters. A
+  function without a `@category` or a summary fails the run. It renders the list with markdown-toolkit, so build it
+  first.
 - `run-examples.ts` runs each `example.ts` under `packages/*/examples/`, at any depth, with Node, in its own folder and
   without a shell, and writes what it prints to `output.md` next to it. An example's `README.md` injects both. A
   part's `README.md` one level up injects its examples' READMEs, and the package README injects the part's. The

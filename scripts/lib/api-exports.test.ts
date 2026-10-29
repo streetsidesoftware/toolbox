@@ -4,7 +4,8 @@ import os from 'node:os';
 import Path from 'node:path';
 import { describe, test } from 'node:test';
 
-import { parseJsDoc, readApiFunctions } from './api-exports.ts';
+import { firstParagraph, parseJsDoc, readApiFunctions, SUMMARY_LIMIT } from './api-exports.ts';
+import type { ApiFunction } from './api-exports.ts';
 import { REPO_ROOT_DIR } from './consts.ts';
 
 describe('readApiFunctions', () => {
@@ -15,6 +16,7 @@ describe('readApiFunctions', () => {
         'builders.ts': [
           '/**',
           ' * A heading, `## content`.',
+          ' *',
           ' * More detail.',
           ' * @category Blocks',
           ' */',
@@ -196,6 +198,54 @@ describe('readApiFunctions', () => {
     });
   });
 
+  test('uses @summary instead of the first paragraph', async () => {
+    await withFunction(['A first paragraph.', '@summary A summary', '  over two lines.', '@category C'], async (fn) => {
+      assert.equal(fn.summary, 'A summary over two lines.');
+    });
+  });
+
+  test('writes {@link name} as code and removes zero-width spaces', async () => {
+    await withFunction(['A `{\u200B@ name @\u200B}` placeholder, see {@link list}.', '@category C'], async (fn) => {
+      assert.equal(fn.summary, 'A `{@ name @}` placeholder, see `list`.');
+    });
+  });
+
+  test('throws when there is no summary', async () => {
+    await withFunction(['@category C'], async (_fn, error) => assert.match(String(error), /f in .* has no summary/));
+    await withFunction(['- A list first.', '@category C'], async (_fn, error) => {
+      assert.match(String(error), /f in .* has no summary/);
+    });
+  });
+
+  test('throws on a summary over the limit, and on an inline tag other than {@link name}', async () => {
+    await withFunction([`${'x'.repeat(SUMMARY_LIMIT)}.`, '@category C'], async (_fn, error) => {
+      assert.match(String(error), /f in .* has a summary of 141 characters, over 140/);
+    });
+    await withFunction(['See {@linkcode g}.', '@category C'], async (_fn, error) => {
+      assert.match(String(error), /unsupported inline tag in its summary: \{@linkcode g\}/);
+    });
+    await withFunction(['See {@link https://example.com | the site}.', '@category C'], async (_fn, error) => {
+      assert.match(
+        String(error),
+        /unsupported inline tag in its summary: \{@link https:\/\/example\.com \| the site\}/,
+      );
+    });
+  });
+
+  test('leaves out a this parameter', async () => {
+    await withModules(
+      { 'index.ts': '/**\n * F.\n * @category C\n */\nexport function f(this: Window, a: string): void {}\n' },
+      async (index) => assert.deepEqual((await readApiFunctions(index))[0].params, ['a']),
+    );
+  });
+
+  test('throws on a function exported as default', async () => {
+    await withModules(
+      { 'index.ts': '/**\n * F.\n * @category C\n */\nfunction f(): void {}\nexport { f as default, f };\n' },
+      async (index) => assert.rejects(readApiFunctions(index), /export default isn't supported/),
+    );
+  });
+
   test('reads every function markdown-toolkit exports', async () => {
     const functions = await readApiFunctions(Path.join(REPO_ROOT_DIR, 'packages/markdown-toolkit/src/index.ts'));
     const paragraph = functions.find((fn) => fn.name === 'paragraph');
@@ -205,22 +255,36 @@ describe('readApiFunctions', () => {
 });
 
 describe('parseJsDoc', () => {
-  test('returns the first line as the summary, and the tags', () => {
-    const jsdoc =
-      '*\n * A `{​@ name @​}` placeholder, see {@link list | lists}.\n * More.\n * @category Templates\n * @throws if bad\n ';
-    const { summary, tags } = parseJsDoc(jsdoc);
-    assert.equal(summary, 'A `{@ name @}` placeholder, see `list`.');
+  test('returns the description and the tags, each tag on one line', () => {
+    const jsdoc = '*\n * A summary.\n *\n * More.\n * @category Templates\n * @throws if the value\n *   is bad\n ';
+    const { description, tags } = parseJsDoc(jsdoc);
+    assert.equal(description, 'A summary.\n\nMore.');
     assert.deepEqual(
       [...tags],
       [
         ['category', 'Templates'],
-        ['throws', 'if bad'],
+        ['throws', 'if the value is bad'],
       ],
     );
   });
 
   test('reads a one-line JSDoc', () => {
-    assert.deepEqual(parseJsDoc('* Whether a value is Markdown. ').summary, 'Whether a value is Markdown.');
+    assert.equal(parseJsDoc('* Whether a value is Markdown. ').description, 'Whether a value is Markdown.');
+  });
+});
+
+describe('firstParagraph', () => {
+  test('joins the lines of the first paragraph', () => {
+    assert.equal(firstParagraph('A long sentence\nthat wraps.\n\nMore.'), 'A long sentence that wraps.');
+  });
+
+  test('ends where a list starts', () => {
+    assert.equal(firstParagraph('Plain text as paragraphs.\n- A blank line ends one.'), 'Plain text as paragraphs.');
+  });
+
+  test('is empty when the Markdown starts with something else', () => {
+    assert.equal(firstParagraph('- A list.'), '');
+    assert.equal(firstParagraph(''), '');
   });
 });
 
@@ -234,4 +298,20 @@ async function withModules(files: Record<string, string | string[]>, fn: (index:
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }
+}
+
+/** Reads one function `f` with the given JSDoc lines, then calls `fn` with it, or with the error reading it threw. */
+async function withFunction(
+  jsdoc: string[],
+  fn: (api: ApiFunction, error?: unknown) => void | Promise<void>,
+): Promise<void> {
+  const source = ['/**', ...jsdoc.map((line) => ` * ${line}`), ' */', 'export function f(): void {}'];
+  await withModules({ 'index.ts': source }, async (index) => {
+    const result = await readApiFunctions(index).then(
+      (functions) => ({ api: functions[0], error: undefined }),
+      (error: unknown) => ({ api: undefined, error }),
+    );
+    if (result.api) await fn(result.api);
+    else await fn({ name: '', params: [], summary: '', category: '', aliases: [] }, result.error);
+  });
 }

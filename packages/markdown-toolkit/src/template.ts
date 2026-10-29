@@ -73,6 +73,7 @@ export function template(markdown: string, values: TemplateValues): MDFragment |
 
 /**
  * Substitute values for a Markdown template's placeholders as blocks, the same way as {@link template}.
+ *
  * A single paragraph stays a paragraph.
  * @category Templates
  */
@@ -84,6 +85,7 @@ export function blockTemplate(markdown: string, values: TemplateValues): MDFragm
 
 /**
  * Substitute values for an inline template's placeholders, for use inside a line.
+ *
  * The text must be one paragraph. Block syntax, such as a leading `-`, is read as text.
  * @throws if the text isn't one paragraph, or a value isn't inline.
  * @category Templates
@@ -122,6 +124,7 @@ export function parse(markdown: string): MDFragment | MDInlineFragment {
 
 /**
  * A whole file as a document. Frontmatter at its start is kept as written.
+ *
  * A `{​@ name @​}` placeholder is kept as written, the same as in {@link parse}.
  * @category Whole pages
  */
@@ -135,6 +138,7 @@ export function parseDocument(markdown: string): MDDocument {
 
 /**
  * Substitute values for a whole file's placeholders, the same way as {@link template}, as a document.
+ *
  * Frontmatter at its start is kept. A value in it is inserted as is: a string as written, and a Markdown element as rendered.
  * Each line of the value after the first gets the leading whitespace of the placeholder's line.
  * @throws if a value doesn't fit where its placeholder is.

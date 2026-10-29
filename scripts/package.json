@@ -32,6 +32,7 @@
     "@streetsidesoftware/placeholders": "workspace:*"
   },
   "devDependencies": {
+    "mdast-util-from-markdown": "^2.1.0",
     "oxc-parser": "^0.156.0",
     "sort-package-json": "^4.0.0"
   },

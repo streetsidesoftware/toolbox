@@ -1,8 +1,12 @@
 import fs from 'node:fs/promises';
 import Path from 'node:path';
 
+import { fromMarkdown } from 'mdast-util-from-markdown';
 import type { BindingPattern, BindingRestElement, Comment, ParamPattern, Statement } from 'oxc-parser';
 import { parseSync } from 'oxc-parser';
+
+/** The longest summary, in characters: the length of one comment line. */
+export const SUMMARY_LIMIT = 140;
 
 /** A function a package exports, with what its JSDoc says about it. */
 export interface ApiFunction {
@@ -10,7 +14,7 @@ export interface ApiFunction {
   name: string;
   /** Parameter names: `lang?` when optional, `...content` for a rest parameter. */
   params: string[];
-  /** The first line of its JSDoc, as Markdown. */
+  /** Its `@summary` tag, or else the first paragraph of its JSDoc, as one line of Markdown. */
   summary: string;
   /** Its `@category` tag. */
   category: string;
@@ -46,7 +50,7 @@ interface ValueExport {
 /**
  * The functions a module exports, in export order, read from its source and that of the modules it re-exports from.
  * Type exports are skipped. Any other value export must be a function, or a `const` that names one.
- * @throws if an export isn't a function, or a function has no JSDoc or no `@category`.
+ * @throws if an export isn't a function, or a function's JSDoc has no `@category` or no usable summary.
  */
 export async function readApiFunctions(entryFile: string): Promise<ApiFunction[]> {
   const modules = new Map<string, Module>();
@@ -61,9 +65,10 @@ export async function readApiFunctions(entryFile: string): Promise<ApiFunction[]
     const name = names.includes(fn.name) ? fn.name : names[0];
     const where = `${name} in ${shown(fn.file)}`;
     if (fn.jsdoc === undefined) throw new Error(`${where} has no JSDoc`);
-    const { summary, tags } = parseJsDoc(fn.jsdoc);
+    const { description, tags } = parseJsDoc(fn.jsdoc);
     const category = tags.get('category');
     if (!category) throw new Error(`${where} has no @category in its JSDoc`);
+    const summary = summaryOf(where, tags.get('summary') ?? firstParagraph(description));
     return { name, params: fn.params, summary, category, aliases: names.filter((n) => n !== name) };
   });
 }
@@ -99,6 +104,7 @@ function parseModule(file: string, source: string): Module {
     const from = statement.source ? Path.resolve(Path.dirname(file), statement.source.value) : file;
     for (const specifier of statement.specifiers) {
       if (specifier.exportKind === 'type') continue;
+      if (nameOf(specifier.exported) === 'default') module.unsupported ??= 'export default';
       module.exports.push({ exported: nameOf(specifier.exported), local: nameOf(specifier.local), file: from });
     }
   }
@@ -112,7 +118,7 @@ function addDeclaration(module: Module, statement: Statement, jsdoc: string | un
     if (!name) return [];
     const previous = module.functions.get(name);
     // The JSDoc is on the first overload; the parameter names come from the implementation.
-    const params = statement.body || !previous ? statement.params.map(paramName) : previous.params;
+    const params = statement.body || !previous ? paramNames(statement.params) : previous.params;
     module.functions.set(name, { file: module.file, name, params, jsdoc: previous ? previous.jsdoc : jsdoc });
     return previous ? [] : [name];
   }
@@ -133,6 +139,11 @@ function resolveFunction(module: Module, name: string): FunctionDeclaration {
   const fn = module.functions.get(name) ?? module.functions.get(module.aliases.get(name) ?? '');
   if (!fn) throw new Error(`${name} in ${shown(module.file)} isn't a function, or a const that names one`);
   return fn;
+}
+
+/** The arguments a caller passes; a TypeScript `this` parameter isn't one. */
+function paramNames(params: readonly ParamPattern[]): string[] {
+  return params.filter((param) => !(param.type === 'Identifier' && param.name === 'this')).map(paramName);
 }
 
 function paramName(param: ParamPattern): string {
@@ -178,23 +189,53 @@ function jsdocAt(comments: readonly Comment[], source: string, start: number): s
   return source.slice(comment.end, start).trim() ? undefined : comment.value;
 }
 
-/** A JSDoc's summary line, with `{@link name}` as code and zero-width spaces removed, and its tags. */
-export function parseJsDoc(jsdoc: string): { summary: string; tags: Map<string, string> } {
+/** A JSDoc's description, the Markdown before its first tag, and its tags, each on one line. */
+export function parseJsDoc(jsdoc: string): { description: string; tags: Map<string, string> } {
   const lines = jsdoc
     .slice(1)
     .split('\n')
-    .map((line) => line.replace(/^\s*\* ?/, '').trim());
-  const tagStart = lines.findIndex((line) => line.startsWith('@'));
-  const description = tagStart < 0 ? lines : lines.slice(0, tagStart);
-  const summary = (description.find((line) => line) ?? '')
-    .replaceAll('​', '')
-    .replace(/\{@link\s+([^}\s|]+)[^}]*\}/g, '`$1`');
+    .map((line) => line.replace(/^\s*\* ?/, '').trimEnd());
+  const tagStart = lines.findIndex((line) => line.trimStart().startsWith('@'));
+  const description = (tagStart < 0 ? lines : lines.slice(0, tagStart)).join('\n').trim();
   const tags = new Map<string, string>();
+  let tag: string | undefined;
   for (const line of tagStart < 0 ? [] : lines.slice(tagStart)) {
-    const match = /^@(\w+)\s*(.*)$/.exec(line);
-    if (match && !tags.has(match[1])) tags.set(match[1], match[2]);
+    const match = /^\s*@(\w+)\s*(.*)$/.exec(line);
+    if (match) tag = tags.has(match[1]) ? undefined : match[1];
+    if (tag) tags.set(tag, joinLines([tags.get(tag) ?? '', match ? match[2] : line]));
   }
-  return { summary, tags };
+  return { description, tags };
+}
+
+/** The first paragraph of some Markdown, as Markdown on one line, or `''` when it doesn't start with a paragraph. */
+export function firstParagraph(markdown: string): string {
+  const first = fromMarkdown(markdown).children[0];
+  if (first?.type !== 'paragraph') return '';
+  return joinLines(markdown.slice(first.position?.start.offset, first.position?.end.offset).split('\n'));
+}
+
+/**
+ * A summary ready for the reference: zero-width spaces removed and `{@link name}` as code.
+ * @throws if it's empty, longer than {@link SUMMARY_LIMIT}, or has another inline tag.
+ */
+function summaryOf(where: string, text: string): string {
+  const summary = text.replaceAll('\u200B', '').replace(/\{@link\s+([\w$.]+)\s*\}/g, '`$1`');
+  if (!summary) throw new Error(`${where} has no summary: start its JSDoc with one, or add @summary`);
+  const tag = /\{@\w+[^}]*\}?/.exec(summary);
+  if (tag) throw new Error(`${where} has an unsupported inline tag in its summary: ${tag[0]}`);
+  if (summary.length > SUMMARY_LIMIT) {
+    throw new Error(
+      `${where} has a summary of ${summary.length} characters, over ${SUMMARY_LIMIT}: shorten it, or add @summary`,
+    );
+  }
+  return summary;
+}
+
+function joinLines(lines: readonly string[]): string {
+  return lines
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join(' ');
 }
 
 /** A file path as an error shows it, relative to the current folder. */

@@ -22,6 +22,7 @@ export function readFrontmatter(markdown: string): FrontmatterMatch | undefined 
 
 /**
  * YAML frontmatter, for the start of a document. The text is inserted as is, between `---` lines.
+ *
  * Making it valid YAML is up to the caller.
  * @category Whole pages
  */
