@@ -40,13 +40,21 @@ export function renderApiReference(groups: readonly ApiGroup[]): string {
     .toString();
 }
 
-/** Writes a package's reference. Returns whether the file changed. */
-export async function updateApiReference(packageDir: string, rootDir: string = REPO_ROOT_DIR): Promise<boolean> {
+/**
+ * Reads a package's code and config and renders its reference.
+ * @throws if the code's JSDoc or the config is invalid, or they don't match.
+ */
+export async function buildApiReference(packageDir: string, rootDir: string = REPO_ROOT_DIR): Promise<string> {
   const configName = Path.posix.join(packageDir, CONFIG_FILE);
   const config = await readApiReferenceConfig(Path.join(rootDir, packageDir, CONFIG_FILE), configName);
   const functions = await readApiFunctions(Path.join(rootDir, packageDir, ENTRY_FILE));
+  return renderApiReference(groupFunctions(functions, config, configName));
+}
+
+/** Writes a package's reference. Returns whether the file changed. */
+export async function updateApiReference(packageDir: string, rootDir: string = REPO_ROOT_DIR): Promise<boolean> {
   const file = Path.join(rootDir, packageDir, API_REFERENCE_FILE);
-  const reference = renderApiReference(groupFunctions(functions, config, configName));
+  const reference = await buildApiReference(packageDir, rootDir);
   if (reference === (await fs.readFile(file, 'utf8').catch(() => undefined))) return false;
   await fs.mkdir(Path.dirname(file), { recursive: true });
   await fs.writeFile(file, reference, 'utf8');

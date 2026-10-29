@@ -23,6 +23,9 @@ describe('readApiReferenceConfig', () => {
         readApiReferenceConfig(Path.join(dir, 'none.json'), NAME),
         /\.api-referencerc\.json is missing/,
       );
+      await assert.rejects(readApiReferenceConfig(dir, NAME), { code: 'EISDIR' });
+      await fs.writeFile(file, '{ "groups": [], }');
+      await assert.rejects(readApiReferenceConfig(file, NAME), /^Error: packages\/a\/\.api-referencerc\.json: /);
     } finally {
       await fs.rm(dir, { recursive: true, force: true });
     }
@@ -46,6 +49,37 @@ describe('parseApiReferenceConfig', () => {
       () => parseApiReferenceConfig({ groups: [{ heading: 'A', categories: ['a'], functions: 'f' }] }, NAME),
       /groups\[0\]\.functions must be an array/,
     );
+    assert.throws(
+      () => parseApiReferenceConfig({ groups: [{ heading: ' ', categories: ['a'] }] }, NAME),
+      /groups\[0\]\.heading must be a non-empty string/,
+    );
+  });
+
+  test('throws on an unknown key, such as a misspelled one', () => {
+    assert.throws(
+      () => parseApiReferenceConfig({ groups: [], group: [] }, NAME),
+      /packages\/a\/\.api-referencerc\.json has an unknown key "group"/,
+    );
+    assert.throws(
+      () => parseApiReferenceConfig({ groups: [{ heading: 'A', categories: ['a'], functons: ['f'] }] }, NAME),
+      /groups\[0\] has an unknown key "functons"/,
+    );
+  });
+
+  test('throws on a category or function listed twice in a group, or a heading used twice', () => {
+    assert.throws(
+      () => parseApiReferenceConfig({ groups: [{ heading: 'A', categories: ['a', 'a'] }] }, NAME),
+      /groups\[0\] lists "a" more than once/,
+    );
+    assert.throws(
+      () => parseApiReferenceConfig({ groups: [{ heading: 'A', categories: ['a'], functions: ['f', 'f'] }] }, NAME),
+      /groups\[0\] lists "f" more than once/,
+    );
+    const groups = [
+      { heading: 'A', categories: ['a'] },
+      { heading: 'A', categories: ['b'] },
+    ];
+    assert.throws(() => parseApiReferenceConfig({ groups }, NAME), /two groups have the heading "A"/);
   });
 });
 
@@ -104,8 +138,16 @@ describe('groupFunctions', () => {
       /paragraph is listed under "Templates" but isn't in it/,
     );
   });
+
+  test('throws on a listed alias, naming the function to list instead', () => {
+    const config: ApiReferenceConfig = { groups: [{ heading: 'Text', categories: ['text'], functions: ['p'] }] };
+    assert.throws(
+      () => groupFunctions([fn('paragraph', 'text', ['p'])], config, NAME),
+      /list paragraph under "Text", not its alias p/,
+    );
+  });
 });
 
-function fn(name: string, category: string): ApiFunction {
-  return { name, params: [], summary: 'Summary.', category, aliases: [] };
+function fn(name: string, category: string, aliases: string[] = []): ApiFunction {
+  return { name, params: [], summary: 'Summary.', category, aliases };
 }

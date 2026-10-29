@@ -8,6 +8,7 @@ import type { ApiFunction } from './api-exports.ts';
 import { CONFIG_FILE } from './api-reference-config.ts';
 import {
   API_REFERENCE_MARKER,
+  buildApiReference,
   findApiReferencePackages,
   renderApiReference,
   updateApiReference,
@@ -89,6 +90,17 @@ describe('updateApiReference', () => {
       await writePackage(dir, 'packages/a', '');
       await assert.rejects(updateApiReference('packages/a', dir), /packages\/a\/\.api-referencerc\.json is missing/);
     });
+  });
+});
+
+describe('buildApiReference', () => {
+  // build:readme only runs on main, so a JSDoc or config that doesn't match would otherwise first fail there.
+  test('builds the reference of every package that injects one', async () => {
+    const packageDirs = await findApiReferencePackages();
+    assert.ok(packageDirs.includes('packages/markdown-toolkit'));
+    for (const packageDir of packageDirs) {
+      assert.match(await buildApiReference(packageDir), /^## Functions\n/, packageDir);
+    }
   });
 });
 
