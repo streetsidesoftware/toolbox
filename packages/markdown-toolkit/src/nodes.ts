@@ -148,14 +148,10 @@ export function mapParagraphsAndBlocks<T>(
   mapParagraph: (inline: InlineContent[]) => T | readonly T[],
   mapBlock: (block: MDBlock) => T | readonly T[],
 ): T[] {
-  const result: T[] = [];
+  const result: (T | readonly T[])[] = [];
   let paragraph: InlineContent[] = [];
-  function emit(mapped: T | readonly T[]): void {
-    if (isArray(mapped)) result.push(...mapped);
-    else result.push(mapped);
-  }
   function endParagraph(): void {
-    if (paragraph.length) emit(mapParagraph(paragraph));
+    if (paragraph.length) result.push(mapParagraph(paragraph));
     paragraph = [];
   }
   function add(piece: AnyContent | readonly AnyContent[]): void {
@@ -165,14 +161,14 @@ export function mapParagraphsAndBlocks<T>(
     }
     if (isBlockContent(piece)) {
       endParagraph();
-      emit(mapBlock(piece));
+      result.push(mapBlock(piece));
       return;
     }
     paragraph.push(piece);
   }
   add(content);
   endParagraph();
-  return result;
+  return result.flat() as T[];
 }
 
 /**

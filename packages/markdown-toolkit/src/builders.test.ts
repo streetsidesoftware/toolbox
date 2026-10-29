@@ -147,6 +147,11 @@ describe('composing', () => {
     assert.equal(md.toString(), '- Install:\n  ```sh\n  npm install -D @cspell/dict-en\n  ```');
   });
 
+  test('a block of more nodes than a function takes arguments', () => {
+    const text = Array.from({ length: 200_000 }, (_, i) => `p${i}`).join('\n\n');
+    assert.doesNotThrow(() => document(['Intro', blockText(text)]));
+  });
+
   test('a heading with inline content', () => {
     assert.equal(heading(2, ['Using ', inlineCode('cspell')]).toString(), '## Using `cspell`');
   });
