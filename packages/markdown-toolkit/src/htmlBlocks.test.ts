@@ -4,19 +4,23 @@ import { describe, test } from 'node:test';
 import { testEach } from '@streetsidesoftware/test-each';
 import { createUnindent } from '@streetsidesoftware/unindent';
 
-import type { InlineContent } from './index.ts';
+import type { AnyContent, InlineContent } from './index.ts';
 import {
+  br,
   codeBlock,
   comment,
   definitionList,
   details,
   dl,
   document,
+  htmlTable,
   inlineCode,
+  lineBreak,
   link,
   list,
   parse,
   placeholder,
+  substitutePlaceholders,
   text,
 } from './index.ts';
 
@@ -237,3 +241,179 @@ describe('definitionList', () => {
     );
   });
 });
+
+describe('htmlTable', () => {
+  test('plain-text cells are on one line, and a cell with Markdown has blank lines around it', () => {
+    assert.equal(
+      htmlTable(
+        ['Option', 'Description'],
+        [
+          [inlineCode('--fix'), ['Fixes what it can:', list(['spelling', 'case'])]],
+          ['plain', 'Stays on one line'],
+        ],
+      ).toString(),
+      md`
+        <table>
+        <thead>
+        <tr>
+        <th>Option</th>
+        <th>Description</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+        <td>
+
+        \`--fix\`
+
+        </td>
+        <td>
+
+        Fixes what it can:
+
+        - spelling
+        - case
+
+        </td>
+        </tr>
+        <tr>
+        <td>plain</td>
+        <td>Stays on one line</td>
+        </tr>
+        </tbody>
+        </table>
+      `,
+    );
+  });
+
+  testEach`
+    content                          | expected
+    ${'a < b & c > d'}               | ${'<td>a &lt; b &amp; c > d</td>'}
+    ${'*not* emphasis | x'}          | ${'<td>*not* emphasis | x</td>'}
+    ${'line one\nline two'}          | ${'<td>line one<br/>line two</td>'}
+    ${'a \r\n b\n\nc'}               | ${'<td>a<br/>b<br/><br/>c</td>'}
+    ${'\nedges\n'}                   | ${'<td>edges</td>'}
+    ${text('a\nb')}                  | ${'<td>a<br/>b</td>'}
+    ${['a', lineBreak(), 'b']}       | ${'<td>a<br/>b</td>'}
+    ${parse('soft\nbreak')}          | ${'<td>soft\nbreak</td>'}
+    ${''}                            | ${'<td></td>'}
+    ${[]}                            | ${'<td></td>'}
+  `('a plain-text cell: $expected', ({ content, expected }: { content: AnyContent; expected: string }) => {
+    assert.equal(bodyCell(content), expected);
+  });
+
+  testEach`
+    content                                  | expected
+    ${['See ', inlineCode('x'), '\nnext']}   | ${'See `x`\\\nnext'}
+    ${placeholder('name')}                   | ${'{@ name @}'}
+    ${br()}                                  | ${'<br/>'}
+    ${codeBlock('x', 'ts')}                  | ${'```ts\nx\n```'}
+  `('a cell with Markdown: $expected', ({ content, expected }: { content: AnyContent; expected: string }) => {
+    assert.equal(bodyCell(content), `<td>\n\n${expected}\n\n</td>`);
+  });
+
+  test('every row is filled with empty cells to the widest row', () => {
+    assert.equal(
+      htmlTable(['Name', 'Size'], [['a.ts', '1 KB', 'extra'], ['b.ts']]).toString(),
+      md`
+        <table>
+        <thead>
+        <tr>
+        <th>Name</th>
+        <th>Size</th>
+        <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+        <td>a.ts</td>
+        <td>1 KB</td>
+        <td>extra</td>
+        </tr>
+        <tr>
+        <td>b.ts</td>
+        <td></td>
+        <td></td>
+        </tr>
+        </tbody>
+        </table>
+      `,
+    );
+  });
+
+  test('an empty header leaves out <thead>', () => {
+    assert.equal(htmlTable([], [['a']]).toString(), '<table>\n<tbody>\n<tr>\n<td>a</td>\n</tr>\n</tbody>\n</table>');
+  });
+
+  test('no rows', () => {
+    assert.equal(htmlTable([], []).toString(), '<table>\n<tbody>\n</tbody>\n</table>');
+  });
+
+  test('align sets align on each cell of a column', () => {
+    assert.equal(
+      htmlTable(['A', 'B', 'C', 'D'], [['1', '2', [inlineCode('3')], '4']], {
+        align: ['left', ':-:', '---:', '---'],
+      }).toString(),
+      md`
+        <table>
+        <thead>
+        <tr>
+        <th align="left">A</th>
+        <th align="center">B</th>
+        <th align="right">C</th>
+        <th>D</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+        <td align="left">1</td>
+        <td align="center">2</td>
+        <td align="right">
+
+        \`3\`
+
+        </td>
+        <td>4</td>
+        </tr>
+        </tbody>
+        </table>
+      `,
+    );
+  });
+
+  test('an invalid alignment throws', () => {
+    assert.throws(() => htmlTable(['A'], [], { align: ['up'] }), new Error('invalid column alignment: "up"'));
+  });
+
+  test('a placeholder in a cell is substituted', () => {
+    const t = document(htmlTable(['Name'], [[placeholder('name')]]));
+    assert.equal(
+      substitutePlaceholders(t, { name: list(['a']) }).toString(),
+      '<table>\n<thead>\n<tr>\n<th>Name</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>\n\n- a\n\n</td>\n</tr>\n</tbody>\n</table>\n',
+    );
+  });
+
+  test('it goes in a document', () => {
+    assert.equal(
+      document('Intro', htmlTable([], [['a']])).toString(),
+      'Intro\n\n<table>\n<tbody>\n<tr>\n<td>a</td>\n</tr>\n</tbody>\n</table>\n',
+    );
+  });
+
+  testEach`
+    header            | rows              | message
+    ${'A'}            | ${[]}             | ${'table header must be an array, got a string'}
+    ${['A']}          | ${'a'}            | ${'table rows must be an array, got a string'}
+    ${['A']}          | ${['a']}          | ${'table row must be an array, got a string'}
+  `('bad input throws: $message', ({ header, rows, message }: { header: never; rows: never; message: string }) => {
+    assert.throws(() => htmlTable(header, rows), new TypeError(message));
+  });
+});
+
+/** The rendered cell of a one-cell table with no header. */
+function bodyCell(content: AnyContent): string {
+  return htmlTable([], [[content]])
+    .toString()
+    .replace(/^<table>\n<tbody>\n<tr>\n/, '')
+    .replace(/\n<\/tr>\n<\/tbody>\n<\/table>$/, '');
+}

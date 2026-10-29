@@ -11,7 +11,7 @@ A builder returns a Markdown element, not a string. The element keeps its struct
 Every element has a `kind`, which decides where it may go:
 
 - **Inline** (`'inline'`) goes inside a line: text, a placeholder, a link, strong, emphasis, strikethrough, inline code, a line break, `<br/>`, and an inline fragment.
-- **Block** (`'block'`) goes on its own lines: a heading, a paragraph, a list, a code block, a horizontal rule, a table, details, a definition list, a document, a fragment, and a block placeholder.
+- **Block** (`'block'`) goes on its own lines: a heading, a paragraph, a list, a code block, a horizontal rule, a table, an HTML table, details, a definition list, a document, a fragment, and a block placeholder.
 - **Comment** (`'comment'`) goes either inside a line or on its own lines, so it covers a block notice such as `cspell:disable` and an inline `cspell:ignore`.
 - **List item** (`'listItem'`) goes only directly in a list.
 - **Frontmatter** (`'frontmatter'`) goes only first in a document.
@@ -38,7 +38,7 @@ An array is a sequence. Arrays are flattened.
 
 - Inline pieces are joined exactly as given, with no added spaces: `['Ref: ', link('German', '../g.md')]`. A space would need a way to suppress it before a comma, or in `` `x`s ``.
 - Where only inline content can go, a block in the array is an error.
-- Where blocks can go, in a document, a list item, details content, or a definition, inline pieces in a row form a paragraph and blocks follow, as in a Markdown list item: `document('See ', link(…), '.')` is one paragraph.
+- Where blocks can go, in a document, a list item, details content, a definition, or an HTML table cell, inline pieces in a row form a paragraph and blocks follow, as in a Markdown list item: `document('See ', link(…), '.')` is one paragraph.
 
 In a list, each entry is one item. An array entry is one item holding a sequence, never a nested list. A nested list is a `list(…)` inside an item.
 
@@ -73,6 +73,18 @@ Markdown inside HTML is read only after a blank line, so rendering picks the for
 - A summary or term of plain text is written on one line, `<summary>TypeScript:</summary>`, as in GitHub's own examples. Its `&` and `<` are HTML-escaped, and blank lines are dropped, since one would end the HTML block.
 - A summary or term with any other inline element, such as inline code or a placeholder, gets blank lines around it, so it renders.
 - The content and each definition always get blank lines around them.
+
+### HTML tables
+
+A GFM row is one line, so its cells hold only inline content. When a cell needs a list, a code block or a second paragraph, `htmlTable(header, rows)` writes a `<table>` instead. It takes the same arguments and options as `table()`, so a script can switch between them, and each cell holds any content, like a definition. The output follows inject-markdown's HTML tables:
+
+- `<table>`, `<thead>`, `<tbody>`, each `<tr>` and its closing tag go on their own lines.
+- A cell of plain text stays on its tag's line, `<td>42</td>`, with `&` and `<` HTML-escaped. An empty cell is `<td></td>`.
+- Any other cell, with inline code, a link, a placeholder or blocks, gets blank lines around it, so it renders.
+- A line ending in a string shows as a line break, which is what someone writing a cell expects to see: `<br/>` in a plain-text cell, a hard break in a cell with Markdown. One at the start or end of a cell is dropped. Text from `parse()` is Markdown, so its line endings keep their Markdown meaning.
+- An aligned column puts `align="…"` on each of its cells. GitHub keeps the `align` attribute and strips `style`.
+- Every row, the header included, is filled with empty cells to the widest row, as in `table()`.
+- An empty header leaves out `<thead>`. Several header rows wait until a script needs them.
 
 ### Documents and frontmatter
 
@@ -222,7 +234,7 @@ A possible feature. The issue it addresses is real: Docusaurus 3 parses even `.m
 
 ## README examples
 
-The README opens with two examples that make the same page, one with a template and one with builders, to show that generating Markdown from data is easy. A guide follows, in parts: Build in code, Templates, Whole pages, and Match an existing file's style. Each part goes from common and simple elements to rare ones, so text and headings come first, tables after lists, and details and definition lists last.
+The README opens with two examples that make the same page, one with a template and one with builders, to show that generating Markdown from data is easy. A guide follows, in parts: Build in code, Templates, Whole pages, and Match an existing file's style. Each part goes from common and simple elements to rare ones, so text and headings come first, tables after lists, and the HTML blocks last: details, definition lists and HTML tables.
 
 - Each section teaches the main path. A rule stays only if a reader would get it wrong without it; the full rules are in the JSDoc.
 - Steps are imperative, behavior is in the present tense, and the text never says "you".
