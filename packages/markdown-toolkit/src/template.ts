@@ -59,8 +59,8 @@ export interface TemplateValues {
  * - A string value shows exactly as given.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
- * - A placeholder inside code or HTML takes only a string, which goes in as given, or an {@link htmlEntity}.
- *   In code it shows as its character, and in HTML as its reference.
+ * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
+ *   entity shows as its character in code, and as its reference in HTML.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * A result of one paragraph can go anywhere a string can. A longer one goes where paragraphs can.
@@ -83,8 +83,8 @@ export function template(markdown: string, values: TemplateValues): MDFragment |
  * - A string value shows exactly as given.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
- * - A placeholder inside code or HTML takes only a string, which goes in as given, or an {@link htmlEntity}.
- *   In code it shows as its character, and in HTML as its reference.
+ * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
+ *   entity shows as its character in code, and as its reference in HTML.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
@@ -183,8 +183,8 @@ export function parseDocument(markdown: string): MDDocument {
  * - A string value shows exactly as given.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
- * - A placeholder inside code or HTML takes only a string, which goes in as given, or an {@link htmlEntity}.
- *   In code it shows as its character, and in HTML as its reference.
+ * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
+ *   entity shows as its character in code, and as its reference in HTML.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
@@ -210,8 +210,8 @@ export function templateDocument(markdown: string, values: TemplateValues): MDDo
  * - A string value shows exactly as given.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
- * - A placeholder inside code or HTML takes only a string, which goes in as given, or an {@link htmlEntity}.
- *   In code it shows as its character, and in HTML as its reference.
+ * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
+ *   entity shows as its character in code, and as its reference in HTML.
  *
  * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
  * @example

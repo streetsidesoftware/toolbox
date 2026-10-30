@@ -61,7 +61,7 @@ Some characters are better written as an HTML reference, such as `&nbsp;`: a spa
 - An unknown name is an error. The check is only that HTML defines the name; nothing more is worth the code.
 - Constants cover the few characters scripts reach for most: spaces, dashes, the ellipsis, the soft hyphen and the copyright sign.
 
-In HTML, a line ending before a reference would turn into a space, so the reference is written as is, never as raw HTML. As a placeholder value, it goes in as its reference in HTML, and as its character in code and frontmatter, which don't read references.
+Raw HTML won't do: the renderer turns a line ending before raw HTML into a space. So an entity is a node of its own, written as is. As a placeholder value, it goes in as its reference in HTML, and as its character in code and frontmatter, which don't read references.
 
 ### Tables
 

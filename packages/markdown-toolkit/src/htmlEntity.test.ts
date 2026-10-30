@@ -4,8 +4,11 @@ import { describe, test } from 'node:test';
 import { testEach } from '@streetsidesoftware/test-each';
 
 import {
+  blockTemplate,
+  codeBlock,
   copy,
   details,
+  dl,
   document,
   emsp,
   ensp,
@@ -13,6 +16,7 @@ import {
   hellip,
   htmlEntity,
   htmlTable,
+  inlineTemplate,
   link,
   mdash,
   nbsp,
@@ -48,6 +52,8 @@ describe('htmlEntity', () => {
     ${'&lt;'}     | ${'&lt;'}     | ${'<'}
     ${'&#xA0;'}   | ${'&#xA0;'}   | ${'\u00A0'}
     ${'&#160;'}   | ${'&#160;'}   | ${'\u00A0'}
+    ${'&#X41;'}   | ${'&#X41;'}   | ${'A'}
+    ${'<\u20D2'}  | ${'&nvlt;'}   | ${'<\u20D2'}
   `('$value gives $expected', ({ value, expected, character }: EntityRow) => {
     const entity = htmlEntity(value);
     assert.equal(entity.toString(), expected);
@@ -95,15 +101,19 @@ describe('htmlEntity in content', () => {
     assert.equal(content.toString(), expected);
   });
 
-  test('a summary with an entity is Markdown, set apart by blank lines', () => {
+  test('a summary with an entity stays on the tag line, as plain text does', () => {
     assert.equal(
-      details(['a', nbsp, 'b'], 'c').toString(),
-      '<details>\n<summary>\n\na&nbsp;b\n\n</summary>\n\nc\n\n</details>',
+      details(['a&', nbsp, 'b'], 'c').toString(),
+      '<details>\n<summary>a&amp;&nbsp;b</summary>\n\nc\n\n</details>',
     );
   });
 
-  test('an HTML table cell with an entity is Markdown, set apart by blank lines', () => {
-    assert.match(htmlTable([], [[['x', nbsp, 'y']]]).toString(), /<td>\n\nx&nbsp;y\n\n<\/td>/);
+  test('a definition term with an entity stays on the tag line', () => {
+    assert.match(dl([[['a', nbsp], 'c']]).toString(), /<dt>a&nbsp;<\/dt>/);
+  });
+
+  test('an HTML table cell with an entity stays on the tag line', () => {
+    assert.match(htmlTable([], [[['x<', nbsp, 'y']]]).toString(), /<td>x&lt;&nbsp;y<\/td>/);
   });
 });
 
@@ -115,6 +125,12 @@ describe('htmlEntity as a placeholder value', () => {
     ${'`a{@ x @}b`'}               | ${'`a\u00A0b`'}
   `('$source', ({ source, expected }: { source: string; expected: string }) => {
     assert.equal(template(source, { x: nbsp }).toString(), expected);
+  });
+
+  test('in code, through substitutePlaceholders, inlineTemplate and blockTemplate, it is the character', () => {
+    assert.equal(substitutePlaceholders(codeBlock('a{@ x @}b'), { x: nbsp }).toString(), '```\na\u00A0b\n```');
+    assert.equal(inlineTemplate('`a{@ x @}b`', { x: nbsp }).toString(), '`a\u00A0b`');
+    assert.equal(blockTemplate('```\na{@ x @}b\n```', { x: nbsp }).toString(), '```\na\u00A0b\n```');
   });
 
   test('in frontmatter, it is the character', () => {

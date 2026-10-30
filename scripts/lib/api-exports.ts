@@ -26,7 +26,7 @@ export interface ApiFunction {
   aliases: string[];
 }
 
-/** Describes a function, or a `const` whose value isn't another declaration's name. */
+/** Describes a function, or a `const` whose value isn't another declaration's name, such as a constant or an arrow function. */
 interface FunctionDeclaration {
   file: string;
   name: string;
@@ -55,8 +55,8 @@ interface ValueExport {
 /**
  * Read the functions and constants a module exports, in export order, from its source and that of the modules it
  * re-exports from. Type exports are skipped. Any other value export must be a function or a `const`. A `const` that
- * names a function is an alias of it.
- * @throws if an export is something else, or its JSDoc has no `@category` or no usable summary.
+ * names a function is an alias of it. It fails when an export is something else, or its JSDoc has no `@category` or no
+ * usable summary.
  */
 export async function readApiFunctions(entryFile: string): Promise<ApiFunction[]> {
   const modules = new Map<string, Module>();
@@ -132,10 +132,13 @@ function addDeclaration(module: Module, statement: Statement, jsdoc: string | un
     return statement.declarations.flatMap((declarator) => {
       if (declarator.id.type !== 'Identifier') return boundNames(declarator.id);
       const name = declarator.id.name;
-      if (statement.kind === 'const' && declarator.init?.type === 'Identifier') {
-        module.aliases.set(name, declarator.init.name);
+      const init = declarator.init;
+      if (statement.kind === 'const' && init?.type === 'Identifier') {
+        module.aliases.set(name, init.name);
       } else if (statement.kind === 'const') {
-        module.functions.set(name, { file: module.file, name, params: undefined, jsdoc });
+        const isFunction = init?.type === 'ArrowFunctionExpression' || init?.type === 'FunctionExpression';
+        const params = isFunction ? paramNames(init.params) : undefined;
+        module.functions.set(name, { file: module.file, name, params, jsdoc });
       }
       return [name];
     });

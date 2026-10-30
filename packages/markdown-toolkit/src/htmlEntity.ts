@@ -16,13 +16,13 @@ class HtmlEntityElement extends MarkdownElement<'inline', 'htmlEntity'> implemen
 /**
  * Creates a character written as an HTML reference, such as `&nbsp;` for a no-break space.
  *
- * It's for a character a string can't show, such as a space the page would otherwise drop, or one that's hard to type.
+ * Use it for a character that's hard to type or to see in the file, such as a no-break space.
  *
  * It takes any of:
  * - A character: `'\u00A0'` gives `&nbsp;`. A character with several names gets the shortest, and one with none
  *   gets its number, such as `&#x20;` for a space.
  * - A name: `'nbsp'` gives `&nbsp;`.
- * - A reference: `'&nbsp;'` or `'&#xA0;'` goes in as written.
+ * - A reference: `'&nbsp;'` or `'&#xA0;'` is kept unchanged.
  *
  * A name HTML doesn't define is an error. For the common ones, use a constant such as {@link nbsp} or {@link mdash}.
  *
@@ -32,15 +32,18 @@ class HtmlEntityElement extends MarkdownElement<'inline', 'htmlEntity'> implemen
  * @category text
  */
 export function htmlEntity(value: string): MDHtmlEntity {
-  if ([...value].length === 1) return new HtmlEntityElement(referenceFor(value), value);
   const numeric = /^&#(?:x([\da-f]+)|(\d+));$/i.exec(value);
   if (numeric) {
     const codePoint = numeric[1] ? Number.parseInt(numeric[1], 16) : Number(numeric[2]);
     return new HtmlEntityElement(value, String.fromCodePoint(codePoint));
   }
-  const name = /^&(.+);$/.exec(value)?.[1] ?? value;
-  if (!Object.hasOwn(characterEntities, name)) throw new Error(`unknown HTML entity name: "${name}"`);
-  return new HtmlEntityElement(`&${name};`, characterEntities[name]);
+  const given = /^&(.+);$/.exec(value)?.[1] ?? value;
+  if (Object.hasOwn(characterEntities, given)) return new HtmlEntityElement(`&${given};`, characterEntities[given]);
+  // A few names stand for two code points, such as `nvlt` for `<` and U+20D2.
+  const name = nameOf(value);
+  if (name) return new HtmlEntityElement(`&${name};`, value);
+  if ([...value].length === 1) return new HtmlEntityElement(numberFor(value), value);
+  throw new Error(`unknown HTML entity name: "${given}"`);
 }
 
 /**
@@ -102,10 +105,8 @@ export function isHtmlEntity(value: unknown): value is MDHtmlEntity {
   return isKind(value, 'inline') && value.type === 'htmlEntity';
 }
 
-/** The reference for a character: by name where it has one, and by number otherwise. */
-function referenceFor(character: string): string {
-  const name = nameOf(character);
-  return name ? `&${name};` : `&#x${(character.codePointAt(0) as number).toString(16).toUpperCase()};`;
+function numberFor(character: string): string {
+  return `&#x${(character.codePointAt(0) as number).toString(16).toUpperCase()};`;
 }
 
 let names: Map<string, string> | undefined;
