@@ -109,6 +109,8 @@ renders the comment as Markdown.
 - Help the reader choose. When another function fits a case better, point to it: "For a string that's already
   Markdown, use {@link parse}." Never tell the reader not to use a function.
 - Write short sentences in plain words. Call the reader "you" where a sentence needs a person.
+- Don't start a sentence with a code span; lead with a word. A `@param` description, like a list item, may start
+  with code.
 
 ### The summary
 
