@@ -28,7 +28,7 @@ export { frontmatter } from './frontmatter.ts';
 export { definitionList, details, dl, htmlTable } from './htmlBlocks.ts';
 export { detectStyle } from './style.ts';
 export { table } from './table.ts';
-export type { SubstitutedValue, SubstitutionResult, TemplateValue, TemplateValues } from './template.ts';
+export type { TemplateValue, TemplateValues } from './template.ts';
 export {
   blockTemplate,
   inlineTemplate,
