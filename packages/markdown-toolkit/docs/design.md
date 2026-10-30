@@ -256,3 +256,5 @@ The README ends with a `## Functions` section that `gen-api-reference` writes fr
 - The summary is the first paragraph of the JSDoc, as Markdown renders it, so a blank line ends it. A `@summary` tag replaces it.
 - A summary is at most 140 characters, the length of a comment line. The only inline tag it may use is `{@link name}`, and raw HTML fails, since it's almost always a tag meant as text: write `` `<details>` ``.
 - A function without JSDoc, a `@category` or a summary fails `pnpm run build:readme` and the `scripts` tests. So does a config that doesn't match the code.
+
+How to write the JSDoc itself, from the summary to the examples, is in [Writing JSDoc](writing-jsdoc.md).

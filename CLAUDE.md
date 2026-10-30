@@ -42,6 +42,9 @@ Keep comments short. A comment covers the "what" and, only when it's non-obvious
 line over a `/** ... */` block. Don't restate what well-named identifiers already say. Keep a single comment
 line to 140 characters or fewer.
 
+The JSDoc of an exported markdown-toolkit function is what users see on hover, so it follows stricter rules. Read
+[Writing JSDoc](packages/markdown-toolkit/docs/writing-jsdoc.md) before writing or changing one.
+
 Tests use `node:test` and `node:assert/strict`. Don't add vitest, jest, or another test framework.
 
 Only erasable TypeScript syntax: Node runs the `.ts` sources directly by stripping types. No `enum`,
