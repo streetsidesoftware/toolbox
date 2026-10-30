@@ -254,6 +254,15 @@ export type ListItemContent = BlockOrInlineContent;
 /** One item of a list. */
 export type ListEntry = InlineContent | MDBlock | MDListItem | readonly ListItemContent[];
 
+/** Describes a list: bulleted by default, or numbered with `ordered: true`. */
+export type ListOptions = { ordered?: false | undefined } | ({ ordered: true } & OrderedListOptions);
+
+/** Describes a numbered list. */
+export interface OrderedListOptions {
+  /** Holds the number of the first item, a whole number from 0 to 999999999. It's 1 by default. */
+  start?: number | undefined;
+}
+
 /** One entry of a definition list: an inline term and its definition. */
 export type DefinitionEntry = readonly [term: InlineContent, definition: AnyContent];
 

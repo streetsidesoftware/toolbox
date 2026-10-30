@@ -212,6 +212,9 @@ See [the docs](https://cspell.org) for options.
 Give `list` an array with one entry per item. An entry can be an array of pieces, and a `list` among them makes a
 nested list.
 
+For a numbered list, use `ol`, or `list` with `ordered: true`. Every item in the Markdown repeats the first number,
+and the page counts up from it.
+
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
@@ -227,6 +230,8 @@ const page = md.document(
       md.list(names),
     ]),
   ),
+  md.p('To add one:'),
+  md.ol(['Install the dictionary.', 'Add it to the config.']),
 );
 
 console.log(page.toString());
@@ -241,6 +246,11 @@ console.log(page.toString());
   - Python
   - Rust
   - TypeScript
+
+To add one:
+
+1. Install the dictionary.
+1. Add it to the config.
 ```
 
 ### Code blocks
@@ -252,7 +262,7 @@ import * as md from '@streetsidesoftware/markdown-toolkit';
 
 const page = md.document(
   md.p('Install cspell as a dev dependency:'),
-  md.codeBlock('npm install -D cspell', 'sh'),
+  md.codeBlock('npm install --save-dev cspell', 'sh'),
 );
 
 console.log(page.toString());
@@ -262,7 +272,7 @@ console.log(page.toString());
 Install cspell as a dev dependency:
 
 ```sh
-npm install -D cspell
+npm install --save-dev cspell
 ```
 ````
 
@@ -724,7 +734,9 @@ console.log(section.toString());
 
 ### Lists and tables
 
-- `list(entries)`: Creates a bulleted list, one item per entry.
+- `list(entries, options?)`: Creates a bulleted or numbered list, one item per entry.
+- `ol(entries, options?)`: Creates a numbered list, one item per entry.
+- `ul(entries)`: Creates a bulleted list, one item per entry.
 - `listItem(...content)`: Creates one list item from several pieces.
 - `table(header, rows, options?)`: Creates a table with a header row, then one row per entry.
 - `htmlTable(header, rows, options?)`: Creates a table whose cells can hold anything, including lists and paragraphs.

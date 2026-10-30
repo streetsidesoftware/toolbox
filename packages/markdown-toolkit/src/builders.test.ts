@@ -29,6 +29,7 @@ import {
   link,
   list,
   listItem,
+  ol,
   p,
   paragraph,
   placeholder,
@@ -39,6 +40,7 @@ import {
   template,
   text,
   toBlock,
+  ul,
 } from './index.ts';
 
 describe('element types', () => {
@@ -176,6 +178,68 @@ describe('composing', () => {
     assert.equal(isMarkdown(item), true);
     assert.equal(list([item, strong('x')]).toString(), '- [docs](https://example.com)\n- **x**');
   });
+});
+
+describe('numbered lists', () => {
+  testEach`
+    value                                                         | expected
+    ${list(['a', 'b'])}                                           | ${'- a\n- b'}
+    ${list(['a', 'b'], { ordered: false })}                       | ${'- a\n- b'}
+    ${list(['a', 'b'], { ordered: true })}                        | ${'1. a\n1. b'}
+    ${list(['a', 'b'], { ordered: true, start: 3 })}              | ${'3. a\n3. b'}
+    ${ol(['a', 'b'])}                                             | ${'1. a\n1. b'}
+    ${ol(['a', 'b'], { start: 0 })}                               | ${'0. a\n0. b'}
+    ${ol(['a'], { start: 999_999_999 })}                          | ${'999999999. a'}
+    ${ul(['a', 'b'])}                                             | ${'- a\n- b'}
+    ${list([['Steps:', ol(['one', 'two'])]])}                     | ${'- Steps:\n  1. one\n  1. two'}
+    ${document(ol(['a']), listItem('b'))}                         | ${'1. a\n1. b\n'}
+    ${document(listItem('a'), ol(['b'], { start: 5 }))}           | ${'5. a\n5. b\n'}
+    ${document(ol(['a']), ul(['b']))}                             | ${'1. a\n\n- b\n'}
+  `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
+    assert.equal(value.toString(), expected);
+  });
+
+  test('ordered can come from a script', () => {
+    assert.equal(numberedIf(true).toString(), '1. a');
+    assert.equal(numberedIf(false).toString(), '- a');
+
+    function numberedIf(numbered: boolean): MDElement {
+      return list(['a'], { ordered: numbered });
+    }
+  });
+
+  test('the page counts up, and a style can write each number', () => {
+    assert.equal(
+      document(ol(['a', 'b']))
+        .withStyle({ incrementListMarker: true })
+        .toString(),
+      '1. a\n2. b\n',
+    );
+  });
+
+  test('a start goes only with ordered: true', () => {
+    assert.throws(
+      // @ts-expect-error a bulleted list has no start
+      () => list(['a'], { start: 2 }),
+      new TypeError('a list start goes only with ordered: true'),
+    );
+  });
+
+  testEach`
+    start      | given
+    ${-1}      | ${'-1'}
+    ${1.5}     | ${'1.5'}
+    ${1e9}     | ${'1000000000'}
+    ${'3'}     | ${'a string'}
+  `(
+    'a start that is not a whole number from 0 to 999999999: $start',
+    ({ start, given }: { start: number; given: string }) => {
+      assert.throws(
+        () => ol(['a'], { start }),
+        new TypeError(`a list start must be a whole number from 0 to 999999999, got ${given}`),
+      );
+    },
+  );
 });
 
 describe('strong, emphasis, strikethrough', () => {
