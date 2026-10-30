@@ -183,6 +183,8 @@ function checkPlaceholderName(name: string): void {
 /**
  * Creates a link that shows `content` and goes to `url`.
  *
+ * With empty content, nothing shows, not even the link.
+ *
  * @example
  * md.link('the docs', 'https://example.com');
  * // [the docs](https://example.com)
@@ -198,6 +200,8 @@ export function link(content: InlineContent, url: string | URL): MDLink {
 /**
  * Creates bold text.
  *
+ * With empty content, nothing shows.
+ *
  * @example
  * md.strong('important');
  * // **important**
@@ -212,6 +216,8 @@ export function strong(content: InlineContent): MDStrong {
 /**
  * Creates italic text.
  *
+ * With empty content, nothing shows.
+ *
  * @example
  * md.emphasis('maybe');
  * // _maybe_
@@ -225,6 +231,8 @@ export function emphasis(content: InlineContent): MDEmphasis {
 
 /**
  * Creates text with a line through it.
+ *
+ * With empty content, nothing shows.
  *
  * @example
  * md.strikethrough('old price');
@@ -318,6 +326,8 @@ export function heading(depth: HeadingDepth, content: InlineContent): MDHeading 
  *
  * - For a string that's already Markdown, use {@link parse}.
  * - For plain text where blank lines should separate paragraphs, use {@link blockText}.
+ *
+ * A paragraph that's empty, or holds only spaces, shows nothing and leaves no gap.
  *
  * @example
  * md.p('One sentence.', ' Another one.');

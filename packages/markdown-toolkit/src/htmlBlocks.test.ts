@@ -18,8 +18,10 @@ import {
   lineBreak,
   link,
   list,
+  paragraph,
   parse,
   placeholder,
+  strong,
   substitutePlaceholders,
   text,
 } from './index.ts';
@@ -112,6 +114,14 @@ describe('details', () => {
     );
   });
 
+  test('a summary of only empty formatting is empty, on one line', () => {
+    assert.equal(details(strong(''), 'x').toString(), '<details>\n<summary></summary>\n\nx\n\n</details>');
+  });
+
+  test('an empty paragraph in the content adds no blank lines', () => {
+    assert.equal(details('s', paragraph('')).toString(), '<details>\n<summary>s</summary>\n\n</details>');
+  });
+
   test('a block summary throws', () => {
     assert.throws(() => details(list(['a']) as never), new TypeError('details summary must be inline, got a list'));
   });
@@ -146,6 +156,10 @@ describe('definitionList', () => {
         </dl>
       `,
     );
+  });
+
+  test('a term of only empty formatting is empty, on one line', () => {
+    assert.equal(dl([[strong(''), 'd']]).toString(), '<dl>\n\n<dt></dt>\n<dd>\n\nd\n\n</dd>\n\n</dl>');
   });
 
   test('term text is HTML-escaped', () => {
@@ -343,6 +357,15 @@ describe('htmlTable', () => {
 
   test('an empty header leaves out <thead>', () => {
     assert.equal(htmlTable([], [['a']]).toString(), '<table>\n<tbody>\n<tr>\n<td>a</td>\n</tr>\n</tbody>\n</table>');
+  });
+
+  testEach`
+        cell                 | name
+        ${strong('')}        | ${"strong('')"}
+        ${paragraph('')}     | ${"paragraph('')"}
+        ${paragraph(' ')}    | ${"paragraph(' ')"}
+    `('a cell of $name is empty, on one line', ({ cell }: { cell: AnyContent }) => {
+    assert.equal(htmlTable([], [[cell]]).toString(), '<table>\n<tbody>\n<tr>\n<td></td>\n</tr>\n</tbody>\n</table>');
   });
 
   test('no rows', () => {
