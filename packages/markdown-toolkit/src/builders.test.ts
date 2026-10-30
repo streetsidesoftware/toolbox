@@ -308,6 +308,8 @@ describe('line endings at the edges', () => {
         ${paragraph(lineBreak(), 'a', lineBreak(), 'b')}                       | ${'a\\\nb'}
         ${document('Fruit:\n', placeholder('fruit'), '\n', 'yummy')}           | ${'Fruit:\n{@ fruit @}\nyummy\n'}
         ${paragraph('a', lineBreak(), placeholder('x'), lineBreak(), 'b')}     | ${'a\\\n{@ x @}\\\nb'}
+        ${paragraph('a\n\n', placeholder('x'), '\n\nb')}                      | ${'a\\\n\\\n{@ x @}\\\n\\\nb'}
+        ${text('x\n{@ a @}\n{@ b @}\ny')}                                     | ${'x\n{@ a @}\n{@ b @}\ny'}
         ${paragraph(strong('x\n'), 'next')}                                   | ${'**x**\\\nnext'}
         ${paragraph('a\n', emphasis(['\nx\n', strong('y\n')]), 'b')}           | ${'a\\\n\\\n_x\\\n**y**_\\\nb'}
         ${paragraph('a ', strikethrough('x\n'))}                              | ${'a ~~x~~'}

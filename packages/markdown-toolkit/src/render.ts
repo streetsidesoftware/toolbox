@@ -97,14 +97,17 @@ function trimLines(children: PhrasingContent[]): void {
  * ending here: a `lineBreak()` stays a hard break.
  */
 function keepPlaceholderLines(children: PhrasingContent[]): void {
+  const lineEndings = new Set<number>();
   children.forEach((node, i) => {
     if (!asPlaceholderNode(node)) return;
     const before = children[i - 1];
     const after = children[i + 1];
     if ((before && !isNewlineBreak(before)) || (after && !isNewlineBreak(after))) return;
-    if (before) children[i - 1] = { type: 'text', value: '\n' };
-    if (after) children[i + 1] = { type: 'text', value: '\n' };
+    // A break next to another one stays hard: as a line ending, it would make a blank line, which ends the paragraph.
+    if (before && children[i - 2]?.type !== 'break') lineEndings.add(i - 1);
+    if (after && children[i + 2]?.type !== 'break') lineEndings.add(i + 1);
   });
+  for (const i of lineEndings) children[i] = { type: 'text', value: '\n' };
 }
 
 /**
