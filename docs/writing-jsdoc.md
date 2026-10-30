@@ -61,8 +61,8 @@ Would you leave its deliberate parts alone?
 When a function changes:
 
 - After a rename, reread its comment.
-- When it moves to another file, read its name and comment as a reader there would. Add what the old file used to
-  supply.
+- When it moves away from its context, such as to another file or away from its only caller, read its name and
+  comment as a reader there would. Add what the old context used to supply.
 
 Examples from `packages/markdown-toolkit/src`:
 
