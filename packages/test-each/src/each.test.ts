@@ -171,7 +171,7 @@ function table(strings: TemplateStringsArray, ...values: unknown[]): Row[] {
   return parseTable('table', strings, values);
 }
 
-/** A row as `parseTable` builds it, without a prototype. */
+/** Build a row as `parseTable` does, without a prototype. */
 function row(values: Row): Row {
   return Object.assign(Object.create(null), values);
 }
