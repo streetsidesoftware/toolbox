@@ -2,6 +2,7 @@
 
 How to write comments and JSDoc in this repo, in every package and in `scripts/`:
 
+- [Voice](#voice) sums up the voice of every comment.
 - [Every comment](#every-comment) covers all comments.
 - [Internal functions](#internal-functions) covers functions a package doesn't export.
 - [Exported functions and types](#exported-functions-and-types) covers the JSDoc users read on hover. Its
@@ -9,6 +10,14 @@ How to write comments and JSDoc in this repo, in every package and in `scripts/`
 
 Apply these rules to the comments you write or change. Bring existing comments in line in a PR of their own, one package
 at a time.
+
+## Voice
+
+| Comment on                                            | Voice                       | Example                              |
+| ----------------------------------------------------- | --------------------------- | ------------------------------------ |
+| A function or method                                  | Imperative                  | "Create bold text."                  |
+| A class, interface or type, including a function type | Third person, present tense | "Describes how Markdown is written." |
+| A property                                            | Third person, present tense | "Holds the text, exactly as given."  |
 
 ## Every comment
 
@@ -55,8 +64,6 @@ A comment that's hard to write can mean the name is wrong. Fix the name first.
 
 The rules for exported functions don't apply. There's no summary or `@example`, and internal terms such as "node" are
 fine. A `@param` helps when one argument needs explaining.
-
-An internal comment never says "you": it could mean the caller or the maintainer.
 
 To check a comment, cover the body and read only the signature and the comment. Could you call the function correctly?
 Would you leave its deliberate parts alone?
@@ -120,7 +127,7 @@ renders the comment as Markdown.
 - Describe what the function gives the reader. Never describe how the package builds it.
 - Help the reader choose. When another function fits a case better, point to it: "For a string that's already
   Markdown, use {@link parse}." Never tell the reader not to use a function.
-- Use plain words. Call the reader "you" where a sentence needs a person.
+- Use plain words.
 - Don't start a sentence with a code span; lead with a word. A `@param` description, like a list item, may start
   with code.
 
@@ -201,7 +208,6 @@ above.
 - The README ends with a [function reference](../packages/markdown-toolkit/docs/design.md#function-reference),
   generated from each function's parameter names and summary. The mechanical rules, such as the 140-character summary
   and `@category`, are in that section of the design doc.
-- A summary never says "you", since the README reference shows it and the README never says "you". The details may.
 
 Words to avoid:
 
