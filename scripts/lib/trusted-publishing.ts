@@ -27,7 +27,10 @@ export interface PublishedEntry {
 
 export type Published = Record<string, PublishedEntry | false>;
 
-/** `npm trust list --json` prints one JSON object per trusted publisher, one after the other, and nothing if none. */
+/**
+ * Parse the output of `npm trust list --json`.
+ * It prints one JSON object per trusted publisher, one after the other, and nothing if none.
+ */
 export function parseJsonValues(text: string): unknown[] {
   const trimmed = text.trim();
   if (!trimmed) return [];
@@ -38,26 +41,29 @@ export function hasPublisher(configs: TrustConfig[], repository: string): boolea
   return configs.some((c) => c.type === 'github' && c.repository === repository && c.file === WORKFLOW_FILE);
 }
 
-/** A copy of `published` with `name`'s `trustedPublishing` set. */
+/** Return a copy of `published` with `name`'s `trustedPublishing` set. */
 export function recordTrusted(published: Published, name: string, trusted: boolean): Published {
   const entry = published[name];
   if (entry === false) throw new Error(`${PUBLISHED_FILE} marks ${name} as never to be published.`);
   return { ...published, [name]: { ...entry, trustedPublishing: trusted } };
 }
 
-/** A copy of `published` with `name` waiting for publication, unless it already has an entry. */
+/** Return a copy of `published` with `name` waiting for publication, unless it already has an entry. */
 export function recordPending(published: Published, name: string): Published {
   return name in published ? published : { ...published, [name]: { trustedPublishing: false } };
 }
 
-/** A copy of `published` without the entries of packages not in `names`. A `false` entry is kept. */
+/** Return a copy of `published` without the entries of packages not in `names`. A `false` entry is kept. */
 export function prunePublished(published: Published, names: string[]): Published {
   return Object.fromEntries(
     Object.entries(published).filter(([name, entry]) => entry === false || names.includes(name)),
   );
 }
 
-/** One package per line, sorted by name, so a change of state is a one-line diff. Not formatted by Prettier. */
+/**
+ * Format `published` with one package per line, sorted by name, so a change of state is a one-line diff.
+ * Prettier doesn't format it.
+ */
 export function formatPublished(published: Published): string {
   const lines = Object.entries(published)
     .sort(([a], [b]) => compare(a, b))

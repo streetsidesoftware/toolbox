@@ -7,8 +7,9 @@ export const PACKAGES_CSV_FILE = 'static/packages.csv';
 export const README_GLOBS = ['README.md', 'packages/*/README.md'];
 
 /**
- * The `Package,Description` table of every package, sorted by name. Private ones are listed too: `private` only keeps them off npm.
- * Links are relative to `static/`; inject-markdown rebases them into the README.
+ * Render the `Package,Description` table of every package, sorted by name.
+ * Private ones are listed too: `private` only keeps them off npm.
+ * Links are relative to `static/`. The inject-markdown tool rebases them into the README.
  */
 export function packagesCsv(packages: WorkspacePackage[]): string {
   const rows = packages
@@ -19,7 +20,7 @@ export function packagesCsv(packages: WorkspacePackage[]): string {
   return [['Package', 'Description'], ...rows].map((row) => row.map(csvCell).join(',')).join('\n') + '\n';
 }
 
-/** A `|` would end the Markdown table cell. */
+/** Escape each `|`, which would end the Markdown table cell. */
 function markdownCell(text: string): string {
   return text.replaceAll('|', '\\|');
 }

@@ -16,18 +16,18 @@ const NAME_REGEXP = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 
 export interface NewPackageOptions {
   description?: string | undefined;
-  /** The folder of template files; default: {@link TEMPLATE_DIR}. */
+  /** Holds the folder of template files. Default: {@link TEMPLATE_DIR}. */
   templateDir?: string | undefined;
 }
 
-/** The values the templates' placeholders take. */
+/** Holds the values the templates' placeholders take. */
 type TemplateValues = Record<'name' | 'fullName' | 'description', string>;
 
 export interface CreatePackageOptions extends NewPackageOptions {
   rootDir?: string | undefined;
 }
 
-/** Throws if `name` can't be a `packages/<name>` folder and `@streetsidesoftware/<name>` package. */
+/** Throw if `name` can't be a `packages/<name>` folder and `@streetsidesoftware/<name>` package. */
 export function validatePackageName(name: string): void {
   if (!NAME_REGEXP.test(name)) {
     throw new Error(
@@ -38,8 +38,8 @@ export function validatePackageName(name: string): void {
 }
 
 /**
- * The files of a new private package, keyed by path relative to its folder: the templates in `static/templates/`,
- * with their placeholders filled in, and the root `LICENSE`.
+ * Return the files of a new private package, keyed by path relative to its folder.
+ * They are the templates in `static/templates/`, with values substituted for their placeholders, and the root `LICENSE`.
  */
 export async function newPackageFiles(name: string, options: NewPackageOptions = {}): Promise<Record<string, string>> {
   validatePackageName(name);
@@ -67,7 +67,7 @@ export async function newPackageFiles(name: string, options: NewPackageOptions =
 }
 
 /**
- * Writes a new private package to `packages/<name>/`.
+ * Write a new private package to `packages/<name>/`.
  * @returns the package folder.
  */
 export async function createPackage(name: string, options: CreatePackageOptions = {}): Promise<string> {
@@ -94,7 +94,7 @@ export async function createPackage(name: string, options: CreatePackageOptions 
   return dir;
 }
 
-/** Trims `description`, defaults it if blank, and ends it with {@link PRIVATE_SUFFIX} once. */
+/** Trim `description`, default it if blank, and end it with {@link PRIVATE_SUFFIX} once. */
 export function privateDescription(description: string | undefined): string {
   const suffix = PRIVATE_SUFFIX.trim();
   let text = description?.trim() ?? '';
@@ -102,7 +102,7 @@ export function privateDescription(description: string | undefined): string {
   return (text || DEFAULT_DESCRIPTION) + PRIVATE_SUFFIX;
 }
 
-// Placeholders are filled in the parsed string values, so a value with a `"` can't break the JSON.
+// Values are substituted in the parsed string values, so a value with a `"` can't break the JSON.
 function packageJsonText(name: string, template: string, values: TemplateValues, rootPackageJson: PackageJson): string {
   const packageJson: PackageJson = JSON.parse(template, (_key, value: unknown) =>
     typeof value === 'string' ? replacePlaceholders(value, values) : value,
@@ -112,7 +112,7 @@ function packageJsonText(name: string, template: string, values: TemplateValues,
   return formatPackageJson(packageJson);
 }
 
-/** Every file under `dir`, keyed by its path relative to `dir`, with `/` separators. */
+/** Read every file under `dir`, keyed by its path relative to `dir`, with `/` separators. */
 async function readTemplates(dir: string): Promise<Record<string, string>> {
   const templates: Record<string, string> = {};
   const entries = await fs.readdir(dir, { recursive: true, withFileTypes: true });
@@ -123,7 +123,7 @@ async function readTemplates(dir: string): Promise<Record<string, string>> {
   return templates;
 }
 
-/** Throws if a template's path or text uses a placeholder that `values` has no value for. */
+/** Throw if a template's path or text uses a placeholder that `values` has no value for. */
 function assertKnownPlaceholders(templates: Record<string, string>, values: TemplateValues, dir: string): void {
   const unknown: string[] = [];
   for (const [relPath, text] of Object.entries(templates)) {

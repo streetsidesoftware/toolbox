@@ -71,7 +71,7 @@ async function main() {
   }
 }
 
-/** The publication branches of `candidates` that have an open PR. */
+/** Return the publication branches of `candidates` that have an open PR. */
 async function openPrBranches(candidates: PublicationCandidate[]): Promise<string[]> {
   const [owner] = REPOSITORY.split('/');
   const headers: Record<string, string> = { Accept: 'application/vnd.github+json' };

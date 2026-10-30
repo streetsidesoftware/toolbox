@@ -87,7 +87,7 @@ export interface FixPackageJsonOptions {
 }
 
 /**
- * Fixes up a package.json file, optionally writing the result back to disk.
+ * Fix up a package.json file, optionally writing the result back to disk.
  * @returns `true` if the file's contents needed fixing, `false` if it was already correct.
  */
 export async function fixPackageJson(filePath: string, options: FixPackageJsonOptions): Promise<boolean> {

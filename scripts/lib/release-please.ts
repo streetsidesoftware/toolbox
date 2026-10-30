@@ -11,7 +11,7 @@ export const CONFIG_FILE = 'release-please-config.json';
 /** The Release Please manifest of released versions, relative to the repo root. */
 export const MANIFEST_FILE = '.release-please-manifest.json';
 
-/** A package's entry in the config's `packages`. */
+/** Describes a package's entry in the config's `packages`. */
 export interface PackageEntry {
   component: string;
   'release-as'?: string;
@@ -52,7 +52,7 @@ export const CONFIG_SETTINGS = {
 };
 
 /**
- * The config for the root package and every `packages/*` package, private ones included.
+ * Generate the config for the root package and every `packages/*` package, private ones included.
  * A `release-as` in `current` is kept until `manifest` shows that version was released.
  */
 export function genConfig(
@@ -73,8 +73,9 @@ export function genConfig(
 }
 
 /**
- * The manifest with an entry for the root and each package: its current entry, or its `package.json` version if it
- * has none. Entries for packages that no longer exist are dropped.
+ * Generate the manifest with an entry for the root and each package.
+ * Each entry is its current one, or its `package.json` version if it has none.
+ * Entries for packages that no longer exist are dropped.
  */
 export function genManifest(root: WorkspacePackage, packages: WorkspacePackage[], current: Manifest): Manifest {
   const manifest: Manifest = {};
@@ -95,13 +96,16 @@ export async function readJsonFile<T>(relFile: string, rootDir: string = REPO_RO
   return text === undefined ? undefined : (JSON.parse(text) as T);
 }
 
-/** Generated JSON is written as `JSON.stringify` writes it, not by Prettier; the files are in `.prettierignore`. */
+/**
+ * Format JSON as `JSON.stringify` writes it, not as Prettier would.
+ * The generated files are in `.prettierignore`.
+ */
 export function formatJson(value: unknown): string {
   return JSON.stringify(value, null, 2) + '\n';
 }
 
 /**
- * Sets or removes `release-as` for the named packages.
+ * Set or remove `release-as` for the named packages.
  * @param version - the version to release, or `undefined` to remove `release-as`.
  */
 export function applyReleaseAs(
@@ -123,7 +127,7 @@ export function applyReleaseAs(
   return { ...config, packages };
 }
 
-/** Sets or removes `release-as` for the named packages, and writes the config. */
+/** Set or remove `release-as` for the named packages, and write the config. */
 export async function writeReleaseAs(
   names: string[],
   version: string | undefined,

@@ -301,7 +301,7 @@ async function withModules(files: Record<string, string | string[]>, fn: (index:
   }
 }
 
-/** Reads one function `f` with the given JSDoc lines, then calls `fn` with it, or with the error reading it threw. */
+/** Read one function `f` with the given JSDoc lines, then call `fn` with it, or with the error reading it threw. */
 async function withFunction(
   jsdoc: string[],
   fn: (api: ApiFunction, error?: unknown) => void | Promise<void>,
