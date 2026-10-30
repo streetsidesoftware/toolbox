@@ -18,6 +18,7 @@ at a time.
 | A function or method                                  | Imperative                  | "Create bold text."                  |
 | A class, interface or type, including a function type | Third person, present tense | "Describes how Markdown is written." |
 | A property                                            | Third person, present tense | "Holds the text, exactly as given."  |
+| A constant or variable                                | Third person, present tense | "Holds the default style."           |
 
 ## Every comment
 
@@ -26,8 +27,8 @@ at a time.
   There's no one-line limit.
 - Start a function or method comment with a verb in the imperative: "Render Markdown nodes as text.", "Create bold
   text."
-- Write the comment on a type, an interface or a property in the third person, present tense: "Holds…", "Describes…",
-  "Returns…". A function type counts as a type.
+- Write the comment on a type, an interface, a property, a constant or a variable in the third person, present
+  tense: "Holds…", "Describes…", "Returns…". A function type counts as a type.
 - Use a list when a comment covers several cases.
 - Don't restate what a well-named identifier already says.
 - Keep a comment line to 140 characters or fewer.
