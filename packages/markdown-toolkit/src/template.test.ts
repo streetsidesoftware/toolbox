@@ -22,7 +22,7 @@ import {
   text,
   toBlock,
 } from './index.ts';
-import type { TemplateValue, TemplateValues } from './index.ts';
+import type { MDFragment, MDInline, MDInlineFragment, MDText, TemplateValue, TemplateValues } from './index.ts';
 import { resolveValue } from './template.ts';
 
 interface ResolveRow {
@@ -237,6 +237,28 @@ describe('substitutePlaceholders', () => {
     const step = substitutePlaceholders(md, { a: '*x*' });
     assert.equal(step.toString(), '\\*x\\* and {@ _b_ @}');
     assert.equal(substitutePlaceholders(step, { _b_: 'y' }).toString(), '\\*x\\* and y');
+  });
+
+  test('anything but a string or an element throws', () => {
+    assert.throws(
+      () => substitutePlaceholders(42 as never, {}),
+      new TypeError('expected a string or a Markdown element, got a number'),
+    );
+  });
+
+  test('a string is text', () => {
+    const result: MDText | MDInlineFragment | MDFragment = substitutePlaceholders('Version: {@ v @}', { v: '1.2.3' });
+    assert.equal(result.toString(), 'Version: 1.2.3');
+    assert.equal(substitutePlaceholders('*a* {@ x @}', { x: 'b' }).toString(), '\\*a\\* b');
+    assert.equal(substitutePlaceholders('Fruit:\n{@ x @}', { x: list(['a']) }).toString(), 'Fruit:\n\n- a');
+  });
+
+  test('inline content can come back as a fragment', () => {
+    const inline = placeholder('x') as MDInline;
+    const result = substitutePlaceholders(inline, { x: list(['a']) });
+    const typedAsPossibleFragment: 'fragment' extends typeof result.type ? true : false = true;
+    assert.ok(typedAsPossibleFragment);
+    assert.equal(result.type, 'fragment');
   });
 
   test('the value given is not changed', () => {
