@@ -209,7 +209,8 @@ export function groupedNodes(content: AnyContent | readonly AnyContent[], where:
  * Return the blocks for the arguments of `document`, `listItem` or `details`, as {@link groupedNodes} does, but with
  * each argument on its own line:
  * - Inline arguments in a row form one paragraph, a line each. An array is one argument.
- * - An argument loses the spaces and tabs at its start and end, which would show escaped next to a line ending.
+ * - Text loses the spaces and tabs at the start and end of an argument, and next to a block within one. They would show
+ *   escaped next to a line ending.
  * - An argument that renders nothing leaves an empty line, so the arguments around it are two paragraphs.
  * @param where - what the content is for, for error messages.
  */
@@ -227,16 +228,16 @@ export function argumentNodes(args: readonly AnyContent[], where: string): Mdast
       (block) => ({ block }),
     );
     if (!parts.length) endParagraph();
-    parts.forEach((part, i) => {
+    for (const part of parts) {
       if ('block' in part) {
         endParagraph();
         for (const node of blockNodes(part.block, where)) nodes.push(node);
-        return;
+        continue;
       }
-      const line = trimBlanks(inlineNodes(part.inline, where), i === 0, i === parts.length - 1);
+      const line = trimBlanks(inlineNodes(part.inline, where));
       if (line.length) lines.push(line);
       else endParagraph();
-    });
+    }
   }
   endParagraph();
   return inLists(nodes) as MdastBlockContent[];
@@ -253,10 +254,10 @@ function joinLines(lines: readonly PhrasingContent[][]): PhrasingContent[] {
   return result;
 }
 
-/** Inline nodes without the spaces and tabs at the chosen ends. Text left empty is dropped. */
-function trimBlanks(nodes: readonly PhrasingContent[], start: boolean, end: boolean): PhrasingContent[] {
+/** Inline nodes without the spaces and tabs at their start and end. Text left empty is dropped. */
+function trimBlanks(nodes: readonly PhrasingContent[]): PhrasingContent[] {
   const result = [...nodes];
-  while (start && result[0]?.type === 'text') {
+  while (result[0]?.type === 'text') {
     const value = result[0].value.replace(/^[ \t]+/, '');
     if (value) {
       result[0] = { ...result[0], value };
@@ -264,7 +265,7 @@ function trimBlanks(nodes: readonly PhrasingContent[], start: boolean, end: bool
     }
     result.shift();
   }
-  while (end && result.at(-1)?.type === 'text') {
+  while (result.at(-1)?.type === 'text') {
     const last = result.at(-1) as Text;
     const value = last.value.replace(/[ \t]+$/, '');
     if (value) {

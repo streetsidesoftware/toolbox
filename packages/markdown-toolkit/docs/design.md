@@ -44,7 +44,7 @@ An array is a sequence. Arrays are flattened.
 
 The parts of a document, a list item and details content are listed one by one, and each goes on a line of its own, as someone typing the file would put them. Parts of text in a row still form one paragraph, which the page shows with a space between them. Joining them with nothing ran sentences together, and a script that lists sentences one by one expects them apart. A sentence built from pieces goes in a paragraph or an array, which join as given. An array is one part.
 
-- A space or tab at the start or end of a part is dropped. Before a line ending it would only show up escaped, and the page doesn't show it.
+- A space or tab at the start or end of a part, or next to a block within one, is dropped. Before a line ending it would only show up escaped, and the page doesn't show it.
 - A part that renders nothing still gets its line, so the parts around it are two paragraphs, as a blank line in the file would make them.
 - A part that starts or ends with a line break, such as a newline in a string, needs no second line ending.
 
