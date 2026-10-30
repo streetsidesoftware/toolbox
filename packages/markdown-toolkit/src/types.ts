@@ -251,6 +251,12 @@ export type AnyContent = BlockOrInlineContent | readonly BlockOrInlineContent[];
 /** A piece of a list item. Inline pieces in a row form a line, and blocks follow on their own lines. */
 export type ListItemContent = BlockOrInlineContent;
 
+/** Describes a list item. */
+export interface ListItemOptions {
+  /** Holds whether the item's checkbox is checked. Without it, the item has no checkbox. */
+  checked?: boolean | undefined;
+}
+
 /** One item of a list. */
 export type ListEntry = InlineContent | MDBlock | MDListItem | readonly ListItemContent[];
 

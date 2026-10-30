@@ -24,6 +24,7 @@ import type {
   InlineContent,
   ListEntry,
   ListItemContent,
+  ListItemOptions,
   ListOptions,
   MDBlock,
   MDBlockPlaceholder,
@@ -419,6 +420,32 @@ export function codeBlock(code: string, lang?: string): MDCodeBlock {
  */
 export function listItem(...content: ListItemContent[]): MDListItem {
   return new MarkdownElement('listItem', 'listItem', 'a list item', [listItemNode(content)]);
+}
+
+/**
+ * Create one list item, which can have a checkbox.
+ *
+ * The content is one piece or an array of pieces, like a {@link list} entry. Pieces in a row join into one line. A
+ * paragraph, list or other block goes on its own lines below them.
+ *
+ * It goes in a {@link list}, or anywhere a paragraph can go:
+ * - List items in a row form a list.
+ * - A list item right before or after a list becomes one more item of it.
+ * - In a heading, a link or anywhere else inside a line, a list item is an error.
+ *
+ * @param options - `checked: true` shows a checked box, and `checked: false` an empty one. Without `checked`, the item
+ * has no box.
+ * @example
+ * md.li('Write tests', { checked: true });
+ * // Markdown:
+ * // - [x] Write tests
+ * // The page shows a checked box next to "Write tests".
+ * @category lists
+ */
+export function li(content: ListItemContent | readonly ListItemContent[], options?: ListItemOptions): MDListItem {
+  const item = listItemNode(isArray(content) ? content : [content]);
+  if (options?.checked !== undefined) item.checked = options.checked;
+  return new MarkdownElement('listItem', 'listItem', 'a list item', [item]);
 }
 
 /**
