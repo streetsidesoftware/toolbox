@@ -1,34 +1,39 @@
+/** Describes a function that removes the common leading whitespace, called on a string or as a template tag. */
 export interface Unindent {
   /**
    * Remove the common leading whitespace from every line of a multi-line string.
-   * Blank and whitespace-only lines are ignored when finding the common indentation.
-   * @param str - multi-line string to unindent
-   * @returns the unindented string
+   *
+   * Blank and whitespace-only lines don't count when finding the common indentation.
    */
   (str: string): string;
 
   /**
-   * Tagged template that removes the common leading whitespace from every line.
+   * Remove the common leading whitespace from every line of a template literal.
+   *
    * A multi-line value keeps its shape: each of its lines after the first gets the leading whitespace of the
-   * template line it is inserted on. An empty line stays empty.
-   * @param template - template strings
-   * @param values - values to insert
-   * @returns the unindented string
+   * template line it goes on. An empty line stays empty.
    */
   (template: TemplateStringsArray, ...values: unknown[]): string;
 }
 
+/** Describes which lines {@link createUnindent} drops. */
 export interface UnindentOptions {
-  /** Drop one leading newline. Default: `false`. */
+  /** Drops one leading newline. Default: `false`. */
   trimFirstNewline?: boolean | undefined;
-  /** Drop the last line, with the newline before it, when it is blank or whitespace-only. Default: `false`. */
+  /** Drops the last line, with the newline before it, when it's blank or whitespace-only. Default: `false`. */
   trimLastLine?: boolean | undefined;
 }
 
 /**
- * Create an {@link Unindent} function with the given options.
- * @param options - which leading and trailing lines to drop
- * @returns a function used like `unindent`
+ * Create a function that works like {@link unindent}, and can also drop the first and last lines.
+ *
+ * @example
+ * const trimmedUnindent = createUnindent({ trimFirstNewline: true, trimLastLine: true });
+ * trimmedUnindent`
+ *     Hello
+ *       world
+ *     `;
+ * // 'Hello\n  world'
  */
 export function createUnindent(options: UnindentOptions = {}): Unindent {
   const { trimFirstNewline = false, trimLastLine = false } = options;
@@ -44,8 +49,16 @@ export function createUnindent(options: UnindentOptions = {}): Unindent {
 }
 
 /**
- * Remove the common leading whitespace from every line, keeping leading and trailing newlines.
- * Use {@link createUnindent} to drop them.
+ * Remove the common leading whitespace from every line.
+ *
+ * A leading newline and a blank last line stay. To drop them, use {@link createUnindent}.
+ *
+ * @example
+ * unindent`
+ *     Hello
+ *       world
+ * `;
+ * // '\nHello\n  world\n'
  */
 export const unindent: Unindent = function unindent(
   templateOrString: TemplateStringsArray | string,
@@ -55,11 +68,15 @@ export const unindent: Unindent = function unindent(
 };
 
 /**
- * Add padding to each line of a multi-line string. An empty line after the first stays empty.
- * @param str - multi-line string to indent
- * @param padding - the padding added to every line except the first
- * @param firstLinePadding - the padding added to the first line
- * @returns the indented string
+ * Add padding to the start of each line of a multi-line string.
+ *
+ * An empty line after the first stays empty.
+ *
+ * @param padding - the padding added to every line except the first.
+ * @param firstLinePadding - the padding added to the first line.
+ * @example
+ * indent('a\nb\n\nc', '  ');
+ * // 'a\n  b\n\n  c'
  */
 export function indent(str: string, padding: string, firstLinePadding: string = ''): string {
   const [first, ...rest] = str.split('\n');
@@ -82,7 +99,7 @@ function keepIndent(template: TemplateStringsArray, values: unknown[]): string {
   return String.raw({ raw: template }, ...adjValues);
 }
 
-/** The leading whitespace of the template line that value `pos` is inserted on. */
+/** Return the leading whitespace of the template line that value `pos` goes on. */
 function linePadding(template: TemplateStringsArray, pos: number): string {
   // The line can start in an earlier chunk when several values share it.
   while (pos > 0 && !template[pos]?.includes('\n')) {
@@ -93,7 +110,10 @@ function linePadding(template: TemplateStringsArray, pos: number): string {
   return line.slice(0, padLength(line));
 }
 
-/** The length of the leading whitespace, not counting a `\r`, so unindenting keeps CRLF line endings. */
+/**
+ * Return the length of the leading whitespace.
+ * A `\r` doesn't count, so unindenting keeps CRLF line endings.
+ */
 function padLength(s: string): number {
   return /^[^\S\r]*/.exec(s)?.[0].length ?? 0;
 }
