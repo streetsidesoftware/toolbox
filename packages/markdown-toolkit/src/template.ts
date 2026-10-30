@@ -218,14 +218,14 @@ export type SubstitutedValue<T extends MDElement> = SubstitutionResult<T>;
 /**
  * Substitutes values for the `{​@ name @​}` placeholders in text or an element you've already built, such as a parsed file.
  *
- * Placeholders without a value stay in place, so you can substitute values in steps. A string is text, as given to
- * {@link text}, so Markdown in it shows exactly as written.
+ * Placeholders without a value stay in place, so you can substitute values in steps.
  *
  * - A string value shows exactly as given.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string, which goes in as given.
  *
+ * @param content - an element, or a string as text: Markdown in it shows as written, as in {@link text}.
  * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
  * @example
  * const page = md.p('Hello ', md.placeholder('name'), '.');
