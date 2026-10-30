@@ -476,6 +476,8 @@ describe('document', () => {
     ${document(list(['a']), list(['b']))}                         | ${'- a\n\n* b\n'}
     ${document(template('- a', {}), listItem('b'))}               | ${'- a\n- b\n'}
     ${document(template('1. a', {}), listItem('b'))}              | ${'1. a\n1. b\n'}
+    ${document(listItem('a'), template('1. b', {}))}              | ${'1. a\n1. b\n'}
+    ${document(listItem('a'), template('3. b', {}))}              | ${'3. a\n3. b\n'}
     ${document(template('- [ ] a', {}), listItem('b'))}           | ${'- [ ] a\n- b\n'}
     ${document(listItem('a'), template('Text\n\n- b', {}))}     | ${'- a\n\nText\n\n- b\n'}
     ${listItem('Langs', listItem('en'), listItem('nl'))}          | ${'- Langs\n  - en\n  - nl'}
