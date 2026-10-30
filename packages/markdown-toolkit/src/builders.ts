@@ -47,7 +47,6 @@ import type {
   MDStrikethrough,
   MDStrong,
   MDText,
-  OrderedListOptions,
 } from './types.ts';
 
 class TextElement extends MarkdownElement<'inline', 'text'> implements MDText {
@@ -453,8 +452,7 @@ export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument
  *
  * The list is bulleted unless `ordered` is `true`. For one kind only, {@link ul} and {@link ol} are shorter.
  *
- * @param options - `ordered: true` numbers the items. `start` sets the first number, a whole number from 0 to
- * 999999999, and goes only with `ordered: true`.
+ * @param options - `ordered: true` numbers the items, and `start` sets the first number of a numbered list.
  * @example <caption>A list</caption>
  * md.list(['Dutch', 'French', 'German']);
  * // - Dutch
@@ -470,17 +468,12 @@ export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument
  */
 export function list(entries: readonly ListEntry[], options?: ListOptions): MDList {
   if (!Array.isArray(entries)) throw new TypeError(`list entries must be an array, got ${describe(entries)}`);
-  // The type allows `start` only with `ordered: true`; JavaScript callers can still pass it alone.
-  const { ordered = false, start } = (options ?? {}) as { ordered?: boolean; start?: number };
-  if (start !== undefined && !(Number.isInteger(start) && start >= 0 && start <= 999_999_999)) {
-    const given = typeof start === 'number' ? String(start) : describe(start);
-    throw new TypeError(`a list start must be a whole number from 0 to 999999999, got ${given}`);
-  }
+  const ordered = options?.ordered === true;
   const items = entries.map((entry) =>
     isListItem(entry) ? (renderingOf(entry)?.nodes[0] as ListItem) : listItemNode(isArray(entry) ? entry : [entry]),
   );
   return new MarkdownElement('block', 'list', 'a list', [
-    { type: 'list', ordered, start: ordered ? (start ?? 1) : null, spread: false, children: items },
+    { type: 'list', ordered, start: ordered ? (options?.start ?? 1) : null, spread: false, children: items },
   ]);
 }
 
@@ -489,16 +482,16 @@ export function list(entries: readonly ListEntry[], options?: ListOptions): MDLi
  *
  * It's the same as {@link list} with `ordered: true`.
  *
- * @param options - `start` sets the first number, a whole number from 0 to 999999999. It's 1 by default.
+ * @param options - `start` sets the first number. It's 1 by default.
  * @example
- * md.ol(['Install', 'Run'], { start: 3 });
+ * md.ol(['Install', 'Run']);
  * // Markdown:
- * // 3. Install
- * // 3. Run
- * // The page shows a numbered list: 3. Install, 4. Run.
+ * // 1. Install
+ * // 1. Run
+ * // The page shows a numbered list: 1. Install, 2. Run.
  * @category lists
  */
-export function ol(entries: readonly ListEntry[], options?: OrderedListOptions): MDList {
+export function ol(entries: readonly ListEntry[], options?: Pick<ListOptions, 'start'>): MDList {
   return list(entries, { ...options, ordered: true });
 }
 

@@ -216,22 +216,6 @@ describe('numbered lists', () => {
       '1. a\n2. b\n',
     );
   });
-
-  testEach`
-    start      | given
-    ${-1}      | ${'-1'}
-    ${1.5}     | ${'1.5'}
-    ${1e9}     | ${'1000000000'}
-    ${'3'}     | ${'a string'}
-  `(
-    'a start that is not a whole number from 0 to 999999999: $start',
-    ({ start, given }: { start: number; given: string }) => {
-      assert.throws(
-        () => ol(['a'], { start }),
-        new TypeError(`a list start must be a whole number from 0 to 999999999, got ${given}`),
-      );
-    },
-  );
 });
 
 describe('strong, emphasis, strikethrough', () => {

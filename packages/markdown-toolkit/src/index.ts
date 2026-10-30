@@ -90,7 +90,6 @@ export type {
   MDText,
   MDValue,
   OrderedBulletMarker,
-  OrderedListOptions,
   RuleMarker,
   TableOptions,
 } from './types.ts';
