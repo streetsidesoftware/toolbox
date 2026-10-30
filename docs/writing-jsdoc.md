@@ -13,7 +13,8 @@ How to write comments and JSDoc in this repo, in every package and in `scripts/`
 - Write short sentences, one idea each, as many as the comment needs. Don't squeeze several facts into one long line.
 - Start a function or method comment with a verb in the imperative: "Render Markdown nodes as text.", "Create bold
   text."
-- Write a type's comment in the third person, present tense: "Holds…", "Describes…".
+- Write the comment on a type, including a function type, and on each of its properties in the third person, present
+  tense: "Holds…", "Describes…", "Returns…".
 - Use a list when a comment covers several cases.
 - Don't restate what a well-named identifier already says.
 - Keep a comment line to 140 characters or fewer.
