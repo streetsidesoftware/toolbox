@@ -422,7 +422,7 @@ describe('htmlTable', () => {
   });
 });
 
-/** The rendered cell of a one-cell table with no header. */
+/** Render a one-cell table with no header, and return its cell. */
 function bodyCell(content: AnyContent): string {
   return htmlTable([], [[content]])
     .toString()

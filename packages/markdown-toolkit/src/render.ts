@@ -9,7 +9,7 @@ import type { PlaceholderNode } from './placeholderNode.ts';
 
 export type { Options as StyleOptions } from 'remark-stringify';
 
-/** The style for constructs an element carries no style for. */
+/** Holds the style for constructs an element carries no style for. */
 export const defaultStyle: StyleOptions = {
   bullet: '-',
   emphasis: '_',
@@ -20,7 +20,7 @@ export const defaultStyle: StyleOptions = {
   strong: '*',
 };
 
-/** A placeholder and frontmatter are written as is. */
+/** Holds the handlers that write a placeholder and frontmatter as is. */
 // remark-stringify's handler types list only mdast's own node types.
 const handlers = {
   placeholder: (node: PlaceholderNode) => node.value,
@@ -99,14 +99,14 @@ function oneLine(node: Nodes, index: number | undefined, parent: Parent | undefi
   }
 }
 
-/** The text without its leading spaces, tabs and line endings, when they include a line ending. */
+/** Return the text without its leading spaces, tabs and line endings, when they include a line ending. */
 function trimLeadingLineEndings(text: string): string {
   let i = 0;
   while (isBlank(text[i])) ++i;
   return /[\r\n]/.test(text.slice(0, i)) ? text.slice(i) : text;
 }
 
-/** The text without its trailing spaces, tabs and line endings, when they include a line ending. */
+/** Return the text without its trailing spaces, tabs and line endings, when they include a line ending. */
 function trimTrailingLineEndings(text: string): string {
   let i = text.length - 1;
   while (isBlank(text[i])) --i;
