@@ -11,6 +11,7 @@ How to write comments and JSDoc in this repo, in every package and in `scripts/`
 
 - Keep a comment short. It covers the "what" and, only when it's non-obvious, a bit of the "why".
 - Write short sentences, one idea each, as many as the comment needs. Don't squeeze several facts into one long line.
+  There's no one-line limit.
 - Start a function or method comment with a verb in the imperative: "Render Markdown nodes as text.", "Create bold
   text."
 - Write the comment on a type, an interface or a property in the third person, present tense: "Holds…", "Describes…",
@@ -48,9 +49,6 @@ A name and its comment don't restate their context: what the file and the code a
 helper in `htmlBlocks.ts` doesn't need "HTML" in its name.
 
 A comment that's hard to write can mean the name is wrong. Fix the name first.
-
-Length follows what the maintainer needs. Two facts read better as two short sentences or a list than as one long line,
-so there's no one-line limit.
 
 The rules for exported functions don't apply. There's no summary or `@example`, and internal terms such as "node" are
 fine. A `@param` helps when one argument needs explaining.
