@@ -53,6 +53,8 @@ A comment that's hard to write can mean the name is wrong. Fix the name first.
 The rules for exported functions don't apply. There's no summary or `@example`, and internal terms such as "node" are
 fine. A `@param` helps when one argument needs explaining.
 
+An internal comment never says "you": it could mean the caller or the maintainer.
+
 To check a comment, cover the body and read only the signature and the comment. Could you call the function correctly?
 Would you leave its deliberate parts alone?
 
