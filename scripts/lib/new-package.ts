@@ -39,7 +39,8 @@ export function validatePackageName(name: string): void {
 
 /**
  * Return the files of a new private package, keyed by path relative to its folder.
- * They are the templates in `static/templates/`, with values substituted for their placeholders, and the root `LICENSE`.
+ * They are the templates in `options.templateDir`, `static/templates/` by default, with values substituted for their
+ * placeholders, and the root `LICENSE`.
  */
 export async function newPackageFiles(name: string, options: NewPackageOptions = {}): Promise<Record<string, string>> {
   validatePackageName(name);
@@ -102,7 +103,8 @@ export function privateDescription(description: string | undefined): string {
   return (text || DEFAULT_DESCRIPTION) + PRIVATE_SUFFIX;
 }
 
-// Values are substituted in the parsed string values, so a value with a `"` can't break the JSON.
+// Return the new package's `package.json` text.
+// Values go into each parsed string, not the raw JSON, so a value with a `"` can't break the JSON.
 function packageJsonText(name: string, template: string, values: TemplateValues, rootPackageJson: PackageJson): string {
   const packageJson: PackageJson = JSON.parse(template, (_key, value: unknown) =>
     typeof value === 'string' ? replacePlaceholders(value, values) : value,

@@ -35,7 +35,7 @@ Options:
 `;
 
 const REGISTRY = 'https://registry.npmjs.org';
-// npm recommends a pause between trust calls to avoid rate limiting.
+// Holds the pause between trust calls, which npm recommends to avoid rate limiting.
 const PAUSE_MS = 1000;
 
 interface PublishInfo {
@@ -65,6 +65,7 @@ function npm(args: string[]): number {
   return result.status ?? 1;
 }
 
+// Run an npm command with `--json` and return the values it prints.
 // npm only prompts for 2FA when stdout is a terminal, so a captured call that needs 2FA is repeated in the terminal
 // first. That starts the 5-minute window, and the captured call is retried.
 function npmJson(args: string[]): unknown[] {

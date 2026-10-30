@@ -193,7 +193,10 @@ function jsdocAt(comments: readonly Comment[], source: string, start: number): s
   return source.slice(comment.end, start).trim() ? undefined : comment.value;
 }
 
-/** Split a JSDoc into its description, the Markdown before its first tag, and its tags, each on one line. */
+/**
+ * Split a JSDoc into its description and its tags, each on one line.
+ * The description is the Markdown before the first tag.
+ */
 export function parseJsDoc(jsdoc: string): { description: string; tags: Map<string, string> } {
   const lines = jsdoc
     .slice(1)

@@ -5,7 +5,7 @@ import { REPO_ROOT_DIR } from './consts.ts';
 import { compare } from './packages.ts';
 import { readJsonFile } from './release-please.ts';
 
-/** Holds the workflow each package names as its npm trusted publisher. */
+/** Holds the file name of the workflow each package names as its npm trusted publisher. */
 export const WORKFLOW_FILE = 'publish.yml';
 
 /**

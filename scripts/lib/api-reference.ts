@@ -11,7 +11,7 @@ import { CONFIG_FILE, groupFunctions, readApiReferenceConfig } from './api-refer
 import { REPO_ROOT_DIR } from './consts.ts';
 import { findPackages } from './packages.ts';
 
-/** Holds where a package's function reference is written, relative to the package. */
+/** Holds the path a package's function reference is written to, relative to the package. */
 export const API_REFERENCE_FILE = 'static/api-reference.md';
 
 /** Holds the marker a package README injects its reference with. */

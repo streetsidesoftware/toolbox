@@ -12,7 +12,7 @@ import { compare } from './packages.ts';
  */
 export const EXAMPLE_GLOB = 'packages/*/examples/**/example.ts';
 
-/** Holds the name of the file next to an example that holds what it printed. */
+/** Holds the name of the file, next to each example, that records what it printed. */
 export const OUTPUT_FILE = 'output.md';
 
 const execFileAsync = promisify(execFile);

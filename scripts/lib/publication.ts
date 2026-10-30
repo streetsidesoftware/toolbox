@@ -26,9 +26,9 @@ export function publicationBranch(dir: string): string {
 }
 
 /**
- * Return the private packages waiting for publication: every one that `published` doesn't mark `false`.
- * A package waits until it's one of the Release Please config's `components`, since its publication PR sets its
- * `release-as`.
+ * Return the private packages ready for a publication PR. Each one:
+ * - isn't marked `false` in `published`.
+ * - is one of the Release Please config's `components`, since its publication PR sets its `release-as`.
  */
 export function publicationCandidates(
   packages: WorkspacePackage[],

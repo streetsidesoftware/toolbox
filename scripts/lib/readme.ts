@@ -1,6 +1,6 @@
 import type { WorkspacePackage } from './packages.ts';
 
-/** Holds the packages table the root README injects, relative to the repo root. */
+/** Holds the path of the packages table the root README injects, relative to the repo root. */
 export const PACKAGES_CSV_FILE = 'static/packages.csv';
 
 /** Matches the READMEs `build:readme` injects into, relative to the repo root. */
