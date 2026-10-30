@@ -174,9 +174,8 @@ and so on down to 6.`
 
 When behavior changes, or a fact needs adding:
 
-1. Reread the whole comment: the summary, the details, every `@param` and every example. Then reread the package's
-   docs on that behavior, such as markdown-toolkit's
-   [design doc](../packages/markdown-toolkit/docs/design.md).
+1. Reread the whole comment: the summary, the details, every `@param` and every example. Then reread the code
+   behind that behavior.
 2. Find where the new fact belongs: the summary, a details paragraph, a list, a `@param`, or an example. Rewrite that
    place so the fact fits, instead of appending it to the nearest sentence.
 3. Update every example whose result changed.
@@ -206,9 +205,14 @@ above.
 - A rule about placeholder values is repeated in `template`, `blockTemplate`, `templateDocument`,
   `substitutePlaceholders`, `inlineTemplate`, `placeholder` and `blockPlaceholder`. Change it in each.
   Where the rule is the same, use the same words.
-- The README ends with a [function reference](../packages/markdown-toolkit/docs/design.md#function-reference),
-  generated from each function's parameter names and summary. The mechanical rules, such as the 140-character summary
-  and `@category`, are in that section of the design doc.
+- The README ends with a function reference, generated from each function's parameter names and summary.
+  Building the README fails when a function breaks one of these rules:
+  - The summary is the first paragraph, so a blank line ends it. A `@summary` tag replaces it.
+  - A summary is at most 140 characters. Its only inline tag is `{@link name}`. Raw HTML fails, so write a tag as
+    code: `` `<details>` ``.
+  - Every function has a `@category` tag that says what the function is, such as `style` or `line-breaks`. Users see
+    it on hover. A new category also needs a group in `.api-referencerc.json`.
+  - An alias needs no `@category` of its own.
 
 Words to avoid:
 
