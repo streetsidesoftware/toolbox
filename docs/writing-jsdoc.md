@@ -44,8 +44,8 @@ Leave out:
 - a step-by-step of how the body works
 - history, which belongs in the commit message
 
-A name and its comment don't restate their context: the file, or the caller just above. A helper in `htmlBlocks.ts`
-doesn't need "HTML" in its name.
+A name and its comment don't restate their context: what the file and the code around them already make clear. A
+helper in `htmlBlocks.ts` doesn't need "HTML" in its name.
 
 A comment that's hard to write can mean the name is wrong. Fix the name first.
 
