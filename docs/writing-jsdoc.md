@@ -26,30 +26,66 @@ The code in this doc leaves them out, since they can't be seen.
 
 ## Internal functions
 
-The reader is a maintainer reading the code, not a user reading a hover. An internal function gets a comment only when
-its name and types don't say enough. A comment earns its place by covering:
+An internal function's comment is for a maintainer. It lets them call or change the function correctly without reading
+its body.
 
-- what the function does, when the name and types don't say it
-- the non-obvious why, such as "since Markdown isn't read there"
-- anything a caller must know, such as what an `undefined` result means
-- several cases, as a list
+The name, the parameter names, the types and the comment work together. The comment carries only what the others can't:
 
-It doesn't need what an exported function needs: no summary rule, no `@param`, no `@example`, and no user-facing wording
-rules. It can say "node" and "escaped".
+- To call the function: the contract the types don't show, such as what an `undefined` result means.
+- To change it: the reason behind anything that looks arbitrary, so nobody "fixes" something deliberate.
 
-Two examples from `packages/markdown-toolkit/src/htmlBlocks.ts`:
+Leave out:
+
+- what the code already says
+- a step-by-step of how the body works
+- history, which belongs in the commit message
+
+A name and its comment don't restate their context: the file, or the caller just above. A helper in `htmlBlocks.ts`
+doesn't need "HTML" in its name.
+
+A comment that's hard to write can mean the name is wrong. Fix the name first.
+
+Length follows what the maintainer needs. Two facts read better as two short sentences or a list than as one long line,
+so there's no one-line limit.
+
+The rules for exported functions don't apply. There's no summary or `@example`, and internal terms such as "node" are
+fine. A `@param` helps when one argument needs explaining.
+
+To check a comment, cover the body and read only the signature and the comment. Could you call the function correctly?
+Would you leave its deliberate parts alone?
+
+When a function changes:
+
+- After a rename, reread its comment.
+- When it moves to another file, read its name and comment as a reader there would. Add what the old file used to
+  supply.
+
+Examples from `packages/markdown-toolkit/src`:
+
+The contract, including the `undefined` case a caller must handle (`nodes.ts`):
+
+```ts
+/** How a Markdown element renders, or `undefined` for anything else. */
+```
+
+What it does, then why it doesn't escape, so nobody adds escaping (`render.ts`):
 
 ```ts
 /**
- * Inline content in an HTML element, with HTML written before and after it.
- * Plain text goes on one line, HTML-escaped, since Markdown isn't read there. Anything else gets blank lines, so it renders.
+ * Render Markdown nodes as text, without a trailing newline.
+ * Escaping is left to remark, which knows where each node sits.
  */
 ```
 
+A contract with several cases, as a list (`template.ts`):
+
 ```ts
 /**
- * A cell's HTML when it can stay on its tag's line: empty, or one paragraph of text and line breaks.
- * `undefined` means the cell has Markdown and needs blank lines around it.
+ * Look up a placeholder name.
+ * Each top-level key acts as a declaration, and the newest one wins:
+ * - Keys are tried from last to first.
+ * - A key matches when it equals the name, or a leading part of it whose rest resolves inside its value.
+ * - A key that doesn't supply the name doesn't stop the search.
  */
 ```
 
