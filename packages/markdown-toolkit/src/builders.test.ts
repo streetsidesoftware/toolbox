@@ -463,13 +463,47 @@ describe('document', () => {
     assert.equal(document('a\n\nb').toString(), 'a&#xA;&#xA;b\n');
   });
 
-  test('a list item is not document content', () => {
-    // @ts-expect-error a list item goes only in a list
-    assert.throws(() => document(listItem('a')), new TypeError('document content must be inline, got a list item'));
+  testEach`
+    value                                                         | expected
+    ${document(listItem('Dutch'))}                                | ${'- Dutch\n'}
+    ${document(listItem('Dutch'), listItem('French'))}            | ${'- Dutch\n- French\n'}
+    ${document([listItem('Dutch'), listItem('French')])}          | ${'- Dutch\n- French\n'}
+    ${document(listItem('Dutch'), 'French')}                      | ${'- Dutch\n\nFrench\n'}
+    ${document(['Langs:', listItem('en')])}                       | ${'Langs:\n\n- en\n'}
+    ${document(list(['Dutch']), listItem('French'))}              | ${'- Dutch\n- French\n'}
+    ${document(listItem('Dutch'), list(['French']))}              | ${'- Dutch\n- French\n'}
+    ${document(list(['a']), listItem('b'), list(['c']))}          | ${'- a\n- b\n- c\n'}
+    ${document(list(['a']), list(['b']))}                         | ${'- a\n\n* b\n'}
+    ${document(template('- a', {}), listItem('b'))}               | ${'- a\n- b\n'}
+    ${document(template('1. a', {}), listItem('b'))}              | ${'1. a\n1. b\n'}
+    ${document(template('- [ ] a', {}), listItem('b'))}           | ${'- [ ] a\n- b\n'}
+    ${document(listItem('a'), template('Text\n\n- b', {}))}     | ${'- a\n\nText\n\n- b\n'}
+    ${listItem('Langs', listItem('en'), listItem('nl'))}          | ${'- Langs\n  - en\n  - nl'}
+    ${list([['Langs', listItem('en')]])}                          | ${'- Langs\n  - en'}
+    ${toBlock(listItem('Dutch'))}                                 | ${'- Dutch'}
+    ${toBlock(['Langs:', listItem('en')])}                        | ${'Langs:\n\n- en'}
+    ${details('Langs', listItem('Dutch'))}                        | ${'<details>\n<summary>Langs</summary>\n\n- Dutch\n\n</details>'}
+    ${definitionList([['Langs', [listItem('en'), listItem('nl')]]])} | ${'<dl>\n\n<dt>Langs</dt>\n<dd>\n\n- en\n- nl\n\n</dd>\n\n</dl>'}
+  `('list items outside a list form one: $expected', ({ value, expected }: { value: MDElement; expected: string }) => {
+    assert.equal(value.toString(), expected);
+  });
+
+  test('a list item joins a list without changing it', () => {
+    const langs = list(['Dutch']);
+    assert.equal(document(langs, listItem('French')).toString(), '- Dutch\n- French\n');
+    assert.equal(langs.toString(), '- Dutch');
   });
 });
 
 describe('errors', () => {
+  test('a list item where only inline content can go', () => {
+    assert.throws(
+      // @ts-expect-error a list item goes where blocks go
+      () => heading(2, listItem('a')),
+      new TypeError("heading content can't hold a list item; a list item goes in a list"),
+    );
+  });
+
   test('a block where only inline content can go', () => {
     // @ts-expect-error a list is not inline
     assert.throws(() => heading(2, list(['a'])), new TypeError('heading content must be inline, got a list'));

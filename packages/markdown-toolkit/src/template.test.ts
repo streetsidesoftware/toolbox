@@ -167,6 +167,27 @@ describe('template', () => {
     assert.equal(md.toString(), '* one\n* *b*');
   });
 
+  testEach`
+    tpl                         | x                                         | expected
+    ${'A\n\n{@ x @}'}          | ${listItem('Dutch')}                      | ${'A\n\n- Dutch'}
+    ${'A\n\n{@ x @}'}          | ${[listItem('Dutch'), listItem('French')]} | ${'A\n\n- Dutch\n- French'}
+    ${'- a\n\n{@ x @}'}        | ${listItem('b')}                          | ${'- a\n- b'}
+    ${'{@ x @}\n\n- b'}        | ${listItem('a')}                          | ${'- a\n- b'}
+    ${'- a\n\n  {@ x @}'}      | ${listItem('b')}                          | ${'- a\n\n  - b'}
+  `(
+    'a list item value on its own line forms a list: $tpl',
+    ({ tpl, x, expected }: { tpl: string; x: TemplateValue; expected: string }) => {
+      assert.equal(template(tpl, { x }).toString(), expected);
+    },
+  );
+
+  test('a list item value inside a line', () => {
+    assert.throws(
+      () => template('See {@ x @}', { x: listItem('Dutch') }),
+      new TypeError("{@ x @} can't hold a list item; a list item goes in a list"),
+    );
+  });
+
   test('numbers and booleans are text', () => {
     assert.equal(template('{@ n @} {@ b @}', { n: 1, b: true }).toString(), '1 true');
   });

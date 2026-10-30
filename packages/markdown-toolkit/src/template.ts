@@ -13,8 +13,9 @@ import {
   describe,
   groupedNodes,
   inlineNodes,
+  inLists,
   isArray,
-  isBlockContent,
+  isBlockLike,
   isKind,
   isText,
   MarkdownElement,
@@ -479,7 +480,7 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
         const name = placeholderName(placeholder);
         const value = resolveValue(values, name);
         if (value === undefined) return [node];
-        if (lines && isWholeLine(nodes, i) && isBlockContent(value)) {
+        if (lines && isWholeLine(nodes, i) && isBlockLike(value)) {
           return [{ blocks: blockNodes(value, `{@ ${name} @}`) }];
         }
         return valueAsInline(value, name);
@@ -504,14 +505,17 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
           return [node];
         default:
           if ('children' in node) {
-            const children = substituteInNodes(node.children, false, blocks && blockContainers.has(node.type));
-            node.children = children as typeof node.children;
+            const blockChildren = blocks && blockContainers.has(node.type);
+            const children = substituteInNodes(node.children, false, blockChildren);
+            // A list's children are its items already; any other block container may get list items from values.
+            const grouped = blockChildren && node.type !== 'list' ? inLists(children as RootContent[]) : children;
+            node.children = grouped as typeof node.children;
           }
           return [node];
       }
     });
 
-  root.children = substituteInNodes(root.children, false, allowBlocks) as RootContent[];
+  root.children = inLists(substituteInNodes(root.children, false, allowBlocks) as RootContent[]);
 }
 
 /** A paragraph from its children after substitution, split around the blocks among them. */

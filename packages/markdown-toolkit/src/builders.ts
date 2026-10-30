@@ -24,6 +24,7 @@ import type {
   InlineContent,
   ListEntry,
   ListItemContent,
+  MDBlock,
   MDBlockPlaceholder,
   MDBr,
   MDCodeBlock,
@@ -362,6 +363,9 @@ export function toBlock(content: AnyContent): BlockContent {
     (inline) => paragraphOf(inline, 'block content'),
     (block) => block,
   );
+  if (!blocks.every((block): block is MDBlock => !isListItem(block))) {
+    return new MarkdownElement('block', 'fragment', 'a Markdown fragment', groupedNodes(content, 'block content'));
+  }
   return blocks.length === 1 ? blocks[0] : blocks;
 }
 
@@ -396,9 +400,14 @@ export function codeBlock(code: string, lang?: string): MDCodeBlock {
 }
 
 /**
- * Creates one list item from several pieces, for use in {@link list}.
+ * Creates one list item from several pieces.
  *
  * Pieces in a row join into one line. A paragraph, list or other block goes on its own lines below them.
+ *
+ * It goes in a {@link list}, or anywhere a paragraph can go:
+ * - List items in a row form a list.
+ * - A list item right before or after a list becomes one more item of it.
+ * - In a heading, a link or anywhere else inside a line, a list item is an error.
  *
  * @example
  * md.listItem('Dutch', md.list(['Flemish']));

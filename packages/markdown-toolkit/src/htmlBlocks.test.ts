@@ -18,6 +18,7 @@ import {
   lineBreak,
   link,
   list,
+  listItem,
   paragraph,
   parse,
   placeholder,
@@ -318,6 +319,7 @@ describe('htmlTable', () => {
     ${placeholder('name')}                   | ${'{@ name @}'}
     ${br()}                                  | ${'<br/>'}
     ${codeBlock('x', 'ts')}                  | ${'```ts\nx\n```'}
+    ${[listItem('x'), listItem('y')]}        | ${'- x\n- y'}
   `('a cell with Markdown: $expected', ({ content, expected }: { content: AnyContent; expected: string }) => {
     assert.equal(bodyCell(content), `<td>\n\n${expected}\n\n</td>`);
   });
