@@ -97,7 +97,7 @@ export function htmlTable(
     tags += '<tr>\n';
     for (let i = 0; i < columns; ++i) {
       const open = align[i] ? `<${tag} align="${align[i]}">` : `<${tag}>`;
-      const blocks = cellNodes(cells[i] ?? []);
+      const blocks = groupedNodes(cells[i] ?? [], 'table cell');
       const text = plainText(blocks);
       if (text !== undefined) {
         tags += `${open}${text}</${tag}>\n`;
@@ -125,7 +125,7 @@ export function htmlTable(
 
 /**
  * Inline content in an HTML element, with HTML written before and after it.
- * Plain text goes on one line, HTML-escaped, since Markdown isn't read there. Anything else gets blank lines, so it renders.
+ * Text and line breaks go on one line, HTML-escaped, since Markdown isn't read there. Anything else gets blank lines, so it renders.
  */
 function wrapped(before: string, tag: string, content: InlineContent, after: string, where: string): RootContent[] {
   const children = inlineNodes(content, where);
@@ -143,11 +143,6 @@ function htmlEscape(text: string): string {
     .join('\n')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;');
-}
-
-/** The blocks of a table cell, grouped as in a document. */
-function cellNodes(content: AnyContent): RootContent[] {
-  return groupedNodes(content, 'table cell');
 }
 
 /**

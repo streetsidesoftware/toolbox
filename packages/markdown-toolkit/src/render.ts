@@ -5,6 +5,7 @@ import type { Options as StyleOptions } from 'remark-stringify';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
+import { isNewlineBreak } from './newlineBreak.ts';
 import { asPlaceholderNode } from './placeholderNode.ts';
 import type { PlaceholderNode } from './placeholderNode.ts';
 
@@ -35,7 +36,10 @@ const handlers = {
 export function renderNodes(children: RootContent[], style: StyleOptions | undefined): string {
   const root: Root = { type: 'root', children: structuredClone(children) };
   visit(root, (node) => {
-    if (node.type === 'paragraph' || node.type === 'heading' || node.type === 'tableCell') trimLines(node.children);
+    if (node.type === 'paragraph' || node.type === 'heading' || node.type === 'tableCell') {
+      node.children = edgeBreaksOutside(node.children);
+      trimLines(node.children);
+    }
     if (node.type === 'paragraph') keepPlaceholderLines(node.children);
     if (node.type === 'tableCell') visit(node, oneLine);
     if (node.type === 'heading') visit(node, 'break', htmlBreak);
@@ -47,6 +51,25 @@ export function renderNodes(children: RootContent[], style: StyleOptions | undef
     .use(remarkStringify, { ...defaultStyle, ...Object.fromEntries(given), handlers })
     .stringify(root);
   return md.replace(/\n$/, '');
+}
+
+/**
+ * The nodes with each line break at the start or end of bold, italic, struck-through or linked text moved out of it.
+ * Inside, the break would render as `&#xA;` before the closing `**`.
+ */
+function edgeBreaksOutside(children: PhrasingContent[]): PhrasingContent[] {
+  return children.flatMap((node): PhrasingContent[] => {
+    if (node.type !== 'strong' && node.type !== 'emphasis' && node.type !== 'delete' && node.type !== 'link') {
+      return [node];
+    }
+    const inner = edgeBreaksOutside(node.children);
+    let start = 0;
+    let end = inner.length;
+    while (start < end && inner[start].type === 'break') ++start;
+    while (end > start && inner[end - 1].type === 'break') --end;
+    node.children = inner.slice(start, end);
+    return [...inner.slice(0, start), node, ...inner.slice(end)];
+  });
 }
 
 /**
@@ -70,14 +93,15 @@ function trimLines(children: PhrasingContent[]): void {
 
 /**
  * Give a placeholder alone on its line plain line endings, in place, so a later step reading the Markdown can substitute
- * blocks for it. A Markdown hard break would leave a `\` before them.
+ * blocks for it. A Markdown hard break would leave a `\` before them. Only a newline from a string counts as a line
+ * ending here: a `lineBreak()` stays a hard break.
  */
 function keepPlaceholderLines(children: PhrasingContent[]): void {
   children.forEach((node, i) => {
     if (!asPlaceholderNode(node)) return;
     const before = children[i - 1];
     const after = children[i + 1];
-    if ((before && before.type !== 'break') || (after && after.type !== 'break')) return;
+    if ((before && !isNewlineBreak(before)) || (after && !isNewlineBreak(after))) return;
     if (before) children[i - 1] = { type: 'text', value: '\n' };
     if (after) children[i + 1] = { type: 'text', value: '\n' };
   });

@@ -307,6 +307,11 @@ describe('line endings at the edges', () => {
         ${paragraph('a', lineBreak())}                                         | ${'a'}
         ${paragraph(lineBreak(), 'a', lineBreak(), 'b')}                       | ${'a\\\nb'}
         ${document('Fruit:\n', placeholder('fruit'), '\n', 'yummy')}           | ${'Fruit:\n{@ fruit @}\nyummy\n'}
+        ${paragraph('a', lineBreak(), placeholder('x'), lineBreak(), 'b')}     | ${'a\\\n{@ x @}\\\nb'}
+        ${paragraph(strong('x\n'), 'next')}                                   | ${'**x**\\\nnext'}
+        ${paragraph('a\n', emphasis(['\nx\n', strong('y\n')]), 'b')}           | ${'a\\\n\\\n_x\\\n**y**_\\\nb'}
+        ${paragraph('a ', strikethrough('x\n'))}                              | ${'a ~~x~~'}
+        ${paragraph(link('x\n', 'u'), 'b')}                                   | ${'[x](u)\\\nb'}
     `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
     assert.equal(value.toString(), expected);
   });

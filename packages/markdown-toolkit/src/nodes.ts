@@ -1,6 +1,7 @@
 import { listPlaceholders } from '@streetsidesoftware/placeholders';
 import type { ListItem, BlockContent as MdastBlockContent, PhrasingContent, RootContent } from 'mdast';
 
+import { newlineBreak } from './newlineBreak.ts';
 import { placeholderNodeAsWritten } from './placeholderNode.ts';
 import { renderNodes } from './render.ts';
 import type { StyleOptions } from './render.ts';
@@ -100,7 +101,7 @@ function lineBreaks(node: PhrasingContent): PhrasingContent[] {
   const lines = node.value.split(/\r\n?|\n/);
   return lines.flatMap((line, i): PhrasingContent[] => {
     const value = trimSpaces(line, i > 0, i < lines.length - 1);
-    return [...(i ? [{ type: 'break' } as const] : []), ...(value ? [{ type: 'text', value } as const] : [])];
+    return [...(i ? [newlineBreak()] : []), ...(value ? [{ type: 'text', value } as const] : [])];
   });
 }
 
