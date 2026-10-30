@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import type { ApiFunction } from './api-exports.ts';
 import { compare } from './packages.ts';
 
-/** A package's reference config, relative to the package. */
+/** Holds the path of a package's reference config, relative to the package. */
 export const CONFIG_FILE = '.api-referencerc.json';
 
 /** Describes how a package's function reference is laid out. */

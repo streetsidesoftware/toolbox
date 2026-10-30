@@ -5,10 +5,10 @@ import { REPO_ROOT_DIR } from './consts.ts';
 import type { WorkspacePackage } from './packages.ts';
 import { compare } from './packages.ts';
 
-/** The Release Please config, relative to the repo root. */
+/** Holds the path of the Release Please config, relative to the repo root. */
 export const CONFIG_FILE = 'release-please-config.json';
 
-/** The Release Please manifest of released versions, relative to the repo root. */
+/** Holds the path of the Release Please manifest of released versions, relative to the repo root. */
 export const MANIFEST_FILE = '.release-please-manifest.json';
 
 /** Describes a package's entry in the config's `packages`. */
@@ -24,7 +24,7 @@ export interface ReleasePleaseConfig {
 
 export type Manifest = Record<string, string>;
 
-/** Every setting except `packages`. */
+/** Holds every setting except `packages`. */
 export const CONFIG_SETTINGS = {
   'include-v-in-tag': false,
   'tag-separator': '@',

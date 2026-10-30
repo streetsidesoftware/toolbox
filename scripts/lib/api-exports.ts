@@ -6,7 +6,7 @@ import { fromMarkdown } from 'mdast-util-from-markdown';
 import type { BindingPattern, BindingRestElement, Comment, ParamPattern, Statement } from 'oxc-parser';
 import { parseSync } from 'oxc-parser';
 
-/** The longest summary, in characters: the length of one comment line. */
+/** Holds the longest summary, in characters: the length of one comment line. */
 export const SUMMARY_LIMIT = 140;
 
 /** Describes a function a package exports, with what its JSDoc says about it. */

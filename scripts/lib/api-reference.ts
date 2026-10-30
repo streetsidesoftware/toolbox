@@ -11,13 +11,13 @@ import { CONFIG_FILE, groupFunctions, readApiReferenceConfig } from './api-refer
 import { REPO_ROOT_DIR } from './consts.ts';
 import { findPackages } from './packages.ts';
 
-/** Where a package's function reference is written, relative to the package. */
+/** Holds where a package's function reference is written, relative to the package. */
 export const API_REFERENCE_FILE = 'static/api-reference.md';
 
-/** The marker a package README injects its reference with. */
+/** Holds the marker a package README injects its reference with. */
 export const API_REFERENCE_MARKER = `<!--- @@inject: ${API_REFERENCE_FILE} --->`;
 
-/** The source a package's reference is read from, relative to the package. */
+/** Holds the source file a package's reference is read from, relative to the package. */
 export const ENTRY_FILE = 'src/index.ts';
 
 /** Find the packages whose `README.md` injects their reference, by directory relative to the repo root. */

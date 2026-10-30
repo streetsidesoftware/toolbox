@@ -10,7 +10,7 @@ const PUBLISH_CONFIG: PackageJsonPublishConfig = {
   provenance: true,
 };
 
-/** The root `package.json`, whose `engines.node` every package gets. */
+/** Holds the path of the root `package.json`, whose `engines.node` every package gets. */
 export const ROOT_PACKAGE_JSON_FILE: string = Path.join(REPO_ROOT_DIR, 'package.json');
 
 const SORT_PACKAGE_ORDER = ['name', 'version', 'private', 'description', 'repository', 'funding', 'publishConfig'];

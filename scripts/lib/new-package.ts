@@ -11,7 +11,7 @@ export const SCOPE = '@streetsidesoftware';
 export const PRIVATE_SUFFIX = ' -- Private until verified';
 export const DEFAULT_DESCRIPTION = 'TODO: describe the package.';
 
-/** Lowercase words of letters and digits joined by single hyphens, such as `test-each`. */
+/** Matches lowercase words of letters and digits joined by single hyphens, such as `test-each`. */
 const NAME_REGEXP = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 
 export interface NewPackageOptions {
