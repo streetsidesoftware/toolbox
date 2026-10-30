@@ -143,8 +143,8 @@ which function to use instead.
 - One topic per paragraph or list. Every sentence in a paragraph is about that paragraph's subject.
 - The hover joins consecutive lines into one paragraph. Separate ideas need a blank line between them, or a list.
 - Use a list when there are several parallel rules or cases.
-- Say what isn't allowed and, when another function allows it, point to that function: "A cell holds text, links, formatting or code, but
-  not lists or paragraphs. For those, use {@link htmlTable}."
+- Say what isn't allowed and, when another function allows it, point to that function: "A cell holds text, links,
+  formatting or code, but not lists or paragraphs. For those, use {@link htmlTable}."
 - What an argument can hold goes in the details, where the hover gives it room. A short fact about writing one
   argument, such as a range or a naming rule, goes in its `@param`.
 - Drop a sentence that answers nothing the reader would ask.
@@ -196,8 +196,8 @@ above.
 - Write a placeholder in an example as `{@name@}`, with no spaces, so the hover renders it and copied code works. In
   prose, write it with zero-width spaces, as [Every comment](#every-comment) says.
 - A rule about placeholder values is repeated in `template`, `blockTemplate`, `templateDocument`,
-  `substitutePlaceholders`, `inlineTemplate`, `placeholder` and `blockPlaceholder`. Change it in each. Where the rule is the
-  same, use the same words.
+  `substitutePlaceholders`, `inlineTemplate`, `placeholder` and `blockPlaceholder`. Change it in each.
+  Where the rule is the same, use the same words.
 - The README ends with a [function reference](../packages/markdown-toolkit/docs/design.md#function-reference),
   generated from each function's parameter names and summary. The mechanical rules, such as the 140-character summary
   and `@category`, are in that section of the design doc.
