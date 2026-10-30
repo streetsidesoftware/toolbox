@@ -25,7 +25,7 @@ export interface UnindentOptions {
 }
 
 /**
- * Create a function that works like {@link unindent}, and can also drop the first and last lines.
+ * Create a function that works like {@link unindent}, and can also drop a leading newline and a blank last line.
  *
  * @example
  * const trimmedUnindent = createUnindent({ trimFirstNewline: true, trimLastLine: true });
@@ -49,7 +49,7 @@ export function createUnindent(options: UnindentOptions = {}): Unindent {
 }
 
 /**
- * Remove the common leading whitespace from every line.
+ * Remove the common leading whitespace from every line of a string or template literal.
  *
  * A leading newline and a blank last line stay. To drop them, use {@link createUnindent}.
  *
@@ -70,10 +70,9 @@ export const unindent: Unindent = function unindent(
 /**
  * Add padding to the start of each line of a multi-line string.
  *
- * An empty line after the first stays empty.
+ * - Each line after the first gets `padding`. An empty one stays empty.
+ * - The first line gets `firstLinePadding`, empty by default, so the result can follow text already on a line.
  *
- * @param padding - the padding added to every line except the first.
- * @param firstLinePadding - the padding added to the first line.
  * @example
  * indent('a\nb\n\nc', '  ');
  * // 'a\n  b\n\n  c'
