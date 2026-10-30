@@ -170,9 +170,12 @@ describe('template', () => {
   test('a link value inside a link throws', () => {
     assert.throws(
       () => template('[see {@ x @}](u)', { x: strong(link('a', 'v')) }),
-      new TypeError("{@ x @} is inside a link and can't take a link, got strong text"),
+      new TypeError("{@ x @} is inside a link and can't take a link"),
     );
     assert.throws(() => substitutePlaceholders(link(placeholder('x'), 'u'), { x: link('a', 'v') }), TypeError);
+    const reference = '[see {@ x @}][r]\n\n[r]: https://u.v';
+    assert.throws(() => blockTemplate(reference, { x: link('a', 'v') }), TypeError);
+    assert.throws(() => substitutePlaceholders(parse(reference), { x: link('a', 'v') }), TypeError);
     assert.equal(template('[see {@ x @}](u)', { x: strong('a') }).toString(), '[see **a**](u)');
   });
 

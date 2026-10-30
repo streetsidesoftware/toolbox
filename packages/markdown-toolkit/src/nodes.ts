@@ -101,7 +101,12 @@ export function inlineNodes(content: InlineContent, where: string): PhrasingCont
 
 /** Whether any of the nodes is a link, or holds one. */
 export function hasLink(nodes: readonly RootContent[]): boolean {
-  return nodes.some((node) => node.type === 'link' || ('children' in node && hasLink(node.children)));
+  return nodes.some((node) => isLinkNode(node) || ('children' in node && hasLink(node.children)));
+}
+
+/** Whether the node is a link, written inline or as a reference to a link definition. */
+export function isLinkNode(node: RootContent): boolean {
+  return node.type === 'link' || node.type === 'linkReference';
 }
 
 /**

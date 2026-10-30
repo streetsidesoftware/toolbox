@@ -17,6 +17,7 @@ import {
   isArray,
   isBlockContent,
   isKind,
+  isLinkNode,
   isText,
   MarkdownElement,
   renderingOf,
@@ -484,7 +485,7 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
         }
         const inline = valueAsInline(value, name);
         if (insideLink && hasLink(inline)) {
-          throw new TypeError(`{@ ${name} @} is inside a link and can't take a link, got ${describe(value)}`);
+          throw new TypeError(`{@ ${name} @} is inside a link and can't take a link`);
         }
         return inline;
       }
@@ -508,9 +509,9 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
           return [node];
         default:
           if ('children' in node) {
-            if (node.type === 'link') insideLink = true;
+            if (isLinkNode(node)) insideLink = true;
             const children = substituteInNodes(node.children, false, blocks && blockContainers.has(node.type));
-            if (node.type === 'link') insideLink = false;
+            if (isLinkNode(node)) insideLink = false;
             node.children = children as typeof node.children;
           }
           return [node];
