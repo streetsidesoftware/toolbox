@@ -7,6 +7,9 @@ How to write comments and JSDoc in this repo, in every package and in `scripts/`
 - [Exported functions and types](#exported-functions-and-types) covers the JSDoc users read on hover. Its
   [markdown-toolkit](#markdown-toolkit) section adds that package's own rules.
 
+Apply these rules to the comments you write or change. Bring existing comments in line in a PR of their own, one package
+at a time.
+
 ## Every comment
 
 - Keep a comment short. It covers the "what" and, only when it's non-obvious, a bit of the "why".
@@ -25,9 +28,9 @@ space) in a comment, to break up text that JSDoc, TypeScript or editors would mi
 
 - A placeholder such as `{@ name @}`, which TypeScript reads as an inline tag. Put a U+200B between `{` and `@` and
   between `@` and `}`.
-- A glob such as `src/**/*.ts`, whose `*/` ends the comment.
+- A glob such as `src/**/*.ts`, whose `*/` ends the comment. Put a U+200B between `*` and `/`.
 
-The code in this doc leaves them out, since they can't be seen.
+This doc leaves them out, since they can't be seen.
 
 ## Internal functions
 
@@ -96,7 +99,8 @@ A contract with several cases, as a list (`template.ts`):
 ## Exported functions and types
 
 The JSDoc of a function or type a package exports, and of a type's methods, is what a user sees on hover. These rules
-apply to every package. Where they say "function", they mean a type or method too.
+apply to every package. Where they say "function", they mean a type or method too, except where a rule names them
+separately.
 [markdown-toolkit](#markdown-toolkit) adds rules of its own.
 
 ### What gets this treatment
@@ -116,14 +120,15 @@ renders the comment as Markdown.
 - Describe what the function gives the reader. Never describe how the package builds it.
 - Help the reader choose. When another function fits a case better, point to it: "For a string that's already
   Markdown, use {@link parse}." Never tell the reader not to use a function.
-- Write short sentences in plain words. Call the reader "you" where a sentence needs a person.
+- Use plain words. Call the reader "you" where a sentence needs a person.
 - Don't start a sentence with a code span; lead with a word. A `@param` description, like a list item, may start
   with code.
 
 ### The summary
 
-The summary is the first paragraph: one sentence that says what the function does, starting with a verb in the
-imperative, as [Every comment](#every-comment) says.
+The summary is the first paragraph: one sentence that says what the function does. It starts with a verb in the
+imperative for a function or method, and in the third person for a type or property, as
+[Every comment](#every-comment) says.
 
 - Say what it makes or does, from the reader's side: "Create bold text.", "Start a new line without starting a new
   paragraph."
@@ -138,12 +143,11 @@ which function to use instead.
 - One topic per paragraph or list. Every sentence in a paragraph is about that paragraph's subject.
 - The hover joins consecutive lines into one paragraph. Separate ideas need a blank line between them, or a list.
 - Use a list when there are several parallel rules or cases.
-- Say what isn't allowed, and point to the function that allows it: "A cell holds text, links, formatting or code, but
+- Say what isn't allowed and, when another function allows it, point to that function: "A cell holds text, links, formatting or code, but
   not lists or paragraphs. For those, use {@link htmlTable}."
 - What an argument can hold goes in the details, where the hover gives it room. A short fact about writing one
   argument, such as a range or a naming rule, goes in its `@param`.
-- Drop a sentence that answers nothing the reader would ask. PR 92 dropped markdown-toolkit `template`'s "Its paragraph
-  splits around them." for that reason.
+- Drop a sentence that answers nothing the reader would ask.
 
 ### Tags
 
@@ -192,8 +196,8 @@ above.
 - Write a placeholder in an example as `{@name@}`, with no spaces, so the hover renders it and copied code works. In
   prose, write it with zero-width spaces, as [Every comment](#every-comment) says.
 - A rule about placeholder values is repeated in `template`, `blockTemplate`, `templateDocument`,
-  `substitutePlaceholders`, `inlineTemplate`, `placeholder` and `blockPlaceholder`. Change it in each, in the same
-  words.
+  `substitutePlaceholders`, `inlineTemplate`, `placeholder` and `blockPlaceholder`. Change it in each. Where the rule is the
+  same, use the same words.
 - The README ends with a [function reference](../packages/markdown-toolkit/docs/design.md#function-reference),
   generated from each function's parameter names and summary. The mechanical rules, such as the 140-character summary
   and `@category`, are in that section of the design doc.

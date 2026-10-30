@@ -15,6 +15,7 @@ This repo holds small tools and libraries shared across Street Side Software's r
 - **Commits:** [Conventional Commits](https://www.conventionalcommits.org/). Use `feat:` only for a new
   capability, and `fix:` for any other change to a published package's behavior. A change with no behavior
   change is `refactor:`, and everything else is `chore:`, `docs:`, etc.
+- **Comments and JSDoc:** follow [writing comments and JSDoc](docs/writing-jsdoc.md).
 - **PR descriptions:** short, with a `## Summary` that stands on its own.
 
 The rest of this file is the full reference, written mainly for coding agents.
