@@ -23,7 +23,15 @@ import {
   text,
   toBlock,
 } from './index.ts';
-import type { MDFragment, MDInline, MDInlineFragment, MDText, TemplateValue, TemplateValues } from './index.ts';
+import type {
+  AnyContent,
+  MDFragment,
+  MDInline,
+  MDInlineFragment,
+  MDText,
+  TemplateValue,
+  TemplateValues,
+} from './index.ts';
 import { resolveValue } from './template.ts';
 
 interface ResolveRow {
@@ -369,6 +377,20 @@ describe('substitutePlaceholders', () => {
       new TypeError('{@ x @} must be inline, got a list'),
     );
   });
+
+  testEach`
+    value          | label
+    ${''}          | ${"''"}
+    ${[]}          | ${'[]'}
+    ${text('')}    | ${"text('')"}
+  `(
+    'an empty value alone on its line ends the paragraph, as passing it directly does: $label',
+    ({ value }: { value: TemplateValue }) => {
+      assert.equal(substitutePlaceholders(document('a', placeholder('x'), 'b'), { x: value }).toString(), 'a\n\nb\n');
+      assert.equal(document('a', value as AnyContent, 'b').toString(), 'a\n\nb\n');
+      assert.equal(template('a\n{@ x @}\nb', { x: value }).toString(), 'a\n\nb');
+    },
+  );
 
   test('placeholder() follows its position', () => {
     const fruit = list(['apple', 'orange']);

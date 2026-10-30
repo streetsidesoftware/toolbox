@@ -127,6 +127,8 @@ A placeholder isn't inline or block by itself. Where it sits decides what it can
 - On a line of its own, where blocks can go, it also takes blocks.
 - Inside code or HTML, it takes only a string, text, a placeholder or an HTML entity.
 
+A value substituted later gives the same result as the value passed directly. So an empty value on a line of its own leaves an empty line, which ends the paragraph, as `document('a', '', 'b')` does.
+
 Where a placeholder sits is the same whether it's written in Markdown text, in a string, or made with a builder:
 
 - `placeholder(name)` goes anywhere inline content does. In `document('Fruit:', placeholder('fruit'))` it's on a line of its own, so it can take a list. In `p('Fruit: ', placeholder('fruit'))` it's inside the line.

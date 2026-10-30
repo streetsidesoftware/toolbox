@@ -490,7 +490,10 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
         if (lines && isWholeLine(nodes, i) && isBlockLike(value)) {
           return [{ blocks: blockNodes(value, `{@ ${name} @}`) }];
         }
-        return valueAsInline(value, name);
+        const inline = valueAsInline(value, name);
+        // An empty value leaves an empty line, which ends the paragraph, as passing the value directly would.
+        if (lines && isWholeLine(nodes, i) && !inline.length) return [{ blocks: [] }];
+        return inline;
       }
       switch (node.type) {
         case 'paragraph': {
