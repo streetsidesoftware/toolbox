@@ -741,7 +741,7 @@ console.log(section.toString());
 - `inlineTemplate(markdown, values)`: Creates a line of Markdown from a template by substituting values for its `{@ name @}` placeholders.
 - `blockTemplate(markdown, values)`: Creates paragraphs and other blocks from a template by substituting values for its `{@ name @}` placeholders.
 - `templateDocument(markdown, values)`: Creates a whole Markdown file from a template by substituting values for its `{@ name @}` placeholders.
-- `substitutePlaceholders(element, values)`: Substitutes values for the `{@ name @}` placeholders in an element you've already built, such as a parsed file.
+- `substitutePlaceholders(content, values)`: Substitutes values for the `{@ name @}` placeholders in text or an element you've already built, such as a parsed file.
 - `placeholder(name)`: Creates a `{@ name @}` placeholder for a value to be substituted later.
 - `blockPlaceholder(name)`: Creates a `{@ name @}` placeholder on lines of its own, for a value to be substituted later.
 

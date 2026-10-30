@@ -239,6 +239,13 @@ describe('substitutePlaceholders', () => {
     assert.equal(substitutePlaceholders(step, { _b_: 'y' }).toString(), '\\*x\\* and y');
   });
 
+  test('anything but a string or an element throws', () => {
+    assert.throws(
+      () => substitutePlaceholders(42 as never, {}),
+      new TypeError('expected a string or a Markdown element, got a number'),
+    );
+  });
+
   test('a string is text', () => {
     const result: MDText | MDInlineFragment | MDFragment = substitutePlaceholders('Version: {@ v @}', { v: '1.2.3' });
     assert.equal(result.toString(), 'Version: 1.2.3');

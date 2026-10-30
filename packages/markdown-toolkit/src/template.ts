@@ -216,7 +216,7 @@ export type SubstitutionResult<T extends MDElement | string> = T extends string 
 export type SubstitutedValue<T extends MDElement> = SubstitutionResult<T>;
 
 /**
- * Substitutes values for the `{​@ name @​}` placeholders in an element you've already built, such as a parsed file.
+ * Substitutes values for the `{​@ name @​}` placeholders in text or an element you've already built, such as a parsed file.
  *
  * Placeholders without a value stay in place, so you can substitute values in steps. A string is text, as given to
  * {@link text}, so Markdown in it shows exactly as written.
@@ -232,23 +232,23 @@ export type SubstitutedValue<T extends MDElement> = SubstitutionResult<T>;
  * md.substitutePlaceholders(page, { name: 'world' });
  * // Hello world.
  * @example
- * String(md.substitutePlaceholders('Version: {@version@}', { version: '1.2.3' }));
- * // 'Version: 1.2.3'
+ * md.substitutePlaceholders('Version: {@version@}', { version: '1.2.3' });
+ * // Version: 1.2.3
  * @category templates
  */
 export function substitutePlaceholders<T extends MDElement | string>(
-  element: T,
+  content: T,
   values: TemplateValues,
 ): SubstitutionResult<T>;
-export function substitutePlaceholders(element: MDElement | string, values: TemplateValues): MDElement {
-  if (typeof element === 'string') return substitutePlaceholders(text(element), values);
-  const rendering = renderingOf(element);
-  if (!rendering) throw new TypeError(`expected a Markdown element, got ${describe(element)}`);
-  const substituted = isText(element) ? substituteInText(element.text, values) : undefined;
+export function substitutePlaceholders(content: MDElement | string, values: TemplateValues): MDElement {
+  if (typeof content === 'string') return substitutePlaceholders(text(content), values);
+  const rendering = renderingOf(content);
+  if (!rendering) throw new TypeError(`expected a string or a Markdown element, got ${describe(content)}`);
+  const substituted = isText(content) ? substituteInText(content.text, values) : undefined;
   if (substituted !== undefined) return text(substituted);
   const { style } = rendering;
   const nodes = structuredClone(rendering.nodes);
-  switch (element.type) {
+  switch (content.type) {
     case 'text':
     case 'inlineFragment':
       return fragmentOf(
@@ -263,13 +263,13 @@ export function substitutePlaceholders(element: MDElement | string, values: Temp
       return new MarkdownElement('block', 'fragment', 'a Markdown fragment', root.children, style);
     }
     case 'placeholder':
-      if (resolveValue(values, (element as MDPlaceholder).name) === undefined) return element;
+      if (resolveValue(values, (content as MDPlaceholder).name) === undefined) return content;
       return fragmentOf(
         substitutedTree([{ type: 'paragraph', children: nodes as PhrasingContent[] }], values, true),
         style,
       );
     case 'blockPlaceholder':
-      if (resolveValue(values, (element as MDBlockPlaceholder).name) === undefined) return element;
+      if (resolveValue(values, (content as MDBlockPlaceholder).name) === undefined) return content;
       return new MarkdownElement(
         'block',
         'fragment',
@@ -281,10 +281,10 @@ export function substitutePlaceholders(element: MDElement | string, values: Temp
       return new DocumentElement(substitutedTree(nodes, values, true).children, style);
     default:
       return new MarkdownElement(
-        element.kind,
-        element.type,
-        element.description,
-        substitutedTree(nodes, values, element.kind !== 'inline').children,
+        content.kind,
+        content.type,
+        content.description,
+        substitutedTree(nodes, values, content.kind !== 'inline').children,
         style,
       );
   }
