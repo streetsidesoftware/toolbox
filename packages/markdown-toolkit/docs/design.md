@@ -167,18 +167,14 @@ Whether a leading `---` starts frontmatter or is a rule can't be told from the t
 
 ## Substituting placeholders
 
-The function `substitutePlaceholders(element, values)` puts values in place of the placeholders of an element already made, such as one from `parse()`, so content can be built in steps:
+The function `substitutePlaceholders` puts values in place of the placeholders of an element already made, such as one from `parse()`, so content can be built in steps:
 
 - Values go in as in templates, and names resolve the same way.
-- Only the names that `values` has are substituted. The others stay as written, for a later step or injection.
+- Only the names given a value are substituted. The others stay as written, for a later step or injection.
 - Placeholders in a document's frontmatter are substituted too.
 - The element given is left unchanged.
 
-The result is the same type, in the same style, when the element can hold what was substituted. An element that can't becomes a fragment, rather than throwing, so the caller never has to rebuild an element to fit. The return type, `SubstitutionResult<T>`, says which elements can change:
-
-- Text stays text when every value is a string or text. Otherwise it becomes an inline fragment, or a fragment when a whole-line placeholder took blocks.
-- An inline fragment or a paragraph that takes blocks becomes a fragment. That includes `parse('{@ x @}')` given a list, as in `template()`.
-- A placeholder with a value becomes a fragment of it. A block placeholder always becomes a fragment.
+The result is the same kind of element, in the same style, when it can hold what was substituted. One that can't becomes a fragment, rather than throwing, so the caller never has to rebuild an element to fit.
 
 ## Rendering and style
 
