@@ -37,7 +37,7 @@ source code, including inside string and regex literals. The one exception, a ze
 [Writing comments and JSDoc](docs/writing-jsdoc.md).
 
 Read [Writing comments and JSDoc](docs/writing-jsdoc.md) before writing or changing a comment. The JSDoc of an
-exported markdown-toolkit function follows stricter rules there, since users read it on hover.
+exported function follows stricter rules there, since users read it on hover.
 
 Tests use `node:test` and `node:assert/strict`. Don't add vitest, jest, or another test framework.
 

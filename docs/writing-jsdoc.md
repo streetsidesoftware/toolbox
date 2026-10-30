@@ -1,11 +1,11 @@
 # Writing comments and JSDoc
 
-How to write comments and JSDoc in this repo. It has two parts:
+How to write comments and JSDoc in this repo, in every package and in `scripts/`:
 
-- [Every comment](#every-comment) and [Internal functions](#internal-functions) apply to every package and to
-  `scripts/`.
-- [Exported markdown-toolkit functions](#exported-markdown-toolkit-functions) applies only to that package's exports,
-  which users read on hover and in its README.
+- [Every comment](#every-comment) covers all comments.
+- [Internal functions](#internal-functions) covers functions a package doesn't export.
+- [Exported functions](#exported-functions) covers the JSDoc users read on hover. Its
+  [markdown-toolkit](#markdown-toolkit) section adds that package's own rules.
 
 ## Every comment
 
@@ -89,25 +89,23 @@ A contract with several cases, as a list (`template.ts`):
  */
 ```
 
-## Exported markdown-toolkit functions
+## Exported functions
 
-The JSDoc of a function markdown-toolkit exports is what a user sees on hover, and its summary goes into the README's
-[function reference](../packages/markdown-toolkit/docs/design.md#function-reference). The mechanical rules, such as the
-140-character summary and `@category`, are in that section of the design doc.
+The JSDoc of a function a package exports is what a user sees on hover. These rules apply to every package.
+[markdown-toolkit](#markdown-toolkit) adds rules of its own.
 
 ### What gets this treatment
 
-- Every function `src/index.ts` exports gets a full comment: summary, details where needed, and an `@example`.
-- A `const` alias gets one line: `/** The same as {@link p}. */`. A renamed re-export, such as `parseFragment`, gets
-  none: the hover shows the original's comment.
+- Every function a package exports gets a full comment: summary, details where needed, and an `@example`.
+- A `const` alias gets one line: `/** The same as {@link p}. */`. A renamed re-export, such as markdown-toolkit's
+  `parseFragment`, gets none: the hover shows the original's comment.
 
 ### Who reads it
 
-The reader is the person importing the library, deciding which function to use and how. They read the hover, which
-renders the comment as Markdown, and the README reference, which shows its parameter names and its summary.
+The reader is the person importing the package, deciding which function to use and how. They read the hover, which
+renders the comment as Markdown.
 
-- Describe what the reader sees on the rendered page. Name the Markdown source only when the function exists to
-  control it, as `br`, `comment`, `frontmatter` and `detectStyle` do. Never describe how the library builds it.
+- Describe what the function gives the reader. Never describe how the package builds it.
 - Help the reader choose. When another function fits a case better, point to it: "For a string that's already
   Markdown, use {@link parse}." Never tell the reader not to use a function.
 - Write short sentences in plain words. Call the reader "you" where a sentence needs a person.
@@ -124,37 +122,72 @@ does.
 
 ### The details
 
-The paragraphs after the summary answer what a user would ask next: what the function accepts, what shows on the page,
-and which function to use instead.
+The paragraphs after the summary answer what a user would ask next: what the function accepts, what it gives back, and
+which function to use instead.
 
 - One topic per paragraph or list. Every sentence in a paragraph is about that paragraph's subject.
 - The hover joins consecutive lines into one paragraph. Separate ideas need a blank line between them, or a list.
-- Use a list when there are several parallel rules or cases, such as which values a placeholder takes.
-- Say what isn't allowed in terms of the page, and point to the function that allows it: "A cell holds text, links,
-  formatting or code, but not lists or paragraphs. For those, use {@link htmlTable}."
-- What an argument can hold, and how it shows on the page, goes in the details, where the hover gives it room. A short
-  fact about writing one argument, such as a range or a naming rule, goes in its `@param`.
-- Drop a sentence that answers nothing the reader would ask. PR 92 dropped `template`'s "Its paragraph splits around
-  them." for that reason.
+- Use a list when there are several parallel rules or cases.
+- Say what isn't allowed, and point to the function that allows it: "A cell holds text, links, formatting or code, but
+  not lists or paragraphs. For those, use {@link htmlTable}."
+- What an argument can hold goes in the details, where the hover gives it room. A short fact about writing one
+  argument, such as a range or a naming rule, goes in its `@param`.
+- Drop a sentence that answers nothing the reader would ask. PR 92 dropped markdown-toolkit `template`'s "Its paragraph
+  splits around them." for that reason.
 
 ### Tags
 
 - `@param` only where the name and type don't say enough: `@param depth - 1 for the page title, 2 for its sections,
 and so on down to 6.`
-- No `@throws`. Say what isn't allowed in the details, as `table` does.
+- No `@throws`. It goes stale fast and misleads. Say what isn't allowed in the details instead.
 - Name another exported function with `{@link name}`, so the hover links to it.
 - One `@example` per function, two only when a second shows something the first can't. With two, give each a
   `<caption>`, the only text the hover shows outside the code.
-- An example shows the call, then its output as `//` comments. Show the Markdown when it tells the reader what they'll
-  see, such as `// **important**`. When it doesn't, describe the page:
-  `// The page shows "Show more"; clicking it reveals "Hidden text."`.
+- An example shows the call, then its result as `//` comments.
 - An example uses only the function it documents, and other functions only when it can't do without them.
-- A line starting with three backticks would end the hover's code block, so a fence in the output goes in `//` comments
+- A line starting with three backticks would end the hover's code block, so a fence in the result goes in `//` comments
   too.
+
+### Changing a comment
+
+When behavior changes, or a fact needs adding:
+
+1. Reread the whole comment: the summary, the details, every `@param` and every example. Then reread the package's
+   docs on that behavior, such as markdown-toolkit's
+   [design doc](../packages/markdown-toolkit/docs/design.md).
+2. Find where the new fact belongs: the summary, a details paragraph, a list, a `@param`, or an example. Rewrite that
+   place so the fact fits, instead of appending it to the nearest sentence.
+3. Update every example whose result changed.
+4. After renaming a parameter, search the package's README, the other functions' JSDoc and the package's docs for the
+   old name.
+
+### Final check
+
+Read each changed comment as the hover a user sees, top to bottom.
+
+- Does every sentence answer something that user would ask?
+- Is each sentence in the right place: summary, details, `@param` or example?
+- Does anything describe the package's internals where the result is what matters?
+
+### markdown-toolkit
+
+A markdown-toolkit call returns Markdown, but the reader cares about the rendered page. These rules add to the ones
+above.
+
+- Describe what the reader sees on the rendered page. Name the Markdown source only when the function exists to
+  control it, as `br`, `comment`, `frontmatter` and `detectStyle` do.
+- In an example, show the Markdown when it tells the reader what they'll see, such as `// **important**`. When it
+  doesn't, describe the page: `// The page shows "Show more"; clicking it reveals "Hidden text."`.
 - Write a placeholder in an example as `{@name@}`, with no spaces, so the hover renders it and copied code works. In
   prose, write it with zero-width spaces, as [Every comment](#every-comment) says.
+- A rule about placeholder values is repeated in `template`, `blockTemplate`, `templateDocument`,
+  `substitutePlaceholders`, `inlineTemplate`, `placeholder` and `blockPlaceholder`. Change it in each, in the same
+  words.
+- The README ends with a [function reference](../packages/markdown-toolkit/docs/design.md#function-reference),
+  generated from each function's parameter names and summary. The mechanical rules, such as the 140-character summary
+  and `@category`, are in that section of the design doc.
 
-### Words
+Words to avoid:
 
 | Avoid                                    | Why                                                         | Write instead                                                 |
 | ---------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------- |
@@ -163,34 +196,11 @@ and so on down to 6.`
 | as written, written elsewhere            | Vague: the reader can't tell what they'll see               | Say what the page shows                                       |
 | Values go in as in {@link template}.     | The reader leaves the hover to guess which rules carry over | Repeat the rules that apply                                   |
 | fill (a placeholder)                     | Not the library's word                                      | substitute                                                    |
-| Use it for…, don't use…                  | Advice in place of a description                            | Say what it does, and point to the better function            |
-
-### Changing a comment
-
-When behavior changes, or a fact needs adding:
-
-1. Reread the whole comment: the summary, the details, every `@param` and every example. Then reread the matching
-   section of the [design doc](../packages/markdown-toolkit/docs/design.md).
-2. Find where the new fact belongs: the summary, a details paragraph, a list, a `@param`, or an example. Rewrite that
-   place so the fact fits, instead of appending it to the nearest sentence.
-3. A rule about placeholder values is repeated in `template`, `blockTemplate`, `templateDocument`,
-   `substitutePlaceholders`, `inlineTemplate`, `placeholder` and `blockPlaceholder`. Change it in each, in the same
-   words.
-4. Update every example whose output changed.
-5. After renaming a parameter, search the README guide, the other functions' JSDoc and the design doc for the old name.
-   The README's function reference comes from the code.
-
-### Final check
-
-Read each changed comment as the hover a user sees, top to bottom.
-
-- Does every sentence answer something that user would ask?
-- Is each sentence in the right place: summary, details, `@param` or example?
-- Does anything describe the Markdown source or the library's internals where the page is what matters?
 
 ### Examples
 
-Before and after, from the rewrite in PR [#92](https://github.com/streetsidesoftware/toolbox/pull/92).
+Before and after, from markdown-toolkit's rewrite in PR [#92](https://github.com/streetsidesoftware/toolbox/pull/92).
+They show the general rules and the markdown-toolkit ones.
 
 #### Text
 
