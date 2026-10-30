@@ -7,6 +7,16 @@
 - `blockText(value)`: Create paragraphs from plain text, starting a new one at each blank line.
 - `parse(markdown)` (also `parseFragment`): Parse Markdown text so it can be added to a page with its formatting.
 - `lineBreak()`: Start a new line without starting a new paragraph.
+- `htmlEntity(value)`: Create a character written as an HTML reference, such as `&nbsp;` for a no-break space.
+- `nbsp`: Holds a no-break space, written `&nbsp;`. The words on either side of it stay on one line.
+- `ensp`: Holds a space as wide as the letter n, written `&ensp;`.
+- `emsp`: Holds a space as wide as the letter m, written `&emsp;`.
+- `thinsp`: Holds a thin space, written `&thinsp;`.
+- `shy`: Holds a soft hyphen, written `&shy;`. A long word may break there, and shows a hyphen only when it does.
+- `mdash`: Holds an em dash, written `&mdash;`.
+- `ndash`: Holds an en dash, written `&ndash;`.
+- `hellip`: Holds an ellipsis, written `&hellip;`.
+- `copy`: Holds a copyright sign, written `&copy;`.
 - `br()`: Start a new line with an HTML `<br/>` tag.
 - `comment(text)`: Create an HTML comment, `<!-- text -->`, which the page doesn't show.
 

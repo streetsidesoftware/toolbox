@@ -22,6 +22,7 @@ export type MDType =
   | 'inlineCode'
   | 'lineBreak'
   | 'br'
+  | 'htmlEntity'
   | 'comment'
   | 'heading'
   | 'paragraph'
@@ -133,6 +134,14 @@ export interface MDLineBreak extends MDElement {
 export interface MDBr extends MDElement {
   readonly kind: 'inline';
   readonly type: 'br';
+}
+
+/** Describes a character written as an HTML reference, such as `&nbsp;`, made by {@link htmlEntity}. */
+export interface MDHtmlEntity extends MDElement {
+  readonly kind: 'inline';
+  readonly type: 'htmlEntity';
+  /** Holds the character the reference stands for. */
+  readonly character: string;
 }
 
 /** Describes an HTML comment, which the page doesn't show, made by {@link comment}. */
@@ -269,6 +278,7 @@ export type MDInline =
   | MDInlineCode
   | MDLineBreak
   | MDBr
+  | MDHtmlEntity
   | MDComment
   | MDInlineFragment;
 

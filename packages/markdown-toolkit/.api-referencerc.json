@@ -3,7 +3,23 @@
     {
       "heading": "Text",
       "categories": ["text", "line-breaks", "comments"],
-      "functions": ["p", "text", "blockText", "parse", "lineBreak"]
+      "functions": [
+        "p",
+        "text",
+        "blockText",
+        "parse",
+        "lineBreak",
+        "htmlEntity",
+        "nbsp",
+        "ensp",
+        "emsp",
+        "thinsp",
+        "shy",
+        "mdash",
+        "ndash",
+        "hellip",
+        "copy"
+      ]
     },
     {
       "heading": "Links and formatting",

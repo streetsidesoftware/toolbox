@@ -28,6 +28,7 @@ export {
 } from './builders.ts';
 export { frontmatter } from './frontmatter.ts';
 export { definitionList, details, dl, htmlTable } from './htmlBlocks.ts';
+export { copy, emsp, ensp, hellip, htmlEntity, mdash, nbsp, ndash, shy, thinsp } from './htmlEntity.ts';
 export { detectStyle } from './style.ts';
 export { table } from './table.ts';
 export type { TemplateValue, TemplateValues } from './template.ts';
@@ -74,6 +75,7 @@ export type {
   MDFrontmatter,
   MDHeading,
   MDHorizontalRule,
+  MDHtmlEntity,
   MDHtmlTable,
   MDInline,
   MDInlineCode,
