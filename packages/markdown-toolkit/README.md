@@ -716,6 +716,16 @@ console.log(section.toString());
 - `blockText(value)`: Creates paragraphs from plain text, starting a new one at each blank line.
 - `parse(markdown)` (also `parseFragment`): Parses Markdown text so it can be added to a page with its formatting.
 - `lineBreak()`: Starts a new line without starting a new paragraph.
+- `htmlEntity(value)`: Creates a character written as an HTML reference, such as `&nbsp;` for a no-break space.
+- `nbsp`: A no-break space, written `&nbsp;`. The words on either side of it stay on one line.
+- `ensp`: A space as wide as the letter n, written `&ensp;`.
+- `emsp`: A space as wide as the letter m, written `&emsp;`.
+- `thinsp`: A thin space, written `&thinsp;`.
+- `shy`: A soft hyphen, written `&shy;`. A long word may break there, and shows a hyphen only when it does.
+- `mdash`: An em dash, written `&mdash;`.
+- `ndash`: An en dash, written `&ndash;`.
+- `hellip`: An ellipsis, written `&hellip;`.
+- `copy`: A copyright sign, written `&copy;`.
 - `br()`: Starts a new line with an HTML `<br/>` tag.
 - `comment(text)`: Creates an HTML comment, `<!-- text -->`, which the page doesn't show.
 

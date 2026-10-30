@@ -131,7 +131,9 @@ describe('template', () => {
     `('a link inside $inside throws: $tpl', ({ tpl, inside }: { tpl: string; inside: string }) => {
     assert.throws(
       () => template(tpl, { x: link('a', 'b') }),
-      new TypeError(`{@ x @} is inside ${inside} and takes only a string, text, or a placeholder, got a link`),
+      new TypeError(
+        `{@ x @} is inside ${inside} and takes only a string, text, a placeholder or an HTML entity, got a link`,
+      ),
     );
   });
 
@@ -409,7 +411,9 @@ describe('substitutePlaceholders', () => {
     assert.equal(substitutePlaceholders(md, { pkg: '*a*' }).toString(), '```\nnpm i *a*\n```\n\n`*a*`\n');
     assert.throws(
       () => substitutePlaceholders(codeBlock('{@ x @}'), { x: link('a', 'u') }),
-      new TypeError('{@ x @} is inside code and takes only a string, text, or a placeholder, got a link'),
+      new TypeError(
+        '{@ x @} is inside code and takes only a string, text, a placeholder or an HTML entity, got a link',
+      ),
     );
   });
 

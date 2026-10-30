@@ -9,12 +9,15 @@ import { parseSync } from 'oxc-parser';
 /** Holds the longest summary, in characters: the length of one comment line. */
 export const SUMMARY_LIMIT = 140;
 
-/** Describes a function a package exports, with what its JSDoc says about it. */
+/** Describes a function or constant a package exports, with what its JSDoc says about it. */
 export interface ApiFunction {
   /** Holds the name it's declared with, or the first name it's exported as when that one isn't exported. */
   name: string;
-  /** Holds the parameter names: `lang?` when optional, `...content` for a rest parameter. */
-  params: string[];
+  /**
+   * Holds the parameter names: `lang?` when optional, `...content` for a rest parameter.
+   * A constant has none, not even an empty list.
+   */
+  params: string[] | undefined;
   /** Holds its `@summary` tag, or else the first paragraph of its JSDoc, as one line of Markdown. */
   summary: string;
   /** Holds its `@category` tag. */
@@ -23,10 +26,11 @@ export interface ApiFunction {
   aliases: string[];
 }
 
+/** Describes a function, or a `const` whose value isn't another declaration's name, such as a constant or an arrow function. */
 interface FunctionDeclaration {
   file: string;
   name: string;
-  params: string[];
+  params: string[] | undefined;
   /** Holds the JSDoc of its first declaration, an overload's when it has them. */
   jsdoc: string | undefined;
 }
@@ -49,9 +53,10 @@ interface ValueExport {
 }
 
 /**
- * Read the functions a module exports, in export order, from its source and that of the modules it re-exports from.
- * Type exports are skipped. Any other value export must be a function, or a `const` that names one.
- * @throws if an export isn't a function, or a function's JSDoc has no `@category` or no usable summary.
+ * Read the functions and constants a module exports, in export order, from its source and that of the modules it
+ * re-exports from. Type exports are skipped. Any other value export must be a function or a `const`. A `const` that
+ * names a function is an alias of it. It fails when an export is something else, or its JSDoc has no `@category` or no
+ * usable summary.
  */
 export async function readApiFunctions(entryFile: string): Promise<ApiFunction[]> {
   const modules = new Map<string, Module>();
@@ -112,7 +117,7 @@ function parseModule(file: string, source: string): Module {
   return module;
 }
 
-/** Record a function or a function alias. Return the value names it declares. */
+/** Record a function, a constant or an alias. Return the value names it declares. */
 function addDeclaration(module: Module, statement: Statement, jsdoc: string | undefined): string[] {
   if (statement.type === 'FunctionDeclaration' || statement.type === 'TSDeclareFunction') {
     const name = statement.id?.name;
@@ -126,10 +131,16 @@ function addDeclaration(module: Module, statement: Statement, jsdoc: string | un
   if (statement.type === 'VariableDeclaration') {
     return statement.declarations.flatMap((declarator) => {
       if (declarator.id.type !== 'Identifier') return boundNames(declarator.id);
-      if (statement.kind === 'const' && declarator.init?.type === 'Identifier') {
-        module.aliases.set(declarator.id.name, declarator.init.name);
+      const name = declarator.id.name;
+      const init = declarator.init;
+      if (statement.kind === 'const' && init?.type === 'Identifier') {
+        module.aliases.set(name, init.name);
+      } else if (statement.kind === 'const') {
+        const isFunction = init?.type === 'ArrowFunctionExpression' || init?.type === 'FunctionExpression';
+        const params = isFunction ? paramNames(init.params) : undefined;
+        module.functions.set(name, { file: module.file, name, params, jsdoc });
       }
-      return [declarator.id.name];
+      return [name];
     });
   }
   if (statement.type === 'ClassDeclaration') return statement.id ? [statement.id.name] : [];
@@ -138,7 +149,7 @@ function addDeclaration(module: Module, statement: Statement, jsdoc: string | un
 
 function resolveFunction(module: Module, name: string): FunctionDeclaration {
   const fn = module.functions.get(name) ?? module.functions.get(module.aliases.get(name) ?? '');
-  if (!fn) throw new Error(`${name} in ${shown(module.file)} isn't a function, or a const that names one`);
+  if (!fn) throw new Error(`${name} in ${shown(module.file)} isn't a function or a const`);
   return fn;
 }
 
