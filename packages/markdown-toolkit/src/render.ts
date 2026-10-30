@@ -32,8 +32,7 @@ const handlers = {
  * Escaping is left to remark, which knows where each node sits.
  */
 export function renderNodes(children: RootContent[], style: StyleOptions | undefined): string {
-  const root: Root = { type: 'root', children: structuredClone(children) };
-  dropEmptyFormatting(root);
+  const root: Root = { type: 'root', children: withoutEmptyFormatting(structuredClone(children)) };
   visit(root, (node) => {
     if (node.type === 'paragraph' || node.type === 'heading' || node.type === 'tableCell') trimLines(node.children);
     if (node.type === 'tableCell') visit(node, oneLine);
@@ -50,12 +49,13 @@ export function renderNodes(children: RootContent[], style: StyleOptions | undef
 /** Formatting that would show its markers, or a link that couldn't be seen, with nothing in it. */
 const droppedWhenEmpty = new Set(['strong', 'emphasis', 'delete', 'link']);
 
-/** Remove empty formatting and links, in place, including those that hold only empty ones. */
-function dropEmptyFormatting(parent: Parent): void {
-  parent.children = parent.children.filter((child) => {
-    if (!('children' in child)) return true;
-    dropEmptyFormatting(child);
-    return child.children.length > 0 || !droppedWhenEmpty.has(child.type);
+/** The nodes without empty formatting and links, including those that hold only empty ones. */
+export function withoutEmptyFormatting<T extends RootContent>(nodes: readonly T[]): T[] {
+  return nodes.flatMap((node): T[] => {
+    if (!('children' in node)) return [node];
+    const children = withoutEmptyFormatting<RootContent>(node.children);
+    if (!children.length && droppedWhenEmpty.has(node.type)) return [];
+    return [{ ...node, children } as T];
   });
 }
 

@@ -20,6 +20,7 @@ import {
   list,
   parse,
   placeholder,
+  strong,
   substitutePlaceholders,
   text,
 } from './index.ts';
@@ -110,6 +111,10 @@ describe('details', () => {
         </details>
       ` + '\n',
     );
+  });
+
+  test('a summary of only empty formatting is empty, on one line', () => {
+    assert.equal(details(strong(''), 'x').toString(), '<details>\n<summary></summary>\n\nx\n\n</details>');
   });
 
   test('a block summary throws', () => {
@@ -343,6 +348,13 @@ describe('htmlTable', () => {
 
   test('an empty header leaves out <thead>', () => {
     assert.equal(htmlTable([], [['a']]).toString(), '<table>\n<tbody>\n<tr>\n<td>a</td>\n</tr>\n</tbody>\n</table>');
+  });
+
+  test('a cell of only empty formatting is empty, on one line', () => {
+    assert.equal(
+      htmlTable([], [[strong('')]]).toString(),
+      '<table>\n<tbody>\n<tr>\n<td></td>\n</tr>\n</tbody>\n</table>',
+    );
   });
 
   test('no rows', () => {
