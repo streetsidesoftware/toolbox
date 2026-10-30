@@ -1,12 +1,14 @@
+/** Describes the delimiters that mark a placeholder. */
 export interface PlaceholderOptions {
-  /** The opening delimiter. Default: `{@`. */
+  /** Holds the opening delimiter, which can't be empty. Default: `{@`. */
   open?: string | undefined;
-  /** The closing delimiter. Default: `@}`. */
+  /** Holds the closing delimiter, which can't be empty. Default: `@}`. */
   close?: string | undefined;
 }
 
+/** Describes the delimiters, and whether {@link replacePlaceholders} indents a multi-line value. */
 export interface ReplacePlaceholdersOptions extends PlaceholderOptions {
-  /** Give each later line of a multi-line value the leading whitespace of its placeholder's line. Default: `true`. */
+  /** Gives each later line of a multi-line value the leading whitespace of its placeholder's line. Default: `true`. */
   autoIndent?: boolean | undefined;
 }
 
@@ -14,32 +16,48 @@ export interface ReplacePlaceholdersOptions extends PlaceholderOptions {
 export type PlaceholderResolver = (name: string) => string | undefined;
 
 /**
- * A resolver, or an object whose properties a dotted name walks: `a.b` reads `values.a.b`.
- * A string or number value is used; anything else leaves the placeholder as written.
+ * Supplies the values for placeholders: a {@link PlaceholderResolver}, or an object.
+ *
+ * - A dotted name walks the object's own properties: `a.b` reads `values.a.b`.
+ * - A string or number value is used. Anything else leaves the placeholder as written.
  */
 export type PlaceholderValues = PlaceholderResolver | object;
 
-/** A placeholder found in a string. `start` and `end` are offsets into it; `end` is exclusive. */
+/** Describes a placeholder found in a string. */
 export interface Placeholder {
+  /** Holds the name, without the delimiters or the whitespace inside them. */
   name: string;
+  /** Holds the offset of the opening delimiter. */
   start: number;
+  /** Holds the offset just past the closing delimiter. */
   end: number;
 }
 
+/** Holds the opening delimiter that {@link PlaceholderOptions} uses by default. */
 export const DEFAULT_OPEN = '{@';
+/** Holds the closing delimiter that {@link PlaceholderOptions} uses by default. */
 export const DEFAULT_CLOSE = '@}';
 
-// Non-greedy, so a name ends at the first close delimiter even when the delimiter is made of name characters.
+// Matches one segment of a name. It's non-greedy, so a name ends at the first close delimiter even when the delimiter
+// is made of name characters.
 const segment = '[A-Za-z0-9_][A-Za-z0-9_-]*?';
 const namePattern = `${segment}(?:\\.${segment})*?`;
 const validName = new RegExp(`^${namePattern}$`);
 
-// The regex for the last delimiter pair used, so repeated calls with the same pair don't recompile it.
+// Holds the regex for the last delimiter pair used, so repeated calls with the same pair don't recompile it.
 let cached: { open: string; close: string; regExp: RegExp } | undefined;
 
 /**
- * A dotted placeholder name: one or more segments of `[A-Za-z0-9_][A-Za-z0-9_-]*` joined by `.`.
- * A hyphen may appear inside a segment but not at its start.
+ * Check whether a name is a valid placeholder name.
+ *
+ * A valid name is one or more segments joined by `.`.
+ * A segment holds ASCII letters, digits, `_` and `-`, but doesn't start with `-`.
+ *
+ * @example
+ * isValidPlaceholderName('engines.cspell');
+ * // true
+ * isValidPlaceholderName('-name');
+ * // false
  */
 export function isValidPlaceholderName(name: string): boolean {
   return validName.test(name);
@@ -47,13 +65,20 @@ export function isValidPlaceholderName(name: string): boolean {
 
 /**
  * Replace the placeholders in `text`, such as `{​@ name @​}`, with their values.
- * Whitespace just inside the delimiters is optional. A placeholder without a value is left as written; use
- * {@link listPlaceholders} or {@link hasPlaceholders} to find what is left.
- * Each later line of a multi-line value gets the leading whitespace of the placeholder's line, except an empty line.
- * @param text - the text to fill
- * @param values - a resolver, or an object a dotted name walks
- * @param options - the delimiters, and whether to indent multi-line values
- * @returns the filled text
+ *
+ * - Only a name that {@link isValidPlaceholderName} accepts makes a placeholder.
+ * - Whitespace just inside the delimiters is optional.
+ * - `values` is an object or a {@link PlaceholderResolver}. In an object, a dotted name such as `user.name` reads a
+ *   nested own property.
+ * - A string or number value replaces its placeholder.
+ * - A placeholder without a value stays as written. To find what's left, use {@link listPlaceholders} or
+ *   {@link hasPlaceholders}.
+ * - Each later line of a multi-line value gets the leading whitespace of the placeholder's line, except an empty
+ *   line.
+ *
+ * @example
+ * replacePlaceholders('Hello {@user.name@}!', { user: { name: 'Ada' } });
+ * // 'Hello Ada!'
  */
 export function replacePlaceholders(
   text: string,
@@ -70,10 +95,13 @@ export function replacePlaceholders(
 }
 
 /**
- * Find the placeholders in `text`, in order. They are found as they are iterated, so a caller can stop early.
- * @param text - the text to search
- * @param options - the delimiters
- * @returns each placeholder's name and offsets
+ * Find the placeholders in `text`, in order.
+ *
+ * Each placeholder is found as it's iterated, so a caller can stop early.
+ *
+ * @example
+ * [...listPlaceholders('{@a@} and {@b.c@}')];
+ * // [{ name: 'a', start: 0, end: 5 }, { name: 'b.c', start: 10, end: 17 }]
  */
 export function listPlaceholders(text: string, options?: PlaceholderOptions): Iterable<Placeholder> {
   // matchAll copies the shared regex now, so a later call can't move where this search starts.
@@ -81,9 +109,11 @@ export function listPlaceholders(text: string, options?: PlaceholderOptions): It
 }
 
 /**
- * Whether `text` has any placeholders.
- * @param text - the text to search
- * @param options - the delimiters
+ * Check whether `text` has any placeholders.
+ *
+ * @example
+ * hasPlaceholders('Hello {@name@}');
+ * // true
  */
 export function hasPlaceholders(text: string, options?: PlaceholderOptions): boolean {
   return placeholderRegExp(options).test(text);
@@ -122,7 +152,7 @@ function objectResolver(values: object): PlaceholderResolver {
   };
 }
 
-/** The leading whitespace of the line `offset` is on, up to `offset`. */
+/** Return the leading whitespace of the line `offset` is on, up to `offset`. */
 function lineIndent(text: string, offset: number): string {
   const prefix = text.slice(text.lastIndexOf('\n', offset - 1) + 1, offset);
   return prefix.slice(0, prefix.length - prefix.trimStart().length);
