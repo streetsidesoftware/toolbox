@@ -14,11 +14,17 @@ export type EachSuite = <R = Row>(title: string, fn: (row: R, s: SuiteContext) =
 /**
  * Register one `test` per row of a table written as a tagged template, like vitest's `test.each`.
  *
- * - The first line names the columns, separated by `|`.
+ * - The first line names the columns, separated by `|`. Each column name appears once.
  * - Each line after it is one row, with one `${value}` per column.
- * - A `$column` in the title is replaced by that row's value.
  *
- * The test function gets the row and the test context. For one `describe` suite per row, use {@link describeEach}.
+ * In the title:
+ * - A `$column` is replaced by that row's value, as `util.inspect` shows it, so a string keeps its quotes.
+ * - A path such as `$user.name` reads a property of the value.
+ * - A `$name` that isn't a column stays as written.
+ *
+ * The test function gets the row and the test context.
+ *
+ * For one `describe` suite per row, use {@link describeEach}.
  *
  * @example
  * testEach`
@@ -43,11 +49,17 @@ export function testEach(strings: TemplateStringsArray, ...values: unknown[]): E
 /**
  * Register one `describe` suite per row of a table written as a tagged template, like vitest's `describe.each`.
  *
- * - The first line names the columns, separated by `|`.
+ * - The first line names the columns, separated by `|`. Each column name appears once.
  * - Each line after it is one row, with one `${value}` per column.
- * - A `$column` in the title is replaced by that row's value.
  *
- * The suite function gets the row and the suite context. For one `test` per row, use {@link testEach}.
+ * In the title:
+ * - A `$column` is replaced by that row's value, as `util.inspect` shows it, so a string keeps its quotes.
+ * - A path such as `$user.name` reads a property of the value.
+ * - A `$name` that isn't a column stays as written.
+ *
+ * The suite function gets the row and the suite context.
+ *
+ * For one `test` per row, use {@link testEach}.
  *
  * @example
  * describeEach`
@@ -59,7 +71,10 @@ export function testEach(strings: TemplateStringsArray, ...values: unknown[]): E
  *         assert.equal(JSON.parse(JSON.stringify(input)), input);
  *     });
  * });
- * // Runs the suites 'empty' and 'word', each with a 'round-trips' test.
+ * // ▶ 'empty'
+ * //   ✔ round-trips
+ * // ▶ 'word'
+ * //   ✔ round-trips
  */
 export function describeEach(strings: TemplateStringsArray, ...values: unknown[]): EachSuite {
   const rows = parseTable('describeEach', strings, values);
