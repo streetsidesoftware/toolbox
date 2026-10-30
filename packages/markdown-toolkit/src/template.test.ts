@@ -182,6 +182,10 @@ describe('template', () => {
     },
   );
 
+  test('an empty value in inline code shows as a space', () => {
+    assert.equal(template('a `{@ x @}` b', { x: '' }).toString(), 'a ` ` b');
+  });
+
   test('an empty value keeps a link with a URL', () => {
     assert.equal(template('a [{@ x @}](https://u) b', { x: '' }).toString(), 'a [](https://u) b');
   });

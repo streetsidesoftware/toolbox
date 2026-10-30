@@ -246,6 +246,8 @@ export function strikethrough(content: InlineContent): MDStrikethrough {
 /**
  * Creates code within a line of text, shown exactly as given.
  *
+ * Empty code shows as one space of code, so the reader still sees it.
+ *
  * @example
  * md.inlineCode('npm install');
  * // `npm install`
