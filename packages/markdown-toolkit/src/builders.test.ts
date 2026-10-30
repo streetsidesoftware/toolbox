@@ -23,6 +23,7 @@ import {
   hr,
   htmlTable,
   inlineCode,
+  inlineTemplate,
   inlineText,
   isMarkdown,
   lineBreak,
@@ -399,6 +400,19 @@ describe('errors', () => {
   test('an array that mixes inline and blocks', () => {
     // @ts-expect-error a code block is not inline
     assert.throws(() => paragraph(['a', codeBlock('x')]), TypeError);
+  });
+
+  testEach`
+    content
+    ${['see ', link('inner', 'u')]}
+    ${strong(link('inner', 'u'))}
+    ${template('[inner](u)', {})}
+  `('a link inside a link', ({ content }: { content: Builders.InlineContent }) => {
+    assert.throws(() => link(content, 'v'), new TypeError("link content can't hold a link, got a link"));
+  });
+
+  test('an image inside a link is not an error', () => {
+    assert.equal(link(inlineTemplate('![a](i)', {}), 'u').toString(), '[![a](i)](u)');
   });
 
   test('a heading depth outside 1 to 6', () => {

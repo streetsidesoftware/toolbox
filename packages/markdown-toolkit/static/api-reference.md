@@ -12,7 +12,7 @@
 
 ### Links and formatting
 
-- `link(content, url)`: Creates a link that shows `content` and goes to `url`.
+- `link(content, url)`: Create a link that shows `content` and goes to `url`.
 - `strong(content)`: Creates bold text.
 - `emphasis(content)`: Creates italic text.
 - `strikethrough(content)`: Creates text with a line through it.
