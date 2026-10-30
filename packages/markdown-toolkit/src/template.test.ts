@@ -171,16 +171,13 @@ describe('template', () => {
     assert.equal(template('{@ n @} {@ b @}', { n: 1, b: true }).toString(), '1 true');
   });
 
-  testEach`
-        tpl                             | value  | expected
-        ${'a **{@ x @}** b'}            | ${''}  | ${'a  b'}
-        ${'a\n\n{@ x @}\n\nb'}          | ${''}  | ${'a\n\nb'}
-    `(
-    'an empty value leaves nothing: $tpl',
-    ({ tpl, value, expected }: { tpl: string; value: string; expected: string }) => {
-      assert.equal(template(tpl, { x: value }).toString(), expected);
-    },
-  );
+  test('an empty value leaves no paragraph', () => {
+    assert.equal(template('a\n\n{@ x @}\n\nb', { x: '' }).toString(), 'a\n\nb');
+  });
+
+  test('an empty value in formatting shows as a space', () => {
+    assert.equal(template('a **{@ x @}** b', { x: '' }).toString(), 'a&#x20;**&#x20;** b');
+  });
 
   test('an empty value in inline code shows as a space', () => {
     assert.equal(template('a `{@ x @}` b', { x: '' }).toString(), 'a ` ` b');
@@ -190,8 +187,8 @@ describe('template', () => {
     assert.equal(template('a [{@ x @}](https://u) b', { x: '' }).toString(), 'a [](https://u) b');
   });
 
-  test('an empty value leaves nothing in an inline template or a document', () => {
-    assert.equal(inlineTemplate('a **{@ x @}** b', { x: '' }).toString(), 'a  b');
+  test('an empty value in an inline template or a document', () => {
+    assert.equal(inlineTemplate('a **{@ x @}** b', { x: '' }).toString(), 'a&#x20;**&#x20;** b');
     assert.equal(templateDocument('a\n\n{@ x @}\n', { x: '' }).toString(), 'a\n');
   });
 });

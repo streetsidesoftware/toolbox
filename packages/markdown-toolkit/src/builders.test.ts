@@ -190,28 +190,32 @@ describe('strong, emphasis, strikethrough', () => {
   });
 
   testEach`
-        value                         | name
-        ${strong('')}                 | ${"strong('')"}
-        ${emphasis([])}               | ${'emphasis([])'}
-        ${strikethrough('')}          | ${"strikethrough('')"}
-        ${strong(emphasis(''))}       | ${"strong(emphasis(''))"}
-    `('$name renders nothing', ({ value }: { value: MDInline }) => {
-    assert.equal(paragraph('a', value, 'b').toString(), 'ab');
-    assert.equal(paragraph(value).toString(), '');
+        value                         | expected
+        ${strong('')}                 | ${'**&#x20;**'}
+        ${emphasis([])}               | ${'_&#x20;_'}
+        ${strikethrough('')}          | ${'~~&#x20;~~'}
+        ${strong(emphasis(''))}       | ${'**_&#x20;_**'}
+    `('empty formatting shows as a space: $expected', ({ value, expected }: { value: MDInline; expected: string }) => {
+    assert.equal(paragraph(value).toString(), expected);
+  });
+
+  test('empty formatting keeps the text around it apart', () => {
+    assert.equal(paragraph('a', strong(''), 'b').toString(), '&#x61;**&#x20;**&#x62;');
   });
 
   test('an empty link stays', () => {
     assert.equal(paragraph('a', link('', 'u'), 'b').toString(), 'a[](u)b');
-    assert.equal(paragraph(link(strong(''), '')).toString(), '[]()');
+    assert.equal(paragraph(link('', '')).toString(), '[]()');
+    assert.equal(paragraph(link(strong(''), '')).toString(), '[**&#x20;**]()');
   });
 
-  test('a space is not empty', () => {
-    assert.equal(paragraph('a', strong(' '), 'b').toString(), '&#x61;**&#x20;**&#x62;');
+  test('whitespace stays as given', () => {
+    assert.equal(paragraph('a', strong('  '), 'b').toString(), '&#x61;**&#x20;&#x20;**&#x62;');
   });
 
-  test('an empty value substituted later renders nothing', () => {
+  test('formatting left empty by substitution shows as a space', () => {
     const md = paragraph('a', strong(placeholder('x')), 'b');
-    assert.equal(substitutePlaceholders(md, { x: '' }).toString(), 'ab');
+    assert.equal(substitutePlaceholders(md, { x: '' }).toString(), '&#x61;**&#x20;**&#x62;');
   });
 
   test('in a list item', () => {
@@ -317,12 +321,12 @@ describe('paragraph', () => {
     assert.equal(document(p('A'), p('B')).toString(), 'A\n\nB\n');
   });
 
-  testEach`
-        value                              | name
-        ${p('')}                           | ${"p('')"}
-        ${p(strong(''))}                   | ${"p(strong(''))"}
-    `('$name renders nothing', ({ value }: { value: MDElement }) => {
-    assert.equal(value.toString(), '');
+  test('an empty paragraph renders nothing', () => {
+    assert.equal(p('').toString(), '');
+  });
+
+  test('a paragraph of empty formatting stays', () => {
+    assert.equal(document('a', p(strong('')), 'b').toString(), 'a\n\n**&#x20;**\n\nb\n');
   });
 
   test('an empty paragraph adds no blank lines, but still ends the text before it', () => {
