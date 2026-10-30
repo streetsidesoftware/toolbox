@@ -102,7 +102,8 @@ apply to every package. Where they say "function", they mean a type or method to
 ### What gets this treatment
 
 - Every function a package exports gets a full comment: summary, details where needed, and an `@example`.
-- An exported type and each of its methods get a summary, and details where needed.
+- An exported method gets a full comment too, `@example` included. An exported type or interface gets a summary, and
+  details where needed, but no `@example`: its summary and properties describe it.
 - A `const` alias gets one line: `/** The same as {@link p}. */`. A renamed re-export, such as markdown-toolkit's
   `parseFragment`, gets none: the hover shows the original's comment.
 
