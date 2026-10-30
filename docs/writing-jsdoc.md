@@ -177,7 +177,8 @@ above.
 - Describe what the reader sees on the rendered page. Name the Markdown source only when the function exists to
   control it, as `br`, `comment`, `frontmatter` and `detectStyle` do.
 - In an example, show the Markdown when it tells the reader what they'll see, such as `// **important**`. When it
-  doesn't, describe the page: `// The page shows "Show more"; clicking it reveals "Hidden text."`.
+  doesn't, describe the page in a line that starts with `// The page shows`, so it can't pass for Markdown:
+  `// The page shows "Show more"; clicking it reveals "Hidden text."`.
 - Write a placeholder in an example as `{@name@}`, with no spaces, so the hover renders it and copied code works. In
   prose, write it with zero-width spaces, as [Every comment](#every-comment) says.
 - A rule about placeholder values is repeated in `template`, `blockTemplate`, `templateDocument`,
