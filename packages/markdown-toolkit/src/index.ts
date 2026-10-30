@@ -16,6 +16,7 @@ export {
   link,
   list,
   listItem,
+  ol,
   p,
   paragraph,
   placeholder,
@@ -23,6 +24,7 @@ export {
   strong,
   text,
   toBlock,
+  ul,
 } from './builders.ts';
 export { frontmatter } from './frontmatter.ts';
 export { definitionList, details, dl, htmlTable } from './htmlBlocks.ts';
@@ -56,6 +58,7 @@ export type {
   InlineContent,
   ListEntry,
   ListItemContent,
+  ListOptions,
   MarkdownStyle,
   MDBlock,
   MDBlockPlaceholder,
@@ -87,6 +90,7 @@ export type {
   MDText,
   MDValue,
   OrderedBulletMarker,
+  OrderedListOptions,
   RuleMarker,
   TableOptions,
 } from './types.ts';

@@ -12,6 +12,8 @@ const page = md.document(
       md.list(names),
     ]),
   ),
+  md.p('To add one:'),
+  md.ol(['Install the dictionary.', 'Add it to the config.']),
 );
 
 console.log(page.toString());

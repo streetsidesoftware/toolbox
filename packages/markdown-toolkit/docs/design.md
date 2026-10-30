@@ -42,6 +42,8 @@ An array is a sequence. Arrays are flattened.
 
 In a list, each entry is one item. An array entry is one item holding a sequence, never a nested list. A nested list is a `list(…)` inside an item.
 
+A list is bulleted unless an option makes it numbered. In Markdown, numbering belongs to the whole list, not to an item, so the option is the list's, and so is the number it starts at. Two short builders, one per kind, sit next to it for scripts that always want the same kind.
+
 The function `toBlock(content)` makes content fit where only blocks can go: blocks come back unchanged, and each run of inline pieces becomes a paragraph. It's how the result of `template()` or `parse()`, which can be either kind, goes where only blocks can go.
 
 ### Line breaks and comments

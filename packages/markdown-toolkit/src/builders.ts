@@ -24,6 +24,7 @@ import type {
   InlineContent,
   ListEntry,
   ListItemContent,
+  ListOptions,
   MDBlock,
   MDBlockPlaceholder,
   MDBr,
@@ -46,6 +47,7 @@ import type {
   MDStrikethrough,
   MDStrong,
   MDText,
+  OrderedListOptions,
 } from './types.ts';
 
 class TextElement extends MarkdownElement<'inline', 'text'> implements MDText {
@@ -445,10 +447,14 @@ export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument
 }
 
 /**
- * Creates a bulleted list, one item per entry.
+ * Creates a bulleted or numbered list, one item per entry.
  *
  * An entry can be an array of pieces, and a list among them makes a nested list.
  *
+ * The list is bulleted unless `ordered` is `true`. For one kind only, {@link ul} and {@link ol} are shorter.
+ *
+ * @param options - `ordered: true` numbers the items. `start` sets the first number, a whole number from 0 to
+ * 999999999, and goes only with `ordered: true`.
  * @example <caption>A list</caption>
  * md.list(['Dutch', 'French', 'German']);
  * // - Dutch
@@ -462,12 +468,53 @@ export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument
  * // - Item 3
  * @category lists
  */
-export function list(entries: readonly ListEntry[]): MDList {
+export function list(entries: readonly ListEntry[], options?: ListOptions): MDList {
   if (!Array.isArray(entries)) throw new TypeError(`list entries must be an array, got ${describe(entries)}`);
+  // The type allows `start` only with `ordered: true`; JavaScript callers can still pass it alone.
+  const { ordered = false, start } = (options ?? {}) as { ordered?: boolean; start?: number };
+  if (start !== undefined && !(Number.isInteger(start) && start >= 0 && start <= 999_999_999)) {
+    const given = typeof start === 'number' ? String(start) : describe(start);
+    throw new TypeError(`a list start must be a whole number from 0 to 999999999, got ${given}`);
+  }
   const items = entries.map((entry) =>
     isListItem(entry) ? (renderingOf(entry)?.nodes[0] as ListItem) : listItemNode(isArray(entry) ? entry : [entry]),
   );
   return new MarkdownElement('block', 'list', 'a list', [
-    { type: 'list', ordered: false, spread: false, children: items },
+    { type: 'list', ordered, start: ordered ? (start ?? 1) : null, spread: false, children: items },
   ]);
+}
+
+/**
+ * Creates a numbered list, one item per entry.
+ *
+ * It's the same as {@link list} with `ordered: true`.
+ *
+ * @param options - `start` sets the first number, a whole number from 0 to 999999999. It's 1 by default.
+ * @example
+ * md.ol(['Install', 'Run'], { start: 3 });
+ * // Markdown:
+ * // 3. Install
+ * // 3. Run
+ * // The page shows a numbered list: 3. Install, 4. Run.
+ * @category lists
+ */
+export function ol(entries: readonly ListEntry[], options?: OrderedListOptions): MDList {
+  return list(entries, { ...options, ordered: true });
+}
+
+/**
+ * Creates a bulleted list, one item per entry.
+ *
+ * It's the same as {@link list} with no options.
+ *
+ * @example
+ * md.ul(['Dutch', 'French']);
+ * // Markdown:
+ * // - Dutch
+ * // - French
+ * // The page shows a bulleted list: Dutch, French.
+ * @category lists
+ */
+export function ul(entries: readonly ListEntry[]): MDList {
+  return list(entries);
 }
