@@ -46,21 +46,22 @@ export function renderNodes(children: RootContent[], style: StyleOptions | undef
   return md.replace(/\n$/, '');
 }
 
-/** Holds the types that are dropped when empty: formatting would show its markers as text, and a link couldn't be seen. */
-const droppedWhenEmpty = new Set(['strong', 'emphasis', 'delete', 'link']);
+/** Holds the formatting types, whose markers would be left as noise with nothing between them. */
+const formatting = new Set(['strong', 'emphasis', 'delete']);
 
 /**
- * Return the nodes without those that have nothing to show:
- * - formatting and links with nothing in them, including those that hold only such formatting
+ * Return the nodes without those that would leave only noise in the Markdown:
+ * - formatting with nothing in it, including formatting that holds only such formatting
+ * - links with neither content nor a URL
  * - paragraphs of only whitespace and line breaks, which would add blank lines
  *
- * Whitespace inside formatting stays, since it shows.
+ * Whitespace inside formatting stays, since it shows. A link with a URL stays, since the URL means something.
  */
 export function withoutEmptyNodes<T extends RootContent>(nodes: readonly T[]): T[] {
   return nodes.flatMap((node): T[] => {
     if (!('children' in node)) return [node];
     const children = withoutEmptyNodes<RootContent>(node.children);
-    if (!children.length && droppedWhenEmpty.has(node.type)) return [];
+    if (!children.length && (formatting.has(node.type) || (node.type === 'link' && !node.url))) return [];
     if (node.type === 'paragraph' && children.every(isBlankNode)) return [];
     return [{ ...node, children } as T];
   });

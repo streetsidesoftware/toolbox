@@ -174,7 +174,6 @@ describe('template', () => {
   testEach`
         tpl                             | value  | expected
         ${'a **{@ x @}** b'}            | ${''}  | ${'a  b'}
-        ${'a [{@ x @}](https://u) b'}   | ${''}  | ${'a  b'}
         ${'a\n\n{@ x @}\n\nb'}          | ${' '} | ${'a\n\nb'}
     `(
     'an empty value leaves nothing: $tpl',
@@ -182,6 +181,10 @@ describe('template', () => {
       assert.equal(template(tpl, { x: value }).toString(), expected);
     },
   );
+
+  test('an empty value keeps a link with a URL', () => {
+    assert.equal(template('a [{@ x @}](https://u) b', { x: '' }).toString(), 'a [](https://u) b');
+  });
 
   test('an empty value leaves nothing in an inline template or a document', () => {
     assert.equal(inlineTemplate('a **{@ x @}** b', { x: '' }).toString(), 'a  b');

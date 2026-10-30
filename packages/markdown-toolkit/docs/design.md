@@ -190,7 +190,7 @@ Everything inside a document renders in the document's style. A fragment's own s
 
 A line ending or `lineBreak()` at the start or end of a paragraph, heading or table cell is dropped. Nothing is on its other side, so it can't display, and kept it would render as `&#xA;` or a literal `\`.
 
-Empty bold, italic or struck-through text, an empty link, and an empty or whitespace-only paragraph render nothing. Kept, they would show something nobody meant: the markers as text, as in `a****b`, or a horizontal rule for `****` on its own line; a link that can't be seen or clicked; or extra blank lines between blocks. This covers formatting that holds only empty formatting, and content left empty by substitution. Whitespace inside formatting isn't empty, since it shows.
+Empty bold, italic or struck-through text, a link with neither text nor URL, and an empty or whitespace-only paragraph render nothing. Each would leave only noise in the Markdown: markers that show as text, as in `a****b`, or as a horizontal rule for `****` on its own line; a link that goes nowhere; or extra blank lines between blocks. A link with a URL but no text stays, since the URL still means something. This covers formatting that holds only empty formatting, and content left empty by substitution. Whitespace inside formatting isn't empty, since it shows.
 
 ## Errors
 
