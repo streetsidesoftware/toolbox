@@ -18,8 +18,10 @@ import {
   lineBreak,
   link,
   list,
+  paragraph,
   parse,
   placeholder,
+  strong,
   substitutePlaceholders,
   text,
 } from './index.ts';
@@ -110,6 +112,14 @@ describe('details', () => {
         </details>
       ` + '\n',
     );
+  });
+
+  test('an empty summary and content keep the outline', () => {
+    assert.equal(details(strong(''), '').toString(), '<details>\n<summary>\n\n</summary>\n\n</details>');
+  });
+
+  test('an empty paragraph in the content adds no blank lines', () => {
+    assert.equal(details('s', paragraph('')).toString(), '<details>\n<summary>s</summary>\n\n</details>');
   });
 
   test('a block summary throws', () => {

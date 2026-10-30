@@ -19,6 +19,7 @@ import {
   placeholder,
   substitutePlaceholders,
   template,
+  templateDocument,
   text,
   toBlock,
 } from './index.ts';
@@ -169,6 +170,26 @@ describe('template', () => {
   test('numbers and booleans are text', () => {
     assert.equal(template('{@ n @} {@ b @}', { n: 1, b: true }).toString(), '1 true');
   });
+
+  testEach`
+        tpl                             | value  | expected
+        ${'a **{@ x @}** b'}            | ${''}  | ${'a  b'}
+        ${'a\n\n{@ x @}\n\nb'}          | ${''}  | ${'a\n\nb'}
+    `(
+    'an empty value leaves nothing: $tpl',
+    ({ tpl, value, expected }: { tpl: string; value: string; expected: string }) => {
+      assert.equal(template(tpl, { x: value }).toString(), expected);
+    },
+  );
+
+  test('an empty value keeps a link with a URL', () => {
+    assert.equal(template('a [{@ x @}](https://u) b', { x: '' }).toString(), 'a [](https://u) b');
+  });
+
+  test('an empty value leaves nothing in an inline template or a document', () => {
+    assert.equal(inlineTemplate('a **{@ x @}** b', { x: '' }).toString(), 'a  b');
+    assert.equal(templateDocument('a\n\n{@ x @}\n', { x: '' }).toString(), 'a\n');
+  });
 });
 
 describe('inlineTemplate', () => {
@@ -201,6 +222,10 @@ describe('parse', () => {
     if (md.kind !== 'inline') throw new Error('expected inline');
     assert.equal(md.toString(), 'Hello *you*');
     assert.equal(link(md, 'https://example.com').toString(), '[Hello _you_](https://example.com)');
+  });
+
+  test('an empty link stays', () => {
+    assert.equal(parse('a []() b').toString(), 'a []() b');
   });
 
   test('anything else is blocks', () => {

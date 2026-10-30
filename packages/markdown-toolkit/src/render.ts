@@ -32,7 +32,7 @@ const handlers = {
  * Escaping is left to remark, which knows where each node sits.
  */
 export function renderNodes(children: RootContent[], style: StyleOptions | undefined): string {
-  const root: Root = { type: 'root', children: structuredClone(children) };
+  const root: Root = { type: 'root', children: withoutEmptyNodes(structuredClone(children)) };
   visit(root, (node) => {
     if (node.type === 'paragraph' || node.type === 'heading' || node.type === 'tableCell') trimLines(node.children);
     if (node.type === 'tableCell') visit(node, oneLine);
@@ -44,6 +44,26 @@ export function renderNodes(children: RootContent[], style: StyleOptions | undef
     .use(remarkStringify, { ...defaultStyle, ...Object.fromEntries(given), handlers })
     .stringify(root);
   return md.replace(/\n$/, '');
+}
+
+/** Holds the formatting types, whose markers would be left as noise with nothing between them. */
+const formatting = new Set(['strong', 'emphasis', 'delete']);
+
+/**
+ * Return the nodes without those that would leave only noise in the Markdown:
+ * - formatting with nothing in it, including formatting that holds only such formatting
+ * - paragraphs with nothing in them, which would add blank lines
+ *
+ * Whitespace isn't nothing: formatting or a paragraph that holds only whitespace stays.
+ * A link stays even with nothing in it, since its text and URL are part of the Markdown.
+ */
+function withoutEmptyNodes<T extends RootContent>(nodes: readonly T[]): T[] {
+  return nodes.flatMap((node): T[] => {
+    if (!('children' in node)) return [node];
+    const children = withoutEmptyNodes<RootContent>(node.children);
+    if (!children.length && (formatting.has(node.type) || node.type === 'paragraph')) return [];
+    return [{ ...node, children } as T];
+  });
 }
 
 /**

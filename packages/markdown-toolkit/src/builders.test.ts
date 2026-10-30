@@ -5,7 +5,7 @@ import { describe, test } from 'node:test';
 import { testEach } from '@streetsidesoftware/test-each';
 
 import type * as Builders from './index.ts';
-import type { MDElement } from './index.ts';
+import type { MDElement, MDInline } from './index.ts';
 import {
   blockPlaceholder,
   blockText,
@@ -34,6 +34,7 @@ import {
   placeholder,
   strikethrough,
   strong,
+  substitutePlaceholders,
   table,
   template,
   text,
@@ -188,6 +189,31 @@ describe('strong, emphasis, strikethrough', () => {
     assert.equal(value.toString(), expected);
   });
 
+  testEach`
+        value                         | name
+        ${strong('')}                 | ${"strong('')"}
+        ${emphasis([])}               | ${'emphasis([])'}
+        ${strikethrough('')}          | ${"strikethrough('')"}
+        ${strong(emphasis(''))}       | ${"strong(emphasis(''))"}
+    `('$name renders nothing', ({ value }: { value: MDInline }) => {
+    assert.equal(paragraph('a', value, 'b').toString(), 'ab');
+    assert.equal(paragraph(value).toString(), '');
+  });
+
+  test('an empty link stays', () => {
+    assert.equal(paragraph('a', link('', 'u'), 'b').toString(), 'a[](u)b');
+    assert.equal(paragraph(link(strong(''), '')).toString(), '[]()');
+  });
+
+  test('a space is not empty', () => {
+    assert.equal(paragraph('a', strong(' '), 'b').toString(), '&#x61;**&#x20;**&#x62;');
+  });
+
+  test('an empty value substituted later renders nothing', () => {
+    const md = paragraph('a', strong(placeholder('x')), 'b');
+    assert.equal(substitutePlaceholders(md, { x: '' }).toString(), 'ab');
+  });
+
   test('in a list item', () => {
     const md = list([listItem(link('Danish', '../da.md'), ' ', strong('pre-release'), ' - Adds Danish')]);
     assert.equal(md.toString(), '- [Danish](../da.md) **pre-release** - Adds Danish');
@@ -268,6 +294,38 @@ describe('paragraph', () => {
   test('p is the same function', () => {
     assert.equal(p, paragraph);
     assert.equal(document(p('A'), p('B')).toString(), 'A\n\nB\n');
+  });
+
+  testEach`
+        value                              | name
+        ${p('')}                           | ${"p('')"}
+        ${p(strong(''))}                   | ${"p(strong(''))"}
+    `('$name renders nothing', ({ value }: { value: MDElement }) => {
+    assert.equal(value.toString(), '');
+  });
+
+  test('an empty paragraph adds no blank lines, but still ends the text before it', () => {
+    assert.equal(document('a', p(''), 'b').toString(), document(p('a'), p('b')).toString());
+    assert.equal(document('a', p(''), 'b').toString(), 'a\n\nb\n');
+  });
+
+  test('an empty paragraph between blocks', () => {
+    const md = document(heading(2, 'Release notes'), p(''), list(['x']));
+    assert.equal(md.toString(), '## Release notes\n\n- x\n');
+  });
+
+  test('a paragraph left empty by substitution renders nothing', () => {
+    const md = document('a', p(placeholder('x')), 'b');
+    assert.equal(substitutePlaceholders(md, { x: '' }).toString(), 'a\n\nb\n');
+  });
+
+  test('a paragraph of whitespace stays', () => {
+    assert.equal(p(' ').toString(), '&#x20;');
+    assert.equal(document('a', p(' '), 'b').toString(), 'a\n\n&#x20;\n\nb\n');
+  });
+
+  test('a paragraph of whitespace in formatting renders', () => {
+    assert.equal(p(strong(' ')).toString(), '**&#x20;**');
   });
 });
 
