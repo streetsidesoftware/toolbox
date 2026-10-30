@@ -36,7 +36,8 @@ export interface Placeholder {
 export const DEFAULT_OPEN = '{@';
 export const DEFAULT_CLOSE = '@}';
 
-// Non-greedy, so a name ends at the first close delimiter even when the delimiter is made of name characters.
+// Matches one segment of a name. It's non-greedy, so a name ends at the first close delimiter even when the delimiter
+// is made of name characters.
 const segment = '[A-Za-z0-9_][A-Za-z0-9_-]*?';
 const namePattern = `${segment}(?:\\.${segment})*?`;
 const validName = new RegExp(`^${namePattern}$`);
