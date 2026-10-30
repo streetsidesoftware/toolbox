@@ -19,6 +19,7 @@ import {
   placeholder,
   substitutePlaceholders,
   template,
+  templateDocument,
   text,
   toBlock,
 } from './index.ts';
@@ -168,6 +169,23 @@ describe('template', () => {
 
   test('numbers and booleans are text', () => {
     assert.equal(template('{@ n @} {@ b @}', { n: 1, b: true }).toString(), '1 true');
+  });
+
+  testEach`
+        tpl                             | value  | expected
+        ${'a **{@ x @}** b'}            | ${''}  | ${'a  b'}
+        ${'a [{@ x @}](https://u) b'}   | ${''}  | ${'a  b'}
+        ${'a\n\n{@ x @}\n\nb'}          | ${' '} | ${'a\n\nb'}
+    `(
+    'an empty value leaves nothing: $tpl',
+    ({ tpl, value, expected }: { tpl: string; value: string; expected: string }) => {
+      assert.equal(template(tpl, { x: value }).toString(), expected);
+    },
+  );
+
+  test('an empty value leaves nothing in an inline template or a document', () => {
+    assert.equal(inlineTemplate('a **{@ x @}** b', { x: '' }).toString(), 'a  b');
+    assert.equal(templateDocument('a\n\n{@ x @}\n', { x: '' }).toString(), 'a\n');
   });
 });
 
