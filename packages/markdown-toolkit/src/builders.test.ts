@@ -32,6 +32,7 @@ import {
   ol,
   p,
   paragraph,
+  parse,
   placeholder,
   strikethrough,
   strong,
@@ -554,6 +555,9 @@ describe('document', () => {
     ${document('See ', link('the docs', 'u'), '.', list(['a']), 'More')} | ${'See\n[the docs](u)\n.\n\n- a\n\nMore\n'}
     ${document('a', p('p'), 'b')}                                  | ${'a\n\np\n\nb\n'}
     ${document('a', '', 'b')}                                      | ${'a\n\nb\n'}
+    ${document('a', [], 'b')}                                      | ${'a\n\nb\n'}
+    ${document('a', text(''), 'b')}                                | ${'a\n\nb\n'}
+    ${document('a', parse(''), 'b')}                               | ${'a\n\nb\n'}
     ${document('a', [], 'b')}                                      | ${'a\n\nb\n'}
     ${document('a', strong(''), 'b')}                              | ${'a\n**&#x20;**\nb\n'}
     ${document('a ', ' b')}                                        | ${'a\nb\n'}
