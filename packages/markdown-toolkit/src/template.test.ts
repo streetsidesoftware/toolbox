@@ -224,6 +224,10 @@ describe('parse', () => {
     assert.equal(link(md, 'https://example.com').toString(), '[Hello _you_](https://example.com)');
   });
 
+  test('an empty link stays', () => {
+    assert.equal(parse('a []() b').toString(), 'a []() b');
+  });
+
   test('anything else is blocks', () => {
     const md = parse('# Title\n\nSome text.\n');
     if (md.kind !== 'block') throw new Error('expected blocks');

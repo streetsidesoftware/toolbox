@@ -52,16 +52,16 @@ const formatting = new Set(['strong', 'emphasis', 'delete']);
 /**
  * Return the nodes without those that would leave only noise in the Markdown:
  * - formatting with nothing in it, including formatting that holds only such formatting
- * - links with neither content nor a URL
  * - paragraphs of only whitespace and line breaks, which would add blank lines
  *
- * Whitespace inside formatting stays, since it shows. A link with a URL stays, since the URL means something.
+ * Whitespace inside formatting stays, since it shows.
+ * A link stays even with nothing in it, since its text and URL are part of the Markdown.
  */
 export function withoutEmptyNodes<T extends RootContent>(nodes: readonly T[]): T[] {
   return nodes.flatMap((node): T[] => {
     if (!('children' in node)) return [node];
     const children = withoutEmptyNodes<RootContent>(node.children);
-    if (!children.length && (formatting.has(node.type) || (node.type === 'link' && !node.url))) return [];
+    if (!children.length && formatting.has(node.type)) return [];
     if (node.type === 'paragraph' && children.every(isBlankNode)) return [];
     return [{ ...node, children } as T];
   });

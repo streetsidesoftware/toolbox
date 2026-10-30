@@ -183,8 +183,6 @@ function checkPlaceholderName(name: string): void {
 /**
  * Creates a link that shows `content` and goes to `url`.
  *
- * With empty content and an empty `url`, the link is left out.
- *
  * @example
  * md.link('the docs', 'https://example.com');
  * // [the docs](https://example.com)

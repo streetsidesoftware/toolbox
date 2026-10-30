@@ -195,16 +195,14 @@ describe('strong, emphasis, strikethrough', () => {
         ${emphasis([])}               | ${'emphasis([])'}
         ${strikethrough('')}          | ${"strikethrough('')"}
         ${strong(emphasis(''))}       | ${"strong(emphasis(''))"}
-        ${link('', '')}               | ${"link('', '')"}
-        ${link(strong(''), '')}       | ${"link(strong(''), '')"}
     `('$name renders nothing', ({ value }: { value: MDInline }) => {
     assert.equal(paragraph('a', value, 'b').toString(), 'ab');
     assert.equal(paragraph(value).toString(), '');
   });
 
-  test('a link with a URL but no text stays', () => {
+  test('an empty link stays', () => {
     assert.equal(paragraph('a', link('', 'u'), 'b').toString(), 'a[](u)b');
-    assert.equal(paragraph(link(strong(''), 'u')).toString(), '[](u)');
+    assert.equal(paragraph(link(strong(''), '')).toString(), '[]()');
   });
 
   test('a space is not empty', () => {
