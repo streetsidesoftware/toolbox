@@ -4,10 +4,10 @@ import type { ListItem, Paragraph } from 'mdast';
 import { DocumentElement } from './documentElement.ts';
 import { isFrontmatter } from './frontmatter.ts';
 import {
+  argumentNodes,
   describe,
   groupedNodes,
   inlineNodes,
-  isArray,
   isBlockContent,
   isListItem,
   listItemNode,
@@ -404,7 +404,12 @@ export function codeBlock(code: string, lang?: string): MDCodeBlock {
 /**
  * Creates one list item from several pieces.
  *
- * Pieces in a row join into one line. A paragraph, list or other block goes on its own lines below them.
+ * Each piece goes on a line of its own:
+ * - Text, links and other pieces in a row form one paragraph. The page shows a space between them.
+ * - A piece that shows nothing ends the paragraph.
+ * - A paragraph, list or other block goes on its own lines.
+ * - An array is one piece, and its parts join with no spaces added. For a sentence built from pieces, use an array or
+ *   {@link p}.
  *
  * It goes in a {@link list}, or anywhere a paragraph can go:
  * - List items in a row form a list.
@@ -424,8 +429,12 @@ export function listItem(...content: ListItemContent[]): MDListItem {
 /**
  * Creates a whole Markdown file from its parts, in order.
  *
- * - Frontmatter, if any, goes first.
- * - An array of parts works the same as passing them one by one.
+ * Frontmatter, if any, goes first. Each other part goes on a line of its own:
+ * - Text, links and other pieces in a row form one paragraph. The page shows a space between them.
+ * - A part that shows nothing ends the paragraph.
+ * - A paragraph, list or other block goes on its own lines.
+ * - An array is one part, and its pieces join with no spaces added. For a sentence built from pieces, use an array or
+ *   {@link p}.
  *
  * @example
  * md.document(md.heading(1, 'Title'), md.p('Body.'));
@@ -439,10 +448,10 @@ export function document(...content: AnyContent[]): MDDocument;
 export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument {
   const [first, ...rest] = content;
   if (rest.some(isFrontmatter)) throw new TypeError('frontmatter must be the first content of a document');
-  if (!isFrontmatter(first)) return new DocumentElement(groupedNodes(content as AnyContent[], 'document content'));
+  if (!isFrontmatter(first)) return new DocumentElement(argumentNodes(content as AnyContent[], 'document content'));
   return new DocumentElement([
     ...(renderingOf(first)?.nodes ?? []),
-    ...groupedNodes(rest as AnyContent[], 'document content'),
+    ...argumentNodes(rest as AnyContent[], 'document content'),
   ]);
 }
 
@@ -477,7 +486,7 @@ export function list(entries: readonly ListEntry[], options?: ListOptions): MDLi
     throw new TypeError(`a list start must be a whole number from 0 to 999999999, got ${given}`);
   }
   const items = entries.map((entry) =>
-    isListItem(entry) ? (renderingOf(entry)?.nodes[0] as ListItem) : listItemNode(isArray(entry) ? entry : [entry]),
+    isListItem(entry) ? (renderingOf(entry)?.nodes[0] as ListItem) : listItemNode([entry]),
   );
   return new MarkdownElement('block', 'list', 'a list', [
     { type: 'list', ordered, start: ordered ? (start ?? 1) : null, spread: false, children: items },

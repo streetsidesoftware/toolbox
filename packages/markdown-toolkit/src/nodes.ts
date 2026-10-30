@@ -1,5 +1,5 @@
 import { listPlaceholders } from '@streetsidesoftware/placeholders';
-import type { List, ListItem, BlockContent as MdastBlockContent, PhrasingContent, RootContent } from 'mdast';
+import type { List, ListItem, BlockContent as MdastBlockContent, PhrasingContent, RootContent, Text } from 'mdast';
 
 import { placeholderNodeAsWritten } from './placeholderNode.ts';
 import { renderNodes } from './render.ts';
@@ -196,6 +196,83 @@ export function groupedNodes(content: AnyContent | readonly AnyContent[], where:
 }
 
 /**
+ * Return the blocks for the arguments of `document`, `listItem` or `details`, as {@link groupedNodes} does, but with
+ * each argument on its own line:
+ * - Inline arguments in a row form one paragraph, a line each. An array is one argument.
+ * - An argument loses the spaces at its start and end, which would show as `&#x20;` before a line ending.
+ * - An argument that renders nothing leaves an empty line, so the arguments around it are two paragraphs.
+ * @param where - what the content is for, for error messages.
+ */
+export function argumentNodes(args: readonly AnyContent[], where: string): MdastBlockContent[] {
+  const nodes: RootContent[] = [];
+  let lines: PhrasingContent[][] = [];
+  function endParagraph(): void {
+    if (lines.length) nodes.push({ type: 'paragraph', children: joinLines(lines) });
+    lines = [];
+  }
+  for (const arg of args) {
+    const parts = mapParagraphsAndBlocks<{ inline: InlineContent[] } | { block: MDBlock | MDListItem }>(
+      arg,
+      (inline) => ({ inline }),
+      (block) => ({ block }),
+    );
+    if (!parts.length) endParagraph();
+    parts.forEach((part, i) => {
+      if ('block' in part) {
+        endParagraph();
+        for (const node of blockNodes(part.block, where)) nodes.push(node);
+        return;
+      }
+      const line = trimSpaces(inlineNodes(part.inline, where), i === 0, i === parts.length - 1);
+      if (line.length) lines.push(line);
+      else endParagraph();
+    });
+  }
+  endParagraph();
+  return inLists(nodes) as MdastBlockContent[];
+}
+
+/** Join lines with a line ending, except where one is already there: after a line break or before or after a newline. */
+function joinLines(lines: readonly PhrasingContent[][]): PhrasingContent[] {
+  const result: PhrasingContent[] = [];
+  for (const line of lines) {
+    const before = result.at(-1);
+    const after = line[0];
+    const ended =
+      !before ||
+      before.type === 'break' ||
+      (before.type === 'text' && before.value.endsWith('\n')) ||
+      (after.type === 'text' && after.value.startsWith('\n'));
+    if (!ended) result.push({ type: 'text', value: '\n' });
+    for (const node of line) result.push(node);
+  }
+  return result;
+}
+
+/** Inline nodes without the spaces at the chosen ends. Text left empty is dropped. */
+function trimSpaces(nodes: readonly PhrasingContent[], start: boolean, end: boolean): PhrasingContent[] {
+  const result = [...nodes];
+  while (start && result[0]?.type === 'text') {
+    const value = result[0].value.replace(/^ +/, '');
+    if (value) {
+      result[0] = { ...result[0], value };
+      break;
+    }
+    result.shift();
+  }
+  while (end && result.at(-1)?.type === 'text') {
+    const last = result.at(-1) as Text;
+    const value = last.value.replace(/ +$/, '');
+    if (value) {
+      result[result.length - 1] = { ...last, value };
+      break;
+    }
+    result.pop();
+  }
+  return result;
+}
+
+/**
  * Put each run of list items in a bullet list. A run joins a list right before or after it, so a list item next to a
  * list is one more item of it, and the list keeps its numbering. Two lists in a row stay two lists.
  */
@@ -227,7 +304,7 @@ export function inLists(nodes: readonly RootContent[]): RootContent[] {
   return result;
 }
 
-/** A list item from its pieces, grouped as in {@link groupedNodes}. */
+/** A list item from its arguments, grouped as in {@link argumentNodes}. */
 export function listItemNode(content: readonly ListItemContent[]): ListItem {
-  return { type: 'listItem', spread: false, children: groupedNodes(content, 'list item content') };
+  return { type: 'listItem', spread: false, children: argumentNodes(content, 'list item content') };
 }

@@ -219,7 +219,7 @@ describe('template', () => {
 describe('inlineTemplate', () => {
   test('a fragment inside a list item', () => {
     const e = { name: 'German', url: '../de.md' };
-    const md = list([listItem(link(e.name, e.url), inlineTemplate(' - Adds {@ name @} spell checking', e))]);
+    const md = list([listItem([link(e.name, e.url), inlineTemplate(' - Adds {@ name @} spell checking', e)])]);
     assert.equal(md.toString(), '- [German](../de.md) - Adds German spell checking');
   });
 
@@ -379,8 +379,12 @@ describe('substitutePlaceholders', () => {
       substitutePlaceholders(md, { fruit }).toString(),
       'Fruit:\n\n- apple\n- orange\n\n[images](https://x)\n',
     );
+    assert.equal(
+      substitutePlaceholders(document('Fruit:', placeholder('fruit')), { fruit }).toString(),
+      'Fruit:\n\n- apple\n- orange\n',
+    );
     assert.throws(
-      () => substitutePlaceholders(document('Fruit: ', placeholder('fruit')), { fruit }),
+      () => substitutePlaceholders(document(paragraph('Fruit: ', placeholder('fruit'))), { fruit }),
       new TypeError('{@ fruit @} must be inline, got a list'),
     );
     assert.equal(substitutePlaceholders(placeholder('fruit'), { fruit }).type, 'fragment');

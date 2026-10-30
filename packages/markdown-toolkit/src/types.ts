@@ -258,7 +258,7 @@ export type BlockOrInlineContent = InlineContent | BlockContent | MDListItem;
 /** Block or inline content, or an array that mixes them. */
 export type AnyContent = BlockOrInlineContent | readonly BlockOrInlineContent[];
 
-/** A piece of a list item. Inline pieces in a row form a line, and blocks follow on their own lines. */
+/** Describes a piece of a list item: text, a block, or a list item, which forms a list with the list items next to it. */
 export type ListItemContent = BlockOrInlineContent;
 
 /** One item of a list. */

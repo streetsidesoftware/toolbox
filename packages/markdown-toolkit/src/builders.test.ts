@@ -275,7 +275,7 @@ describe('strong, emphasis, strikethrough', () => {
   });
 
   test('in a list item', () => {
-    const md = list([listItem(link('Danish', '../da.md'), ' ', strong('pre-release'), ' - Adds Danish')]);
+    const md = list([listItem([link('Danish', '../da.md'), ' ', strong('pre-release'), ' - Adds Danish'])]);
     assert.equal(md.toString(), '- [Danish](../da.md) **pre-release** - Adds Danish');
   });
 
@@ -514,10 +514,42 @@ describe('document', () => {
     );
   });
 
-  test('inline pieces in a row form a paragraph, as in a list item', () => {
-    const md = document('See ', link('the docs', 'u'), '.', list(['a']), 'More');
-    assert.equal(md.toString(), 'See [the docs](u).\n\n- a\n\nMore\n');
+  testEach`
+    value                                                          | expected
+    ${document('a', 'b', 'c')}                                     | ${'a\nb\nc\n'}
+    ${document('First.', 'Second.')}                               | ${'First.\nSecond.\n'}
+    ${document('See ', link('the docs', 'u'), '.')}                | ${'See\n[the docs](u)\n.\n'}
+    ${document(p('See ', link('the docs', 'u'), '.'))}             | ${'See [the docs](u).\n'}
+    ${document(['See ', link('the docs', 'u'), '.'])}              | ${'See [the docs](u).\n'}
+    ${document('See ', link('the docs', 'u'), '.', list(['a']), 'More')} | ${'See\n[the docs](u)\n.\n\n- a\n\nMore\n'}
+    ${document('a', p('p'), 'b')}                                  | ${'a\n\np\n\nb\n'}
+    ${document('a', '', 'b')}                                      | ${'a\n\nb\n'}
+    ${document('a', [], 'b')}                                      | ${'a\n\nb\n'}
+    ${document('a', strong(''), 'b')}                              | ${'a\n**&#x20;**\nb\n'}
+    ${document('a ', ' b')}                                        | ${'a\nb\n'}
+    ${document('a', '- b')}                                        | ${'a\n\\- b\n'}
+    ${document(frontmatter('x: 1'), 'a', 'b')}                     | ${'---\nx: 1\n---\n\na\nb\n'}
+    ${list([listItem('a', 'b')])}                                  | ${'- a\n  b'}
+    ${list([listItem(['a', 'b'])])}                                | ${'- ab'}
+    ${list([listItem(p('a', 'b'))])}                               | ${'- ab'}
+    ${list([['a', 'b']])}                                          | ${'- ab'}
+    ${details('More', 'First.', 'Second.')}                        | ${'<details>\n<summary>More</summary>\n\nFirst.\nSecond.\n\n</details>'}
+  `('each argument goes on its own line: $expected', ({ value, expected }: { value: MDElement; expected: string }) => {
+    assert.equal(value.toString(), expected);
   });
+
+  testEach`
+    value                                     | expected
+    ${document('a\n', 'b')}                   | ${'a\nb\n'}
+    ${document('a', '\nb')}                   | ${'a\nb\n'}
+    ${document('a', '\n', 'b')}               | ${'a\nb\n'}
+    ${document('a', lineBreak(), 'b')}        | ${'a\n\\\nb\n'}
+  `(
+    'a line ending already there needs no second one: $expected',
+    ({ value, expected }: { value: MDElement; expected: string }) => {
+      assert.equal(value.toString(), expected);
+    },
+  );
 
   test('a string is inline text and never splits', () => {
     assert.equal(document('a\n\nb').toString(), 'a&#xA;&#xA;b\n');

@@ -2,6 +2,7 @@ import type { Html, PhrasingContent, RootContent } from 'mdast';
 
 import { asHtmlEntityNode } from './htmlEntityNode.ts';
 import {
+  argumentNodes,
   blockNodes,
   describe,
   groupedNodes,
@@ -26,7 +27,13 @@ import type {
 /**
  * Creates a collapsible section: the reader sees `summary` and clicks it to show the content.
  *
- * The content can hold anything a page can, such as paragraphs, lists and tables.
+ * The content can hold anything a page can, such as paragraphs, lists and tables. Each piece of it goes on a line of
+ * its own:
+ * - Text, links and other pieces in a row form one paragraph. The page shows a space between them.
+ * - A piece that shows nothing ends the paragraph.
+ * - A paragraph, list or other block goes on its own lines.
+ * - An array is one piece, and its parts join with no spaces added. For a sentence built from pieces, use an array or
+ *   {@link p}.
  *
  * @example
  * md.details('Show more', 'Hidden text.');
@@ -36,7 +43,7 @@ import type {
 export function details(summary: InlineContent, ...content: AnyContent[]): MDDetails {
   return new MarkdownElement('block', 'details', 'a details block', [
     ...wrapped('<details>\n', 'summary', summary, '', 'details summary'),
-    ...groupedNodes(content, 'details content'),
+    ...argumentNodes(content, 'details content'),
     html('</details>'),
   ]);
 }
