@@ -1,8 +1,8 @@
 /** Describes the delimiters that mark a placeholder. */
 export interface PlaceholderOptions {
-  /** Holds the opening delimiter. Default: `{@`. */
+  /** Holds the opening delimiter, which can't be empty. Default: `{@`. */
   open?: string | undefined;
-  /** Holds the closing delimiter. Default: `@}`. */
+  /** Holds the closing delimiter, which can't be empty. Default: `@}`. */
   close?: string | undefined;
 }
 
@@ -18,8 +18,8 @@ export type PlaceholderResolver = (name: string) => string | undefined;
 /**
  * Supplies the values for placeholders: a {@link PlaceholderResolver}, or an object.
  *
- * A dotted name walks the object's properties: `a.b` reads `values.a.b`.
- * A string or number value is used. Anything else leaves the placeholder as written.
+ * - A dotted name walks the object's own properties: `a.b` reads `values.a.b`.
+ * - A string or number value is used. Anything else leaves the placeholder as written.
  */
 export type PlaceholderValues = PlaceholderResolver | object;
 
@@ -33,7 +33,9 @@ export interface Placeholder {
   end: number;
 }
 
+/** Holds the opening delimiter that {@link PlaceholderOptions} uses by default. */
 export const DEFAULT_OPEN = '{@';
+/** Holds the closing delimiter that {@link PlaceholderOptions} uses by default. */
 export const DEFAULT_CLOSE = '@}';
 
 // Matches one segment of a name. It's non-greedy, so a name ends at the first close delimiter even when the delimiter
@@ -48,8 +50,8 @@ let cached: { open: string; close: string; regExp: RegExp } | undefined;
 /**
  * Check whether a name is a valid placeholder name.
  *
- * A valid name is one or more segments of `[A-Za-z0-9_][A-Za-z0-9_-]*` joined by `.`.
- * A hyphen may appear inside a segment but not at its start.
+ * A valid name is one or more segments joined by `.`.
+ * A segment holds ASCII letters, digits, `_` and `-`, but doesn't start with `-`.
  *
  * @example
  * isValidPlaceholderName('engines.cspell');
@@ -64,7 +66,11 @@ export function isValidPlaceholderName(name: string): boolean {
 /**
  * Replace the placeholders in `text`, such as `{​@ name @​}`, with their values.
  *
+ * - Only a name that {@link isValidPlaceholderName} accepts makes a placeholder.
  * - Whitespace just inside the delimiters is optional.
+ * - `values` is an object or a {@link PlaceholderResolver}. In an object, a dotted name such as `user.name` reads a
+ *   nested own property.
+ * - A string or number value replaces its placeholder.
  * - A placeholder without a value stays as written. To find what's left, use {@link listPlaceholders} or
  *   {@link hasPlaceholders}.
  * - Each later line of a multi-line value gets the leading whitespace of the placeholder's line, except an empty
