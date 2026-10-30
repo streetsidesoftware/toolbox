@@ -47,6 +47,13 @@ describe('renderApiReference', () => {
     );
   });
 
+  test('lists a constant without parentheses', () => {
+    const reference = renderApiReference([
+      { heading: 'C', functions: [fn({ name: 'nbsp', params: undefined, summary: 'A no-break space.' })] },
+    ]);
+    assert.equal(reference, '## Functions\n\n### C\n\n- `nbsp`: A no-break space.\n');
+  });
+
   test('keeps the summary as Markdown, block syntax and placeholders included', () => {
     const reference = renderApiReference([
       { heading: 'C', functions: [fn({ summary: '- A `{@ name @}` **placeholder**, kept as written.' })] },

@@ -16,7 +16,7 @@ const HELP = `Usage: gen-api-reference [options]
 Writes ${API_REFERENCE_FILE}, the function reference, in each package whose README injects it with
 ${API_REFERENCE_MARKER}
 
-It lists the functions ${ENTRY_FILE} exports, grouped by the @category tag in their JSDoc.
+It lists the functions and constants ${ENTRY_FILE} exports, grouped by the @category tag in their JSDoc.
 \`pnpm run build:readme\` runs this; build the packages first.
 
 Options:

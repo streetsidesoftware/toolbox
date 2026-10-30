@@ -179,9 +179,22 @@ describe('readApiFunctions', () => {
     });
   });
 
-  test('throws on a value export that is not a function, and on export *', async () => {
-    await withModules({ 'index.ts': 'export const answer = 42;\n' }, async (index) => {
-      await assert.rejects(readApiFunctions(index), /answer in .*index\.ts isn't a function/);
+  test('reads a const that names no function as a constant, without parameters', async () => {
+    await withModules(
+      {
+        'index.ts': '/**\n * The answer.\n *\n * More detail.\n * @category Numbers\n */\nexport const answer = 42;\n',
+      },
+      async (index) => {
+        assert.deepEqual(await readApiFunctions(index), [
+          { name: 'answer', params: undefined, summary: 'The answer.', category: 'Numbers', aliases: [] },
+        ]);
+      },
+    );
+  });
+
+  test('throws on a value export that is not a function or a const, and on export *', async () => {
+    await withModules({ 'index.ts': 'export let answer = 42;\n' }, async (index) => {
+      await assert.rejects(readApiFunctions(index), /answer in .*index\.ts isn't a function or a const/);
     });
     await withModules({ 'index.ts': 'export const { a, b: [c] } = { a: 1, b: [2] };\n' }, async (index) => {
       await assert.rejects(readApiFunctions(index), /a in .*index\.ts isn't a function/);

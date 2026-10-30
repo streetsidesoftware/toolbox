@@ -8,6 +8,7 @@ import { text } from './builders.ts';
 import { detectMarkdownStyle } from './detectStyle.ts';
 import { DocumentElement } from './documentElement.ts';
 import { readFrontmatter, yamlNode } from './frontmatter.ts';
+import { isHtmlEntity } from './htmlEntity.ts';
 import {
   blockNodes,
   describe,
@@ -58,7 +59,8 @@ export interface TemplateValues {
  * - A string value shows exactly as given.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
- * - A placeholder inside code or HTML takes only a string, which goes in as given.
+ * - A placeholder inside code or HTML takes only a string, which goes in as given, or an {@link htmlEntity}.
+ *   In code it shows as its character, and in HTML as its reference.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * A result of one paragraph can go anywhere a string can. A longer one goes where paragraphs can.
@@ -81,7 +83,8 @@ export function template(markdown: string, values: TemplateValues): MDFragment |
  * - A string value shows exactly as given.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
- * - A placeholder inside code or HTML takes only a string, which goes in as given.
+ * - A placeholder inside code or HTML takes only a string, which goes in as given, or an {@link htmlEntity}.
+ *   In code it shows as its character, and in HTML as its reference.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
@@ -180,7 +183,8 @@ export function parseDocument(markdown: string): MDDocument {
  * - A string value shows exactly as given.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
- * - A placeholder inside code or HTML takes only a string, which goes in as given.
+ * - A placeholder inside code or HTML takes only a string, which goes in as given, or an {@link htmlEntity}.
+ *   In code it shows as its character, and in HTML as its reference.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
@@ -206,7 +210,8 @@ export function templateDocument(markdown: string, values: TemplateValues): MDDo
  * - A string value shows exactly as given.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
- * - A placeholder inside code or HTML takes only a string, which goes in as given.
+ * - A placeholder inside code or HTML takes only a string, which goes in as given, or an {@link htmlEntity}.
+ *   In code it shows as its character, and in HTML as its reference.
  *
  * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
  * @example
@@ -241,6 +246,8 @@ export function substitutePlaceholders(content: MDElement | string, values: Temp
   if (typeof content === 'string') return substitutePlaceholders(text(content), values);
   const rendering = renderingOf(content);
   if (!rendering) throw new TypeError(`expected a string or a Markdown element, got ${describe(content)}`);
+  // An HTML entity has no placeholder in it, and keeps its character.
+  if (isHtmlEntity(content)) return content;
   const substituted = isText(content) ? substituteInText(content.text, values) : undefined;
   if (substituted !== undefined) return text(substituted);
   const { style } = rendering;
@@ -578,20 +585,28 @@ function valueAsInline(value: TemplateValue, name: string): PhrasingContent[] {
   return inlineNodes(value as InlineContent, `{@ ${name} @}`);
 }
 
-/** A value inside code or HTML, as `inside` says: only a string, text, or a placeholder, inserted as is. */
+/**
+ * A value inside code or HTML, as `inside` says: only a string, text, a placeholder or an HTML entity, inserted as is.
+ * An entity goes in as its reference in HTML, which reads it, and as its character in code, which doesn't.
+ */
 function valueAsCode(value: TemplateValue, name: string, inside: 'code' | 'HTML'): string {
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
   if (isText(value)) return value.text;
   if (isKind(value, 'inline') && value.type === 'placeholder') return value.toString();
+  if (isHtmlEntity(value)) return inside === 'HTML' ? value.toString() : value.character;
   throw new TypeError(
-    `{@ ${name} @} is inside ${inside} and takes only a string, text, or a placeholder, got ${describe(value)}`,
+    `{@ ${name} @} is inside ${inside} and takes only a string, text, a placeholder or an HTML entity, got ${describe(value)}`,
   );
 }
 
-/** A value inside frontmatter, inserted as is: a string as written, and a Markdown element as rendered. */
+/**
+ * A value inside frontmatter, inserted as is: a string as written, and a Markdown element as rendered.
+ * An HTML entity goes in as its character, since YAML doesn't read references.
+ */
 function valueAsFrontmatter(value: TemplateValue): string {
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
   if (isText(value)) return value.text;
+  if (isHtmlEntity(value)) return value.character;
   // A template value can be any kind. groupedNodes throws when a piece isn't Markdown content.
   if (!isArray(value)) return value.toString();
   return new MarkdownElement(

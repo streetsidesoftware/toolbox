@@ -1,0 +1,135 @@
+import { characterEntities } from 'character-entities';
+
+import { htmlEntityNode } from './htmlEntityNode.ts';
+import { isKind, MarkdownElement } from './nodes.ts';
+import type { MDHtmlEntity } from './types.ts';
+
+class HtmlEntityElement extends MarkdownElement<'inline', 'htmlEntity'> implements MDHtmlEntity {
+  readonly character: string;
+
+  constructor(reference: string, character: string) {
+    super('inline', 'htmlEntity', 'an HTML entity', [htmlEntityNode(reference)]);
+    this.character = character;
+  }
+}
+
+/**
+ * Creates a character written as an HTML reference, such as `&nbsp;` for a no-break space.
+ *
+ * It's for a character a string can't show, such as a space the page would otherwise drop, or one that's hard to type.
+ *
+ * It takes any of:
+ * - A character: `'\u00A0'` gives `&nbsp;`. A character with several names gets the shortest, and one with none
+ *   gets its number, such as `&#x20;` for a space.
+ * - A name: `'nbsp'` gives `&nbsp;`.
+ * - A reference: `'&nbsp;'` or `'&#xA0;'` goes in as written.
+ *
+ * A name HTML doesn't define is an error. For the common ones, use a constant such as {@link nbsp} or {@link mdash}.
+ *
+ * @example
+ * md.p('10', md.htmlEntity('nbsp'), 'km');
+ * // 10&nbsp;km
+ * @category text
+ */
+export function htmlEntity(value: string): MDHtmlEntity {
+  if ([...value].length === 1) return new HtmlEntityElement(referenceFor(value), value);
+  const numeric = /^&#(?:x([\da-f]+)|(\d+));$/i.exec(value);
+  if (numeric) {
+    const codePoint = numeric[1] ? Number.parseInt(numeric[1], 16) : Number(numeric[2]);
+    return new HtmlEntityElement(value, String.fromCodePoint(codePoint));
+  }
+  const name = /^&(.+);$/.exec(value)?.[1] ?? value;
+  if (!Object.hasOwn(characterEntities, name)) throw new Error(`unknown HTML entity name: "${name}"`);
+  return new HtmlEntityElement(`&${name};`, characterEntities[name]);
+}
+
+/**
+ * A no-break space, written `&nbsp;`. The words on either side of it stay on one line.
+ * @category text
+ */
+export const nbsp: MDHtmlEntity = htmlEntity('nbsp');
+
+/**
+ * A space as wide as the letter n, written `&ensp;`.
+ * @category text
+ */
+export const ensp: MDHtmlEntity = htmlEntity('ensp');
+
+/**
+ * A space as wide as the letter m, written `&emsp;`.
+ * @category text
+ */
+export const emsp: MDHtmlEntity = htmlEntity('emsp');
+
+/**
+ * A thin space, written `&thinsp;`.
+ * @category text
+ */
+export const thinsp: MDHtmlEntity = htmlEntity('thinsp');
+
+/**
+ * A soft hyphen, written `&shy;`. A long word may break there, and shows a hyphen only when it does.
+ * @category text
+ */
+export const shy: MDHtmlEntity = htmlEntity('shy');
+
+/**
+ * An em dash, written `&mdash;`.
+ * @category text
+ */
+export const mdash: MDHtmlEntity = htmlEntity('mdash');
+
+/**
+ * An en dash, written `&ndash;`.
+ * @category text
+ */
+export const ndash: MDHtmlEntity = htmlEntity('ndash');
+
+/**
+ * An ellipsis, written `&hellip;`.
+ * @category text
+ */
+export const hellip: MDHtmlEntity = htmlEntity('hellip');
+
+/**
+ * A copyright sign, written `&copy;`.
+ * @category text
+ */
+export const copy: MDHtmlEntity = htmlEntity('copy');
+
+/** Whether a value is a character made by `htmlEntity`. */
+export function isHtmlEntity(value: unknown): value is MDHtmlEntity {
+  return isKind(value, 'inline') && value.type === 'htmlEntity';
+}
+
+/** The reference for a character: by name where it has one, and by number otherwise. */
+function referenceFor(character: string): string {
+  const name = nameOf(character);
+  return name ? `&${name};` : `&#x${(character.codePointAt(0) as number).toString(16).toUpperCase()};`;
+}
+
+let names: Map<string, string> | undefined;
+
+/**
+ * The name for a character: its shortest, and between spellings of one name, such as `lt` and `LT`, the lowercase one.
+ * Other ties go to the first name alphabetically, ignoring case.
+ */
+function nameOf(character: string): string | undefined {
+  names ??= shortestNames();
+  return names.get(character);
+}
+
+function shortestNames(): Map<string, string> {
+  const result = new Map<string, string>();
+  for (const [name, character] of Object.entries(characterEntities)) {
+    const known = result.get(character);
+    if (known === undefined || comesFirst(name, known)) result.set(character, name);
+  }
+  return result;
+}
+
+function comesFirst(name: string, other: string): boolean {
+  if (name.length !== other.length) return name.length < other.length;
+  const [a, b] = [name.toLowerCase(), other.toLowerCase()];
+  return a === b ? name === a : a < b;
+}

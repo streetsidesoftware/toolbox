@@ -52,6 +52,17 @@ There are two line-break elements, both inline. A `lineBreak()` is a Markdown ha
 
 A comment renders as `<!-- … -->`, with two dashes, as third-party bots write them. The renderer keeps the text from ending the comment early.
 
+### HTML entities
+
+Some characters are better written as an HTML reference, such as `&nbsp;`: a space the page would otherwise drop, or a character that's hard to type or to see in the file. Since a string is escaped, a reference typed in it shows as written, so an entity is an element of its own.
+
+- It takes a character, a name or a reference, whichever the script has at hand.
+- A character is written by name, since `&mdash;` reads better in the file than a number. Where a character has several names, the shortest is used, and between spellings of one name the lowercase one. A character with no name is written as a number.
+- An unknown name is an error. The check is only that HTML defines the name; nothing more is worth the code.
+- Constants cover the few characters scripts reach for most: spaces, dashes, the ellipsis, the soft hyphen and the copyright sign.
+
+In HTML, a line ending before a reference would turn into a space, so the reference is written as is, never as raw HTML. As a placeholder value, it goes in as its reference in HTML, and as its character in code and frontmatter, which don't read references.
+
 ### Tables
 
 A table takes a header and rows as arrays: `table(header, rows)`, the shape scripts already have their data in. Each cell holds inline content. Rendering keeps every cell on one line, which a GFM row needs:
@@ -104,7 +115,7 @@ A placeholder isn't inline or block by itself. Where it sits decides what it can
 
 - Inside a line, it takes only inline content.
 - On a line of its own, where blocks can go, it also takes blocks.
-- Inside code or HTML, it takes only a string, text, or a placeholder.
+- Inside code or HTML, it takes only a string, text, a placeholder or an HTML entity.
 
 Where a placeholder sits is the same whether it's written in Markdown text, in a string, or made with a builder:
 
