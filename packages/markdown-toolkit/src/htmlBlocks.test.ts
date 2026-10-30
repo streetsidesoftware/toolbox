@@ -363,7 +363,6 @@ describe('htmlTable', () => {
         cell                 | name
         ${strong('')}        | ${"strong('')"}
         ${paragraph('')}     | ${"paragraph('')"}
-        ${paragraph(' ')}    | ${"paragraph(' ')"}
     `('a cell of $name is empty, on one line', ({ cell }: { cell: AnyContent }) => {
     assert.equal(htmlTable([], [[cell]]).toString(), '<table>\n<tbody>\n<tr>\n<td></td>\n</tr>\n</tbody>\n</table>');
   });

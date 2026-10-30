@@ -299,8 +299,6 @@ describe('paragraph', () => {
   testEach`
         value                              | name
         ${p('')}                           | ${"p('')"}
-        ${p(' ')}                          | ${"p(' ')"}
-        ${p(' \t', lineBreak(), ' ')}      | ${"p(' \\t', lineBreak(), ' ')"}
         ${p(strong(''))}                   | ${"p(strong(''))"}
     `('$name renders nothing', ({ value }: { value: MDElement }) => {
     assert.equal(value.toString(), '');
@@ -319,6 +317,11 @@ describe('paragraph', () => {
   test('a paragraph left empty by substitution renders nothing', () => {
     const md = document('a', p(placeholder('x')), 'b');
     assert.equal(substitutePlaceholders(md, { x: '' }).toString(), 'a\n\nb\n');
+  });
+
+  test('a paragraph of whitespace stays', () => {
+    assert.equal(p(' ').toString(), '&#x20;');
+    assert.equal(document('a', p(' '), 'b').toString(), 'a\n\n&#x20;\n\nb\n');
   });
 
   test('a paragraph of whitespace in formatting renders', () => {

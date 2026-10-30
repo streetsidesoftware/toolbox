@@ -174,7 +174,7 @@ describe('template', () => {
   testEach`
         tpl                             | value  | expected
         ${'a **{@ x @}** b'}            | ${''}  | ${'a  b'}
-        ${'a\n\n{@ x @}\n\nb'}          | ${' '} | ${'a\n\nb'}
+        ${'a\n\n{@ x @}\n\nb'}          | ${''}  | ${'a\n\nb'}
     `(
     'an empty value leaves nothing: $tpl',
     ({ tpl, value, expected }: { tpl: string; value: string; expected: string }) => {
