@@ -14,6 +14,7 @@ import {
   mapParagraphsAndBlocks,
   MarkdownElement,
   renderingOf,
+  stringNodes,
   textNodes,
 } from './nodes.ts';
 import { placeholderNode } from './placeholderNode.ts';
@@ -54,7 +55,7 @@ class TextElement extends MarkdownElement<'inline', 'text'> implements MDText {
   readonly text: string;
 
   constructor(text: string) {
-    super('inline', 'text', 'text', textNodes(text));
+    super('inline', 'text', 'text', stringNodes(text));
     this.text = text;
   }
 }
@@ -102,7 +103,9 @@ function commentSafe(text: string): string {
 }
 
 /**
- * Creates text that shows exactly as given, even if it contains Markdown or HTML.
+ * Creates text whose Markdown and HTML show on the page as text, not as formatting.
+ *
+ * A newline in it starts a new line.
  *
  * @example
  * md.text('Use <details> for *long* notes');
@@ -119,7 +122,8 @@ export const inlineText: typeof text = text;
 /**
  * Creates paragraphs from plain text, starting a new one at each blank line.
  *
- * The text shows exactly as given, even if it contains Markdown or HTML.
+ * Markdown and HTML in the text show as text, not as formatting. A single newline shows as a space, so text wrapped at
+ * a fixed width reads as normal paragraphs.
  *
  * @example
  * md.blockText('First paragraph.\n\nSecond paragraph.');
@@ -247,7 +251,7 @@ export function strikethrough(content: InlineContent): MDStrikethrough {
 }
 
 /**
- * Creates code within a line of text, shown exactly as given.
+ * Creates code within a line of text.
  *
  * Empty code shows as one space of code, so the reader still sees it.
  *
@@ -387,7 +391,7 @@ export function hr(): MDHorizontalRule {
 export const horizontalRule: typeof hr = hr;
 
 /**
- * Creates a block of code, shown exactly as given.
+ * Creates a block of code.
  *
  * @param lang - the language, such as `ts` or `sh`, so the page can highlight the code.
  * @example

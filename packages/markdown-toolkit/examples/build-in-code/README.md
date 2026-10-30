@@ -1,7 +1,7 @@
 ## Build in code
 
 Each builder returns an element. Put elements together with `document`, and render the page with `toString()`. A
-document ends with a newline; other elements don't, so they can be joined. Strings are text, shown as written.
+document ends with a newline; other elements don't, so they can be joined. Strings are text: Markdown in them shows as text, and a newline starts a new line.
 
 <!--- @@inject: text/README.md --->
 
@@ -187,7 +187,7 @@ npm install --save-dev cspell
 
 ### Line breaks and comments
 
-A `lineBreak()` starts a new line in the same paragraph. For HTML or MDX, `br()` always writes `<br/>`. A
+A newline in a string, or a `lineBreak()`, starts a new line in the same paragraph. For HTML or MDX, `br()` always writes `<br/>`. A
 `comment` is an HTML comment, which isn't displayed, such as a `cspell:ignore` line for a spell checker.
 
 ```ts

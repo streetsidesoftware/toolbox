@@ -345,8 +345,8 @@ describe('text', () => {
     assert.equal(text, inlineText);
   });
 
-  test('a newline stays in the text', () => {
-    assert.equal(paragraph(inlineText('a\n- b')).toString(), 'a\n\\- b');
+  test('a newline is a line break', () => {
+    assert.equal(paragraph(inlineText('a\n- b')).toString(), 'a\\\n\\- b');
   });
 });
 
@@ -368,6 +368,36 @@ describe('placeholders', () => {
 
   test('an invalid name throws', () => {
     assert.throws(() => blockPlaceholder('a..b'), new Error('invalid placeholder name: "a..b"'));
+  });
+});
+
+describe('a newline in a string is a line break', () => {
+  testEach`
+    value                                                           | expected
+    ${paragraph('a\nb')}                                            | ${'a\\\nb'}
+    ${paragraph('a\r\nb\rc')}                                       | ${'a\\\nb\\\nc'}
+    ${paragraph('a \t\n  b')}                                       | ${'a\\\nb'}
+    ${paragraph('First.\n\nSecond.')}                               | ${'First.\\\n\\\nSecond.'}
+    ${paragraph(text('a\nb'))}                                      | ${'a\\\nb'}
+    ${paragraph(link('a\nb', 'https://example.com'))}               | ${'[a\\\nb](https://example.com)'}
+    ${paragraph(strong('a\nb'), emphasis('c\nd'), strikethrough('e\nf'))} | ${'**a\\\nb**_c\\\nd_~~e\\\nf~~'}
+    ${template('x {@ v @} y', { v: 'a\nb' })}                       | ${'x a\\\nb y'}
+    ${table(['h'], [['a\nb']])}                                     | ${'| h       |\n| ------- |\n| a<br/>b |'}
+    ${details('a\nb', 'c')}                                         | ${'<details>\n<summary>a<br/>b</summary>\n\nc\n\n</details>'}
+    ${definitionList([['a\nb', 'c']])}                              | ${'<dl>\n\n<dt>a<br/>b</dt>\n<dd>\n\nc\n\n</dd>\n\n</dl>'}
+    ${document('a', '\nb')}                                         | ${'a\\\nb\n'}
+    ${paragraph(inlineCode('a\nb'))}                                | ${'`a\nb`'}
+    ${blockText('a\nb')}                                            | ${'a\nb'}
+  `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
+    assert.equal(value.toString(), expected);
+  });
+
+  test('in a heading, a line break is <br/> at every depth', () => {
+    for (const depth of [1, 2, 3, 4, 5, 6] as const) {
+      const hashes = '#'.repeat(depth);
+      assert.equal(heading(depth, 'a\nb').toString(), `${hashes} a<br/>b`);
+      assert.equal(heading(depth, ['a', lineBreak(), 'b']).toString(), `${hashes} a<br/>b`);
+    }
   });
 });
 
@@ -427,16 +457,16 @@ describe('horizontalRule', () => {
 describe('line endings at the edges', () => {
   testEach`
         value                                                                  | expected
-        ${document('Fruit:\n', placeholder('fruit'), '\n')}                    | ${'Fruit:\n{@ fruit @}\n'}
-        ${document(document('Fruit:\n', placeholder('fruit'), '\n'), 'yummy')} | ${'Fruit:\n{@ fruit @}\n\nyummy\n'}
+        ${document('Fruit:\n', placeholder('fruit'), '\n')}                    | ${'Fruit:\\\n{@ fruit @}\n'}
+        ${document(document('Fruit:\n', placeholder('fruit'), '\n'), 'yummy')} | ${'Fruit:\\\n{@ fruit @}\n\nyummy\n'}
         ${document('Fruit:\n', blockPlaceholder('fruit'))}                     | ${'Fruit:\n\n{@ fruit @}\n'}
         ${document('Intro', '\n', list(['x']))}                                | ${'Intro\n\n- x\n'}
         ${list([listItem('Langs\n', list(['en']))])}                           | ${'- Langs\n  - en'}
-        ${paragraph('\n\na\nb\nc  \n\n')}                                      | ${'a\nb\nc'}
+        ${paragraph('\n\na\nb\nc  \n\n')}                                      | ${'a\\\nb\\\nc'}
         ${heading(2, 'Title\n')}                                               | ${'## Title'}
         ${paragraph('a', lineBreak())}                                         | ${'a'}
         ${paragraph(lineBreak(), 'a', lineBreak(), 'b')}                       | ${'a\\\nb'}
-        ${document('Fruit:\n', placeholder('fruit'), '\n', 'yummy')}           | ${'Fruit:\n{@ fruit @}\nyummy\n'}
+        ${document('Fruit:\n', placeholder('fruit'), '\n', 'yummy')}           | ${'Fruit:\\\n{@ fruit @}\\\nyummy\n'}
     `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
     assert.equal(value.toString(), expected);
   });
@@ -540,19 +570,19 @@ describe('document', () => {
 
   testEach`
     value                                     | expected
-    ${document('a\n', 'b')}                   | ${'a\nb\n'}
-    ${document('a', '\nb')}                   | ${'a\nb\n'}
-    ${document('a', '\n', 'b')}               | ${'a\nb\n'}
-    ${document('a', lineBreak(), 'b')}        | ${'a\n\\\nb\n'}
+    ${document('a\n', 'b')}                   | ${'a\\\nb\n'}
+    ${document('a', '\nb')}                   | ${'a\\\nb\n'}
+    ${document('a', '\n', 'b')}               | ${'a\\\nb\n'}
+    ${document('a', lineBreak(), 'b')}        | ${'a\\\nb\n'}
   `(
-    'a line ending already there needs no second one: $expected',
+    'a line break between arguments ends the line, with no second line ending: $expected',
     ({ value, expected }: { value: MDElement; expected: string }) => {
       assert.equal(value.toString(), expected);
     },
   );
 
-  test('a string is inline text and never splits', () => {
-    assert.equal(document('a\n\nb').toString(), 'a&#xA;&#xA;b\n');
+  test('a blank line in a string is two line breaks, not a new paragraph', () => {
+    assert.equal(document('a\n\nb').toString(), 'a\\\n\\\nb\n');
   });
 
   testEach`

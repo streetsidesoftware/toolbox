@@ -374,7 +374,7 @@ describe('substitutePlaceholders', () => {
     const fruit = list(['apple', 'orange']);
     const url = 'https://x';
     const md = document('Fruit:\n', placeholder('fruit'), '\n', link('images', url));
-    assert.equal(md.toString(), 'Fruit:\n{@ fruit @}\n[images](https://x)\n');
+    assert.equal(md.toString(), 'Fruit:\\\n{@ fruit @}\\\n[images](https://x)\n');
     assert.equal(
       substitutePlaceholders(md, { fruit }).toString(),
       'Fruit:\n\n- apple\n- orange\n\n[images](https://x)\n',

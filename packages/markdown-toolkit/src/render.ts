@@ -37,7 +37,7 @@ export function renderNodes(children: RootContent[], style: StyleOptions | undef
   const root: Root = { type: 'root', children: withoutEmptyParagraphs(structuredClone(children)) };
   visit(root, (node) => {
     if (node.type === 'paragraph' || node.type === 'heading' || node.type === 'tableCell') trimLines(node.children);
-    if (node.type === 'tableCell') visit(node, oneLine);
+    if (node.type === 'tableCell' || node.type === 'heading') visit(node, oneLine);
     // Markdown has no empty code: two backticks show as text, and two such pairs turn the text between them into code.
     if (node.type === 'inlineCode' && !node.value) node.value = ' ';
     // Formatting markers with nothing between them show as text, or as a horizontal rule on a line of their own.
@@ -89,8 +89,8 @@ function trimLines(children: PhrasingContent[]): void {
 }
 
 /**
- * Keep a table cell on one line, in place: a line break becomes `<br/>`, and a line ending in text or code a space.
- * A Markdown hard break would end the row.
+ * Keep a table cell or heading on one line, in place: a line break becomes `<br/>`, and a line ending in text or code
+ * a space. A Markdown hard break would end the row, or, in a heading, become a space or turn it into an underlined one.
  */
 function oneLine(node: Nodes, index: number | undefined, parent: Parent | undefined): void {
   if (node.type === 'break' && parent && index !== undefined) {

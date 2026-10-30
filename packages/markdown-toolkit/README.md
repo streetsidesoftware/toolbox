@@ -114,7 +114,7 @@ Language dictionaries for [cspell](https://cspell.org).
 ## Build in code
 
 Each builder returns an element. Put elements together with `document`, and render the page with `toString()`. A
-document ends with a newline; other elements don't, so they can be joined. Strings are text, shown as written.
+document ends with a newline; other elements don't, so they can be joined. Strings are text: Markdown in them shows as text, and a newline starts a new line.
 
 ### Text and paragraphs
 
@@ -278,7 +278,7 @@ npm install --save-dev cspell
 
 ### Line breaks and comments
 
-A `lineBreak()` starts a new line in the same paragraph. For HTML or MDX, `br()` always writes `<br/>`. A
+A newline in a string, or a `lineBreak()`, starts a new line in the same paragraph. For HTML or MDX, `br()` always writes `<br/>`. A
 `comment` is an HTML comment, which isn't displayed, such as a `cspell:ignore` line for a spell checker.
 
 ```ts
@@ -712,7 +712,7 @@ console.log(section.toString());
 ### Text
 
 - `p(...content)` (also `paragraph`): Creates a paragraph from one or more pieces, such as strings and links.
-- `text(value)` (also `inlineText`): Creates text that shows exactly as given, even if it contains Markdown or HTML.
+- `text(value)` (also `inlineText`): Creates text whose Markdown and HTML show on the page as text, not as formatting.
 - `blockText(value)`: Creates paragraphs from plain text, starting a new one at each blank line.
 - `parse(markdown)` (also `parseFragment`): Parses Markdown text so it can be added to a page with its formatting.
 - `lineBreak()`: Starts a new line without starting a new paragraph.
@@ -754,8 +754,8 @@ console.log(section.toString());
 
 ### Code
 
-- `codeBlock(code, lang?)`: Creates a block of code, shown exactly as given.
-- `inlineCode(code)`: Creates code within a line of text, shown exactly as given.
+- `codeBlock(code, lang?)`: Creates a block of code.
+- `inlineCode(code)`: Creates code within a line of text.
 
 ### Templates
 

@@ -56,7 +56,7 @@ export interface TemplateValues {
 /**
  * Creates Markdown from a template by substituting values for its `{​@ name @​}` placeholders.
  *
- * - A string value shows exactly as given.
+ * - A string value shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
@@ -80,7 +80,7 @@ export function template(markdown: string, values: TemplateValues): MDFragment |
 /**
  * Creates paragraphs and other blocks from a template by substituting values for its `{​@ name @​}` placeholders.
  *
- * - A string value shows exactly as given.
+ * - A string value shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
@@ -110,7 +110,7 @@ export function blockTemplate(markdown: string, values: TemplateValues): MDFragm
  *
  * Use the result in a heading, a table cell, a link or a sentence.
  *
- * - A string or number shows exactly as given.
+ * - A string or number shows as text, not as formatting, with each newline as a line break.
  * - A value can be text, a link, formatting or code.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
@@ -180,7 +180,7 @@ export function parseDocument(markdown: string): MDDocument {
  *
  * Placeholders in the frontmatter work too, and a value there goes in as given.
  *
- * - A string value shows exactly as given.
+ * - A string value shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
@@ -202,12 +202,12 @@ export function templateDocument(markdown: string, values: TemplateValues): MDDo
 /**
  * Substitute values for the `{​@ name @​}` placeholders in an existing element, such as a parsed file, or in plain text.
  *
- * When the first argument is a string, it shows exactly as given, even if it contains Markdown or HTML. For a string
- * that's already Markdown, use {@link template}.
+ * When the first argument is a string, its Markdown and HTML show as text, not as formatting, and each newline is a
+ * line break. For a string that's already Markdown, use {@link template}.
  *
  * Placeholders without a value stay in place, so you can substitute values in steps.
  *
- * - A string value shows exactly as given.
+ * - A string value shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An

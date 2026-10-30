@@ -91,11 +91,21 @@ export function textNodes(text: string): PhrasingContent[] {
 }
 
 /**
+ * Text nodes for a string, with each line ending as a line break.
+ * The spaces and tabs around a line ending go with it, since they would show as `&#x20;` at the edge of a line.
+ */
+export function stringNodes(text: string): PhrasingContent[] {
+  return text
+    .split(/[ \t]*(?:\r\n?|\n)[ \t]*/)
+    .flatMap((line, i): PhrasingContent[] => [...(i ? [{ type: 'break' } as const] : []), ...textNodes(line)]);
+}
+
+/**
  * The nodes for inline content.
  * @param where - what the content is for, such as `heading content`, for error messages.
  */
 export function inlineNodes(content: InlineContent, where: string): PhrasingContent[] {
-  if (typeof content === 'string') return textNodes(content);
+  if (typeof content === 'string') return stringNodes(content);
   if (isArray(content)) return content.flatMap((c) => inlineNodes(c, where));
   const rendering = renderingOf(content);
   if (rendering && isKind(content, 'inline', 'comment')) return rendering.nodes as PhrasingContent[];
@@ -232,18 +242,12 @@ export function argumentNodes(args: readonly AnyContent[], where: string): Mdast
   return inLists(nodes) as MdastBlockContent[];
 }
 
-/** Join lines with a line ending, except where one is already there: after a line break or before or after a newline. */
+/** Join lines with a line ending, except next to a line break, which already ends the line. */
 function joinLines(lines: readonly PhrasingContent[][]): PhrasingContent[] {
   const result: PhrasingContent[] = [];
   for (const line of lines) {
     const before = result.at(-1);
-    const after = line[0];
-    const ended =
-      !before ||
-      before.type === 'break' ||
-      (before.type === 'text' && before.value.endsWith('\n')) ||
-      (after.type === 'text' && after.value.startsWith('\n'));
-    if (!ended) result.push({ type: 'text', value: '\n' });
+    if (before && before.type !== 'break' && line[0].type !== 'break') result.push({ type: 'text', value: '\n' });
     for (const node of line) result.push(node);
   }
   return result;
