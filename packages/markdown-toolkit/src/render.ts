@@ -1,4 +1,4 @@
-import type { Html, Nodes, Parent, PhrasingContent, Root, RootContent, Yaml } from 'mdast';
+import type { Delete, Emphasis, Html, Nodes, Parent, PhrasingContent, Root, RootContent, Strong, Yaml } from 'mdast';
 import remarkGfm from 'remark-gfm';
 import remarkStringify from 'remark-stringify';
 import type { Options as StyleOptions } from 'remark-stringify';
@@ -32,12 +32,14 @@ const handlers = {
  * Escaping is left to remark, which knows where each node sits.
  */
 export function renderNodes(children: RootContent[], style: StyleOptions | undefined): string {
-  const root: Root = { type: 'root', children: withoutEmptyNodes(structuredClone(children)) };
+  const root: Root = { type: 'root', children: withoutEmptyParagraphs(structuredClone(children)) };
   visit(root, (node) => {
     if (node.type === 'paragraph' || node.type === 'heading' || node.type === 'tableCell') trimLines(node.children);
     if (node.type === 'tableCell') visit(node, oneLine);
     // Markdown has no empty code: two backticks show as text, and two such pairs turn the text between them into code.
     if (node.type === 'inlineCode' && !node.value) node.value = ' ';
+    // Formatting markers with nothing between them show as text, or as a horizontal rule on a line of their own.
+    if (isFormatting(node) && !node.children.length) node.children.push({ type: 'text', value: ' ' });
   });
   // A field set to `undefined` keeps the default, rather than falling back to remark's own default.
   const given = Object.entries(style ?? {}).filter(([, value]) => value !== undefined);
@@ -48,24 +50,21 @@ export function renderNodes(children: RootContent[], style: StyleOptions | undef
   return md.replace(/\n$/, '');
 }
 
-/** Holds the formatting types, whose markers would be left as noise with nothing between them. */
-const formatting = new Set(['strong', 'emphasis', 'delete']);
-
 /**
- * Return the nodes without those that would leave only noise in the Markdown:
- * - formatting with nothing in it, including formatting that holds only such formatting
- * - paragraphs with nothing in them, which would add blank lines
- *
- * Whitespace isn't nothing: formatting or a paragraph that holds only whitespace stays.
- * A link stays even with nothing in it, since its text and URL are part of the Markdown.
+ * Return the nodes without paragraphs that have nothing in them, which would only add blank lines.
+ * A paragraph that holds only whitespace stays.
  */
-function withoutEmptyNodes<T extends RootContent>(nodes: readonly T[]): T[] {
+function withoutEmptyParagraphs<T extends RootContent>(nodes: readonly T[]): T[] {
   return nodes.flatMap((node): T[] => {
     if (!('children' in node)) return [node];
-    const children = withoutEmptyNodes<RootContent>(node.children);
-    if (!children.length && (formatting.has(node.type) || node.type === 'paragraph')) return [];
+    const children = withoutEmptyParagraphs<RootContent>(node.children);
+    if (!children.length && node.type === 'paragraph') return [];
     return [{ ...node, children } as T];
   });
+}
+
+function isFormatting(node: Nodes): node is Delete | Emphasis | Strong {
+  return node.type === 'strong' || node.type === 'emphasis' || node.type === 'delete';
 }
 
 /**

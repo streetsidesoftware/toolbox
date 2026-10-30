@@ -198,7 +198,7 @@ export function link(content: InlineContent, url: string | URL): MDLink {
 /**
  * Creates bold text.
  *
- * With empty content, nothing shows.
+ * Empty text shows as one bold space.
  *
  * @example
  * md.strong('important');
@@ -214,7 +214,7 @@ export function strong(content: InlineContent): MDStrong {
 /**
  * Creates italic text.
  *
- * With empty content, nothing shows.
+ * Empty text shows as one italic space.
  *
  * @example
  * md.emphasis('maybe');
@@ -230,7 +230,7 @@ export function emphasis(content: InlineContent): MDEmphasis {
 /**
  * Creates text with a line through it.
  *
- * With empty content, nothing shows.
+ * Empty text shows as one struck-through space.
  *
  * @example
  * md.strikethrough('old price');

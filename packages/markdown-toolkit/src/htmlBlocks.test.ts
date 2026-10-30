@@ -114,8 +114,8 @@ describe('details', () => {
     );
   });
 
-  test('an empty summary and content keep the outline', () => {
-    assert.equal(details(strong(''), '').toString(), '<details>\n<summary>\n\n</summary>\n\n</details>');
+  test('a summary of empty formatting shows a space', () => {
+    assert.equal(details(strong(''), '').toString(), '<details>\n<summary>\n\n**&#x20;**\n\n</summary>\n\n</details>');
   });
 
   test('an empty paragraph in the content adds no blank lines', () => {
