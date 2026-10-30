@@ -4,7 +4,7 @@ How to write comments and JSDoc in this repo, in every package and in `scripts/`
 
 - [Every comment](#every-comment) covers all comments.
 - [Internal functions](#internal-functions) covers functions a package doesn't export.
-- [Exported functions](#exported-functions) covers the JSDoc users read on hover. Its
+- [Exported functions and types](#exported-functions-and-types) covers the JSDoc users read on hover. Its
   [markdown-toolkit](#markdown-toolkit) section adds that package's own rules.
 
 ## Every comment
@@ -92,14 +92,16 @@ A contract with several cases, as a list (`template.ts`):
  */
 ```
 
-## Exported functions
+## Exported functions and types
 
-The JSDoc of a function a package exports is what a user sees on hover. These rules apply to every package.
+The JSDoc of a function or type a package exports, and of a type's methods, is what a user sees on hover. These rules
+apply to every package. Where they say "function", they mean a type or method too.
 [markdown-toolkit](#markdown-toolkit) adds rules of its own.
 
 ### What gets this treatment
 
 - Every function a package exports gets a full comment: summary, details where needed, and an `@example`.
+- An exported type and each of its methods get a summary, and details where needed.
 - A `const` alias gets one line: `/** The same as {@link p}. */`. A renamed re-export, such as markdown-toolkit's
   `parseFragment`, gets none: the hover shows the original's comment.
 
