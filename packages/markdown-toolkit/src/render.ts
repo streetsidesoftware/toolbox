@@ -36,6 +36,8 @@ export function renderNodes(children: RootContent[], style: StyleOptions | undef
   visit(root, (node) => {
     if (node.type === 'paragraph' || node.type === 'heading' || node.type === 'tableCell') trimLines(node.children);
     if (node.type === 'tableCell') visit(node, oneLine);
+    // Markdown has no empty code: two backticks show as text, and two such pairs turn the text between them into code.
+    if (node.type === 'inlineCode' && !node.value) node.value = ' ';
   });
   // A field set to `undefined` keeps the default, rather than falling back to remark's own default.
   const given = Object.entries(style ?? {}).filter(([, value]) => value !== undefined);

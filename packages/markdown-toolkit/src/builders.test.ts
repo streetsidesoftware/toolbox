@@ -225,6 +225,27 @@ describe('strong, emphasis, strikethrough', () => {
   });
 });
 
+describe('inlineCode', () => {
+  testEach`
+        value                                              | expected
+        ${paragraph('a', inlineCode(''), 'b')}             | ${'a` `b'}
+        ${paragraph(inlineCode(''))}                       | ${'` `'}
+        ${paragraph(inlineCode(''), 'x', inlineCode(''))}  | ${'` `x` `'}
+        ${paragraph(strong(inlineCode('')))}               | ${'**` `**'}
+    `('empty code shows as a space: $expected', ({ value, expected }: { value: MDElement; expected: string }) => {
+    assert.equal(value.toString(), expected);
+  });
+
+  test('whitespace stays as given', () => {
+    assert.equal(paragraph('a', inlineCode('  '), 'b').toString(), 'a`  `b');
+  });
+
+  test('code left empty by substitution shows as a space', () => {
+    const md = paragraph('a', inlineCode('{@ x @}'), 'b');
+    assert.equal(substitutePlaceholders(md, { x: '' }).toString(), 'a` `b');
+  });
+});
+
 describe('line breaks', () => {
   test('lineBreak is a Markdown hard break in a paragraph', () => {
     assert.equal(paragraph('one', lineBreak(), 'two').toString(), 'one\\\ntwo');

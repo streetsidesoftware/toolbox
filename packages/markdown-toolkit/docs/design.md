@@ -192,6 +192,8 @@ A line ending or `lineBreak()` at the start or end of a paragraph, heading or ta
 
 Empty bold, italic or struck-through text, and an empty paragraph, render nothing. Each would leave only noise in the Markdown: markers that show as text, as in `a****b`, or as a horizontal rule for `****` on its own line; or extra blank lines between blocks. A link always stays, even with no text or URL, since the Markdown is the output and a link's text and URL are part of it. This covers formatting that holds only empty formatting, and content left empty by substitution. Whitespace isn't empty, in formatting or in a paragraph: it's still content.
 
+Empty inline code renders as one space of code. Inline code is content, not formatting, and the reader should still see it. Markdown has no empty code span: two backticks show as text, and two empty ones turn the text between them into code.
+
 ## Errors
 
 An element of the wrong kind throws a `TypeError`, such as a block where only inline content can go, or frontmatter that isn't first in a document. Other misuse throws an `Error`, such as a heading depth outside 1–6, an invalid placeholder name, or an inline template that isn't one paragraph. Each message names what was wrong: `heading content must be inline, got a list`.
