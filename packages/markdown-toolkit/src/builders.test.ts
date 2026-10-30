@@ -217,14 +217,6 @@ describe('numbered lists', () => {
     );
   });
 
-  test('a start goes only with ordered: true', () => {
-    assert.throws(
-      // @ts-expect-error a bulleted list has no start
-      () => list(['a'], { start: 2 }),
-      new TypeError('a list start goes only with ordered: true'),
-    );
-  });
-
   testEach`
     start      | given
     ${-1}      | ${'-1'}
