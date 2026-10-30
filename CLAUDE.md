@@ -34,9 +34,9 @@ After pushing more commits to an already-open PR, re-check that its body still m
 
 Use explicit escape sequences (e.g. ` `, `\t`) rather than literal invisible/non-printing characters in
 source code, including inside string and regex literals. The one exception, a zero-width space in a comment, is in
-[Writing comments and JSDoc](docs/writing-jsdoc.md).
+[Writing comments and JSDoc](docs/writing-comments.md).
 
-Read [Writing comments and JSDoc](docs/writing-jsdoc.md) before writing or changing a comment. The JSDoc of an
+Read [Writing comments and JSDoc](docs/writing-comments.md) before writing or changing a comment. The JSDoc of an
 exported function follows stricter rules there, since users read it on hover.
 
 Tests use `node:test` and `node:assert/strict`. Don't add vitest, jest, or another test framework.

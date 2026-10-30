@@ -257,4 +257,4 @@ The README ends with a `## Functions` section that `gen-api-reference` writes fr
 - A summary is at most 140 characters, the length of a comment line. The only inline tag it may use is `{@link name}`, and raw HTML fails, since it's almost always a tag meant as text: write `` `<details>` ``.
 - A function without JSDoc, a `@category` or a summary fails `pnpm run build:readme` and the `scripts` tests. So does a config that doesn't match the code.
 
-How to write the JSDoc itself, from the summary to the examples, is in [Writing comments and JSDoc](../../../docs/writing-jsdoc.md#exported-functions-and-types).
+How to write the JSDoc itself, from the summary to the examples, is in [Writing comments and JSDoc](../../../docs/writing-comments.md#exported-functions-and-types).
