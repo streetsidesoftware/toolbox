@@ -6,6 +6,7 @@ import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
 import type { HtmlEntityNode } from './htmlEntityNode.ts';
+import type { InlineHtmlNode } from './inlineHtmlNode.ts';
 import type { PlaceholderNode } from './placeholderNode.ts';
 
 export type { Options as StyleOptions } from 'remark-stringify';
@@ -21,11 +22,12 @@ export const defaultStyle: StyleOptions = {
   strong: '*',
 };
 
-/** A placeholder, an HTML entity and frontmatter are written as is. */
+/** A placeholder, an HTML entity, HTML inside a line and frontmatter are written as is. */
 // remark-stringify's handler types list only mdast's own node types.
 const handlers = {
   placeholder: (node: PlaceholderNode) => node.value,
   htmlEntity: (node: HtmlEntityNode) => node.value,
+  inlineHtml: (node: InlineHtmlNode) => node.value,
   yaml: (node: Yaml) => (node.value ? `---\n${node.value}\n---` : '---\n---'),
 } as StyleOptions['handlers'];
 

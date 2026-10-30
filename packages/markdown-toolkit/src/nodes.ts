@@ -1,6 +1,7 @@
 import { listPlaceholders } from '@streetsidesoftware/placeholders';
 import type { List, ListItem, BlockContent as MdastBlockContent, PhrasingContent, RootContent, Text } from 'mdast';
 
+import { asInlineHtml } from './inlineHtmlNode.ts';
 import { placeholderNodeAsWritten } from './placeholderNode.ts';
 import { renderNodes } from './render.ts';
 import type { StyleOptions } from './render.ts';
@@ -108,7 +109,8 @@ export function inlineNodes(content: InlineContent, where: string): PhrasingCont
   if (typeof content === 'string') return stringNodes(content);
   if (isArray(content)) return content.flatMap((c) => inlineNodes(c, where));
   const rendering = renderingOf(content);
-  if (rendering && isKind(content, 'inline', 'comment')) return rendering.nodes as PhrasingContent[];
+  // Inside a line, HTML such as a comment or `<br/>` is written as is, so a line ending before it stays.
+  if (rendering && isKind(content, 'inline', 'comment')) return rendering.nodes.map(asInlineHtml);
   if (isListItem(content)) throw new TypeError(`${where} can't hold a list item; a list item goes in a list`);
   throw new TypeError(`${where} must be inline, got ${describe(content)}`);
 }

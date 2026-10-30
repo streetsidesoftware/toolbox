@@ -62,6 +62,8 @@ Where a hard break can't go, a line break renders as `<br/>`: in a heading, a ta
 
 A comment renders as `<!-- … -->`, with two dashes, as third-party bots write them. The renderer keeps the text from ending the comment early.
 
+A comment goes where the call puts it: inside a line, at the end of one, on a line of its own, or at the start of a line. Every placement is reachable, as someone typing the file could write it. The page follows Markdown: a line that starts with a comment is HTML, so it ends the paragraph before it.
+
 ### HTML entities
 
 Some characters are better written as an HTML reference, such as `&nbsp;`: a space the page would otherwise drop, or a character that's hard to type or to see in the file. Since a string is escaped, a reference typed in it shows as written, so an entity is an element of its own.
@@ -235,7 +237,7 @@ An element is made only by a factory function, such as `link(…)` or `list(…)
 - The key names the package. If what's stored under it ever changes incompatibly, a new key such as `….value.1` can be used.
 - The key is a brand, not privacy: anyone can read it.
 
-A placeholder is an mdast node type of its own, which the renderer writes as is. If it were an HTML node, a line ending before it would render as a space, and a placeholder written on its own line would end up inside the line before it.
+A placeholder is an mdast node type of its own, which the renderer writes as is. If it were an HTML node, a line ending before it would render as a space, and a placeholder written on its own line would end up inside the line before it. HTML inside a line, such as a comment or `<br/>`, gets a node type of its own for the same reason.
 
 The `MarkdownStyle` type is the package's own interface, not remark-stringify's options, so the public types don't tie the API to remark's version. Fields are added when a script needs them.
 

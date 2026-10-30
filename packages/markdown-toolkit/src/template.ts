@@ -9,6 +9,7 @@ import { detectMarkdownStyle } from './detectStyle.ts';
 import { DocumentElement } from './documentElement.ts';
 import { readFrontmatter, yamlNode } from './frontmatter.ts';
 import { isHtmlEntity } from './htmlEntity.ts';
+import { asInlineHtmlNode } from './inlineHtmlNode.ts';
 import {
   blockNodes,
   describe,
@@ -482,6 +483,11 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
    */
   const substituteInNodes = (nodes: RootContent[], lines: boolean, blocks: boolean): Piece[] =>
     nodes.flatMap((node, i): Piece[] => {
+      const inlineHtml = asInlineHtmlNode(node);
+      if (inlineHtml) {
+        inlineHtml.value = substituteInCode(inlineHtml.value, 'HTML');
+        return [node];
+      }
       const placeholder = asPlaceholderNode(node);
       if (placeholder) {
         const name = placeholderName(placeholder);

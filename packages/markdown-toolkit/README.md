@@ -670,7 +670,7 @@ description: >-
 
 # CSpell
 
-Settings for the cspell command line tool.
+Settings for the cspell command line tool.\
 They apply to every file it checks.
 ```
 
