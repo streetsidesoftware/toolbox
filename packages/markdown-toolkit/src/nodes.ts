@@ -209,7 +209,7 @@ export function groupedNodes(content: AnyContent | readonly AnyContent[], where:
  * Return the blocks for the arguments of `document`, `listItem` or `details`, as {@link groupedNodes} does, but with
  * each argument on its own line:
  * - Inline arguments in a row form one paragraph, a line each. An array is one argument.
- * - An argument loses the spaces at its start and end, which would show as `&#x20;` before a line ending.
+ * - An argument loses the spaces and tabs at its start and end, which would show escaped next to a line ending.
  * - An argument that renders nothing leaves an empty line, so the arguments around it are two paragraphs.
  * @param where - what the content is for, for error messages.
  */
@@ -233,7 +233,7 @@ export function argumentNodes(args: readonly AnyContent[], where: string): Mdast
         for (const node of blockNodes(part.block, where)) nodes.push(node);
         return;
       }
-      const line = trimSpaces(inlineNodes(part.inline, where), i === 0, i === parts.length - 1);
+      const line = trimBlanks(inlineNodes(part.inline, where), i === 0, i === parts.length - 1);
       if (line.length) lines.push(line);
       else endParagraph();
     });
@@ -253,11 +253,11 @@ function joinLines(lines: readonly PhrasingContent[][]): PhrasingContent[] {
   return result;
 }
 
-/** Inline nodes without the spaces at the chosen ends. Text left empty is dropped. */
-function trimSpaces(nodes: readonly PhrasingContent[], start: boolean, end: boolean): PhrasingContent[] {
+/** Inline nodes without the spaces and tabs at the chosen ends. Text left empty is dropped. */
+function trimBlanks(nodes: readonly PhrasingContent[], start: boolean, end: boolean): PhrasingContent[] {
   const result = [...nodes];
   while (start && result[0]?.type === 'text') {
-    const value = result[0].value.replace(/^ +/, '');
+    const value = result[0].value.replace(/^[ \t]+/, '');
     if (value) {
       result[0] = { ...result[0], value };
       break;
@@ -266,7 +266,7 @@ function trimSpaces(nodes: readonly PhrasingContent[], start: boolean, end: bool
   }
   while (end && result.at(-1)?.type === 'text') {
     const last = result.at(-1) as Text;
-    const value = last.value.replace(/ +$/, '');
+    const value = last.value.replace(/[ \t]+$/, '');
     if (value) {
       result[result.length - 1] = { ...last, value };
       break;

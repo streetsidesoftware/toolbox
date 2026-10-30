@@ -557,6 +557,7 @@ describe('document', () => {
     ${document('a', [], 'b')}                                      | ${'a\n\nb\n'}
     ${document('a', strong(''), 'b')}                              | ${'a\n**&#x20;**\nb\n'}
     ${document('a ', ' b')}                                        | ${'a\nb\n'}
+    ${document('a\t', '\tb')}                                      | ${'a\nb\n'}
     ${document('a', '- b')}                                        | ${'a\n\\- b\n'}
     ${document(frontmatter('x: 1'), 'a', 'b')}                     | ${'---\nx: 1\n---\n\na\nb\n'}
     ${list([listItem('a', 'b')])}                                  | ${'- a\n  b'}
