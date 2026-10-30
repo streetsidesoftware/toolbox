@@ -242,8 +242,8 @@ export type InlineContent = string | MDInline | readonly InlineContent[];
 /** Content on its own lines. An array is a sequence of blocks. */
 export type BlockContent = MDBlock | readonly BlockContent[];
 
-/** Content that can be either a block or inline. */
-export type BlockOrInlineContent = InlineContent | BlockContent;
+/** Describes content that can be a block, inline, or a list item, which forms a list with the list items next to it. */
+export type BlockOrInlineContent = InlineContent | BlockContent | MDListItem;
 
 /** Block or inline content, or an array that mixes them. */
 export type AnyContent = BlockOrInlineContent | readonly BlockOrInlineContent[];

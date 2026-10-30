@@ -5,6 +5,7 @@ import {
   describe,
   groupedNodes,
   inlineNodes,
+  inLists,
   isArray,
   isText,
   mapParagraphsAndBlocks,
@@ -158,11 +159,12 @@ function htmlEscape(text: string): string {
 
 /** The blocks of a table cell, grouped as in a document, with each line ending in a string as a line break. */
 function cellNodes(content: AnyContent): RootContent[] {
-  return mapParagraphsAndBlocks(
+  const nodes = mapParagraphsAndBlocks(
     content,
     (inline): RootContent => ({ type: 'paragraph', children: inline.flatMap(cellInlineNodes) }),
     (block) => blockNodes(block, 'table cell'),
   );
+  return inLists(nodes);
 }
 
 function cellInlineNodes(content: InlineContent): PhrasingContent[] {

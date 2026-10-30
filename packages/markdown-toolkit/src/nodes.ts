@@ -1,5 +1,5 @@
 import { listPlaceholders } from '@streetsidesoftware/placeholders';
-import type { ListItem, BlockContent as MdastBlockContent, PhrasingContent, RootContent } from 'mdast';
+import type { List, ListItem, BlockContent as MdastBlockContent, PhrasingContent, RootContent } from 'mdast';
 
 import { placeholderNodeAsWritten } from './placeholderNode.ts';
 import { renderNodes } from './render.ts';
@@ -16,6 +16,9 @@ import type {
   MDText,
   MDType,
 } from './types.ts';
+
+/** Describes content on its own lines, where list items in a row form a list. */
+type BlockLike = BlockContent | MDListItem | readonly (BlockContent | MDListItem)[];
 
 /**
  * The key an element's rendering is stored under. Having it is what makes a value a Markdown element.
@@ -96,17 +99,18 @@ export function inlineNodes(content: InlineContent, where: string): PhrasingCont
   if (isArray(content)) return content.flatMap((c) => inlineNodes(c, where));
   const rendering = renderingOf(content);
   if (rendering && isKind(content, 'inline', 'comment')) return rendering.nodes as PhrasingContent[];
+  if (isListItem(content)) throw new TypeError(`${where} can't hold a list item; a list item goes in a list`);
   throw new TypeError(`${where} must be inline, got ${describe(content)}`);
 }
 
 /**
- * The nodes for block content.
+ * Return the nodes for block content. A list item stays on its own, for {@link inLists} to put in a list.
  * @param where - what the content is for, for error messages.
  */
-export function blockNodes(content: BlockContent, where: string): RootContent[] {
+export function blockNodes(content: BlockLike, where: string): RootContent[] {
   if (isArray(content)) return content.flatMap((c) => blockNodes(c, where));
   const rendering = renderingOf(content);
-  if (rendering && isKind(content, 'block', 'comment')) return rendering.nodes;
+  if (rendering && isKind(content, 'block', 'comment', 'listItem')) return rendering.nodes;
   throw new TypeError(`${where} must be blocks, got ${describe(content)}`);
 }
 
@@ -114,6 +118,12 @@ export function blockNodes(content: BlockContent, where: string): RootContent[] 
 export function isBlockContent(content: unknown): content is BlockContent {
   if (Array.isArray(content)) return content.length > 0 && content.every(isBlockContent);
   return isKind(content, 'block');
+}
+
+/** Check whether content goes on its own lines: a block element, a list item, or a non-empty array of them. */
+export function isBlockLike(content: unknown): content is BlockLike {
+  if (Array.isArray(content)) return content.length > 0 && content.every(isBlockLike);
+  return isKind(content, 'block', 'listItem');
 }
 
 /** Whether a value is a list item made by `listItem`. */
@@ -146,7 +156,7 @@ export function describe(value: unknown): string {
 export function mapParagraphsAndBlocks<T>(
   content: AnyContent | readonly AnyContent[],
   mapParagraph: (inline: InlineContent[]) => T | readonly T[],
-  mapBlock: (block: MDBlock) => T | readonly T[],
+  mapBlock: (block: MDBlock | MDListItem) => T | readonly T[],
 ): T[] {
   const result: (T | readonly T[])[] = [];
   let paragraph: InlineContent[] = [];
@@ -159,7 +169,7 @@ export function mapParagraphsAndBlocks<T>(
       piece.forEach(add);
       return;
     }
-    if (isBlockContent(piece)) {
+    if (isBlockContent(piece) || isListItem(piece)) {
       endParagraph();
       result.push(mapBlock(piece));
       return;
@@ -172,15 +182,49 @@ export function mapParagraphsAndBlocks<T>(
 }
 
 /**
- * The blocks for mixed content: the inline pieces between blocks form a paragraph, and blocks follow.
+ * Return the blocks for mixed content: the inline pieces between blocks form a paragraph, blocks follow, and list
+ * items form a list.
  * @param where - what the content is for, for error messages.
  */
 export function groupedNodes(content: AnyContent | readonly AnyContent[], where: string): MdastBlockContent[] {
-  return mapParagraphsAndBlocks(
+  const nodes = mapParagraphsAndBlocks(
     content,
-    (inline): MdastBlockContent => ({ type: 'paragraph', children: inlineNodes(inline, where) }),
-    (block) => blockNodes(block, where) as MdastBlockContent[],
+    (inline): RootContent => ({ type: 'paragraph', children: inlineNodes(inline, where) }),
+    (block) => blockNodes(block, where),
   );
+  return inLists(nodes) as MdastBlockContent[];
+}
+
+/**
+ * Put each run of list items in a bullet list. A run joins a list right before or after it, so a list item next to a
+ * list is one more item of it, and the list keeps its numbering. Two lists in a row stay two lists.
+ */
+export function inLists(nodes: readonly RootContent[]): RootContent[] {
+  const result: RootContent[] = [];
+  let joined: List | undefined;
+  let joinedBefore = false;
+  for (const node of nodes) {
+    if (node.type === 'listItem') {
+      if (!joined) {
+        const before = result.at(-1)?.type === 'list' ? (result.pop() as List) : undefined;
+        joined = { type: 'list', ordered: false, spread: false, ...before, children: [...(before?.children ?? [])] };
+        joinedBefore = before !== undefined;
+        result.push(joined);
+      }
+      joined.children.push(node);
+      continue;
+    }
+    if (joined && node.type === 'list') {
+      // With no list before them, the list items join this one as its first items, so it keeps its own settings.
+      if (!joinedBefore) Object.assign(joined, { ...node, children: joined.children });
+      for (const item of node.children) joined.children.push(item);
+      joined = undefined;
+      continue;
+    }
+    joined = undefined;
+    result.push(node);
+  }
+  return result;
 }
 
 /** A list item from its pieces, grouped as in {@link groupedNodes}. */

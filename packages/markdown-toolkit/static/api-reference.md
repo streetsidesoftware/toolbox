@@ -26,7 +26,7 @@
 ### Lists and tables
 
 - `list(entries)`: Creates a bulleted list, one item per entry.
-- `listItem(...content)`: Creates one list item from several pieces, for use in `list`.
+- `listItem(...content)`: Creates one list item from several pieces.
 - `table(header, rows, options?)`: Creates a table with a header row, then one row per entry.
 - `htmlTable(header, rows, options?)`: Creates a table whose cells can hold anything, including lists and paragraphs.
 - `dl(entries)` (also `definitionList`): Creates a list of terms, each followed by its definition.

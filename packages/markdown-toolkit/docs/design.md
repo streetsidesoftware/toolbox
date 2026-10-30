@@ -13,7 +13,7 @@ Every element has a `kind`, which decides where it may go:
 - **Inline** (`'inline'`) goes inside a line: text, a placeholder, a link, strong, emphasis, strikethrough, inline code, a line break, `<br/>`, and an inline fragment.
 - **Block** (`'block'`) goes on its own lines: a heading, a paragraph, a list, a code block, a horizontal rule, a table, an HTML table, details, a definition list, a document, a fragment, and a block placeholder.
 - **Comment** (`'comment'`) goes either inside a line or on its own lines, so it covers a block notice such as `cspell:disable` and an inline `cspell:ignore`.
-- **List item** (`'listItem'`) goes only directly in a list.
+- **List item** (`'listItem'`) goes in a list, or wherever blocks can go. There, list items in a row form a bullet list and join a list right before or after them, so items a script builds one by one form one list. Two lists in a row stay two lists. Where only inline content can go, a list item is an error that says it goes in a list.
 - **Frontmatter** (`'frontmatter'`) goes only first in a document.
 
 A fragment is blocks of Markdown made from text or by substitution: it comes from `parse()`, a template, `blockText()`, or `substitutePlaceholders()`. An inline fragment is the same for inline content, from `parse()`, a template, or `substitutePlaceholders()`. A heading and a paragraph are blocks that hold inline content.
