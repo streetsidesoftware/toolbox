@@ -11,6 +11,9 @@ How to write comments and JSDoc in this repo, in every package and in `scripts/`
 
 - Keep a comment short. It covers the "what" and, only when it's non-obvious, a bit of the "why".
 - Write short sentences, one idea each, as many as the comment needs. Don't squeeze several facts into one long line.
+- Start a function or method comment with a verb in the imperative: "Render Markdown nodes as text.", "Create bold
+  text."
+- Write a type's comment in the third person, present tense: "Holds…", "Describes…".
 - Use a list when a comment covers several cases.
 - Don't restate what a well-named identifier already says.
 - Keep a comment line to 140 characters or fewer.
@@ -62,10 +65,10 @@ When a function changes:
 
 Examples from `packages/markdown-toolkit/src`:
 
-The contract, including the `undefined` case a caller must handle (`nodes.ts`):
+The contract, including the `undefined` case a caller must handle (`nodes.ts`, rewritten in the imperative):
 
 ```ts
-/** How a Markdown element renders, or `undefined` for anything else. */
+/** Return how a Markdown element renders, or `undefined` for anything else. */
 ```
 
 What it does, then why it doesn't escape, so nobody adds escaping (`render.ts`):
@@ -114,10 +117,10 @@ renders the comment as Markdown.
 
 ### The summary
 
-The summary is the first paragraph: one sentence in the third person, starting with a verb, that says what the function
-does.
+The summary is the first paragraph: one sentence that says what the function does, starting with a verb in the
+imperative, as [Every comment](#every-comment) says.
 
-- Say what it makes or does, from the reader's side: "Creates bold text.", "Starts a new line without starting a new
+- Say what it makes or does, from the reader's side: "Create bold text.", "Start a new line without starting a new
   paragraph."
 - Keep advice out of it. "Use it for notes to tools" tells the reader when to call the function, not what it does.
 - Leave rules, exceptions and edge cases for the details.
@@ -204,6 +207,7 @@ Words to avoid:
 ### Examples
 
 Before and after, from markdown-toolkit's rewrite in PR [#92](https://github.com/streetsidesoftware/toolbox/pull/92).
+The "after" summaries are in the imperative, as this guide asks. PR 92 wrote them in the third person.
 They show the general rules and the markdown-toolkit ones.
 
 #### Text
@@ -223,7 +227,7 @@ After: says what the reader gets, and shows it.
 
 ```ts
 /**
- * Creates text that shows exactly as given, even if it contains Markdown or HTML.
+ * Create text that shows exactly as given, even if it contains Markdown or HTML.
  *
  * @example
  * md.text('Use <details> for *long* notes');
@@ -247,7 +251,7 @@ After: says what the page shows and where it works.
 
 ```ts
 /**
- * Starts a new line without starting a new paragraph.
+ * Start a new line without starting a new paragraph.
  *
  * It works anywhere a string can go, even in a heading or a table cell.
  *
@@ -282,7 +286,7 @@ After: one list for the value rules, one paragraph for where the result goes, an
 
 ```ts
 /**
- * Creates Markdown from a template by substituting values for its `{@ name @}` placeholders.
+ * Create Markdown from a template by substituting values for its `{@ name @}` placeholders.
  *
  * - A string value shows exactly as given.
  * - A placeholder within a sentence takes text, links, formatting or code.
