@@ -111,9 +111,12 @@ function numberFor(character: string): string {
 
 let names: Map<string, string> | undefined;
 
+/** Familiar HTML 4 names for characters whose alphabetical tie picks an obscure one, such as `angst` for Å. */
+const familiarNames: Record<string, string> = { '\u00C5': 'Aring', '\u00A8': 'uml' };
+
 /**
  * The name for a character: its shortest, and between spellings of one name, such as `lt` and `LT`, the lowercase one.
- * Other ties go to the first name alphabetically, ignoring case.
+ * Other ties go to the first name alphabetically, ignoring case, unless the character has a familiar name.
  */
 function nameOf(character: string): string | undefined {
   names ??= shortestNames();
@@ -126,6 +129,7 @@ function shortestNames(): Map<string, string> {
     const known = result.get(character);
     if (known === undefined || comesFirst(name, known)) result.set(character, name);
   }
+  for (const [character, name] of Object.entries(familiarNames)) result.set(character, name);
   return result;
 }
 

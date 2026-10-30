@@ -67,6 +67,23 @@ describe('htmlEntity', () => {
     assert.equal(htmlEntity('\u2194').toString(), '&harr;');
   });
 
+  testEach`
+    character   | expected
+    ${'\u00C5'} | ${'&Aring;'}
+    ${'\u00A8'} | ${'&uml;'}
+    ${'\u2254'} | ${'&Assign;'}
+    ${'\u2250'} | ${'&doteq;'}
+    ${'\u226B'} | ${'&gg;'}
+    ${'\u02C7'} | ${'&caron;'}
+    ${'\u226A'} | ${'&ll;'}
+    ${'\u03C2'} | ${'&sigmaf;'}
+  `(
+    'a tie between names of one length gives $expected',
+    ({ character, expected }: { character: string; expected: string }) => {
+      assert.equal(htmlEntity(character).toString(), expected);
+    },
+  );
+
   test('an unknown name throws', () => {
     assert.throws(() => htmlEntity('nope'), new Error('unknown HTML entity name: "nope"'));
     assert.throws(() => htmlEntity('&nope;'), new Error('unknown HTML entity name: "nope"'));
