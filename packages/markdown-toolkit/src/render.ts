@@ -57,7 +57,7 @@ const formatting = new Set(['strong', 'emphasis', 'delete']);
  * Whitespace isn't nothing: formatting or a paragraph that holds only whitespace stays.
  * A link stays even with nothing in it, since its text and URL are part of the Markdown.
  */
-export function withoutEmptyNodes<T extends RootContent>(nodes: readonly T[]): T[] {
+function withoutEmptyNodes<T extends RootContent>(nodes: readonly T[]): T[] {
   return nodes.flatMap((node): T[] => {
     if (!('children' in node)) return [node];
     const children = withoutEmptyNodes<RootContent>(node.children);

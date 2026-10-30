@@ -10,7 +10,6 @@ import {
   mapParagraphsAndBlocks,
   MarkdownElement,
 } from './nodes.ts';
-import { withoutEmptyNodes } from './render.ts';
 import { alignOf } from './table.ts';
 import type {
   AnyContent,
@@ -107,7 +106,7 @@ export function htmlTable(
     tags += '<tr>\n';
     for (let i = 0; i < columns; ++i) {
       const open = align[i] ? `<${tag} align="${align[i]}">` : `<${tag}>`;
-      const blocks = withoutEmptyNodes(cellNodes(cells[i] ?? []));
+      const blocks = cellNodes(cells[i] ?? []);
       const text = plainText(blocks);
       if (text !== undefined) {
         tags += `${open}${text}</${tag}>\n`;
@@ -138,7 +137,7 @@ export function htmlTable(
  * Plain text goes on one line, HTML-escaped, since Markdown isn't read there. Anything else gets blank lines, so it renders.
  */
 function wrapped(before: string, tag: string, content: InlineContent, after: string, where: string): RootContent[] {
-  const children = withoutEmptyNodes(inlineNodes(content, where));
+  const children = inlineNodes(content, where);
   if (children.every((node) => node.type === 'text')) {
     const text = htmlEscape(children.map((node) => node.value).join(''));
     return [html(`${before}<${tag}>${text}</${tag}>${after}`)];
