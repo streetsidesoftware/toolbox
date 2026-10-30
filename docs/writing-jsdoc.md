@@ -189,6 +189,7 @@ above.
 - The README ends with a [function reference](../packages/markdown-toolkit/docs/design.md#function-reference),
   generated from each function's parameter names and summary. The mechanical rules, such as the 140-character summary
   and `@category`, are in that section of the design doc.
+- A summary never says "you", since the README reference shows it and the README never says "you". The details may.
 
 Words to avoid:
 
