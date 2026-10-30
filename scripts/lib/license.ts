@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 
 /**
- * Makes `file` a copy of `licenseText`, the root `LICENSE`, optionally only reporting.
+ * Make `file` a copy of `licenseText`, the root `LICENSE`, optionally only reporting.
  * @returns `true` if the file was missing or different.
  */
 export async function syncLicense(

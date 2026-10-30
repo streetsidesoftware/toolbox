@@ -6,20 +6,20 @@ import { fromMarkdown } from 'mdast-util-from-markdown';
 import type { BindingPattern, BindingRestElement, Comment, ParamPattern, Statement } from 'oxc-parser';
 import { parseSync } from 'oxc-parser';
 
-/** The longest summary, in characters: the length of one comment line. */
+/** Holds the longest summary, in characters: the length of one comment line. */
 export const SUMMARY_LIMIT = 140;
 
-/** A function a package exports, with what its JSDoc says about it. */
+/** Describes a function a package exports, with what its JSDoc says about it. */
 export interface ApiFunction {
-  /** The name it's declared with, or the first name it's exported as when that one isn't exported. */
+  /** Holds the name it's declared with, or the first name it's exported as when that one isn't exported. */
   name: string;
-  /** Parameter names: `lang?` when optional, `...content` for a rest parameter. */
+  /** Holds the parameter names: `lang?` when optional, `...content` for a rest parameter. */
   params: string[];
-  /** Its `@summary` tag, or else the first paragraph of its JSDoc, as one line of Markdown. */
+  /** Holds its `@summary` tag, or else the first paragraph of its JSDoc, as one line of Markdown. */
   summary: string;
-  /** Its `@category` tag. */
+  /** Holds its `@category` tag. */
   category: string;
-  /** The other names it's exported as. */
+  /** Holds the other names it's exported as. */
   aliases: string[];
 }
 
@@ -27,29 +27,29 @@ interface FunctionDeclaration {
   file: string;
   name: string;
   params: string[];
-  /** The JSDoc of its first declaration, an overload's when it has them. */
+  /** Holds the JSDoc of its first declaration, an overload's when it has them. */
   jsdoc: string | undefined;
 }
 
 interface Module {
   file: string;
   functions: Map<string, FunctionDeclaration>;
-  /** `const a = b`, where `b` is a function: alias name to function name. */
+  /** Maps an alias name to a function name, for a `const a = b` where `b` is a function. */
   aliases: Map<string, string>;
   exports: ValueExport[];
-  /** An `export *` or `export default`, which the reference can't list. */
+  /** Holds an `export *` or `export default`, which the reference can't list. */
   unsupported: string | undefined;
 }
 
 interface ValueExport {
   exported: string;
   local: string;
-  /** The module that declares `local`. */
+  /** Holds the module that declares `local`. */
   file: string;
 }
 
 /**
- * The functions a module exports, in export order, read from its source and that of the modules it re-exports from.
+ * Read the functions a module exports, in export order, from its source and that of the modules it re-exports from.
  * Type exports are skipped. Any other value export must be a function, or a `const` that names one.
  * @throws if an export isn't a function, or a function's JSDoc has no `@category` or no usable summary.
  */
@@ -112,7 +112,7 @@ function parseModule(file: string, source: string): Module {
   return module;
 }
 
-/** Records a function or a function alias. Returns the value names it declares. */
+/** Record a function or a function alias. Return the value names it declares. */
 function addDeclaration(module: Module, statement: Statement, jsdoc: string | undefined): string[] {
   if (statement.type === 'FunctionDeclaration' || statement.type === 'TSDeclareFunction') {
     const name = statement.id?.name;
@@ -142,7 +142,10 @@ function resolveFunction(module: Module, name: string): FunctionDeclaration {
   return fn;
 }
 
-/** The arguments a caller passes; a TypeScript `this` parameter isn't one. */
+/**
+ * Return the names of the arguments a caller passes.
+ * A TypeScript `this` parameter isn't one.
+ */
 function paramNames(params: readonly ParamPattern[]): string[] {
   return params.filter((param) => !(param.type === 'Identifier' && param.name === 'this')).map(paramName);
 }
@@ -159,7 +162,7 @@ function paramName(param: ParamPattern): string {
   throw new Error(`unsupported parameter: ${pattern.type}`);
 }
 
-/** The names a destructuring pattern declares. */
+/** Return the names a destructuring pattern declares. */
 function boundNames(pattern: BindingPattern | BindingRestElement | null): string[] {
   if (!pattern) return [];
   switch (pattern.type) {
@@ -183,14 +186,17 @@ function nameOf(node: { type: string; name?: string; value?: unknown }): string 
   return node.type === 'Identifier' ? (node.name ?? '') : String(node.value);
 }
 
-/** The text of the `/** … *\/` comment that ends just before `start`, with only whitespace between. */
+/** Return the text of the `/** … *\/` comment that ends just before `start`, with only whitespace between. */
 function jsdocAt(comments: readonly Comment[], source: string, start: number): string | undefined {
   const comment = comments.findLast((c) => c.end <= start);
   if (!comment || comment.type !== 'Block' || !comment.value.startsWith('*')) return undefined;
   return source.slice(comment.end, start).trim() ? undefined : comment.value;
 }
 
-/** A JSDoc's description, the Markdown before its first tag, and its tags, each on one line. */
+/**
+ * Split a JSDoc into its description and its tags, each on one line.
+ * The description is the Markdown before the first tag.
+ */
 export function parseJsDoc(jsdoc: string): { description: string; tags: Map<string, string> } {
   const lines = jsdoc
     .slice(1)
@@ -208,7 +214,10 @@ export function parseJsDoc(jsdoc: string): { description: string; tags: Map<stri
   return { description, tags };
 }
 
-/** The first paragraph of some Markdown, as Markdown on one line, or `''` when it doesn't start with a paragraph. */
+/**
+ * Return the first paragraph of some Markdown, as Markdown on one line.
+ * Return `''` when it doesn't start with a paragraph.
+ */
 export function firstParagraph(markdown: string): string {
   const first = fromMarkdown(markdown).children[0];
   if (first?.type !== 'paragraph') return '';
@@ -216,7 +225,7 @@ export function firstParagraph(markdown: string): string {
 }
 
 /**
- * A summary ready for the reference: zero-width spaces removed and `{@link name}` as code.
+ * Make a summary ready for the reference: remove zero-width spaces and turn `{@link name}` into code.
  * @throws if it's empty, longer than {@link SUMMARY_LIMIT}, or has another inline tag or raw HTML.
  */
 function summaryOf(where: string, text: string): string {
@@ -235,7 +244,7 @@ function summaryOf(where: string, text: string): string {
   return summary;
 }
 
-/** The first raw HTML in a Markdown tree, outside code. */
+/** Return the first raw HTML in a Markdown tree, outside code. */
 function rawHtml(node: Nodes): string | undefined {
   if (node.type === 'html') return node.value;
   if (!('children' in node)) return undefined;
@@ -253,7 +262,7 @@ function joinLines(lines: readonly string[]): string {
     .join(' ');
 }
 
-/** A file path as an error shows it, relative to the current folder. */
+/** Return a file path as an error shows it, relative to the current folder. */
 function shown(file: string): string {
   return Path.relative(process.cwd(), file);
 }

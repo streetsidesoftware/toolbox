@@ -11,16 +11,16 @@ import { CONFIG_FILE, groupFunctions, readApiReferenceConfig } from './api-refer
 import { REPO_ROOT_DIR } from './consts.ts';
 import { findPackages } from './packages.ts';
 
-/** Where a package's function reference is written, relative to the package. */
+/** Holds the path a package's function reference is written to, relative to the package. */
 export const API_REFERENCE_FILE = 'static/api-reference.md';
 
-/** The marker a package README injects its reference with. */
+/** Holds the marker a package README injects its reference with. */
 export const API_REFERENCE_MARKER = `<!--- @@inject: ${API_REFERENCE_FILE} --->`;
 
-/** The source a package's reference is read from, relative to the package. */
+/** Holds the source file a package's reference is read from, relative to the package. */
 export const ENTRY_FILE = 'src/index.ts';
 
-/** The packages whose `README.md` injects their reference, by directory relative to the repo root. */
+/** Find the packages whose `README.md` injects their reference, by directory relative to the repo root. */
 export async function findApiReferencePackages(rootDir: string = REPO_ROOT_DIR): Promise<string[]> {
   const found: string[] = [];
   for (const { dir } of await findPackages(rootDir)) {
@@ -30,7 +30,7 @@ export async function findApiReferencePackages(rootDir: string = REPO_ROOT_DIR):
   return found;
 }
 
-/** The `## Functions` section of a README: a `###` heading for each group, then one line per function. */
+/** Render the `## Functions` section of a README: a `###` heading for each group, then one line per function. */
 export function renderApiReference(groups: readonly ApiGroup[]): string {
   return md
     .document(
@@ -41,7 +41,7 @@ export function renderApiReference(groups: readonly ApiGroup[]): string {
 }
 
 /**
- * Reads a package's code and config and renders its reference.
+ * Read a package's code and config, and render its reference.
  * @throws if the code's JSDoc or the config is invalid, or they don't match.
  */
 export async function buildApiReference(packageDir: string, rootDir: string = REPO_ROOT_DIR): Promise<string> {
@@ -51,7 +51,7 @@ export async function buildApiReference(packageDir: string, rootDir: string = RE
   return renderApiReference(groupFunctions(functions, config, configName));
 }
 
-/** Writes a package's reference. Returns whether the file changed. */
+/** Write a package's reference. Return whether the file changed. */
 export async function updateApiReference(packageDir: string, rootDir: string = REPO_ROOT_DIR): Promise<boolean> {
   const file = Path.join(rootDir, packageDir, API_REFERENCE_FILE);
   const reference = await buildApiReference(packageDir, rootDir);
@@ -61,7 +61,7 @@ export async function updateApiReference(packageDir: string, rootDir: string = R
   return true;
 }
 
-/** `` `name(params)` (also `alias`): summary ``. */
+/** Render one function's line: `` `name(params)` (also `alias`): summary ``. */
 function functionLine(fn: ApiFunction): InlineContent[] {
   const aliases = fn.aliases.flatMap((alias, i) => [i ? ', ' : ' (also ', md.inlineCode(alias)]);
   return [

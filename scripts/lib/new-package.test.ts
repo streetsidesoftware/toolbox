@@ -189,7 +189,7 @@ function fileText(files: Record<string, string>, path: string): string {
   return text;
 }
 
-/** Fills a one-file template and returns the result. */
+/** Substitute values into a one-file template and return the result. */
 async function fillOne(text: string, name: string, options: NewPackageOptions = {}): Promise<string> {
   return withTempRoot(async (templateDir) => {
     await fs.writeFile(Path.join(templateDir, 'file.txt'), text);
@@ -197,7 +197,7 @@ async function fillOne(text: string, name: string, options: NewPackageOptions = 
   });
 }
 
-/** Fills a template that is only a `package.json` and returns the parsed result. */
+/** Substitute values into a template that is only a `package.json`, and return the parsed result. */
 async function fillPackageJson(
   template: PackageJson,
   name: string,
@@ -209,7 +209,7 @@ async function fillPackageJson(
   });
 }
 
-/** Every file under `dir`, keyed by its path relative to `dir`, with `/` separators. */
+/** Read every file under `dir`, keyed by its path relative to `dir`, with `/` separators. */
 async function readTemplateFiles(dir: string): Promise<Record<string, string>> {
   const files: Record<string, string> = {};
   for (const entry of await fs.readdir(dir, { recursive: true, withFileTypes: true })) {

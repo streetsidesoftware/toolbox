@@ -3,31 +3,31 @@ import fs from 'node:fs/promises';
 import type { ApiFunction } from './api-exports.ts';
 import { compare } from './packages.ts';
 
-/** A package's reference config, relative to the package. */
+/** Holds the path of a package's reference config, relative to the package. */
 export const CONFIG_FILE = '.api-referencerc.json';
 
-/** How a package's function reference is laid out. */
+/** Describes how a package's function reference is laid out. */
 export interface ApiReferenceConfig {
-  /** The `###` sections, in the order the reference lists them. */
+  /** Holds the `###` sections, in the order the reference lists them. */
   groups: ApiGroupConfig[];
 }
 
 export interface ApiGroupConfig {
   heading: string;
-  /** The `@category` values whose functions go under this heading. */
+  /** Holds the `@category` values whose functions go under this heading. */
   categories: string[];
-  /** Functions to list first, in this order. The rest follow alphabetically. */
+  /** Holds the functions to list first, in this order. The rest follow alphabetically. */
   functions?: string[];
 }
 
-/** One `###` section of the reference, its functions in order. */
+/** Describes one `###` section of the reference, its functions in order. */
 export interface ApiGroup {
   heading: string;
   functions: ApiFunction[];
 }
 
 /**
- * Reads and checks a reference config.
+ * Read and check a reference config.
  * @param name - The file as errors name it, such as `packages/x/.api-referencerc.json`.
  * @throws if the file is missing or isn't a valid config.
  */
@@ -40,7 +40,7 @@ export async function readApiReferenceConfig(file: string, name: string): Promis
   return parseApiReferenceConfig(parseJson(text, name), name);
 }
 
-/** Checks the shape of a parsed config. */
+/** Check the shape of a parsed config. */
 export function parseApiReferenceConfig(value: unknown, name: string): ApiReferenceConfig {
   if (!isObject(value) || !Array.isArray(value.groups)) throw new Error(`${name}: "groups" must be an array`);
   checkKeys(value, ['groups'], name);
@@ -66,8 +66,8 @@ export function parseApiReferenceConfig(value: unknown, name: string): ApiRefere
 }
 
 /**
- * Sorts functions into the config's groups, in its order. Each group lists its `functions` first, then the rest
- * alphabetically.
+ * Sort functions into the config's groups, in its order.
+ * Each group lists its `functions` first, then the rest alphabetically.
  * @throws if a category is in no group or in two, a group's category has no function, or a listed function isn't in
  * its group.
  */
@@ -108,7 +108,10 @@ export function groupFunctions(
   });
 }
 
-/** A function's place in a group's leading list; every unlisted function shares the place after it. */
+/**
+ * Return a function's place in a group's leading list.
+ * Every unlisted function shares the place after it.
+ */
 function rankIn(lead: readonly string[], fn: ApiFunction): number {
   const index = lead.indexOf(fn.name);
   return index < 0 ? lead.length : index;
@@ -122,7 +125,7 @@ function parseJson(text: string, name: string): unknown {
   }
 }
 
-/** Throws on a key the config doesn't know, such as a misspelled `functions`. */
+/** Throw on a key the config doesn't know, such as a misspelled `functions`. */
 function checkKeys(object: Record<string, unknown>, keys: readonly string[], where: string): void {
   const unknown = Object.keys(object).find((key) => !keys.includes(key));
   if (unknown !== undefined) throw new Error(`${where} has an unknown key "${unknown}"`);

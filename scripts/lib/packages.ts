@@ -6,12 +6,12 @@ import type { PackageJson } from './package-json-util.ts';
 import { readPackageJson } from './package-json-util.ts';
 
 export interface WorkspacePackage {
-  /** Directory relative to the repo root, with `/` separators, such as `packages/unindent`. */
+  /** Holds the directory relative to the repo root, with `/` separators, such as `packages/unindent`. */
   dir: string;
   packageJson: PackageJson;
 }
 
-/** Every `packages/*` package, sorted by directory. */
+/** Find every `packages/*` package, sorted by directory. */
 export async function findPackages(rootDir: string = REPO_ROOT_DIR): Promise<WorkspacePackage[]> {
   const found: WorkspacePackage[] = [];
   for await (const relFile of fs.glob('packages/*/package.json', { cwd: rootDir })) {
@@ -21,7 +21,7 @@ export async function findPackages(rootDir: string = REPO_ROOT_DIR): Promise<Wor
   return found.sort((a, b) => compare(a.dir, b.dir));
 }
 
-/** The name of the `packages/*` package in the current folder, if there is one. */
+/** Return the name of the `packages/*` package in the current folder, if there is one. */
 export async function currentPackageName(rootDir: string = REPO_ROOT_DIR): Promise<string | undefined> {
   const relative = Path.relative(rootDir, process.cwd());
   if (!/^packages[/\\][^/\\]+$/.test(relative)) return undefined;

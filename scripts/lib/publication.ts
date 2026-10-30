@@ -2,10 +2,10 @@ import type { PackageJson } from './package-json-util.ts';
 import type { WorkspacePackage } from './packages.ts';
 import type { Published } from './trusted-publishing.ts';
 
-/** Appended to a private package's `description` until it is published. */
+/** Holds the text appended to a private package's `description` until it's published. */
 export const PRIVATE_SUFFIX = ' -- Private until verified';
 
-/** A copy of `pkg` without `private` and without the private suffix on `description`. */
+/** Return a copy of `pkg` without `private` and without the private suffix on `description`. */
 export function makePublic(pkg: PackageJson): PackageJson {
   const { private: _, ...rest } = pkg;
   if (typeof rest.description === 'string' && rest.description.endsWith(PRIVATE_SUFFIX)) {
@@ -15,19 +15,20 @@ export function makePublic(pkg: PackageJson): PackageJson {
 }
 
 export interface PublicationCandidate {
-  /** Directory under `packages/`, such as `unindent`. */
+  /** Holds the directory under `packages/`, such as `unindent`. */
   dir: string;
   name: string;
 }
 
-/** The branch of a package's publication PR. */
+/** Return the branch of a package's publication PR. */
 export function publicationBranch(dir: string): string {
   return `prepare-publication-${dir}`;
 }
 
 /**
- * Private packages waiting for publication: every one that `published` doesn't mark `false`, once it's one of the
- * Release Please config's `components`, since its publication PR sets its `release-as`.
+ * Return the private packages ready for a publication PR. Each one:
+ * - isn't marked `false` in `published`.
+ * - is one of the Release Please config's `components`, since its publication PR sets its `release-as`.
  */
 export function publicationCandidates(
   packages: WorkspacePackage[],
@@ -42,7 +43,7 @@ export function publicationCandidates(
     .map(({ dir, packageJson }) => ({ dir: dir.replace(/^packages\//, ''), name: packageJson.name ?? '' }));
 }
 
-/** The candidates whose publication PR isn't open, given the head branches of the open PRs. */
+/** Return the candidates whose publication PR isn't open, given the head branches of the open PRs. */
 export function withoutOpenPrs(candidates: PublicationCandidate[], openBranches: string[]): PublicationCandidate[] {
   return candidates.filter((c) => !openBranches.includes(publicationBranch(c.dir)));
 }
