@@ -205,6 +205,7 @@ describe('strong, emphasis, strikethrough', () => {
 
   test('an empty link stays', () => {
     assert.equal(paragraph('a', link('', 'u'), 'b').toString(), 'a[](u)b');
+    assert.equal(paragraph(link('', '')).toString(), '[]()');
     assert.equal(paragraph(link(strong(''), '')).toString(), '[**&#x20;**]()');
   });
 
