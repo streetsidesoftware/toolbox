@@ -458,7 +458,7 @@ export function listItem(...contentRest: (LIContent | ListItemOptions | undefine
 }
 
 function isListItemOptions(value: ListItemOptions | LIContent | undefined): value is ListItemOptions {
-  return typeof value === 'object' && value !== null && !('kind' in value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value) && !('kind' in value);
 }
 
 /**
