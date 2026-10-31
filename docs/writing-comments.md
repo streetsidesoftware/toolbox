@@ -17,7 +17,7 @@ at a time.
 | ----------------------------------------------------- | --------------------------- | ------------------------------------ |
 | A function or method                                  | Imperative                  | "Create bold text."                  |
 | A class, interface or type, including a function type | Third person, present tense | "Describes how Markdown is written." |
-| A property                                            | Third person, present tense | "Holds the text, exactly as given."  |
+| A property                                            | Third person, present tense | "Holds the URL."                     |
 | A constant or variable                                | Third person, present tense | "Holds the default style."           |
 
 ## Every comment
@@ -218,7 +218,7 @@ Words to avoid:
 
 | Avoid                                    | Why                                                         | Write instead                                                 |
 | ---------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------- |
-| escape, escaped                          | Not worrying about escaping is the whole point              | shows exactly as given, even if it contains Markdown          |
+| escape, escaped                          | Not worrying about escaping is the whole point              | shows as text, not as formatting                              |
 | inline content, block content, node, run | Internal terms the reader doesn't use                       | text, links, formatting or code; a list, table or other block |
 | as written, written elsewhere            | Vague: the reader can't tell what they'll see               | Say what the page shows                                       |
 | Values go in as in {@link template}.     | The reader leaves the hover to guess which rules carry over | Repeat the rules that apply                                   |
@@ -247,7 +247,9 @@ After: says what the reader gets, and shows it.
 
 ```ts
 /**
- * Create text that shows exactly as given, even if it contains Markdown or HTML.
+ * Create text whose Markdown and HTML show on the page as text, not as formatting.
+ *
+ * A newline in it starts a new line.
  *
  * @example
  * md.text('Use <details> for *long* notes');
@@ -308,7 +310,7 @@ After: one list for the value rules, one paragraph for where the result goes, an
 /**
  * Create Markdown from a template by substituting values for its `{@ name @}` placeholders.
  *
- * - A string value shows exactly as given.
+ * - A string value shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string, which goes in as given.

@@ -28,7 +28,9 @@ Converting an element to a string too early loses its kind. Writing ``text(`see 
 
 Wherever inline content goes, a plain string is text and is escaped. A `{@ name @}` placeholder in it is kept as written. Inline code and code blocks take their string as code, inserted as is.
 
-A string is inline text everywhere, even where blocks can go. A newline in it stays in the text and displays as a space. A string never splits into paragraphs by itself, because the same string would then mean something different in a list item than in a paragraph.
+A string is inline text everywhere, even where blocks can go. A newline in it, `\r\n` or `\r` included, is a line break wherever text goes: in a paragraph, link text, formatting, `text()`, a table cell, and a string substituted for a placeholder. That's what someone writing the string expects to see, and it's the same everywhere. The spaces and tabs next to any line break go, wherever they come from and inside formatting too, since at the edge of a line they would only show up escaped.
+
+A blank line in a string is two line breaks. A string never splits into paragraphs by itself, because the same string would then mean something different in a list item than in a paragraph.
 
 To turn plain text into paragraphs, a script calls `blockText(text)`. A blank line, or a line of only spaces and tabs, ends a paragraph. A newline between other lines is a soft break, so text wrapped at 80 columns reads as normal paragraphs. Each line is escaped, so a line such as `- b` stays text. The result is always a fragment, even for one paragraph.
 
@@ -38,7 +40,13 @@ An array is a sequence. Arrays are flattened.
 
 - Inline pieces are joined exactly as given, with no added spaces: `['Ref: ', link('German', '../g.md')]`. A space would need a way to suppress it before a comma, or in `` `x`s ``.
 - Where only inline content can go, a block in the array is an error.
-- Where blocks can go, in a document, a list item, details content, a definition, or an HTML table cell, inline pieces in a row form a paragraph and blocks follow, as in a Markdown list item: `document('See ', link(…), '.')` is one paragraph.
+- Where blocks can go, in a document, a list item, details content, a definition, or an HTML table cell, inline pieces in a row form a paragraph and blocks follow, as in a Markdown list item.
+
+The parts of a document, a list item and details content are listed one by one, and each goes on a line of its own, as someone typing the file would put them. Parts of text in a row still form one paragraph, which the page shows with a space between them. Joining them with nothing ran sentences together, and a script that lists sentences one by one expects them apart. A sentence built from pieces goes in a paragraph or an array, which join as given. An array is one part.
+
+- A space or tab at the start or end of a part, or next to a block within one, is dropped. Before a line ending it would only show up escaped, and the page doesn't show it. The same goes for the edges of a summary, a term and an HTML table cell.
+- A part that renders nothing still gets its line, so the parts around it are two paragraphs, as a blank line in the file would make them.
+- A part that starts or ends with a line break, such as a newline in a string, needs no second line ending.
 
 In a list, each entry is one item. An array entry is one item holding a sequence, never a nested list. A nested list is a `list(…)` inside an item.
 
@@ -50,9 +58,13 @@ The function `toBlock(content)` makes content fit where only blocks can go: bloc
 
 ### Line breaks and comments
 
-There are two line-break elements, both inline. A `lineBreak()` is a Markdown hard break. A `br()` is always `<br/>`, never `<br>`, because MDX reads HTML as JSX, where an unclosed `<br>` is a syntax error.
+There are two line-break elements, both inline. A `lineBreak()` is a Markdown hard break, as a newline in a string is. A `br()` is always `<br/>`, never `<br>`, because MDX reads HTML as JSX, where an unclosed `<br>` is a syntax error.
+
+Where a hard break can't go, a line break renders as `<br/>`: in a heading, a table cell, and a plain-text summary or term. In a heading, remark writes a hard break as a space at depths 3 to 6, and turns depths 1 and 2 into underlined headings.
 
 A comment renders as `<!-- … -->`, with two dashes, as third-party bots write them. The renderer keeps the text from ending the comment early.
+
+A comment goes where the call puts it: inside a line, at the end of one, on a line of its own, or at the start of a line. Every placement is reachable, as someone typing the file could write it. The page follows Markdown: a line that starts with a comment is HTML, so it ends the paragraph before it.
 
 ### HTML entities
 
@@ -70,8 +82,8 @@ Raw HTML won't do: the renderer turns a line ending before raw HTML into a space
 A table takes a header and rows as arrays: `table(header, rows)`, the shape scripts already have their data in. Each cell holds inline content. Rendering keeps every cell on one line, which a GFM row needs:
 
 - A `|` is escaped wherever it lands, in text, inline code, link text and a URL, so it never ends the cell. On GitHub, `\|` inside a code span displays as `|`.
-- A `lineBreak()` renders as `<br/>`, since a Markdown hard break would end the row.
-- A line ending in text or inline code renders as a space, as it displays elsewhere. One at the start or end of a cell is dropped.
+- A line break renders as `<br/>`, since a Markdown hard break would end the row.
+- A line ending in inline code, or in text from `parse()`, renders as a space, as it displays elsewhere. One at the start or end of a cell is dropped.
 
 A column is aligned only when the script asks: `{ align: [undefined, 'right'] }`, one entry per column. An entry is `'left'`, `'center'`, `'right'`, `undefined` for none, or the delimiter as written in a table: `:---`, `:---:`, `---:` or `---`, the forms GitHub's docs use. Any number of `-` works, and a plain `---` means none, as in GFM. The type lists the four forms for docs, and is a `string` with a `@pattern`, so it maps to a JSON schema.
 
@@ -86,7 +98,7 @@ A GFM row is one line, so its cells hold only inline content. When a cell needs 
 - `<table>`, `<thead>`, `<tbody>`, each `<tr>` and its closing tag go on their own lines.
 - A cell of plain text stays on its tag's line, `<td>42</td>`, with `&` and `<` HTML-escaped. An empty cell is `<td></td>`.
 - Any other cell, with inline code, a link, a placeholder or blocks, gets blank lines around it, so it renders.
-- A line ending in a string shows as a line break, which is what someone writing a cell expects to see: `<br/>` in a plain-text cell, a hard break in a cell with Markdown. One at the start or end of a cell is dropped. Text from `parse()` is Markdown, so its line endings keep their Markdown meaning.
+- A line break, such as a newline in a string, is `<br/>` in a plain-text cell, and a hard break in a cell with Markdown. One at the start or end of a cell is dropped. Text from `parse()` is Markdown, so its line endings keep their Markdown meaning.
 - An aligned column puts `align="…"` on each of its cells. GitHub keeps the `align` attribute and strips `style`.
 - Every row, the header included, is filled with empty cells to the widest row, as in `table()`.
 - An empty header leaves out `<thead>`. Several header rows wait until a script needs them.
@@ -97,7 +109,7 @@ A `<details>` summary and a `<dl>` term are inline. The content and each definit
 
 Markdown inside HTML is read only after a blank line, so rendering picks the form that works on GitHub:
 
-- A summary or term of plain text is written on one line, `<summary>TypeScript:</summary>`, as in GitHub's own examples. Its `&` and `<` are HTML-escaped, and blank lines are dropped, since one would end the HTML block.
+- A summary or term of plain text is written on one line, `<summary>TypeScript:</summary>`, as in GitHub's own examples. Its `&` and `<` are HTML-escaped, and a line break is `<br/>`. HTML entities stay on the line too.
 - A summary or term with any other inline element, such as inline code or a placeholder, gets blank lines around it, so it renders.
 - The content and each definition always get blank lines around them.
 
@@ -119,9 +131,11 @@ A placeholder isn't inline or block by itself. Where it sits decides what it can
 - On a line of its own, where blocks can go, it also takes blocks.
 - Inside code or HTML, it takes only a string, text, a placeholder or an HTML entity.
 
+A value substituted later gives the same result as the value passed directly. So a value on a line of its own is trimmed as a part is. Empty values that leave a line empty, alone or side by side, end the paragraph, as `document('a', '', 'b')` does. In an inline template, which is one paragraph, the empty line goes instead.
+
 Where a placeholder sits is the same whether it's written in Markdown text, in a string, or made with a builder:
 
-- `placeholder(name)` goes anywhere inline content does. In `document('Fruit:\n', placeholder('fruit'))` it's on a line of its own, so it can take a list. In `document('Fruit:', placeholder('fruit'))` it's inside the line.
+- `placeholder(name)` goes anywhere inline content does. In `document('Fruit:', placeholder('fruit'))` it's on a line of its own, so it can take a list. In `p('Fruit: ', placeholder('fruit'))` it's inside the line.
 - `blockPlaceholder(name)` is a block, so it always stands on its own lines and takes blocks or inline content. Inside a line it's an error, as for any block. Two types, rather than one with an `'inline' | 'block'` kind, let the compiler keep a block placeholder out of a line.
 - A placeholder's string form is exactly `{@ name @}`, so it also goes inside code: ``inlineCode(`version: ${placeholder('engine.version')}`)``.
 
@@ -131,7 +145,7 @@ A template is Markdown text with placeholders. Each template function substitute
 
 - `template(markdown, values)` lets the result decide its kind: a single paragraph is an inline fragment, without the whitespace around it, and anything else is a fragment. Checking `kind` narrows the result.
 - `blockTemplate(markdown, values)` always returns a fragment. A single paragraph stays a paragraph.
-- `inlineTemplate(markdown, values)` substitutes values in text for use inside a line. Its text must be one paragraph, and a blank line throws. Block syntax is parsed as text, so `' - Adds …'` stays text, not a list. Leading and trailing whitespace is kept.
+- `inlineTemplate(markdown, values)` substitutes values in text for use inside a line. Its text must be one paragraph, and a blank line throws. Block syntax is parsed as text, so `' - Adds …'` stays text, not a list. Leading and trailing whitespace is kept, so the fragment joins the pieces around it as written.
 - `templateDocument(markdown, values)` reads a whole file, frontmatter included, and returns a document.
 
 ### How values go in
@@ -209,6 +223,8 @@ Empty bold, italic or struck-through text, and empty inline code, render as one 
 
 An empty paragraph renders nothing, since it would only add blank lines between blocks. A link always stays, even with no text or URL, since the Markdown is the output and a link's text and URL are part of it. A paragraph of whitespace or of empty formatting isn't empty: it still shows something.
 
+Spaces and tabs at the start or end of a paragraph, a heading or a table cell go, as line endings and line breaks there do. The page never shows them, so in the file they would only show up escaped. A paragraph of only whitespace keeps it. The same goes for spaces and tabs around a line ending inside a paragraph's text. A paragraph can't hold an empty line either, so one in its text, such as a value's own line ending next to the template's, becomes one line ending. A paragraph that this trimming leaves empty renders nothing.
+
 ## Errors
 
 An element of the wrong kind throws a `TypeError`, such as a block where only inline content can go, or frontmatter that isn't first in a document. Other misuse throws an `Error`, such as a heading depth outside 1–6, an invalid placeholder name, or an inline template that isn't one paragraph. Each message names what was wrong: `heading content must be inline, got a list`.
@@ -225,7 +241,7 @@ An element is made only by a factory function, such as `link(…)` or `list(…)
 - The key names the package. If what's stored under it ever changes incompatibly, a new key such as `….value.1` can be used.
 - The key is a brand, not privacy: anyone can read it.
 
-A placeholder is an mdast node type of its own, which the renderer writes as is. If it were an HTML node, a line ending before it would render as a space, and a placeholder written on its own line would end up inside the line before it.
+A placeholder is an mdast node type of its own, which the renderer writes as is. If it were an HTML node, a line ending before it would render as a space, and a placeholder written on its own line would end up inside the line before it. HTML inside a line, such as a comment or `<br/>`, gets a node type of its own for the same reason.
 
 The `MarkdownStyle` type is the package's own interface, not remark-stringify's options, so the public types don't tie the API to remark's version. Fields are added when a script needs them.
 

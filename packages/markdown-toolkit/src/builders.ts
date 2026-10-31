@@ -4,16 +4,17 @@ import type { ListItem, Paragraph } from 'mdast';
 import { DocumentElement } from './documentElement.ts';
 import { isFrontmatter } from './frontmatter.ts';
 import {
+  argumentNodes,
   describe,
   groupedNodes,
   inlineNodes,
-  isArray,
   isBlockContent,
   isListItem,
   listItemNode,
   mapParagraphsAndBlocks,
   MarkdownElement,
   renderingOf,
+  stringNodes,
   textNodes,
 } from './nodes.ts';
 import { placeholderNode } from './placeholderNode.ts';
@@ -55,7 +56,7 @@ class TextElement extends MarkdownElement<'inline', 'text'> implements MDText {
   readonly text: string;
 
   constructor(text: string) {
-    super('inline', 'text', 'text', textNodes(text));
+    super('inline', 'text', 'text', stringNodes(text));
     this.text = text;
   }
 }
@@ -103,7 +104,9 @@ function commentSafe(text: string): string {
 }
 
 /**
- * Create text that shows exactly as given, even if it contains Markdown or HTML.
+ * Create text whose Markdown and HTML show on the page as text, not as formatting.
+ *
+ * A newline in it starts a new line.
  *
  * @example
  * md.text('Use <details> for *long* notes');
@@ -120,7 +123,8 @@ export const inlineText: typeof text = text;
 /**
  * Create paragraphs from plain text, starting a new one at each blank line.
  *
- * The text shows exactly as given, even if it contains Markdown or HTML.
+ * Markdown and HTML in the text show as text, not as formatting. A single newline shows as a space, so text wrapped at
+ * a fixed width reads as normal paragraphs.
  *
  * @example
  * md.blockText('First paragraph.\n\nSecond paragraph.');
@@ -248,7 +252,7 @@ export function strikethrough(content: InlineContent): MDStrikethrough {
 }
 
 /**
- * Create code within a line of text, shown exactly as given.
+ * Create code within a line of text.
  *
  * Empty code shows as one space of code, so the reader still sees it.
  *
@@ -390,7 +394,7 @@ export function hr(): MDHorizontalRule {
 export const horizontalRule: typeof hr = hr;
 
 /**
- * Create a block of code, shown exactly as given.
+ * Create a block of code.
  *
  * @param lang - the language, such as `ts` or `sh`, so the page can highlight the code.
  * @example
@@ -407,7 +411,12 @@ export function codeBlock(code: string, lang?: string): MDCodeBlock {
 /**
  * Create one list item from several pieces.
  *
- * Pieces in a row join into one line. A paragraph, list or other block goes on its own lines below them.
+ * Each piece goes on a line of its own:
+ * - Text, links and other pieces in a row form one paragraph. The page shows a space between them.
+ * - A piece that shows nothing ends the paragraph.
+ * - A paragraph, list or other block goes on its own lines.
+ * - An array is one piece, and its parts join with no spaces added. For a sentence built from pieces, use an array or
+ *   {@link p}.
  *
  * It goes in a {@link list}, or anywhere a paragraph can go:
  * - List items in a row form a list.
@@ -451,7 +460,12 @@ function buildListItem(content: readonly ListItemContent[], options?: ListItemOp
 /**
  * Create one task list item: a list item with a checkbox.
  *
- * Pieces in a row join into one line. A paragraph, list or other block goes on its own lines below them.
+ * Each piece goes on a line of its own:
+ * - Text, links and other pieces in a row form one paragraph. The page shows a space between them.
+ * - A piece that shows nothing ends the paragraph.
+ * - A paragraph, list or other block goes on its own lines.
+ * - An array is one piece, and its parts join with no spaces added. For a sentence built from pieces, use an array or
+ *   {@link p}.
  *
  * It goes in a {@link list}, or anywhere a paragraph can go:
  * - List items in a row form a list.
@@ -487,8 +501,12 @@ function piecesAndOptions(
 /**
  * Create a whole Markdown file from its parts, in order.
  *
- * - Frontmatter, if any, goes first.
- * - An array of parts works the same as passing them one by one.
+ * Frontmatter, if any, goes first. Each other part goes on a line of its own:
+ * - Text, links and other pieces in a row form one paragraph. The page shows a space between them.
+ * - A part that shows nothing ends the paragraph.
+ * - A paragraph, list or other block goes on its own lines.
+ * - An array is one part, and its pieces join with no spaces added. For a sentence built from pieces, use an array or
+ *   {@link p}.
  *
  * @example
  * md.document(md.heading(1, 'Title'), md.p('Body.'));
@@ -502,10 +520,10 @@ export function document(...content: AnyContent[]): MDDocument;
 export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument {
   const [first, ...rest] = content;
   if (rest.some(isFrontmatter)) throw new TypeError('frontmatter must be the first content of a document');
-  if (!isFrontmatter(first)) return new DocumentElement(groupedNodes(content as AnyContent[], 'document content'));
+  if (!isFrontmatter(first)) return new DocumentElement(argumentNodes(content as AnyContent[], 'document content'));
   return new DocumentElement([
     ...(renderingOf(first)?.nodes ?? []),
-    ...groupedNodes(rest as AnyContent[], 'document content'),
+    ...argumentNodes(rest as AnyContent[], 'document content'),
   ]);
 }
 
@@ -540,7 +558,7 @@ export function list(entries: readonly ListEntry[], options?: ListOptions): MDLi
     throw new TypeError(`a list start must be a whole number from 0 to 999999999, got ${given}`);
   }
   const items = entries.map((entry) =>
-    isListItem(entry) ? (renderingOf(entry)?.nodes[0] as ListItem) : listItemNode(isArray(entry) ? entry : [entry]),
+    isListItem(entry) ? (renderingOf(entry)?.nodes[0] as ListItem) : listItemNode([entry]),
   );
   return new MarkdownElement('block', 'list', 'a list', [
     { type: 'list', ordered, start: ordered ? (start ?? 1) : null, spread: false, children: items },

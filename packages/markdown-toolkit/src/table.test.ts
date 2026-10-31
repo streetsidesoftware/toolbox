@@ -68,7 +68,7 @@ describe('table', () => {
     ${['a', br(), 'b']}                            | ${'a<br/>b'}
     ${[lineBreak(), 'a', lineBreak()]}             | ${'a'}
     ${'\na\n'}                                     | ${'a'}
-    ${'a\nb\r\nc'}                                 | ${'a b c'}
+    ${'a\nb\r\nc'}                                 | ${'a<br/>b<br/>c'}
     ${inlineCode('a\nb')}                          | ${'`a b`'}
   `('a cell stays on one line: $expected', ({ content, expected }: { content: InlineContent; expected: string }) => {
     assert.equal(cell(content), `| ${expected} |`);

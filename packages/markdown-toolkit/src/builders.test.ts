@@ -5,7 +5,7 @@ import { describe, test } from 'node:test';
 import { testEach } from '@streetsidesoftware/test-each';
 
 import type * as Builders from './index.ts';
-import type { MDElement, MDInline } from './index.ts';
+import type { MDElement, MDInline, MDParagraph } from './index.ts';
 import {
   blockPlaceholder,
   blockText,
@@ -33,6 +33,7 @@ import {
   ol,
   p,
   paragraph,
+  parse,
   placeholder,
   strikethrough,
   strong,
@@ -242,7 +243,7 @@ describe('li', () => {
     ${li('a')}                                                    | ${'- a'}
     ${li('a', { checked: true })}                                 | ${'- [x] a'}
     ${li('a', { checked: false })}                                | ${'- [ ] a'}
-    ${li('See ', link('docs', 'u'), { checked: true })}           | ${'- [x] See [docs](u)'}
+    ${li(['See ', link('docs', 'u')], { checked: true })}         | ${'- [x] See [docs](u)'}
     ${li('Steps:', list(['one']), { checked: false })}            | ${'- [ ] Steps:\n  - one'}
     ${ol([li('a', { checked: true }), 'b'])}                      | ${'1. [x] a\n1. b'}
     ${document(li('a', { checked: true }), li('b'))}              | ${'- [x] a\n- b\n'}
@@ -289,7 +290,7 @@ describe('li', () => {
     const notAnElement = { kind: 'inline', type: 'text', checked: true };
     // @ts-expect-error options never hold kind or type
     assert.equal(listItem('a', notAnElement).toString(), '- [x] a');
-    assert.equal(listItem('a', text('b')).toString(), '- ab');
+    assert.equal(listItem('a', text('b')).toString(), '- a\n  b');
   });
 
   test('options can be undefined', () => {
@@ -346,7 +347,7 @@ describe('strong, emphasis, strikethrough', () => {
   });
 
   test('in a list item', () => {
-    const md = list([listItem(link('Danish', '../da.md'), ' ', strong('pre-release'), ' - Adds Danish')]);
+    const md = list([listItem([link('Danish', '../da.md'), ' ', strong('pre-release'), ' - Adds Danish'])]);
     assert.equal(md.toString(), '- [Danish](../da.md) **pre-release** - Adds Danish');
   });
 
@@ -416,8 +417,8 @@ describe('text', () => {
     assert.equal(text, inlineText);
   });
 
-  test('a newline stays in the text', () => {
-    assert.equal(paragraph(inlineText('a\n- b')).toString(), 'a\n\\- b');
+  test('a newline is a line break', () => {
+    assert.equal(paragraph(inlineText('a\n- b')).toString(), 'a\\\n\\- b');
   });
 });
 
@@ -442,14 +443,108 @@ describe('placeholders', () => {
   });
 });
 
+describe('a comment goes where the call puts it', () => {
+  testEach`
+    value                                                 | expected
+    ${document('a', comment('c'), 'b')}                   | ${'a\n<!-- c -->\nb\n'}
+    ${document(['a', comment('c')], 'b')}                 | ${'a<!-- c -->\nb\n'}
+    ${paragraph('a ', comment('c'), ' b')}                | ${'a <!-- c --> b'}
+    ${document('a', [comment('c'), 'b'])}                 | ${'a\n<!-- c -->b\n'}
+    ${paragraph('a', lineBreak(), comment('c'), 'b')}     | ${'a\\\n<!-- c -->b'}
+    ${document(comment('c'), heading(1, 'T'))}            | ${'<!-- c -->\n\n# T\n'}
+    ${paragraph('a', comment('c'), '\n', 'b')}            | ${'a<!-- c -->\\\nb'}
+    ${paragraph('a', lineBreak(), br(), 'b')}             | ${'a\\\n<br/>b'}
+    ${list([listItem('a', comment('c'), 'b')])}           | ${'- a\n  <!-- c -->\n  b'}
+  `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
+    assert.equal(value.toString(), expected);
+  });
+
+  test('a placeholder in a comment inside a line is substituted', () => {
+    assert.equal(substitutePlaceholders(paragraph('a ', comment('{@ x @}')), { x: 'y' }).toString(), 'a <!-- y -->');
+  });
+});
+
+describe('a newline in a string is a line break', () => {
+  testEach`
+    value                                                           | expected
+    ${paragraph('a\nb')}                                            | ${'a\\\nb'}
+    ${paragraph('a\r\nb\rc')}                                       | ${'a\\\nb\\\nc'}
+    ${paragraph('a \t\n  b')}                                       | ${'a\\\nb'}
+    ${paragraph('First.\n\nSecond.')}                               | ${'First.\\\n\\\nSecond.'}
+    ${paragraph(text('a\nb'))}                                      | ${'a\\\nb'}
+    ${paragraph(link('a\nb', 'https://example.com'))}               | ${'[a\\\nb](https://example.com)'}
+    ${paragraph(strong('a\nb'), emphasis('c\nd'), strikethrough('e\nf'))} | ${'**a\\\nb**_c\\\nd_~~e\\\nf~~'}
+    ${template('x {@ v @} y', { v: 'a\nb' })}                       | ${'x a\\\nb y'}
+    ${table(['h'], [['a\nb']])}                                     | ${'| h       |\n| ------- |\n| a<br/>b |'}
+    ${details('a\nb', 'c')}                                         | ${'<details>\n<summary>a<br/>b</summary>\n\nc\n\n</details>'}
+    ${definitionList([['a\nb', 'c']])}                              | ${'<dl>\n\n<dt>a<br/>b</dt>\n<dd>\n\nc\n\n</dd>\n\n</dl>'}
+    ${document('a', '\nb')}                                         | ${'a\\\nb\n'}
+    ${paragraph(inlineCode('a\nb'))}                                | ${'`a\nb`'}
+    ${blockText('a\nb')}                                            | ${'a\nb'}
+  `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
+    assert.equal(value.toString(), expected);
+  });
+
+  testEach`
+    value                                                 | expected
+    ${paragraph(['a ', '\nb'])}                           | ${'a\\\nb'}
+    ${paragraph(['a\n', ' b'])}                           | ${'a\\\nb'}
+    ${paragraph(['a ', lineBreak(), ' b'])}               | ${'a\\\nb'}
+    ${paragraph(strong(['a ', lineBreak(), '\tb']))}      | ${'**a\\\nb**'}
+    ${heading(3, ['a ', lineBreak(), ' b'])}              | ${'### a<br/>b'}
+    ${template('a {@ x @} b', { x: 'c\n' })}              | ${'a c\\\nb'}
+    ${details(['a ', '\n b'], 'c')}                       | ${'<details>\n<summary>a<br/>b</summary>\n\nc\n\n</details>'}
+    ${paragraph([strong('a '), lineBreak(), 'b'])}        | ${'**a**\\\nb'}
+    ${paragraph(['a', lineBreak(), emphasis('\tb')])}     | ${'a\\\n_b_'}
+    ${paragraph([strong(emphasis('a ')), '\nb'])}         | ${'**_a_**\\\nb'}
+  `(
+    'the spaces and tabs next to a line break go, wherever they come from: $expected',
+    ({ value, expected }: { value: MDElement; expected: string }) => {
+      assert.equal(value.toString(), expected);
+    },
+  );
+
+  test('in a heading, a line break is <br/> at every depth', () => {
+    for (const depth of [1, 2, 3, 4, 5, 6] as const) {
+      const hashes = '#'.repeat(depth);
+      assert.equal(heading(depth, 'a\nb').toString(), `${hashes} a<br/>b`);
+      assert.equal(heading(depth, ['a', lineBreak(), 'b']).toString(), `${hashes} a<br/>b`);
+    }
+  });
+});
+
 describe('paragraph', () => {
   test('p is the same function', () => {
     assert.equal(p, paragraph);
     assert.equal(document(p('A'), p('B')).toString(), 'A\n\nB\n');
   });
 
+  testEach`
+    value                                         | expected
+    ${paragraph(' a\t')}                          | ${'a'}
+    ${paragraph([strong('a '), ' '])}             | ${'**a**'}
+    ${heading(1, 'a ')}                           | ${'# a'}
+    ${template('# a {@ x @}', { x: '' })}         | ${'# a'}
+    ${table(['h '], [[' a']])}                    | ${'| h |\n| - |\n| a |'}
+    ${paragraph(' ')}                             | ${'&#x20;'}
+  `(
+    'a paragraph, heading or cell loses the spaces and tabs at its edges, unless it has nothing else: $expected',
+    ({ value, expected }: { value: MDElement; expected: string }) => {
+      assert.equal(value.toString(), expected);
+    },
+  );
+
   test('an empty paragraph renders nothing', () => {
     assert.equal(p('').toString(), '');
+  });
+
+  testEach`
+    value                 | label
+    ${p('\n')}            | ${"p('\\n')"}
+    ${p(lineBreak())}     | ${'p(lineBreak())'}
+    ${p(' \n ')}          | ${"p(' \\n ')"}
+  `('a paragraph that trimming leaves empty adds no blank lines: $label', ({ value }: { value: MDParagraph }) => {
+    assert.equal(document('a', value, 'b').toString(), 'a\n\nb\n');
   });
 
   test('a paragraph of empty formatting stays', () => {
@@ -498,16 +593,16 @@ describe('horizontalRule', () => {
 describe('line endings at the edges', () => {
   testEach`
         value                                                                  | expected
-        ${document('Fruit:\n', placeholder('fruit'), '\n')}                    | ${'Fruit:\n{@ fruit @}\n'}
-        ${document(document('Fruit:\n', placeholder('fruit'), '\n'), 'yummy')} | ${'Fruit:\n{@ fruit @}\n\nyummy\n'}
+        ${document('Fruit:\n', placeholder('fruit'), '\n')}                    | ${'Fruit:\\\n{@ fruit @}\n'}
+        ${document(document('Fruit:\n', placeholder('fruit'), '\n'), 'yummy')} | ${'Fruit:\\\n{@ fruit @}\n\nyummy\n'}
         ${document('Fruit:\n', blockPlaceholder('fruit'))}                     | ${'Fruit:\n\n{@ fruit @}\n'}
         ${document('Intro', '\n', list(['x']))}                                | ${'Intro\n\n- x\n'}
         ${list([listItem('Langs\n', list(['en']))])}                           | ${'- Langs\n  - en'}
-        ${paragraph('\n\na\nb\nc  \n\n')}                                      | ${'a\nb\nc'}
+        ${paragraph('\n\na\nb\nc  \n\n')}                                      | ${'a\\\nb\\\nc'}
         ${heading(2, 'Title\n')}                                               | ${'## Title'}
         ${paragraph('a', lineBreak())}                                         | ${'a'}
         ${paragraph(lineBreak(), 'a', lineBreak(), 'b')}                       | ${'a\\\nb'}
-        ${document('Fruit:\n', placeholder('fruit'), '\n', 'yummy')}           | ${'Fruit:\n{@ fruit @}\nyummy\n'}
+        ${document('Fruit:\n', placeholder('fruit'), '\n', 'yummy')}           | ${'Fruit:\\\n{@ fruit @}\\\nyummy\n'}
     `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
     assert.equal(value.toString(), expected);
   });
@@ -522,8 +617,8 @@ describe('blockText', () => {
         ${'\n\na\n\n\n\nb\n\n'} | ${'a\n\nb'}
         ${'a\r\n\r\nb\rc'}      | ${'a\n\nb\nc'}
         ${'a\n- b\n# c\n1. d'}  | ${'a\n\\- b\n\\# c\n1\\. d'}
-        ${'a\n===\n\n    code'} | ${'a\n\\===\n\n&#x20;   code'}
-        ${'a  \nb'}             | ${'a &#x20;\nb'}
+        ${'a\n===\n\n    code'} | ${'a\n\\===\n\ncode'}
+        ${'a  \nb'}             | ${'a\nb'}
         ${'see {@ x @}\n\n*b*'} | ${'see {@ x @}\n\n\\*b\\*'}
         ${''}                   | ${''}
     `('blockText($value)', ({ value, expected }: { value: string; expected: string }) => {
@@ -585,13 +680,51 @@ describe('document', () => {
     );
   });
 
-  test('inline pieces in a row form a paragraph, as in a list item', () => {
-    const md = document('See ', link('the docs', 'u'), '.', list(['a']), 'More');
-    assert.equal(md.toString(), 'See [the docs](u).\n\n- a\n\nMore\n');
+  testEach`
+    value                                                          | expected
+    ${document('a', 'b', 'c')}                                     | ${'a\nb\nc\n'}
+    ${document('First.', 'Second.')}                               | ${'First.\nSecond.\n'}
+    ${document('See ', link('the docs', 'u'), '.')}                | ${'See\n[the docs](u)\n.\n'}
+    ${document(p('See ', link('the docs', 'u'), '.'))}             | ${'See [the docs](u).\n'}
+    ${document(['See ', link('the docs', 'u'), '.'])}              | ${'See [the docs](u).\n'}
+    ${document('See ', link('the docs', 'u'), '.', list(['a']), 'More')} | ${'See\n[the docs](u)\n.\n\n- a\n\nMore\n'}
+    ${document('a', p('p'), 'b')}                                  | ${'a\n\np\n\nb\n'}
+    ${document('a', '', 'b')}                                      | ${'a\n\nb\n'}
+    ${document('a', [], 'b')}                                      | ${'a\n\nb\n'}
+    ${document('a', text(''), 'b')}                                | ${'a\n\nb\n'}
+    ${document('a', parse(''), 'b')}                               | ${'a\n\nb\n'}
+    ${document('a', strong(''), 'b')}                              | ${'a\n**&#x20;**\nb\n'}
+    ${document('a ', ' b')}                                        | ${'a\nb\n'}
+    ${document('a\t', '\tb')}                                      | ${'a\nb\n'}
+    ${document(strikethrough(' a '), strong('b '))}                | ${'~~a~~\n**b**\n'}
+    ${document(['a ', p('p'), ' b'])}                              | ${'a\n\np\n\nb\n'}
+    ${list([['a ', list(['x'])]])}                                   | ${'- a\n  - x'}
+    ${document('a', '- b')}                                        | ${'a\n\\- b\n'}
+    ${document(frontmatter('x: 1'), 'a', 'b')}                     | ${'---\nx: 1\n---\n\na\nb\n'}
+    ${list([listItem('a', 'b')])}                                  | ${'- a\n  b'}
+    ${list([listItem(['a', 'b'])])}                                | ${'- ab'}
+    ${list([listItem(p('a', 'b'))])}                               | ${'- ab'}
+    ${list([['a', 'b']])}                                          | ${'- ab'}
+    ${details('More', 'First.', 'Second.')}                        | ${'<details>\n<summary>More</summary>\n\nFirst.\nSecond.\n\n</details>'}
+  `('each argument goes on its own line: $expected', ({ value, expected }: { value: MDElement; expected: string }) => {
+    assert.equal(value.toString(), expected);
   });
 
-  test('a string is inline text and never splits', () => {
-    assert.equal(document('a\n\nb').toString(), 'a&#xA;&#xA;b\n');
+  testEach`
+    value                                     | expected
+    ${document('a\n', 'b')}                   | ${'a\\\nb\n'}
+    ${document('a', '\nb')}                   | ${'a\\\nb\n'}
+    ${document('a', '\n', 'b')}               | ${'a\\\nb\n'}
+    ${document('a', lineBreak(), 'b')}        | ${'a\\\nb\n'}
+  `(
+    'a line break between arguments ends the line, with no second line ending: $expected',
+    ({ value, expected }: { value: MDElement; expected: string }) => {
+      assert.equal(value.toString(), expected);
+    },
+  );
+
+  test('a blank line in a string is two line breaks, not a new paragraph', () => {
+    assert.equal(document('a\n\nb').toString(), 'a\\\n\\\nb\n');
   });
 
   testEach`

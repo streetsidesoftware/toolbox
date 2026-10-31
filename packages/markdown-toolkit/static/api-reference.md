@@ -3,7 +3,7 @@
 ### Text
 
 - `p(...content)` (also `paragraph`): Create a paragraph from one or more pieces, such as strings and links.
-- `text(value)` (also `inlineText`): Create text that shows exactly as given, even if it contains Markdown or HTML.
+- `text(value)` (also `inlineText`): Create text whose Markdown and HTML show on the page as text, not as formatting.
 - `blockText(value)`: Create paragraphs from plain text, starting a new one at each blank line.
 - `parse(markdown)` (also `parseFragment`): Parse Markdown text so it can be added to a page with its formatting.
 - `lineBreak()`: Start a new line without starting a new paragraph.
@@ -46,8 +46,8 @@
 
 ### Code
 
-- `codeBlock(code, lang?)`: Create a block of code, shown exactly as given.
-- `inlineCode(code)`: Create code within a line of text, shown exactly as given.
+- `codeBlock(code, lang?)`: Create a block of code.
+- `inlineCode(code)`: Create code within a line of text.
 
 ### Templates
 

@@ -1,6 +1,8 @@
 import { listPlaceholders } from '@streetsidesoftware/placeholders';
 import type { List, ListItem, BlockContent as MdastBlockContent, PhrasingContent, RootContent } from 'mdast';
 
+import { trimBlanks } from './blanks.ts';
+import { asInlineHtml } from './inlineHtmlNode.ts';
 import { placeholderNodeAsWritten } from './placeholderNode.ts';
 import { renderNodes } from './render.ts';
 import type { StyleOptions } from './render.ts';
@@ -89,15 +91,23 @@ export function textNodes(text: string): PhrasingContent[] {
   return nodes;
 }
 
+/** Return the text nodes for a string, with each line ending as a line break. */
+export function stringNodes(text: string): PhrasingContent[] {
+  return text
+    .split(/\r\n?|\n/)
+    .flatMap((line, i): PhrasingContent[] => [...(i ? [{ type: 'break' } as const] : []), ...textNodes(line)]);
+}
+
 /**
  * Return the nodes for inline content.
  * @param where - what the content is for, such as `heading content`, for error messages.
  */
 export function inlineNodes(content: InlineContent, where: string): PhrasingContent[] {
-  if (typeof content === 'string') return textNodes(content);
+  if (typeof content === 'string') return stringNodes(content);
   if (isArray(content)) return content.flatMap((c) => inlineNodes(c, where));
   const rendering = renderingOf(content);
-  if (rendering && isKind(content, 'inline', 'comment')) return rendering.nodes as PhrasingContent[];
+  // Inside a line, HTML such as a comment or `<br/>` is written as is, so a line ending before it stays.
+  if (rendering && isKind(content, 'inline', 'comment')) return rendering.nodes.map(asInlineHtml);
   if (isListItem(content)) throw new TypeError(`${where} can't hold a list item; a list item goes in a list`);
   throw new TypeError(`${where} must be inline, got ${describe(content)}`);
 }
@@ -195,6 +205,55 @@ export function groupedNodes(content: AnyContent | readonly AnyContent[], where:
 }
 
 /**
+ * Return the blocks for the arguments of `document`, `listItem` or `details`, as {@link groupedNodes} does, but with
+ * each argument on its own line:
+ * - Inline arguments in a row form one paragraph, a line each. An array is one argument.
+ * - Text loses the spaces and tabs at the start and end of an argument, and next to a block within one. They would show
+ *   escaped next to a line ending.
+ * - An argument that renders nothing leaves an empty line, so the arguments around it are two paragraphs.
+ * @param where - what the content is for, for error messages.
+ */
+export function argumentNodes(args: readonly AnyContent[], where: string): MdastBlockContent[] {
+  const nodes: RootContent[] = [];
+  let lines: PhrasingContent[][] = [];
+  function endParagraph(): void {
+    if (lines.length) nodes.push({ type: 'paragraph', children: joinLines(lines) });
+    lines = [];
+  }
+  for (const arg of args) {
+    const parts = mapParagraphsAndBlocks<{ inline: InlineContent[] } | { block: MDBlock | MDListItem }>(
+      arg,
+      (inline) => ({ inline }),
+      (block) => ({ block }),
+    );
+    if (!parts.length) endParagraph();
+    for (const part of parts) {
+      if ('block' in part) {
+        endParagraph();
+        for (const node of blockNodes(part.block, where)) nodes.push(node);
+        continue;
+      }
+      const line = trimBlanks(inlineNodes(part.inline, where));
+      if (line.length) lines.push(line);
+      else endParagraph();
+    }
+  }
+  endParagraph();
+  return inLists(nodes) as MdastBlockContent[];
+}
+
+/** Join lines with a line ending, except next to a line break, which already ends the line. */
+function joinLines(lines: readonly PhrasingContent[][]): PhrasingContent[] {
+  const result: PhrasingContent[] = [];
+  for (const line of lines) {
+    const before = result.at(-1);
+    if (before && before.type !== 'break' && line[0].type !== 'break') result.push({ type: 'text', value: '\n' });
+    for (const node of line) result.push(node);
+  }
+  return result;
+}
+
+/**
  * Put each run of list items in a bullet list. A run joins a list right before or after it, so a list item next to a
  * list is one more item of it, and the list keeps its numbering. Two lists in a row stay two lists.
  */
@@ -226,7 +285,7 @@ export function inLists(nodes: readonly RootContent[]): RootContent[] {
   return result;
 }
 
-/** Build a list item from its pieces, grouped as in {@link groupedNodes}. */
+/** Build a list item from its arguments, grouped as in {@link argumentNodes}. */
 export function listItemNode(content: readonly ListItemContent[]): ListItem {
-  return { type: 'listItem', spread: false, children: groupedNodes(content, 'list item content') };
+  return { type: 'listItem', spread: false, children: argumentNodes(content, 'list item content') };
 }

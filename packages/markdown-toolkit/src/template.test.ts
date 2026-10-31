@@ -11,6 +11,7 @@ import {
   heading,
   inlineCode,
   inlineTemplate,
+  lineBreak,
   link,
   list,
   listItem,
@@ -23,7 +24,15 @@ import {
   text,
   toBlock,
 } from './index.ts';
-import type { MDFragment, MDInline, MDInlineFragment, MDText, TemplateValue, TemplateValues } from './index.ts';
+import type {
+  AnyContent,
+  MDFragment,
+  MDInline,
+  MDInlineFragment,
+  MDText,
+  TemplateValue,
+  TemplateValues,
+} from './index.ts';
 import { resolveValue } from './template.ts';
 
 interface ResolveRow {
@@ -210,6 +219,42 @@ describe('template', () => {
     assert.equal(template('a [{@ x @}](https://u) b', { x: '' }).toString(), 'a [](https://u) b');
   });
 
+  testEach`
+    tpl                              | label
+    ${'a\n{@ x @}{@ y @}\nb'}        | ${'side by side'}
+    ${'a\n{@ x @} {@ y @}\nb'}       | ${'with a space between'}
+    ${'a\r\n{@ x @}{@ y @}\r\nb'}    | ${'with CRLF line endings'}
+  `('empty values that leave a line empty between them end the paragraph: $label', ({ tpl }: { tpl: string }) => {
+    assert.equal(template(tpl, { x: '', y: '' }).toString(), 'a\n\nb');
+    assert.equal(document('a', ['', ''], 'b').toString(), 'a\n\nb\n');
+    const md = substitutePlaceholders(document('a', [placeholder('x'), placeholder('y')], 'b'), { x: '', y: '' });
+    assert.equal(md.toString(), 'a\n\nb\n');
+  });
+
+  test('an empty value on the line after a line break ends the paragraph', () => {
+    assert.equal(template('a\\\n{@ x @}\nb', { x: '' }).toString(), 'a\n\nb');
+    const md = substitutePlaceholders(document(['a', lineBreak()], placeholder('x'), 'b'), { x: '' });
+    assert.equal(md.toString(), document(['a', lineBreak()], '', 'b').toString());
+    assert.equal(md.toString(), 'a\n\nb\n');
+  });
+
+  testEach`
+    value                            | label
+    ${inlineTemplate('c\n', {})}     | ${"'c\\n'"}
+    ${inlineTemplate('c \n', {})}    | ${"'c \\n'"}
+    ${inlineTemplate('c\n ', {})}    | ${"'c\\n '"}
+  `(
+    'a value with its own line ending, inside a sentence, keeps the paragraph whole and its lines unescaped: $label',
+    ({ value }: { value: TemplateValue }) => {
+      assert.equal(template('a {@ x @}\nb', { x: value }).toString(), 'a c\nb');
+    },
+  );
+
+  test('in an inline template, an empty line left by an empty value goes', () => {
+    assert.equal(inlineTemplate('a\n{@ x @}\nb', { x: '' }).toString(), 'a\nb');
+    assert.equal(inlineTemplate('a\n{@ x @}{@ y @}\nb', { x: '', y: '' }).toString(), 'a\nb');
+  });
+
   test('an empty value in an inline template or a document', () => {
     assert.equal(inlineTemplate('a **{@ x @}** b', { x: '' }).toString(), 'a&#x20;**&#x20;** b');
     assert.equal(templateDocument('a\n\n{@ x @}\n', { x: '' }).toString(), 'a\n');
@@ -219,7 +264,7 @@ describe('template', () => {
 describe('inlineTemplate', () => {
   test('a fragment inside a list item', () => {
     const e = { name: 'German', url: '../de.md' };
-    const md = list([listItem(link(e.name, e.url), inlineTemplate(' - Adds {@ name @} spell checking', e))]);
+    const md = list([listItem([link(e.name, e.url), inlineTemplate(' - Adds {@ name @} spell checking', e)])]);
     assert.equal(md.toString(), '- [German](../de.md) - Adds German spell checking');
   });
 
@@ -370,17 +415,53 @@ describe('substitutePlaceholders', () => {
     );
   });
 
+  testEach`
+    value          | label
+    ${''}          | ${"''"}
+    ${[]}          | ${'[]'}
+    ${text('')}    | ${"text('')"}
+    ${' \t'}       | ${"' \\t'"}
+  `(
+    'an empty value alone on its line ends the paragraph, as passing it directly does: $label',
+    ({ value }: { value: TemplateValue }) => {
+      assert.equal(substitutePlaceholders(document('a', placeholder('x'), 'b'), { x: value }).toString(), 'a\n\nb\n');
+      assert.equal(document('a', value as AnyContent, 'b').toString(), 'a\n\nb\n');
+      assert.equal(template('a\n{@ x @}\nb', { x: value }).toString(), 'a\n\nb');
+    },
+  );
+
+  testEach`
+    value      | expected
+    ${' c '}   | ${'a\nc\nb'}
+    ${'c\n'}   | ${'a\nc\\\nb'}
+    ${'\nc'}   | ${'a\\\nc\nb'}
+  `(
+    'a value alone on its line gives what passing it directly gives: $expected',
+    ({ value, expected }: { value: string; expected: string }) => {
+      assert.equal(document('a', value, 'b').toString(), `${expected}\n`);
+      assert.equal(
+        substitutePlaceholders(document('a', placeholder('x'), 'b'), { x: value }).toString(),
+        `${expected}\n`,
+      );
+      assert.equal(template('a\n{@ x @}\nb', { x: value }).toString(), expected);
+    },
+  );
+
   test('placeholder() follows its position', () => {
     const fruit = list(['apple', 'orange']);
     const url = 'https://x';
     const md = document('Fruit:\n', placeholder('fruit'), '\n', link('images', url));
-    assert.equal(md.toString(), 'Fruit:\n{@ fruit @}\n[images](https://x)\n');
+    assert.equal(md.toString(), 'Fruit:\\\n{@ fruit @}\\\n[images](https://x)\n');
     assert.equal(
       substitutePlaceholders(md, { fruit }).toString(),
       'Fruit:\n\n- apple\n- orange\n\n[images](https://x)\n',
     );
+    assert.equal(
+      substitutePlaceholders(document('Fruit:', placeholder('fruit')), { fruit }).toString(),
+      'Fruit:\n\n- apple\n- orange\n',
+    );
     assert.throws(
-      () => substitutePlaceholders(document('Fruit: ', placeholder('fruit')), { fruit }),
+      () => substitutePlaceholders(document(paragraph('Fruit: ', placeholder('fruit'))), { fruit }),
       new TypeError('{@ fruit @} must be inline, got a list'),
     );
     assert.equal(substitutePlaceholders(placeholder('fruit'), { fruit }).type, 'fragment');
