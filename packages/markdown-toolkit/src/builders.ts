@@ -404,8 +404,6 @@ export function codeBlock(code: string, lang?: string): MDCodeBlock {
   return new MarkdownElement('block', 'codeBlock', 'a code block', [{ type: 'code', lang: lang || null, value: code }]);
 }
 
-type LIContent = ListItemContent;
-
 /**
  * Create one list item from several pieces.
  *
@@ -426,7 +424,8 @@ type LIContent = ListItemContent;
  * @category lists
  */
 export function listItem(
-  ...content: [LIContent, ...LIContent[]] | [LIContent, ...LIContent[], ListItemOptions | undefined]
+  ...content:
+    [ListItemContent, ...ListItemContent[]] | [ListItemContent, ...ListItemContent[], ListItemOptions | undefined]
 ): MDListItem {
   return buildListItem(...piecesAndOptions(content));
 }
@@ -434,7 +433,7 @@ export function listItem(
 /** The same as {@link listItem}. */
 export const li: typeof listItem = listItem;
 
-function isListItemOptions(value: ListItemOptions | LIContent | undefined): value is ListItemOptions {
+function isListItemOptions(value: ListItemOptions | ListItemContent | undefined): value is ListItemOptions {
   return typeof value === 'object' && value !== null && !Array.isArray(value) && !('kind' in value);
 }
 
@@ -464,7 +463,8 @@ function buildListItem(content: readonly ListItemContent[], options?: ListItemOp
  * @category lists
  */
 export function taskListItem(
-  ...content: [LIContent, ...LIContent[]] | [LIContent, ...LIContent[], ListItemOptions | undefined]
+  ...content:
+    [ListItemContent, ...ListItemContent[]] | [ListItemContent, ...ListItemContent[], ListItemOptions | undefined]
 ): MDListItem {
   const [pieces, options] = piecesAndOptions(content);
   return buildListItem(pieces, { checked: options?.checked ?? false });
@@ -472,11 +472,11 @@ export function taskListItem(
 
 /** Split a list item's arguments into its pieces and the options that can follow them. */
 function piecesAndOptions(
-  content: readonly (LIContent | ListItemOptions | undefined)[],
-): [pieces: LIContent[], options: ListItemOptions | undefined] {
+  content: readonly (ListItemContent | ListItemOptions | undefined)[],
+): [pieces: ListItemContent[], options: ListItemOptions | undefined] {
   const last = content.at(-1);
-  if (last !== undefined && !isListItemOptions(last)) return [content as LIContent[], undefined];
-  return [content.slice(0, -1) as LIContent[], last];
+  if (last !== undefined && !isListItemOptions(last)) return [content as ListItemContent[], undefined];
+  return [content.slice(0, -1) as ListItemContent[], last];
 }
 
 /**
