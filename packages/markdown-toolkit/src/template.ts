@@ -1,5 +1,5 @@
 import { listPlaceholders, replacePlaceholders } from '@streetsidesoftware/placeholders';
-import type { Paragraph, Parent, PhrasingContent, Root, RootContent } from 'mdast';
+import type { Paragraph, Parent, PhrasingContent, Root, RootContent, Text } from 'mdast';
 import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import { unified } from 'unified';
@@ -496,16 +496,13 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
         const wholeLine = lines && isWholeLine(nodes, i);
         if (wholeLine && isBlockLike(value)) return [{ blocks: blockNodes(value, `{@ ${name} @}`) }];
         const inline = valueAsInline(value, name);
-        if (!wholeLine) return inline;
-        // On a line of its own, a value is trimmed as an argument is. An empty one leaves an empty line, which ends the
-        // paragraph, as passing it directly would.
-        const line = trimBlanks(inline);
-        return line.length ? line : [{ blocks: [] }];
+        // On a line of its own, a value is trimmed as an argument is.
+        return wholeLine ? trimBlanks(inline) : inline;
       }
       switch (node.type) {
         case 'paragraph': {
           const pieces = substituteInNodes(node.children, blocks, false);
-          return splitParagraph(node, pieces);
+          return splitParagraph(node, endAtEmptyLines(pieces, blocks));
         }
         case 'yaml':
           node.value = replacePlaceholders(node.value, (name: string) => {
@@ -562,6 +559,77 @@ function splitParagraph(paragraph: Paragraph, pieces: Piece[]): RootContent[] {
 
 function isBlockSlot(piece: Piece): piece is BlockSlot {
   return 'blocks' in piece;
+}
+
+/**
+ * Return the pieces with each empty line that substitution left in the text as the end of the paragraph, as passing
+ * the values directly would make it. Where blocks can't go, the empty line goes instead, since it can't end anything.
+ * @param canSplit - blocks can go where the paragraph is.
+ */
+function endAtEmptyLines(pieces: readonly Piece[], canSplit: boolean): Piece[] {
+  // Text left next to text, once the values between are gone, is one line.
+  const joined: Piece[] = [];
+  for (const piece of pieces) {
+    const before = joined.at(-1);
+    if (before && isTextPiece(before) && isTextPiece(piece)) {
+      joined[joined.length - 1] = { ...before, value: before.value + piece.value };
+    } else {
+      joined.push(piece);
+    }
+  }
+  return joined.flatMap((piece) => (isTextPiece(piece) ? splitAtEmptyLines(piece, canSplit) : [piece]));
+}
+
+function isTextPiece(piece: Piece): piece is Text {
+  return !isBlockSlot(piece) && piece.type === 'text';
+}
+
+/** Split text at each run of empty lines inside it, or join the lines around the run where blocks can't go. */
+function splitAtEmptyLines(text: Text, canSplit: boolean): Piece[] {
+  const { value } = text;
+  const lines = lineSpans(value);
+  const pieces: Piece[] = [];
+  let start = 0;
+  for (let i = 1; i < lines.length - 1; ++i) {
+    if (!isBlankLine(value, lines[i])) continue;
+    let last = i;
+    while (last + 1 < lines.length - 1 && isBlankLine(value, lines[last + 1])) ++last;
+    pieces.push({ ...text, value: value.slice(start, lines[i - 1].end) });
+    pieces.push(canSplit ? { blocks: [] } : { ...text, value: '\n' });
+    start = lines[last].next;
+    i = last;
+  }
+  pieces.push({ ...text, value: value.slice(start) });
+  return pieces.filter((piece) => !isTextPiece(piece) || piece.value);
+}
+
+interface LineSpan {
+  readonly start: number;
+  /** Holds where the line ends, before its line ending. */
+  readonly end: number;
+  /** Holds where the next line starts. */
+  readonly next: number;
+}
+
+function lineSpans(text: string): LineSpan[] {
+  const lines: LineSpan[] = [];
+  let start = 0;
+  for (;;) {
+    let end = start;
+    while (end < text.length && text[end] !== '\r' && text[end] !== '\n') ++end;
+    if (end === text.length) {
+      lines.push({ start, end, next: end });
+      return lines;
+    }
+    const next = text[end] === '\r' && text[end + 1] === '\n' ? end + 2 : end + 1;
+    lines.push({ start, end, next });
+    start = next;
+  }
+}
+
+function isBlankLine(text: string, line: LineSpan): boolean {
+  for (let i = line.start; i < line.end; ++i) if (text[i] !== ' ' && text[i] !== '\t') return false;
+  return true;
 }
 
 /** Return the inline nodes without the line endings at their start and end. */

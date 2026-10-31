@@ -494,6 +494,9 @@ describe('a newline in a string is a line break', () => {
     ${heading(3, ['a ', lineBreak(), ' b'])}              | ${'### a<br/>b'}
     ${template('a {@ x @} b', { x: 'c\n' })}              | ${'a c\\\nb'}
     ${details(['a ', '\n b'], 'c')}                       | ${'<details>\n<summary>a<br/>b</summary>\n\nc\n\n</details>'}
+    ${paragraph([strong('a '), lineBreak(), 'b'])}        | ${'**a**\\\nb'}
+    ${paragraph(['a', lineBreak(), emphasis('\tb')])}     | ${'a\\\n_b_'}
+    ${paragraph([strong(emphasis('a ')), '\nb'])}         | ${'**_a_**\\\nb'}
   `(
     'the spaces and tabs next to a line break go, wherever they come from: $expected',
     ({ value, expected }: { value: MDElement; expected: string }) => {
@@ -669,6 +672,7 @@ describe('document', () => {
     ${document('a', strong(''), 'b')}                              | ${'a\n**&#x20;**\nb\n'}
     ${document('a ', ' b')}                                        | ${'a\nb\n'}
     ${document('a\t', '\tb')}                                      | ${'a\nb\n'}
+    ${document(strikethrough(' a '), strong('b '))}                | ${'~~a~~\n**b**\n'}
     ${document(['a ', p('p'), ' b'])}                              | ${'a\n\np\n\nb\n'}
     ${list([['a ', list(['x'])]])}                                   | ${'- a\n  - x'}
     ${document('a', '- b')}                                        | ${'a\n\\- b\n'}

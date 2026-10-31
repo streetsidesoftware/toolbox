@@ -218,6 +218,23 @@ describe('template', () => {
     assert.equal(template('a [{@ x @}](https://u) b', { x: '' }).toString(), 'a [](https://u) b');
   });
 
+  testEach`
+    tpl                              | label
+    ${'a\n{@ x @}{@ y @}\nb'}        | ${'side by side'}
+    ${'a\n{@ x @} {@ y @}\nb'}       | ${'with a space between'}
+    ${'a\r\n{@ x @}{@ y @}\r\nb'}    | ${'with CRLF line endings'}
+  `('empty values that fill a line between them end the paragraph: $label', ({ tpl }: { tpl: string }) => {
+    assert.equal(template(tpl, { x: '', y: '' }).toString(), 'a\n\nb');
+    assert.equal(document('a', ['', ''], 'b').toString(), 'a\n\nb\n');
+    const md = substitutePlaceholders(document('a', [placeholder('x'), placeholder('y')], 'b'), { x: '', y: '' });
+    assert.equal(md.toString(), 'a\n\nb\n');
+  });
+
+  test('in an inline template, an empty line left by an empty value goes', () => {
+    assert.equal(inlineTemplate('a\n{@ x @}\nb', { x: '' }).toString(), 'a\nb');
+    assert.equal(inlineTemplate('a\n{@ x @}{@ y @}\nb', { x: '', y: '' }).toString(), 'a\nb');
+  });
+
   test('an empty value in an inline template or a document', () => {
     assert.equal(inlineTemplate('a **{@ x @}** b', { x: '' }).toString(), 'a&#x20;**&#x20;** b');
     assert.equal(templateDocument('a\n\n{@ x @}\n', { x: '' }).toString(), 'a\n');

@@ -28,7 +28,7 @@ Converting an element to a string too early loses its kind. Writing ``text(`see 
 
 Wherever inline content goes, a plain string is text and is escaped. A `{@ name @}` placeholder in it is kept as written. Inline code and code blocks take their string as code, inserted as is.
 
-A string is inline text everywhere, even where blocks can go. A newline in it, `\r\n` or `\r` included, is a line break wherever text goes: in a paragraph, link text, formatting, `text()`, a table cell, and a string substituted for a placeholder. That's what someone writing the string expects to see, and it's the same everywhere. The spaces and tabs next to any line break go, wherever they come from, since at the edge of a line they would only show up escaped.
+A string is inline text everywhere, even where blocks can go. A newline in it, `\r\n` or `\r` included, is a line break wherever text goes: in a paragraph, link text, formatting, `text()`, a table cell, and a string substituted for a placeholder. That's what someone writing the string expects to see, and it's the same everywhere. The spaces and tabs next to any line break go, wherever they come from and inside formatting too, since at the edge of a line they would only show up escaped.
 
 A blank line in a string is two line breaks. A string never splits into paragraphs by itself, because the same string would then mean something different in a list item than in a paragraph.
 
@@ -131,7 +131,7 @@ A placeholder isn't inline or block by itself. Where it sits decides what it can
 - On a line of its own, where blocks can go, it also takes blocks.
 - Inside code or HTML, it takes only a string, text, a placeholder or an HTML entity.
 
-A value substituted later gives the same result as the value passed directly. So a value on a line of its own is trimmed as a part is, and an empty one leaves an empty line, which ends the paragraph, as `document('a', '', 'b')` does.
+A value substituted later gives the same result as the value passed directly. So a value on a line of its own is trimmed as a part is. Empty values that leave a line empty, alone or side by side, end the paragraph, as `document('a', '', 'b')` does. In an inline template, which is one paragraph, the empty line goes instead.
 
 Where a placeholder sits is the same whether it's written in Markdown text, in a string, or made with a builder:
 

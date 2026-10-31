@@ -1,4 +1,4 @@
-import type { PhrasingContent } from 'mdast';
+import type { Delete, Emphasis, PhrasingContent, Strong } from 'mdast';
 
 /**
  * Return the inline nodes without the spaces, tabs and line endings at their start and end.
@@ -37,6 +37,7 @@ export function isBlank(c: string | undefined): boolean {
 function trimBlanksAtStart(nodes: readonly PhrasingContent[]): PhrasingContent[] {
   for (let i = 0; i < nodes.length; ++i) {
     const node = nodes[i];
+    if (isFormatting(node)) return [trimmedInside(node, trimBlanksAtStart), ...nodes.slice(i + 1)];
     if (node.type !== 'text') return nodes.slice(i);
     const value = trimStart(node.value);
     if (value) return [{ ...node, value }, ...nodes.slice(i + 1)];
@@ -47,11 +48,28 @@ function trimBlanksAtStart(nodes: readonly PhrasingContent[]): PhrasingContent[]
 function trimBlanksAtEnd(nodes: readonly PhrasingContent[]): PhrasingContent[] {
   for (let i = nodes.length - 1; i >= 0; --i) {
     const node = nodes[i];
+    if (isFormatting(node)) return [...nodes.slice(0, i), trimmedInside(node, trimBlanksAtEnd)];
     if (node.type !== 'text') return nodes.slice(0, i + 1);
     const value = trimEnd(node.value);
     if (value) return [...nodes.slice(0, i), { ...node, value }];
   }
   return [];
+}
+
+/**
+ * Return the formatting with its text trimmed at one side.
+ * Formatting with only blanks in it stays as it is: it shows as a space, as empty formatting does.
+ */
+function trimmedInside<T extends Delete | Emphasis | Strong>(
+  node: T,
+  trim: (nodes: readonly PhrasingContent[]) => PhrasingContent[],
+): T {
+  const children = trim(node.children);
+  return children.length ? { ...node, children } : node;
+}
+
+function isFormatting(node: PhrasingContent): node is Delete | Emphasis | Strong {
+  return node.type === 'strong' || node.type === 'emphasis' || node.type === 'delete';
 }
 
 function trimStart(text: string): string {
