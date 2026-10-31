@@ -215,6 +215,9 @@ nested list.
 For a numbered list, use `ol`, or `list` with `ordered: true`. Every item in the Markdown repeats the first number,
 and the page counts up from it.
 
+For a checkbox, end a `listItem` (or `li`) with `{ checked: true }` or `{ checked: false }`. Or use `taskListItem`,
+whose box is empty unless its options hold `checked: true`.
+
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
@@ -747,7 +750,8 @@ console.log(section.toString());
 - `list(entries, options?)`: Create a bulleted or numbered list, one item per entry.
 - `ol(entries, options?)`: Create a numbered list, one item per entry.
 - `ul(entries)`: Create a bulleted list, one item per entry.
-- `listItem(...content)`: Create one list item from several pieces.
+- `listItem(...content)` (also `li`): Create one list item from several pieces.
+- `taskListItem(...content)`: Create one task list item: a list item with a checkbox.
 - `table(header, rows, options?)`: Create a table with a header row, then one row per entry.
 - `htmlTable(header, rows, options?)`: Create a table whose cells can hold anything, including lists and paragraphs.
 - `dl(entries)` (also `definitionList`): Create a list of terms, each followed by its definition.

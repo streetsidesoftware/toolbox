@@ -52,6 +52,8 @@ In a list, each entry is one item. An array entry is one item holding a sequence
 
 A list is bulleted unless an option makes it numbered. In Markdown, numbering belongs to the whole list, not to an item, so the option is the list's, and so is the number it starts at. Two short builders, one per kind, sit next to it for scripts that always want the same kind.
 
+A list item can have a checkbox, as in a GFM task list. The checkbox belongs to the item, not the list, so the option is the item's. The option follows the item's pieces, which are separate arguments as in a paragraph or a document, so square brackets in a call only ever mark a list's entries. A task list item builder, named for the GFM term, takes the same arguments, and its box is empty unless the option checks it.
+
 The function `toBlock(content)` makes content fit where only blocks can go: blocks come back unchanged, and each run of inline pieces becomes a paragraph. It's how the result of `template()` or `parse()`, which can be either kind, goes where only blocks can go.
 
 ### Line breaks and comments

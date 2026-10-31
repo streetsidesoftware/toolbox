@@ -6,6 +6,9 @@ nested list.
 For a numbered list, use `ol`, or `list` with `ordered: true`. Every item in the Markdown repeats the first number,
 and the page counts up from it.
 
+For a checkbox, end a `listItem` (or `li`) with `{ checked: true }` or `{ checked: false }`. Or use `taskListItem`,
+whose box is empty unless its options hold `checked: true`.
+
 <!--- @@inject: example.ts --->
 
 ```ts
