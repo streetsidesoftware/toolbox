@@ -278,6 +278,20 @@ describe('li', () => {
     assert.throws(() => listItem('a', { checked: true }, { checked: false }), error);
   });
 
+  test('options never hold kind or type', () => {
+    // @ts-expect-error an element's key
+    assert.equal(listItem('a', { checked: true, kind: undefined }).toString(), '- [x] a');
+    // @ts-expect-error an element's key
+    assert.equal(listItem('a', { checked: true, type: undefined }).toString(), '- [x] a');
+  });
+
+  test('only an element is taken for a piece', () => {
+    const notAnElement = { kind: 'inline', type: 'text', checked: true };
+    // @ts-expect-error options never hold kind or type
+    assert.equal(listItem('a', notAnElement).toString(), '- [x] a');
+    assert.equal(listItem('a', text('b')).toString(), '- ab');
+  });
+
   test('options can be undefined', () => {
     const options: { checked?: boolean } | undefined = undefined;
     assert.equal(listItem('a', options).toString(), '- a');

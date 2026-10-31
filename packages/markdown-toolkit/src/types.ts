@@ -327,8 +327,13 @@ export type AnyContent = BlockOrInlineContent | readonly BlockOrInlineContent[];
  */
 export type ListItemContent = BlockOrInlineContent;
 
+/** Holds the key that marks a type as options. No object sets it. */
 export const OPTION_TYPE_GUARD_SYMBOL: unique symbol = Symbol('option_type_guard');
 
+/**
+ * Describes what every options type extends, so that an element never passes for options.
+ * Every element has a `kind` and a `type`, and options never do.
+ */
 export interface OptionTypeGuard {
   readonly [OPTION_TYPE_GUARD_SYMBOL]?: true;
   readonly kind?: never;
