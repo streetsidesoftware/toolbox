@@ -33,7 +33,7 @@ export { definitionList, details, dl, htmlTable } from './htmlBlocks.ts';
 export { copy, emsp, ensp, hellip, htmlEntity, mdash, nbsp, ndash, shy, thinsp } from './htmlEntity.ts';
 export { detectStyle } from './style.ts';
 export { table } from './table.ts';
-export type { TemplateValue, TemplateValues } from './template.ts';
+export type { TemplateResolver, TemplateValue, TemplateValues } from './template.ts';
 export {
   blockTemplate,
   inlineTemplate,

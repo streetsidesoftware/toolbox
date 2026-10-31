@@ -30,6 +30,7 @@ import type {
   MDInline,
   MDInlineFragment,
   MDText,
+  TemplateResolver,
   TemplateValue,
   TemplateValues,
 } from './index.ts';
@@ -518,5 +519,57 @@ describe('substitutePlaceholders', () => {
   test('names resolve as in template', () => {
     const md = paragraph(placeholder('engines.cspell'));
     assert.equal(substitutePlaceholders(md, { engines: { cspell: '9.x' } }).toString(), '9.x');
+  });
+});
+
+describe('a resolver', () => {
+  const versions: TemplateResolver = (name) => (name.startsWith('v.') ? name.slice(2) : undefined);
+
+  test('substitutes the value it returns', () => {
+    assert.equal(template('Version {@ v.1 @}', versions).toString(), 'Version 1');
+  });
+
+  test('gets the whole dotted name', () => {
+    const names: string[] = [];
+    template('{@ engines.cspell @}', (name) => {
+      names.push(name);
+      return undefined;
+    });
+    assert.deepEqual(names, ['engines.cspell']);
+  });
+
+  test('a placeholder it returns undefined for is kept', () => {
+    assert.equal(template('{@ v.1 @} and {@ other @}', versions).toString(), '1 and {@ other @}');
+  });
+
+  test('a result that is not a template value counts as no value', () => {
+    const resolve = (() => ({ a: 1 })) as unknown as TemplateResolver;
+    assert.equal(template('Hi {@ x @}', resolve).toString(), 'Hi {@ x @}');
+    assert.equal(template('`{@ x @}`', resolve).toString(), '`{@ x @}`');
+  });
+
+  test('a returned element is substituted', () => {
+    const md = template('Intro.\n\n{@ items @}\n', () => list(['a', 'b']));
+    assert.equal(md.toString(), 'Intro.\n\n- a\n- b');
+  });
+
+  test('works in code and frontmatter', () => {
+    const md = templateDocument('---\nversion: {@ v.2 @}\n---\n\n`npm i x@{@ v.2 @}`\n', versions);
+    assert.equal(md.toString(), '---\nversion: 2\n---\n\n`npm i x@2`\n');
+  });
+
+  test('works with blockTemplate and inlineTemplate', () => {
+    assert.equal(blockTemplate('Version {@ v.3 @}', versions).toString(), 'Version 3');
+    assert.equal(inlineTemplate('Version {@ v.3 @}', versions).toString(), 'Version 3');
+  });
+
+  test('works with substitutePlaceholders', () => {
+    assert.equal(substitutePlaceholders('Version {@ v.4 @}', versions).toString(), 'Version 4');
+    assert.equal(substitutePlaceholders(paragraph('Version ', placeholder('v.4')), versions).toString(), 'Version 4');
+    assert.equal(substitutePlaceholders(placeholder('v.4'), versions).toString(), '4');
+    const kept = placeholder('other');
+    assert.equal(substitutePlaceholders(kept, versions), kept);
+    const block = blockPlaceholder('other');
+    assert.equal(substitutePlaceholders(block, versions), block);
   });
 });

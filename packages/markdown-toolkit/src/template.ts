@@ -56,6 +56,17 @@ export interface TemplateValues {
 }
 
 /**
+ * Returns the value for a placeholder name, or `undefined` to leave the placeholder in place.
+ *
+ * It gets the whole name, such as `engines.cspell`, and may be called more than once for the same name.
+ *
+ * @example
+ * md.template('Version {@version@}', (name) => (name === 'version' ? '2.0' : undefined));
+ * // Version 2.0
+ */
+export type TemplateResolver = (name: string) => TemplateValue | undefined;
+
+/**
  * Create Markdown from a template by substituting values for its `{​@ name @​}` placeholders.
  *
  * - A string value shows as text, not as formatting, with each newline as a line break.
@@ -67,15 +78,16 @@ export interface TemplateValues {
  *
  * A result of one paragraph can go anywhere a string can. A longer one goes where paragraphs can.
  *
- * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
+ * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
+ *   `engines.cspell`, reaches into a nested object.
  * @example
  * md.template('Install {@name@} with npm.', { name: 'cspell' });
  * // Install cspell with npm.
  * @category templates
  */
-export function template(markdown: string, values: TemplateValues): MDFragment | MDInlineFragment {
+export function template(markdown: string, values: TemplateValues | TemplateResolver): MDFragment | MDInlineFragment {
   const root = templateTree(markdown, false);
-  substituteInTree(root, values, true);
+  substituteInTree(root, resolverOf(values), true);
   return fragment(root, markdown);
 }
 
@@ -89,15 +101,16 @@ export function template(markdown: string, values: TemplateValues): MDFragment |
  *   entity shows as its character in code, and as its reference in HTML.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
- * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
+ * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
+ *   `engines.cspell`, reaches into a nested object.
  * @example
  * md.blockTemplate('Hello {@name@}.', { name: 'world' });
  * // Hello world.
  * @category templates
  */
-export function blockTemplate(markdown: string, values: TemplateValues): MDFragment {
+export function blockTemplate(markdown: string, values: TemplateValues | TemplateResolver): MDFragment {
   const root = templateTree(markdown, false);
-  substituteInTree(root, values, true);
+  substituteInTree(root, resolverOf(values), true);
   return new MarkdownElement(
     'block',
     'fragment',
@@ -116,13 +129,14 @@ export function blockTemplate(markdown: string, values: TemplateValues): MDFragm
  * - A value can be text, a link, formatting or code.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
- * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
+ * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
+ *   `engines.cspell`, reaches into a nested object.
  * @example
  * md.inlineTemplate('Version {@version@}', { version: '2.0' });
  * // Version 2.0
  * @category templates
  */
-export function inlineTemplate(markdown: string, values: TemplateValues): MDInlineFragment {
+export function inlineTemplate(markdown: string, values: TemplateValues | TemplateResolver): MDInlineFragment {
   const start = markdown.trimStart();
   const lead = markdown.slice(0, markdown.length - start.length);
   const body = start.trimEnd();
@@ -131,7 +145,7 @@ export function inlineTemplate(markdown: string, values: TemplateValues): MDInli
   if (root.children.length > 1 || (root.children[0] && root.children[0].type !== 'paragraph')) {
     throw new Error('inline template text must be one paragraph');
   }
-  substituteInTree(root, values, false);
+  substituteInTree(root, resolverOf(values), false);
   const children = root.children[0]?.type === 'paragraph' ? root.children[0].children : [];
   return new MarkdownElement('inline', 'inlineFragment', 'an inline Markdown fragment', [
     ...textNodes(lead),
@@ -189,7 +203,8 @@ export function parseDocument(markdown: string): MDDocument {
  *   entity shows as its character in code, and as its reference in HTML.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
- * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
+ * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
+ *   `engines.cspell`, reaches into a nested object.
  * @example
  * md.templateDocument('# {@title@}\n\nBody.', { title: 'Dictionaries' });
  * // # Dictionaries
@@ -197,8 +212,8 @@ export function parseDocument(markdown: string): MDDocument {
  * // Body.
  * @category templates
  */
-export function templateDocument(markdown: string, values: TemplateValues): MDDocument {
-  return documentOf(markdown, (body) => templateTree(body, false), values);
+export function templateDocument(markdown: string, values: TemplateValues | TemplateResolver): MDDocument {
+  return documentOf(markdown, (body) => templateTree(body, false), resolverOf(values));
 }
 
 /**
@@ -214,7 +229,8 @@ export function templateDocument(markdown: string, values: TemplateValues): MDDo
  *   entity shows as its character in code, and as its reference in HTML.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
- * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
+ * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
+ *   `engines.cspell`, reaches into a nested object.
  * @example
  * const page = md.p('Hello ', md.placeholder('name'), '.');
  * md.substitutePlaceholders(page, { name: 'world' });
@@ -226,30 +242,40 @@ export function templateDocument(markdown: string, values: TemplateValues): MDDo
  */
 export function substitutePlaceholders(
   content: string | MDText,
-  values: TemplateValues,
+  values: TemplateValues | TemplateResolver,
 ): MDText | MDInlineFragment | MDFragment;
 export function substitutePlaceholders(
   content: MDInlineFragment,
-  values: TemplateValues,
+  values: TemplateValues | TemplateResolver,
 ): MDInlineFragment | MDFragment;
-export function substitutePlaceholders(content: MDParagraph, values: TemplateValues): MDParagraph | MDFragment;
+export function substitutePlaceholders(
+  content: MDParagraph,
+  values: TemplateValues | TemplateResolver,
+): MDParagraph | MDFragment;
 export function substitutePlaceholders(
   content: MDPlaceholder,
-  values: TemplateValues,
+  values: TemplateValues | TemplateResolver,
 ): MDPlaceholder | MDInlineFragment | MDFragment;
 export function substitutePlaceholders(
   content: MDBlockPlaceholder,
-  values: TemplateValues,
+  values: TemplateValues | TemplateResolver,
 ): MDBlockPlaceholder | MDFragment;
-export function substitutePlaceholders(content: MDInline, values: TemplateValues): MDInline | MDFragment;
-export function substitutePlaceholders<T extends MDElement>(content: T, values: TemplateValues): T;
-export function substitutePlaceholders(content: MDElement | string, values: TemplateValues): MDElement {
+export function substitutePlaceholders(
+  content: MDInline,
+  values: TemplateValues | TemplateResolver,
+): MDInline | MDFragment;
+export function substitutePlaceholders<T extends MDElement>(content: T, values: TemplateValues | TemplateResolver): T;
+export function substitutePlaceholders(
+  content: MDElement | string,
+  values: TemplateValues | TemplateResolver,
+): MDElement {
   if (typeof content === 'string') return substitutePlaceholders(text(content), values);
+  const resolve = resolverOf(values);
   const rendering = renderingOf(content);
   if (!rendering) throw new TypeError(`expected a string or a Markdown element, got ${describe(content)}`);
   // An HTML entity has no placeholder in it, and keeps its character.
   if (isHtmlEntity(content)) return content;
-  const substituted = isText(content) ? substituteInText(content.text, values) : undefined;
+  const substituted = isText(content) ? substituteInText(content.text, resolve) : undefined;
   if (substituted !== undefined) return text(substituted);
   const { style } = rendering;
   const nodes = structuredClone(rendering.nodes);
@@ -257,48 +283,48 @@ export function substitutePlaceholders(content: MDElement | string, values: Temp
     case 'text':
     case 'inlineFragment':
       return fragmentOf(
-        substitutedTree([{ type: 'paragraph', children: nodes as PhrasingContent[] }], values, true),
+        substitutedTree([{ type: 'paragraph', children: nodes as PhrasingContent[] }], resolve, true),
         style,
       );
     case 'paragraph': {
-      const root = substitutedTree(nodes, values, true);
+      const root = substitutedTree(nodes, resolve, true);
       if (root.children.length === 1 && root.children[0].type === 'paragraph') {
         return new MarkdownElement('block', 'paragraph', 'a paragraph', root.children, style);
       }
       return new MarkdownElement('block', 'fragment', 'a Markdown fragment', root.children, style);
     }
     case 'placeholder':
-      if (resolveValue(values, (content as MDPlaceholder).name) === undefined) return content;
+      if (resolve((content as MDPlaceholder).name) === undefined) return content;
       return fragmentOf(
-        substitutedTree([{ type: 'paragraph', children: nodes as PhrasingContent[] }], values, true),
+        substitutedTree([{ type: 'paragraph', children: nodes as PhrasingContent[] }], resolve, true),
         style,
       );
     case 'blockPlaceholder':
-      if (resolveValue(values, (content as MDBlockPlaceholder).name) === undefined) return content;
+      if (resolve((content as MDBlockPlaceholder).name) === undefined) return content;
       return new MarkdownElement(
         'block',
         'fragment',
         'a Markdown fragment',
-        substitutedTree(nodes, values, true).children,
+        substitutedTree(nodes, resolve, true).children,
         style,
       );
     case 'document':
-      return new DocumentElement(substitutedTree(nodes, values, true).children, style);
+      return new DocumentElement(substitutedTree(nodes, resolve, true).children, style);
     default:
       return new MarkdownElement(
         content.kind,
         content.type,
         content.description,
-        substitutedTree(nodes, values, content.kind !== 'inline').children,
+        substitutedTree(nodes, resolve, content.kind !== 'inline').children,
         style,
       );
   }
 }
 
 /** Return a tree of the nodes, with the placeholders that have values replaced. */
-function substitutedTree(nodes: RootContent[], values: TemplateValues, allowBlocks: boolean): Root {
+function substitutedTree(nodes: RootContent[], resolve: TemplateResolver, allowBlocks: boolean): Root {
   const root: Root = { type: 'root', children: nodes };
-  substituteInTree(root, values, allowBlocks);
+  substituteInTree(root, resolve, allowBlocks);
   return root;
 }
 
@@ -306,10 +332,10 @@ function substitutedTree(nodes: RootContent[], values: TemplateValues, allowBloc
  * Return the text with its placeholders substituted, or `undefined` if a value isn't a string or text.
  * A placeholder with no value is kept as written.
  */
-function substituteInText(text: string, values: TemplateValues): string | undefined {
+function substituteInText(text: string, resolve: TemplateResolver): string | undefined {
   let onlyText = true;
   const result = replacePlaceholders(text, (name: string) => {
-    const value = resolveValue(values, name);
+    const value = resolve(name);
     if (value === undefined) return undefined;
     if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
     if (isText(value)) return value.text;
@@ -320,13 +346,13 @@ function substituteInText(text: string, values: TemplateValues): string | undefi
 }
 
 /** Read a whole file as a document, its body by `read`, with values substituted when there are any. */
-function documentOf(markdown: string, read: (body: string) => Root, values?: TemplateValues): MDDocument {
+function documentOf(markdown: string, read: (body: string) => Root, resolve?: TemplateResolver): MDDocument {
   const front = readFrontmatter(markdown);
   const body = front ? markdown.slice(front.end) : markdown;
   const root = read(body);
   const style = detectMarkdownStyle(root, body);
   if (front) root.children.unshift(yamlNode(front.yaml));
-  if (values) substituteInTree(root, values, true);
+  if (resolve) substituteInTree(root, resolve, true);
   return new DocumentElement(root.children, style);
 }
 
@@ -410,6 +436,15 @@ function parseTree(markdown: string, inline: boolean): Root {
   return processor.parse(markdown);
 }
 
+/** Return a lookup for the values. A resolver's result that isn't a template value counts as no value. */
+function resolverOf(values: TemplateValues | TemplateResolver): TemplateResolver {
+  if (typeof values !== 'function') return (name) => resolveValue(values, name);
+  return (name) => {
+    const value: unknown = values(name);
+    return isTemplateValue(value) ? value : undefined;
+  };
+}
+
 /**
  * Look up a placeholder name.
  * Each top-level key acts as a declaration, and the newest one wins:
@@ -478,10 +513,10 @@ const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'list', 'li
  *   The paragraph splits around them.
  * @param allowBlocks - the root's children may be blocks.
  */
-function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boolean): void {
+function substituteInTree(root: Root, resolve: TemplateResolver, allowBlocks: boolean): void {
   const substituteInCode = (code: string, inside: 'code' | 'HTML'): string =>
     replacePlaceholders(code, (name: string) => {
-      const value = resolveValue(values, name);
+      const value = resolve(name);
       return value === undefined ? undefined : valueAsCode(value, name, inside);
     });
 
@@ -499,7 +534,7 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
       const placeholder = asPlaceholderNode(node);
       if (placeholder) {
         const name = placeholderName(placeholder);
-        const value = resolveValue(values, name);
+        const value = resolve(name);
         if (value === undefined) return [node];
         const wholeLine = paragraph !== undefined && isWholeLine(nodes, i);
         if (paragraph === 'split' && wholeLine && isBlockLike(value)) {
@@ -517,7 +552,7 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
         }
         case 'yaml':
           node.value = replacePlaceholders(node.value, (name: string) => {
-            const value = resolveValue(values, name);
+            const value = resolve(name);
             return value === undefined ? undefined : valueAsFrontmatter(value);
           });
           return [node];
