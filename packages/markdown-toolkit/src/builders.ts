@@ -460,7 +460,12 @@ function buildListItem(content: readonly ListItemContent[], options?: ListItemOp
 /**
  * Create one task list item: a list item with a checkbox.
  *
- * Pieces in a row join into one line. A paragraph, list or other block goes on its own lines below them.
+ * Each piece goes on a line of its own:
+ * - Text, links and other pieces in a row form one paragraph. The page shows a space between them.
+ * - A piece that shows nothing ends the paragraph.
+ * - A paragraph, list or other block goes on its own lines.
+ * - An array is one piece, and its parts join with no spaces added. For a sentence built from pieces, use an array or
+ *   {@link p}.
  *
  * It goes in a {@link list}, or anywhere a paragraph can go:
  * - List items in a row form a list.

@@ -243,7 +243,7 @@ describe('li', () => {
     ${li('a')}                                                    | ${'- a'}
     ${li('a', { checked: true })}                                 | ${'- [x] a'}
     ${li('a', { checked: false })}                                | ${'- [ ] a'}
-    ${li('See ', link('docs', 'u'), { checked: true })}           | ${'- [x] See [docs](u)'}
+    ${li(['See ', link('docs', 'u')], { checked: true })}         | ${'- [x] See [docs](u)'}
     ${li('Steps:', list(['one']), { checked: false })}            | ${'- [ ] Steps:\n  - one'}
     ${ol([li('a', { checked: true }), 'b'])}                      | ${'1. [x] a\n1. b'}
     ${document(li('a', { checked: true }), li('b'))}              | ${'- [x] a\n- b\n'}
@@ -290,7 +290,7 @@ describe('li', () => {
     const notAnElement = { kind: 'inline', type: 'text', checked: true };
     // @ts-expect-error options never hold kind or type
     assert.equal(listItem('a', notAnElement).toString(), '- [x] a');
-    assert.equal(listItem('a', text('b')).toString(), '- ab');
+    assert.equal(listItem('a', text('b')).toString(), '- a\n  b');
   });
 
   test('options can be undefined', () => {
