@@ -1,14 +1,16 @@
 import { listPlaceholders, replacePlaceholders } from '@streetsidesoftware/placeholders';
-import type { Paragraph, Parent, PhrasingContent, Root, RootContent } from 'mdast';
+import type { Paragraph, Parent, PhrasingContent, Root, RootContent, Text } from 'mdast';
 import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import { unified } from 'unified';
 
+import { trimBlanks } from './blanks.ts';
 import { text } from './builders.ts';
 import { detectMarkdownStyle } from './detectStyle.ts';
 import { DocumentElement } from './documentElement.ts';
 import { readFrontmatter, yamlNode } from './frontmatter.ts';
 import { isHtmlEntity } from './htmlEntity.ts';
+import { asInlineHtmlNode } from './inlineHtmlNode.ts';
 import {
   blockNodes,
   describe,
@@ -56,7 +58,7 @@ export interface TemplateValues {
 /**
  * Create Markdown from a template by substituting values for its `{​@ name @​}` placeholders.
  *
- * - A string value shows exactly as given.
+ * - A string value shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
@@ -80,7 +82,7 @@ export function template(markdown: string, values: TemplateValues): MDFragment |
 /**
  * Create paragraphs and other blocks from a template by substituting values for its `{​@ name @​}` placeholders.
  *
- * - A string value shows exactly as given.
+ * - A string value shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
@@ -110,7 +112,7 @@ export function blockTemplate(markdown: string, values: TemplateValues): MDFragm
  *
  * Use the result in a heading, a table cell, a link or a sentence.
  *
- * - A string or number shows exactly as given.
+ * - A string or number shows as text, not as formatting, with each newline as a line break.
  * - A value can be text, a link, formatting or code.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
@@ -180,7 +182,7 @@ export function parseDocument(markdown: string): MDDocument {
  *
  * Placeholders in the frontmatter work too, and a value there goes in as given.
  *
- * - A string value shows exactly as given.
+ * - A string value shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
@@ -202,10 +204,10 @@ export function templateDocument(markdown: string, values: TemplateValues): MDDo
 /**
  * Substitute values for the `{​@ name @​}` placeholders in an existing element, such as a parsed file, or in plain text.
  *
- * When the first argument is a string, it shows exactly as given, even if it contains Markdown or HTML. For a string
- * that's already Markdown, use {@link template}.
+ * When the first argument is a string, its Markdown and HTML show as text, not as formatting, and each newline is a
+ * line break. For a string that's already Markdown, use {@link template}.
  *
- * - A string value shows exactly as given.
+ * - A string value shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
@@ -456,7 +458,15 @@ interface BlockSlot {
   readonly blocks: RootContent[];
 }
 
-type Piece = RootContent | BlockSlot;
+/** Holds the place of a placeholder whose value shows nothing, until its paragraph is rebuilt. */
+interface EmptySlot {
+  readonly empty: true;
+}
+
+type Piece = RootContent | BlockSlot | EmptySlot;
+
+/** Describes a paragraph being substituted: one that can split around blocks, or one that has to stay whole. */
+type ParagraphMode = 'split' | 'join';
 
 /** Lists the node types whose children may be blocks. */
 const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'list', 'listItem']);
@@ -476,25 +486,34 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
     });
 
   /**
-   * @param lines - the nodes are a paragraph's children, and a whole-line placeholder may take blocks.
+   * @param paragraph - the nodes are a paragraph's children, and whether the paragraph can split.
    * @param blocks - the nodes may be blocks.
    */
-  const substituteInNodes = (nodes: RootContent[], lines: boolean, blocks: boolean): Piece[] =>
+  const substituteInNodes = (nodes: RootContent[], paragraph: ParagraphMode | undefined, blocks: boolean): Piece[] =>
     nodes.flatMap((node, i): Piece[] => {
+      const inlineHtml = asInlineHtmlNode(node);
+      if (inlineHtml) {
+        inlineHtml.value = substituteInCode(inlineHtml.value, 'HTML');
+        return [node];
+      }
       const placeholder = asPlaceholderNode(node);
       if (placeholder) {
         const name = placeholderName(placeholder);
         const value = resolveValue(values, name);
         if (value === undefined) return [node];
-        if (lines && isWholeLine(nodes, i) && isBlockLike(value)) {
+        const wholeLine = paragraph !== undefined && isWholeLine(nodes, i);
+        if (paragraph === 'split' && wholeLine && isBlockLike(value)) {
           return [{ blocks: blockNodes(value, `{@ ${name} @}`) }];
         }
-        return valueAsInline(value, name);
+        const inline = valueAsInline(value, name);
+        // On a line of its own, a value is trimmed as an argument is.
+        const shown = wholeLine ? trimBlanks(inline) : inline;
+        return shown.length || !paragraph ? shown : [{ empty: true }];
       }
       switch (node.type) {
         case 'paragraph': {
-          const pieces = substituteInNodes(node.children, blocks, false);
-          return splitParagraph(node, pieces);
+          const mode = blocks ? 'split' : 'join';
+          return splitParagraph(node, withoutEmptiedLines(substituteInNodes(node.children, mode, false), mode));
         }
         case 'yaml':
           node.value = replacePlaceholders(node.value, (name: string) => {
@@ -512,7 +531,7 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
         default:
           if ('children' in node) {
             const blockChildren = blocks && blockContainers.has(node.type);
-            const children = substituteInNodes(node.children, false, blockChildren);
+            const children = substituteInNodes(node.children, undefined, blockChildren);
             // A list's children are its items already; any other block container may get list items from values.
             const grouped = blockChildren && node.type !== 'list' ? inLists(children as RootContent[]) : children;
             node.children = grouped as typeof node.children;
@@ -521,7 +540,7 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
       }
     });
 
-  root.children = inLists(substituteInNodes(root.children, false, allowBlocks) as RootContent[]);
+  root.children = inLists(substituteInNodes(root.children, undefined, allowBlocks) as RootContent[]);
 }
 
 /** Rebuild a paragraph from its children after substitution, split around the blocks among them. */
@@ -551,6 +570,87 @@ function splitParagraph(paragraph: Paragraph, pieces: Piece[]): RootContent[] {
 
 function isBlockSlot(piece: Piece): piece is BlockSlot {
   return 'blocks' in piece;
+}
+
+/**
+ * Return a paragraph's pieces without the lines that values showing nothing left empty, as passing the values
+ * directly would: where the paragraph can split, such a line ends it; otherwise the line goes, with its line ending.
+ */
+function withoutEmptiedLines(pieces: readonly Piece[], mode: ParagraphMode): Piece[] {
+  if (!pieces.some(isEmptySlot)) return [...pieces];
+  const lines = piecesByLine(pieces);
+  const result: Piece[] = [];
+  // How many pieces at the end of the result are the line ending of the line before.
+  let ending = 0;
+  lines.forEach((line, i) => {
+    if (!isEmptiedLine(line.pieces)) {
+      for (const piece of line.pieces) if (!isEmptySlot(piece)) result.push(piece);
+      for (const piece of line.ending) result.push(piece);
+      ending = line.ending.length;
+      return;
+    }
+    if (mode === 'split') {
+      result.push({ blocks: [] });
+      ending = 0;
+      return;
+    }
+    // The last line has no line ending of its own to go with it, so the one before it goes.
+    if (i === lines.length - 1) result.length -= ending;
+    ending = 0;
+  });
+  return result;
+}
+
+/** Describes one line of a paragraph's pieces. */
+interface PieceLine {
+  readonly pieces: Piece[];
+  /** Holds the text of the line ending after the line, if it isn't a line break. */
+  readonly ending: Piece[];
+}
+
+/** Split a paragraph's pieces into lines, at each line ending in text and after each line break. */
+function piecesByLine(pieces: readonly Piece[]): PieceLine[] {
+  const lines: PieceLine[] = [{ pieces: [], ending: [] }];
+  for (const piece of pieces) {
+    if (!isTextPiece(piece)) {
+      lines[lines.length - 1].pieces.push(piece);
+      if (!isBlockSlot(piece) && !isEmptySlot(piece) && piece.type === 'break') lines.push({ pieces: [], ending: [] });
+      continue;
+    }
+    const { value } = piece;
+    let start = 0;
+    for (let i = 0; i < value.length; ++i) {
+      if (value[i] !== '\r' && value[i] !== '\n') continue;
+      const end = value[i] === '\r' && value[i + 1] === '\n' ? i + 2 : i + 1;
+      const line = lines[lines.length - 1];
+      if (i > start) line.pieces.push({ ...piece, value: value.slice(start, i) });
+      line.ending.push({ ...piece, value: value.slice(i, end) });
+      lines.push({ pieces: [], ending: [] });
+      start = end;
+      i = end - 1;
+    }
+    if (start < value.length) lines[lines.length - 1].pieces.push({ ...piece, value: value.slice(start) });
+  }
+  return lines;
+}
+
+/** Check whether a line holds a value that shows nothing, and nothing else but spaces and tabs. */
+function isEmptiedLine(pieces: readonly Piece[]): boolean {
+  return pieces.some(isEmptySlot) && pieces.every((piece) => isEmptySlot(piece) || isBlankText(piece));
+}
+
+function isEmptySlot(piece: Piece): piece is EmptySlot {
+  return 'empty' in piece;
+}
+
+function isTextPiece(piece: Piece): piece is Text {
+  return !isBlockSlot(piece) && !isEmptySlot(piece) && piece.type === 'text';
+}
+
+function isBlankText(piece: Piece): boolean {
+  if (!isTextPiece(piece)) return false;
+  for (const c of piece.value) if (c !== ' ' && c !== '\t') return false;
+  return true;
 }
 
 /** Return the inline nodes without the line endings at their start and end. */

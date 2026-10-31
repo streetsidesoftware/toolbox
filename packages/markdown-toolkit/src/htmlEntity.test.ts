@@ -113,7 +113,7 @@ describe('htmlEntity in content', () => {
     ${link(['see', nbsp], 'https://example.com')}            | ${'[see&nbsp;](https://example.com)'}
     ${heading(2, ['a', mdash, 'b'])}                         | ${'## a&mdash;b'}
     ${table(['a'], [[['x', nbsp, 'y']]])}                    | ${'| a        |\n| -------- |\n| x&nbsp;y |'}
-    ${document(paragraph('a\n', nbsp, 'b'))}                 | ${'a\n&nbsp;b\n'}
+    ${document(paragraph('a\n', nbsp, 'b'))}                 | ${'a\\\n&nbsp;b\n'}
   `('$expected', ({ content, expected }: { content: MDElement; expected: string }) => {
     assert.equal(content.toString(), expected);
   });

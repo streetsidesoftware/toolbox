@@ -59,14 +59,14 @@ export interface MDElement {
 export type MDValue = MDElement;
 
 /**
- * Describes text that shows exactly as given, made by {@link text}.
+ * Describes text whose Markdown and HTML show on the page as text, not as formatting, made by {@link text}.
  *
  * A `{​@ name @​}` placeholder in it stays, so a later call can substitute it.
  */
 export interface MDText extends MDElement {
   readonly kind: 'inline';
   readonly type: 'text';
-  /** Holds the text, exactly as given. */
+  /** Holds the string the text was made from. */
   readonly text: string;
 }
 
@@ -301,7 +301,7 @@ export type MDBlock =
 /**
  * Describes what goes inside a line: text, links, formatting or code.
  *
- * - A string shows exactly as given, even if it contains Markdown.
+ * - A string's Markdown and HTML show as text, not as formatting, and each newline is a line break.
  * - An array's pieces are joined as given, with no spaces added.
  */
 export type InlineContent = string | MDInline | readonly InlineContent[];
@@ -320,10 +320,9 @@ export type BlockOrInlineContent = InlineContent | BlockContent | MDListItem;
 export type AnyContent = BlockOrInlineContent | readonly BlockOrInlineContent[];
 
 /**
- * Describes a piece of a list item.
+ * Describes a piece of a list item: text, links, formatting or code; a paragraph, list or other block; or a list item.
  *
- * Text, links, formatting and code in a row form one line. A paragraph, list or other block goes on its own lines below
- * them.
+ * A list item forms a list with the list items next to it.
  */
 export type ListItemContent = BlockOrInlineContent;
 
