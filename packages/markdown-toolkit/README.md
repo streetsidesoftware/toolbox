@@ -216,7 +216,7 @@ For a numbered list, use `ol`, or `list` with `ordered: true`. Every item in the
 and the page counts up from it.
 
 For a checkbox, make the item with `li` and give it `checked`. With `true` the page shows a checked box, and with
-`false` an empty one.
+`false` an empty one. Or use `taskListItem`, whose box is empty unless its second argument is `true`.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -751,6 +751,7 @@ console.log(section.toString());
 - `ol(entries, options?)`: Create a numbered list, one item per entry.
 - `ul(entries)`: Create a bulleted list, one item per entry.
 - `li(content, options?)`: Create one list item, which can have a checkbox.
+- `taskListItem(content, checked?)`: Create one task list item: a list item with a checkbox.
 - `listItem(...content)`: Create one list item from several pieces.
 - `table(header, rows, options?)`: Create a table with a header row, then one row per entry.
 - `htmlTable(header, rows, options?)`: Create a table whose cells can hold anything, including lists and paragraphs.

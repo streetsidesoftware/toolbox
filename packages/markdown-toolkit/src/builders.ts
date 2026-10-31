@@ -451,6 +451,29 @@ export function li(content: ListItemContent | readonly ListItemContent[], option
 }
 
 /**
+ * Create one task list item: a list item with a checkbox.
+ *
+ * The content is one piece or an array of pieces, like a {@link list} entry. Pieces in a row join into one line. A
+ * paragraph, list or other block goes on its own lines below them.
+ *
+ * It goes in a {@link list}, or anywhere a paragraph can go:
+ * - List items in a row form a list.
+ * - A list item right before or after a list becomes one more item of it.
+ * - In a heading, a link or anywhere else inside a line, a list item is an error.
+ *
+ * @param checked - `true` shows a checked box. Without it, the box is empty.
+ * @example
+ * md.taskListItem('Ship');
+ * // Markdown:
+ * // - [ ] Ship
+ * // The page shows an empty box next to "Ship".
+ * @category lists
+ */
+export function taskListItem(content: ListItemContent | readonly ListItemContent[], checked?: boolean): MDListItem {
+  return li(content, { checked: checked ?? false });
+}
+
+/**
  * Create a whole Markdown file from its parts, in order.
  *
  * - Frontmatter, if any, goes first.

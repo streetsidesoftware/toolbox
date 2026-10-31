@@ -23,6 +23,7 @@ export {
   placeholder,
   strikethrough,
   strong,
+  taskListItem,
   text,
   toBlock,
   ul,

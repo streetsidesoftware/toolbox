@@ -7,7 +7,7 @@ For a numbered list, use `ol`, or `list` with `ordered: true`. Every item in the
 and the page counts up from it.
 
 For a checkbox, make the item with `li` and give it `checked`. With `true` the page shows a checked box, and with
-`false` an empty one.
+`false` an empty one. Or use `taskListItem`, whose box is empty unless its second argument is `true`.
 
 <!--- @@inject: example.ts --->
 

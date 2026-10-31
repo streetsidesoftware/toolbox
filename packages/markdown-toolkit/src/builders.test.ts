@@ -38,6 +38,7 @@ import {
   strong,
   substitutePlaceholders,
   table,
+  taskListItem,
   template,
   text,
   toBlock,
@@ -245,6 +246,10 @@ describe('li', () => {
     ${li(['Steps:', list(['one'])], { checked: false })}          | ${'- [ ] Steps:\n  - one'}
     ${ol([li('a', { checked: true }), 'b'])}                      | ${'1. [x] a\n1. b'}
     ${document(li('a', { checked: true }), li('b'))}              | ${'- [x] a\n- b\n'}
+    ${taskListItem('a')}                                          | ${'- [ ] a'}
+    ${taskListItem('a', true)}                                    | ${'- [x] a'}
+    ${taskListItem('a', false)}                                   | ${'- [ ] a'}
+    ${taskListItem(['a', list(['b'])], true)}                     | ${'- [x] a\n  - b'}
   `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
     assert.equal(value.toString(), expected);
   });
