@@ -238,9 +238,17 @@ describe('template', () => {
     assert.equal(md.toString(), 'a\n\nb\n');
   });
 
-  test('a value that ends with a line ending, inside a sentence, keeps the paragraph whole', () => {
-    assert.equal(template('a {@ x @}\nb', { x: inlineTemplate('c\n', {}) }).toString(), 'a c\nb');
-  });
+  testEach`
+    value                            | label
+    ${inlineTemplate('c\n', {})}     | ${"'c\\n'"}
+    ${inlineTemplate('c \n', {})}    | ${"'c \\n'"}
+    ${inlineTemplate('c\n ', {})}    | ${"'c\\n '"}
+  `(
+    'a value with its own line ending, inside a sentence, keeps the paragraph whole and its lines unescaped: $label',
+    ({ value }: { value: TemplateValue }) => {
+      assert.equal(template('a {@ x @}\nb', { x: value }).toString(), 'a c\nb');
+    },
+  );
 
   test('in an inline template, an empty line left by an empty value goes', () => {
     assert.equal(inlineTemplate('a\n{@ x @}\nb', { x: '' }).toString(), 'a\nb');

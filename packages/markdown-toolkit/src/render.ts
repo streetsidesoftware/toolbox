@@ -5,7 +5,7 @@ import type { Options as StyleOptions } from 'remark-stringify';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
-import { isFormatting, trimBlanksAroundBreaks, trimLineEdges, withoutEmptyLines } from './blanks.ts';
+import { isFormatting, trimAroundLineEndings, trimBlanksAroundBreaks, trimLineEdges } from './blanks.ts';
 import type { HtmlEntityNode } from './htmlEntityNode.ts';
 import type { InlineHtmlNode } from './inlineHtmlNode.ts';
 import type { PlaceholderNode } from './placeholderNode.ts';
@@ -43,7 +43,7 @@ export function renderNodes(children: RootContent[], style: StyleOptions | undef
     // Only text, links, formatting and code sit in the same parent as text or a line break.
     if ('children' in node) {
       const inline = node.children as PhrasingContent[];
-      node.children = withoutEmptyLines(trimBlanksAroundBreaks(inline)) as typeof node.children;
+      node.children = trimAroundLineEndings(trimBlanksAroundBreaks(inline)) as typeof node.children;
     }
     if (node.type === 'paragraph' || node.type === 'heading' || node.type === 'tableCell') {
       node.children = trimLineEdges(node.children);

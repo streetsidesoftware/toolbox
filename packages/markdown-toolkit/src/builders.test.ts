@@ -618,7 +618,7 @@ describe('blockText', () => {
         ${'a\r\n\r\nb\rc'}      | ${'a\n\nb\nc'}
         ${'a\n- b\n# c\n1. d'}  | ${'a\n\\- b\n\\# c\n1\\. d'}
         ${'a\n===\n\n    code'} | ${'a\n\\===\n\ncode'}
-        ${'a  \nb'}             | ${'a &#x20;\nb'}
+        ${'a  \nb'}             | ${'a\nb'}
         ${'see {@ x @}\n\n*b*'} | ${'see {@ x @}\n\n\\*b\\*'}
         ${''}                   | ${''}
     `('blockText($value)', ({ value, expected }: { value: string; expected: string }) => {

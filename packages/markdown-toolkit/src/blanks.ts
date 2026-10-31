@@ -41,10 +41,11 @@ export function trimBlanksAroundBreaks(nodes: readonly PhrasingContent[]): Phras
 }
 
 /**
- * Return the inline nodes with each run of empty lines in their text joined into one line ending, since a paragraph
- * can't hold an empty line. Text next to text is joined first, so an empty line split between the two goes too.
+ * Return the inline nodes with each line ending in their text alone: the spaces, tabs and empty lines around it go.
+ * At the edge of a line they would only show escaped, and a paragraph can't hold an empty line.
+ * Text next to text is joined first, so a line ending split between the two counts too.
  */
-export function withoutEmptyLines(nodes: readonly PhrasingContent[]): PhrasingContent[] {
+export function trimAroundLineEndings(nodes: readonly PhrasingContent[]): PhrasingContent[] {
   const joined: PhrasingContent[] = [];
   for (const node of nodes) {
     const before = joined.at(-1);
@@ -54,21 +55,23 @@ export function withoutEmptyLines(nodes: readonly PhrasingContent[]): PhrasingCo
       joined.push(node);
     }
   }
-  return joined.map((node) => (node.type === 'text' ? { ...node, value: joinEmptyLines(node.value) } : node));
+  return joined.map((node) => (node.type === 'text' ? { ...node, value: singleLineEndings(node.value) } : node));
 }
 
-function joinEmptyLines(text: string): string {
+/** Return the text with each run of blanks that holds a line ending as one line ending. */
+function singleLineEndings(text: string): string {
   const parts: string[] = [];
   let start = 0;
   for (let i = 0; i < text.length; ++i) {
-    if (text[i] !== '\r' && text[i] !== '\n') continue;
+    if (!isBlank(text[i])) continue;
     let end = i;
     let endings = 0;
     while (isBlank(text[end])) {
       if (text[end] === '\n' || (text[end] === '\r' && text[end + 1] !== '\n')) ++endings;
       ++end;
     }
-    if (endings > 1) {
+    const lineEnding = text.slice(i, end);
+    if (endings && lineEnding !== '\n' && lineEnding !== '\r\n' && lineEnding !== '\r') {
       parts.push(text.slice(start, i), '\n');
       start = end;
     }
