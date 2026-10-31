@@ -135,7 +135,8 @@ Last run: {@ date @}
 ### Values from a function
 
 In place of an object, pass a function that takes a placeholder name and returns its value. It gets the whole name,
-such as `dictionaries.custom`, so values can come from a `Map`, a config file or anywhere else. When it returns
+such as `dictionaries.custom`, not one part at a time. Values can then come from a `Map`, a config file or anywhere
+else. When it returns
 `undefined`, the placeholder is kept for a later step.
 
 ```ts

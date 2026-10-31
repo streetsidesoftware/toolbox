@@ -58,7 +58,8 @@ export interface TemplateValues {
 /**
  * Returns the value for a placeholder name, or `undefined` to leave the placeholder in place.
  *
- * It gets the whole name, such as `engines.cspell`, and may be called more than once for the same name.
+ * - It gets the whole name, such as `engines.cspell`.
+ * - It may be called more than once for the same name.
  *
  * @example
  * md.template('Version {@version@}', (name) => (name === 'version' ? '2.0' : undefined));

@@ -546,6 +546,12 @@ describe('a resolver', () => {
     const resolve = (() => ({ a: 1 })) as unknown as TemplateResolver;
     assert.equal(template('Hi {@ x @}', resolve).toString(), 'Hi {@ x @}');
     assert.equal(template('`{@ x @}`', resolve).toString(), '`{@ x @}`');
+    const none = (() => null) as unknown as TemplateResolver;
+    assert.equal(template('Hi {@ x @}', none).toString(), 'Hi {@ x @}');
+  });
+
+  test('works in HTML', () => {
+    assert.equal(template('<b>{@ v.5 @}</b>', versions).toString(), '<b>5</b>');
   });
 
   test('a returned element is substituted', () => {
@@ -571,5 +577,6 @@ describe('a resolver', () => {
     assert.equal(substitutePlaceholders(kept, versions), kept);
     const block = blockPlaceholder('other');
     assert.equal(substitutePlaceholders(block, versions), block);
+    assert.equal(substitutePlaceholders(blockPlaceholder('items'), () => list(['a'])).toString(), '- a');
   });
 });
