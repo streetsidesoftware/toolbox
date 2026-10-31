@@ -263,6 +263,26 @@ describe('li', () => {
     assert.equal(md.toString(), '- [x] Write tests\n- [ ] Ship');
   });
 
+  test('a list item needs a piece', () => {
+    // @ts-expect-error a list item needs a piece
+    assert.equal(listItem().toString(), '-');
+    // @ts-expect-error options are not a piece
+    assert.equal(listItem({ checked: true }).toString(), '-');
+  });
+
+  test('options come once, after the pieces', () => {
+    const error = new TypeError('list item content must be inline, got an object');
+    // @ts-expect-error options go after the pieces
+    assert.throws(() => listItem({ checked: true }, 'a'), error);
+    // @ts-expect-error one options object at most
+    assert.throws(() => listItem('a', { checked: true }, { checked: false }), error);
+  });
+
+  test('options can be undefined', () => {
+    const options: { checked?: boolean } | undefined = undefined;
+    assert.equal(listItem('a', options).toString(), '- a');
+  });
+
   test('a task list item needs a piece', () => {
     // @ts-expect-error a box needs text after it
     assert.equal(taskListItem().toString(), '-');

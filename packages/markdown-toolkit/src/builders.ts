@@ -425,36 +425,9 @@ type LIContent = ListItemContent;
  * //   - Flemish
  * @category lists
  */
-export function listItem(options?: ListItemOptions): MDListItem;
-export function listItem(content: LIContent, options?: ListItemOptions): MDListItem;
-export function listItem(c1: LIContent, c2: LIContent, options?: ListItemOptions): MDListItem;
-export function listItem(c1: LIContent, c2: LIContent, c3: LIContent, options?: ListItemOptions): MDListItem;
 export function listItem(
-  c1: LIContent,
-  c2: LIContent,
-  c3: LIContent,
-  c4: LIContent,
-  options?: ListItemOptions,
-): MDListItem;
-export function listItem(
-  c1: LIContent,
-  c2: LIContent,
-  c3: LIContent,
-  c4: LIContent,
-  c5: LIContent,
-  options?: ListItemOptions,
-): MDListItem;
-export function listItem(
-  c1: LIContent,
-  c2: LIContent,
-  c3: LIContent,
-  c4: LIContent,
-  c5: LIContent,
-  c6: LIContent,
-  options?: ListItemOptions,
-): MDListItem;
-export function listItem(...content: (LIContent | ListItemOptions | undefined)[]): MDListItem;
-export function listItem(...content: (LIContent | ListItemOptions | undefined)[]): MDListItem {
+  ...content: [LIContent, ...LIContent[]] | [LIContent, ...LIContent[], ListItemOptions | undefined]
+): MDListItem {
   return buildListItem(...piecesAndOptions(content));
 }
 
@@ -490,45 +463,20 @@ function buildListItem(content: readonly ListItemContent[], options?: ListItemOp
  * // The page shows an empty box next to "Ship".
  * @category lists
  */
-export function taskListItem(content: LIContent, options?: ListItemOptions): MDListItem;
-export function taskListItem(c1: LIContent, c2: LIContent, options?: ListItemOptions): MDListItem;
-export function taskListItem(c1: LIContent, c2: LIContent, c3: LIContent, options?: ListItemOptions): MDListItem;
 export function taskListItem(
-  c1: LIContent,
-  c2: LIContent,
-  c3: LIContent,
-  c4: LIContent,
-  options?: ListItemOptions,
-): MDListItem;
-export function taskListItem(
-  c1: LIContent,
-  c2: LIContent,
-  c3: LIContent,
-  c4: LIContent,
-  c5: LIContent,
-  options?: ListItemOptions,
-): MDListItem;
-export function taskListItem(
-  c1: LIContent,
-  c2: LIContent,
-  c3: LIContent,
-  c4: LIContent,
-  c5: LIContent,
-  c6: LIContent,
-  options?: ListItemOptions,
-): MDListItem;
-export function taskListItem(c1: LIContent, ...rest: (LIContent | ListItemOptions | undefined)[]): MDListItem;
-export function taskListItem(...content: (LIContent | ListItemOptions | undefined)[]): MDListItem {
+  ...content: [LIContent, ...LIContent[]] | [LIContent, ...LIContent[], ListItemOptions | undefined]
+): MDListItem {
   const [pieces, options] = piecesAndOptions(content);
   return buildListItem(pieces, { checked: options?.checked ?? false });
 }
 
+/** Split a list item's arguments into its pieces and the options that can follow them. */
 function piecesAndOptions(
-  contentRest: readonly (LIContent | ListItemOptions | undefined)[],
-): [content: LIContent[], options: ListItemOptions | undefined] {
-  const options = contentRest.find(isListItemOptions);
-  const content = contentRest.filter((value): value is LIContent => value !== undefined && !isListItemOptions(value));
-  return [content, options];
+  content: readonly (LIContent | ListItemOptions | undefined)[],
+): [pieces: LIContent[], options: ListItemOptions | undefined] {
+  const last = content.at(-1);
+  if (last !== undefined && !isListItemOptions(last)) return [content as LIContent[], undefined];
+  return [content.slice(0, -1) as LIContent[], last];
 }
 
 /**
