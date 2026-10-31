@@ -163,7 +163,7 @@ The concerns that apply at injection time, such as untrusted values and link reb
 
 ### Resolving names
 
-The values are a plain object or a function. A function gets the whole name, so the values can come from anywhere, such as a `Map`. It works as in @streetsidesoftware/placeholders: `undefined` keeps the placeholder, as a missing key does. A result that isn't a value counts as no value, as it does in an object.
+The values are a plain object or a function. A function gets the whole name, so the values can come from anywhere, such as a `Map`. When it returns `undefined`, the placeholder is kept, as it is for a missing key. A result that isn't a value counts as no value, as it does in an object.
 
 In an object, dotted names walk into it: `template(tpl, { pkg: { name: '@cspell/dict-grc' } })`. An object resolves a name like this:
 
