@@ -48,7 +48,6 @@ import type {
   MDStrikethrough,
   MDStrong,
   MDText,
-  OptionTypeGuard,
   OrderedListOptions,
 } from './types.ts';
 
@@ -455,7 +454,7 @@ export function listItem(...contentRest: (LIContent | ListItemOptions | undefine
 export function listItem(...contentRest: (LIContent | ListItemOptions | undefined)[]): MDListItem {
   const options = contentRest.find(isListItemOptions);
   const content = contentRest.filter((value): value is LIContent => value !== undefined && !isListItemOptions(value));
-  return li(content, options);
+  return buildListItem(content, options);
 }
 
 function isListItemOptions(value: ListItemOptions | LIContent | undefined): value is ListItemOptions {
@@ -483,7 +482,11 @@ function isListItemOptions(value: ListItemOptions | LIContent | undefined): valu
  * @category lists
  */
 export function li(content: ListItemContent | readonly ListItemContent[], options?: ListItemOptions): MDListItem {
-  const item = listItemNode(isArray(content) ? content : [content]);
+  return buildListItem(isArray(content) ? content : [content], options);
+}
+
+function buildListItem(content: readonly ListItemContent[], options?: ListItemOptions): MDListItem {
+  const item = listItemNode(content);
   if (options?.checked !== undefined) item.checked = options.checked;
   return new MarkdownElement('listItem', 'listItem', 'a list item', [item]);
 }
