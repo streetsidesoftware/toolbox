@@ -327,7 +327,7 @@ export type AnyContent = BlockOrInlineContent | readonly BlockOrInlineContent[];
  */
 export type ListItemContent = BlockOrInlineContent;
 
-export const OPTION_TYPE_GUARD_SYMBOL: symbol = Symbol('option_type_guard');
+export const OPTION_TYPE_GUARD_SYMBOL: unique symbol = Symbol('option_type_guard');
 
 export interface OptionTypeGuard {
   readonly [OPTION_TYPE_GUARD_SYMBOL]?: true;
