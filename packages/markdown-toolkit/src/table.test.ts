@@ -20,7 +20,7 @@ import {
   text,
 } from './index.ts';
 
-/** The rendered body row of a one-column table. */
+/** Render a one-column table, and return its body row. */
 function cell(content: InlineContent): string {
   return table(['A'], [[content]])
     .toString()

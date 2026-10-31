@@ -4,9 +4,8 @@ import { visit } from 'unist-util-visit';
 import type { MarkdownStyle } from './types.ts';
 
 /**
- * Detects the Markdown marker style (bullets, emphasis, fences, etc.) `root`
- * actually uses, by majority vote over its nodes, so re-stringifying can
- * preserve it instead of falling back to remark-stringify's defaults.
+ * Detect the markers that `tree` uses, such as its bullets, emphasis and fences, by majority vote over its nodes.
+ * Rendering it again can then keep them, instead of falling back to remark-stringify's defaults.
  */
 export function detectMarkdownStyle(tree: Root, content: string): MarkdownStyle {
   const rule = new Tally<'-' | '_' | '*'>();
@@ -66,9 +65,9 @@ export function detectMarkdownStyle(tree: Root, content: string): MarkdownStyle 
 }
 
 /**
- * Exported for direct testing.
- * `mdast-util-from-markdown` always offsets nodes at the marker itself, not preceding
- * indentation, so this whitespace-skipping isn't reachable via `detectMarkdownStyle` today.
+ * Return the first character at or after `offset` that isn't a space or tab.
+ * It's exported to test the skipping directly. The parser puts a node's offset at its marker, not before its
+ * indentation, so {@link detectMarkdownStyle} never skips anything.
  */
 export function firstNonSpace(content: string, offset: number): string | undefined {
   let i = offset;
@@ -76,7 +75,7 @@ export function firstNonSpace(content: string, offset: number): string | undefin
   return content[i];
 }
 
-/** See {@link firstNonSpace}. */
+/** Return the character after the number of an ordered list marker, skipping spaces and tabs as {@link firstNonSpace} does. */
 export function orderedMarkerAt(content: string, offset: number): string | undefined {
   let i = offset;
   while (i < content.length && (content[i] === ' ' || content[i] === '\t')) ++i;

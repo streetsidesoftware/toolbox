@@ -6,9 +6,9 @@ import { detectMarkdownStyle } from './detectStyle.ts';
 import type { MarkdownStyle } from './types.ts';
 
 /**
- * Detects how an existing Markdown text is written, such as its bullet and emphasis markers.
+ * Detect how existing Markdown is written, such as its bullet and emphasis markers.
  *
- * Pass the result to a document's `withStyle`, so new content matches the file.
+ * Pass the result to {@link MDDocument.withStyle}, so new content matches the file.
  *
  * @example
  * md.document(md.list(['German'])).withStyle(md.detectStyle('* Dutch\n'));

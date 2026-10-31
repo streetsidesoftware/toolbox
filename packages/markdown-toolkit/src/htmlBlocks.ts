@@ -24,7 +24,7 @@ import type {
 } from './types.ts';
 
 /**
- * Creates a collapsible section: the reader sees `summary` and clicks it to show the content.
+ * Create a collapsible section: the reader sees `summary` and clicks it to show the content.
  *
  * The content can hold anything a page can, such as paragraphs, lists and tables. Each piece of it goes on a line of
  * its own:
@@ -48,7 +48,7 @@ export function details(summary: InlineContent, ...content: AnyContent[]): MDDet
 }
 
 /**
- * Creates a list of terms, each followed by its definition.
+ * Create a list of terms, each followed by its definition.
  *
  * Give one `[term, definition]` pair per entry. A definition can hold anything, including lists and paragraphs.
  *
@@ -79,7 +79,7 @@ export function dl(entries: readonly DefinitionEntry[]): MDDefinitionList {
 export const definitionList: typeof dl = dl;
 
 /**
- * Creates a table whose cells can hold anything, including lists and paragraphs.
+ * Create a table whose cells can hold anything, including lists and paragraphs.
  *
  * With an empty header, the table has no header row.
  *
@@ -141,9 +141,9 @@ export function htmlTable(
 }
 
 /**
- * Inline content in an HTML element, with HTML written before and after it.
- * Plain text and HTML entities go on one line, since Markdown isn't read there. Anything else gets blank lines, so it
- * renders.
+ * Return the nodes for inline content in an HTML element, with HTML written before and after it.
+ * Plain text and HTML entities go on one line, since Markdown isn't read there.
+ * Anything else gets blank lines, so it renders.
  */
 function wrapped(before: string, tag: string, content: InlineContent, after: string, where: string): RootContent[] {
   const children = inlineNodes(content, where);
@@ -152,7 +152,7 @@ function wrapped(before: string, tag: string, content: InlineContent, after: str
   return [html(`${before}<${tag}>`), { type: 'paragraph', children }, html(`</${tag}>${after}`)];
 }
 
-/** The blocks of a table cell, grouped as in a document. */
+/** Return the blocks of a table cell, grouped as in a document. */
 function cellNodes(content: AnyContent): RootContent[] {
   const nodes = mapParagraphsAndBlocks(
     content,
@@ -163,8 +163,8 @@ function cellNodes(content: AnyContent): RootContent[] {
 }
 
 /**
- * A cell's HTML when it can stay on its tag's line: empty, or one paragraph that {@link plainHtml} can write.
- * `undefined` means the cell has Markdown and needs blank lines around it.
+ * Return a cell's HTML when it can stay on its tag's line: empty, or one paragraph that {@link plainHtml} can write.
+ * Return `undefined` when the cell has Markdown and needs blank lines around it.
  */
 function plainText(blocks: RootContent[]): string | undefined {
   if (!blocks.length) return '';
@@ -174,7 +174,7 @@ function plainText(blocks: RootContent[]): string | undefined {
 }
 
 /**
- * Text, HTML entities and line breaks as HTML on one line, or `undefined` when there is anything else.
+ * Return text, HTML entities and line breaks as HTML on one line, or `undefined` when there is anything else.
  * A line ending in text, which a parsed paragraph can have, stays: it can't be a blank line, which would end the block.
  */
 function plainHtml(children: readonly PhrasingContent[]): string | undefined {

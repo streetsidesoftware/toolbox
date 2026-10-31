@@ -22,20 +22,19 @@ import type {
 type BlockLike = BlockContent | MDListItem | readonly (BlockContent | MDListItem)[];
 
 /**
- * The key an element's rendering is stored under. Having it is what makes a value a Markdown element.
+ * Holds the key an element's rendering is stored under. Having it is what makes a value a Markdown element.
  * It comes from the global symbol registry, so another loaded copy of this module recognizes the element too.
- * It keeps the older name `.value`, so copies from before the rename still match.
  */
 const renderingKey: unique symbol = Symbol.for('@streetsidesoftware/markdown-toolkit.value');
 
-/** The nodes an element renders as, and the style to render them in. */
+/** Describes the nodes an element renders as, and the style to render them in. */
 interface Rendering {
   nodes: RootContent[];
   style: StyleOptions | undefined;
 }
 
 /**
- * A Markdown element. The public types are interfaces, so the node tree never appears in them.
+ * Implements every Markdown element. The public types are interfaces, so the node tree never appears in them.
  * The literal types of `kind` and `type` tell the public types apart.
  */
 export class MarkdownElement<K extends MDKind = MDKind, T extends MDType = MDType> {
@@ -63,21 +62,21 @@ export class MarkdownElement<K extends MDKind = MDKind, T extends MDType = MDTyp
   }
 }
 
-/** How a Markdown element renders, or `undefined` for anything else. */
+/** Return how a Markdown element renders, or `undefined` for anything else. */
 export function renderingOf(value: unknown): Rendering | undefined {
   return typeof value === 'object' && value !== null
     ? (value as Partial<Record<typeof renderingKey, Rendering>>)[renderingKey]
     : undefined;
 }
 
-/** Whether a value is a Markdown element, and of one of the given kinds. */
+/** Check whether a value is a Markdown element, and of one of the given kinds. */
 export function isKind(value: unknown, ...kinds: MDElement['kind'][]): value is MDElement {
   return renderingOf(value) !== undefined && kinds.includes((value as MDElement).kind);
 }
 
 /**
- * Text nodes for a string.
- * A placeholder is kept as written, so escaping never touches `{@ name @}`.
+ * Return the text nodes for a string.
+ * A placeholder is kept as written, so escaping never touches `{​@ name @​}`.
  */
 export function textNodes(text: string): PhrasingContent[] {
   const nodes: PhrasingContent[] = [];
@@ -92,7 +91,7 @@ export function textNodes(text: string): PhrasingContent[] {
 }
 
 /**
- * Text nodes for a string, with each line ending as a line break.
+ * Return the text nodes for a string, with each line ending as a line break.
  * The spaces and tabs around a line ending go with it, since they would show as `&#x20;` at the edge of a line.
  */
 export function stringNodes(text: string): PhrasingContent[] {
@@ -102,7 +101,7 @@ export function stringNodes(text: string): PhrasingContent[] {
 }
 
 /**
- * The nodes for inline content.
+ * Return the nodes for inline content.
  * @param where - what the content is for, such as `heading content`, for error messages.
  */
 export function inlineNodes(content: InlineContent, where: string): PhrasingContent[] {
@@ -126,7 +125,7 @@ export function blockNodes(content: BlockLike, where: string): RootContent[] {
   throw new TypeError(`${where} must be blocks, got ${describe(content)}`);
 }
 
-/** Whether content is blocks: a block element, or a non-empty array of them. */
+/** Check whether content is blocks: a block element, or a non-empty array of them. */
 export function isBlockContent(content: unknown): content is BlockContent {
   if (Array.isArray(content)) return content.length > 0 && content.every(isBlockContent);
   return isKind(content, 'block');
@@ -138,22 +137,22 @@ export function isBlockLike(content: unknown): content is BlockLike {
   return isKind(content, 'block', 'listItem');
 }
 
-/** Whether a value is a list item made by `listItem`. */
+/** Check whether a value is a list item made by `listItem`. */
 export function isListItem(value: unknown): value is MDListItem {
   return isKind(value, 'listItem');
 }
 
-/** Whether a value is text made by `text` or `inlineText`. */
+/** Check whether a value is text made by `text` or `inlineText`. */
 export function isText(value: unknown): value is MDText {
   return isKind(value, 'inline') && value.type === 'text';
 }
 
-/** `Array.isArray`, narrowing readonly arrays too. */
+/** Check whether a value is an array, as `Array.isArray` does, but narrowing readonly arrays too. */
 export function isArray<T>(value: T | readonly T[]): value is readonly T[] {
   return Array.isArray(value);
 }
 
-/** What a value is, for error messages. */
+/** Describe what a value is, for error messages. */
 export function describe(value: unknown): string {
   if (renderingOf(value)) return (value as MDElement).description;
   if (Array.isArray(value)) return 'an array';
@@ -162,7 +161,7 @@ export function describe(value: unknown): string {
 }
 
 /**
- * Mixed content mapped in order: the inline pieces between blocks as one paragraph each, and each block on its own.
+ * Map mixed content in order: the inline pieces between blocks as one paragraph each, and each block on its own.
  * Arrays are flattened, in the content and in what a mapper returns.
  */
 export function mapParagraphsAndBlocks<T>(
@@ -256,7 +255,7 @@ function joinLines(lines: readonly PhrasingContent[][]): PhrasingContent[] {
   return result;
 }
 
-/** Inline nodes without the spaces and tabs at their start and end. Text left empty is dropped. */
+/** Return the inline nodes without the spaces and tabs at their start and end. Text left empty is dropped. */
 function trimBlanks(nodes: readonly PhrasingContent[]): PhrasingContent[] {
   const result = [...nodes];
   while (result[0]?.type === 'text') {
@@ -311,7 +310,7 @@ export function inLists(nodes: readonly RootContent[]): RootContent[] {
   return result;
 }
 
-/** A list item from its arguments, grouped as in {@link argumentNodes}. */
+/** Build a list item from its arguments, grouped as in {@link argumentNodes}. */
 export function listItemNode(content: readonly ListItemContent[]): ListItem {
   return { type: 'listItem', spread: false, children: argumentNodes(content, 'list item content') };
 }
