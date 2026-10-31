@@ -751,7 +751,7 @@ console.log(section.toString());
 - `ol(entries, options?)`: Create a numbered list, one item per entry.
 - `ul(entries)`: Create a bulleted list, one item per entry.
 - `listItem(...contentRest)` (also `li`): Create one list item from several pieces.
-- `taskListItem(...contentRest)`: Create one task list item: a list item with a checkbox.
+- `taskListItem(...content)`: Create one task list item: a list item with a checkbox.
 - `table(header, rows, options?)`: Create a table with a header row, then one row per entry.
 - `htmlTable(header, rows, options?)`: Create a table whose cells can hold anything, including lists and paragraphs.
 - `dl(entries)` (also `definitionList`): Create a list of terms, each followed by its definition.

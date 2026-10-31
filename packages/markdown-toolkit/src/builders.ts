@@ -490,12 +490,38 @@ function buildListItem(content: readonly ListItemContent[], options?: ListItemOp
  * // The page shows an empty box next to "Ship".
  * @category lists
  */
-export const taskListItem: typeof listItem = function taskListItem(
-  ...contentRest: (LIContent | ListItemOptions | undefined)[]
-): MDListItem {
-  const [content, options] = piecesAndOptions(contentRest);
-  return buildListItem(content, { checked: options?.checked ?? false });
-};
+export function taskListItem(content: LIContent, options?: ListItemOptions): MDListItem;
+export function taskListItem(c1: LIContent, c2: LIContent, options?: ListItemOptions): MDListItem;
+export function taskListItem(c1: LIContent, c2: LIContent, c3: LIContent, options?: ListItemOptions): MDListItem;
+export function taskListItem(
+  c1: LIContent,
+  c2: LIContent,
+  c3: LIContent,
+  c4: LIContent,
+  options?: ListItemOptions,
+): MDListItem;
+export function taskListItem(
+  c1: LIContent,
+  c2: LIContent,
+  c3: LIContent,
+  c4: LIContent,
+  c5: LIContent,
+  options?: ListItemOptions,
+): MDListItem;
+export function taskListItem(
+  c1: LIContent,
+  c2: LIContent,
+  c3: LIContent,
+  c4: LIContent,
+  c5: LIContent,
+  c6: LIContent,
+  options?: ListItemOptions,
+): MDListItem;
+export function taskListItem(c1: LIContent, ...rest: (LIContent | ListItemOptions | undefined)[]): MDListItem;
+export function taskListItem(...content: (LIContent | ListItemOptions | undefined)[]): MDListItem {
+  const [pieces, options] = piecesAndOptions(content);
+  return buildListItem(pieces, { checked: options?.checked ?? false });
+}
 
 function piecesAndOptions(
   contentRest: readonly (LIContent | ListItemOptions | undefined)[],

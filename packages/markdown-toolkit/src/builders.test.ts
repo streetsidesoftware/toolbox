@@ -262,6 +262,13 @@ describe('li', () => {
     const md = list(tasks.map((task) => li(task.title, { checked: task.done })));
     assert.equal(md.toString(), '- [x] Write tests\n- [ ] Ship');
   });
+
+  test('a task list item needs a piece', () => {
+    // @ts-expect-error a box needs text after it
+    assert.equal(taskListItem().toString(), '-');
+    // @ts-expect-error options are not a piece
+    assert.equal(taskListItem({ checked: true }).toString(), '-');
+  });
 });
 
 describe('strong, emphasis, strikethrough', () => {
