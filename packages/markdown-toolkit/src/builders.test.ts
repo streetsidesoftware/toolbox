@@ -25,6 +25,7 @@ import {
   inlineCode,
   inlineText,
   isMarkdown,
+  li,
   lineBreak,
   link,
   list,
@@ -37,6 +38,7 @@ import {
   strong,
   substitutePlaceholders,
   table,
+  taskListItem,
   template,
   text,
   toBlock,
@@ -232,6 +234,34 @@ describe('numbered lists', () => {
       );
     },
   );
+});
+
+describe('li', () => {
+  testEach`
+    value                                                         | expected
+    ${li('a')}                                                    | ${'- a'}
+    ${li('a', { checked: true })}                                 | ${'- [x] a'}
+    ${li('a', { checked: false })}                                | ${'- [ ] a'}
+    ${li(['See ', link('docs', 'u')], { checked: true })}         | ${'- [x] See [docs](u)'}
+    ${li(['Steps:', list(['one'])], { checked: false })}          | ${'- [ ] Steps:\n  - one'}
+    ${ol([li('a', { checked: true }), 'b'])}                      | ${'1. [x] a\n1. b'}
+    ${document(li('a', { checked: true }), li('b'))}              | ${'- [x] a\n- b\n'}
+    ${taskListItem('a')}                                          | ${'- [ ] a'}
+    ${taskListItem('a', true)}                                    | ${'- [x] a'}
+    ${taskListItem('a', false)}                                   | ${'- [ ] a'}
+    ${taskListItem(['a', list(['b'])], true)}                     | ${'- [x] a\n  - b'}
+  `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
+    assert.equal(value.toString(), expected);
+  });
+
+  test('checked can come from a script', () => {
+    const tasks = [
+      { title: 'Write tests', done: true },
+      { title: 'Ship', done: false },
+    ];
+    const md = list(tasks.map((task) => li(task.title, { checked: task.done })));
+    assert.equal(md.toString(), '- [x] Write tests\n- [ ] Ship');
+  });
 });
 
 describe('strong, emphasis, strikethrough', () => {
