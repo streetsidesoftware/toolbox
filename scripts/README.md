@@ -36,9 +36,9 @@ These scripts are used to help maintain the repo.
   the run. It renders the list with markdown-toolkit, so build it first.
 - `run-examples.ts` runs each `example.ts` under `packages/*/examples/`, at any depth, with Node, in its own folder and
   without a shell, and writes what it prints to `output.md` next to it. An example that prints nothing gets no
-  `output.md`. An example's `README.md` injects both. A
-  part's `README.md` one level up injects its examples' READMEs, and the package README injects the part's. The
-  examples import their package by name, so build it first.
+  `output.md`. An example's `README.md` injects `example.ts` and, when there is one, `output.md`. A part's `README.md`
+  one level up injects its examples' READMEs, and the package README injects the part's. The examples import their
+  package by name, so build it first.
 
 ## Release
 
