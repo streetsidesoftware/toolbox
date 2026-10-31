@@ -95,9 +95,12 @@ export function textNodes(text: string): PhrasingContent[] {
  * The spaces and tabs around a line ending go with it, since they would show as `&#x20;` at the edge of a line.
  */
 export function stringNodes(text: string): PhrasingContent[] {
-  return text
-    .split(/[ \t]*(?:\r\n?|\n)[ \t]*/)
-    .flatMap((line, i): PhrasingContent[] => [...(i ? [{ type: 'break' } as const] : []), ...textNodes(line)]);
+  const lines = text.split(/\r\n?|\n/);
+  return lines.flatMap((line, i): PhrasingContent[] => {
+    const afterBreak = i ? trimBlankStart(line) : line;
+    const trimmed = i < lines.length - 1 ? trimBlankEnd(afterBreak) : afterBreak;
+    return [...(i ? [{ type: 'break' } as const] : []), ...textNodes(trimmed)];
+  });
 }
 
 /**
@@ -259,7 +262,7 @@ function joinLines(lines: readonly PhrasingContent[][]): PhrasingContent[] {
 function trimBlanks(nodes: readonly PhrasingContent[]): PhrasingContent[] {
   const result = [...nodes];
   while (result[0]?.type === 'text') {
-    const value = result[0].value.replace(/^[ \t]+/, '');
+    const value = trimBlankStart(result[0].value);
     if (value) {
       result[0] = { ...result[0], value };
       break;
@@ -268,7 +271,7 @@ function trimBlanks(nodes: readonly PhrasingContent[]): PhrasingContent[] {
   }
   while (result.at(-1)?.type === 'text') {
     const last = result.at(-1) as Text;
-    const value = last.value.replace(/[ \t]+$/, '');
+    const value = trimBlankEnd(last.value);
     if (value) {
       result[result.length - 1] = { ...last, value };
       break;
@@ -276,6 +279,22 @@ function trimBlanks(nodes: readonly PhrasingContent[]): PhrasingContent[] {
     result.pop();
   }
   return result;
+}
+
+function trimBlankStart(text: string): string {
+  let start = 0;
+  while (isBlank(text[start])) ++start;
+  return text.slice(start);
+}
+
+function trimBlankEnd(text: string): string {
+  let end = text.length;
+  while (isBlank(text[end - 1])) --end;
+  return text.slice(0, end);
+}
+
+function isBlank(c: string | undefined): boolean {
+  return c === ' ' || c === '\t';
 }
 
 /**
