@@ -53,6 +53,24 @@ describe('updateExampleOutput', () => {
       assert.equal(await updateExampleOutput(file), false);
     });
   });
+
+  test('writes no output file for an example that prints nothing', async () => {
+    await withTempDir(async (dir) => {
+      const file = await writeExample(dir, 'ex', 'const n = 1;\n');
+      assert.equal(await updateExampleOutput(file), false);
+      await assert.rejects(fs.access(Path.join(dir, 'ex', OUTPUT_FILE)));
+    });
+  });
+
+  test('removes the output file once the example prints nothing', async () => {
+    await withTempDir(async (dir) => {
+      const file = await writeExample(dir, 'ex', 'const n = 1;\n');
+      const outputFile = Path.join(dir, 'ex', OUTPUT_FILE);
+      await fs.writeFile(outputFile, '# Hi\n');
+      assert.equal(await updateExampleOutput(file), true);
+      await assert.rejects(fs.access(outputFile));
+    });
+  });
 });
 
 async function writeExample(dir: string, folder: string, code: string): Promise<string> {
