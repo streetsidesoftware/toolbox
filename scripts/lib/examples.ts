@@ -35,13 +35,15 @@ export async function runExample(file: string): Promise<string> {
 
 /**
  * Run an example and write what it printed to its output file.
+ * An example that prints nothing has no output file, so a README can show its code alone.
  * @returns whether the output file changed.
  */
 export async function updateExampleOutput(file: string): Promise<boolean> {
-  const output = await runExample(file);
+  const output = (await runExample(file)) || undefined;
   const outputFile = Path.join(Path.dirname(file), OUTPUT_FILE);
   const current = await fs.readFile(outputFile, 'utf8').catch(() => undefined);
   if (output === current) return false;
-  await fs.writeFile(outputFile, output, 'utf8');
+  if (output === undefined) await fs.rm(outputFile);
+  else await fs.writeFile(outputFile, output, 'utf8');
   return true;
 }

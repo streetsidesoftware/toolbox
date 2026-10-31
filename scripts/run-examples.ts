@@ -9,6 +9,7 @@ import { EXAMPLE_GLOB, findExamples, OUTPUT_FILE, updateExampleOutput } from './
 const HELP = `Usage: run-examples [options]
 
 Runs each ${EXAMPLE_GLOB} with Node and writes what it prints to ${OUTPUT_FILE} next to it.
+An example that prints nothing gets no ${OUTPUT_FILE}.
 A package's README injects both. \`pnpm run build:readme\` runs this; build the packages first.
 
 Options:
