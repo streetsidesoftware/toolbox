@@ -11,6 +11,7 @@ import {
   heading,
   inlineCode,
   inlineTemplate,
+  lineBreak,
   link,
   list,
   listItem,
@@ -223,11 +224,22 @@ describe('template', () => {
     ${'a\n{@ x @}{@ y @}\nb'}        | ${'side by side'}
     ${'a\n{@ x @} {@ y @}\nb'}       | ${'with a space between'}
     ${'a\r\n{@ x @}{@ y @}\r\nb'}    | ${'with CRLF line endings'}
-  `('empty values that fill a line between them end the paragraph: $label', ({ tpl }: { tpl: string }) => {
+  `('empty values that leave a line empty between them end the paragraph: $label', ({ tpl }: { tpl: string }) => {
     assert.equal(template(tpl, { x: '', y: '' }).toString(), 'a\n\nb');
     assert.equal(document('a', ['', ''], 'b').toString(), 'a\n\nb\n');
     const md = substitutePlaceholders(document('a', [placeholder('x'), placeholder('y')], 'b'), { x: '', y: '' });
     assert.equal(md.toString(), 'a\n\nb\n');
+  });
+
+  test('an empty value on the line after a line break ends the paragraph', () => {
+    assert.equal(template('a\\\n{@ x @}\nb', { x: '' }).toString(), 'a\n\nb');
+    const md = substitutePlaceholders(document(['a', lineBreak()], placeholder('x'), 'b'), { x: '' });
+    assert.equal(md.toString(), document(['a', lineBreak()], '', 'b').toString());
+    assert.equal(md.toString(), 'a\n\nb\n');
+  });
+
+  test('a value that ends with a line ending, inside a sentence, keeps the paragraph whole', () => {
+    assert.equal(template('a {@ x @}\nb', { x: inlineTemplate('c\n', {}) }).toString(), 'a c\nb');
   });
 
   test('in an inline template, an empty line left by an empty value goes', () => {

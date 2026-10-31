@@ -223,7 +223,7 @@ Empty bold, italic or struck-through text, and empty inline code, render as one 
 
 An empty paragraph renders nothing, since it would only add blank lines between blocks. A link always stays, even with no text or URL, since the Markdown is the output and a link's text and URL are part of it. A paragraph of whitespace or of empty formatting isn't empty: it still shows something.
 
-Spaces and tabs at the start or end of a paragraph, a heading or a table cell go, as line endings and line breaks there do. The page never shows them, so in the file they would only show up escaped. A paragraph of only whitespace keeps it.
+Spaces and tabs at the start or end of a paragraph, a heading or a table cell go, as line endings and line breaks there do. The page never shows them, so in the file they would only show up escaped. A paragraph of only whitespace keeps it. A paragraph can't hold an empty line either, so one in its text, such as a value's own line ending next to the template's, becomes one line ending. A paragraph that this trimming leaves empty renders nothing.
 
 ## Errors
 

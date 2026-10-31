@@ -5,7 +5,7 @@ import { describe, test } from 'node:test';
 import { testEach } from '@streetsidesoftware/test-each';
 
 import type * as Builders from './index.ts';
-import type { MDElement, MDInline } from './index.ts';
+import type { MDElement, MDInline, MDParagraph } from './index.ts';
 import {
   blockPlaceholder,
   blockText,
@@ -536,6 +536,15 @@ describe('paragraph', () => {
 
   test('an empty paragraph renders nothing', () => {
     assert.equal(p('').toString(), '');
+  });
+
+  testEach`
+    value                 | label
+    ${p('\n')}            | ${"p('\\n')"}
+    ${p(lineBreak())}     | ${'p(lineBreak())'}
+    ${p(' \n ')}          | ${"p(' \\n ')"}
+  `('a paragraph that trimming leaves empty adds no blank lines: $label', ({ value }: { value: MDParagraph }) => {
+    assert.equal(document('a', value, 'b').toString(), 'a\n\nb\n');
   });
 
   test('a paragraph of empty formatting stays', () => {

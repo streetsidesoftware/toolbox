@@ -1,4 +1,4 @@
-import type { Delete, Emphasis, PhrasingContent, Strong } from 'mdast';
+import type { Delete, Emphasis, Nodes, PhrasingContent, Strong } from 'mdast';
 
 /**
  * Return the inline nodes without the spaces, tabs and line endings at their start and end.
@@ -38,6 +38,44 @@ export function trimBlanksAroundBreaks(nodes: readonly PhrasingContent[]): Phras
   }
   for (const kept of trimBlanksAtStart(line, false)) result.push(kept);
   return result;
+}
+
+/**
+ * Return the inline nodes with each run of empty lines in their text joined into one line ending, since a paragraph
+ * can't hold an empty line. Text next to text is joined first, so an empty line split between the two goes too.
+ */
+export function withoutEmptyLines(nodes: readonly PhrasingContent[]): PhrasingContent[] {
+  const joined: PhrasingContent[] = [];
+  for (const node of nodes) {
+    const before = joined.at(-1);
+    if (node.type === 'text' && before?.type === 'text') {
+      joined[joined.length - 1] = { ...before, value: before.value + node.value };
+    } else {
+      joined.push(node);
+    }
+  }
+  return joined.map((node) => (node.type === 'text' ? { ...node, value: joinEmptyLines(node.value) } : node));
+}
+
+function joinEmptyLines(text: string): string {
+  const parts: string[] = [];
+  let start = 0;
+  for (let i = 0; i < text.length; ++i) {
+    if (text[i] !== '\r' && text[i] !== '\n') continue;
+    let end = i;
+    let endings = 0;
+    while (isBlank(text[end])) {
+      if (text[end] === '\n' || (text[end] === '\r' && text[end + 1] !== '\n')) ++endings;
+      ++end;
+    }
+    if (endings > 1) {
+      parts.push(text.slice(start, i), '\n');
+      start = end;
+    }
+    i = end - 1;
+  }
+  parts.push(text.slice(start));
+  return parts.join('');
 }
 
 /** Check whether a character is a space, a tab or part of a line ending. */
@@ -91,7 +129,7 @@ function hasSpaceOrTab(node: PhrasingContent): boolean {
   return node.type === 'text' && (node.value.includes(' ') || node.value.includes('\t'));
 }
 
-function isFormatting(node: PhrasingContent): node is Delete | Emphasis | Strong {
+export function isFormatting(node: Nodes): node is Delete | Emphasis | Strong {
   return node.type === 'strong' || node.type === 'emphasis' || node.type === 'delete';
 }
 

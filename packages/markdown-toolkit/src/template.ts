@@ -458,7 +458,15 @@ interface BlockSlot {
   readonly blocks: RootContent[];
 }
 
-type Piece = RootContent | BlockSlot;
+/** Holds the place of a placeholder whose value shows nothing, until its paragraph is rebuilt. */
+interface EmptySlot {
+  readonly empty: true;
+}
+
+type Piece = RootContent | BlockSlot | EmptySlot;
+
+/** Describes a paragraph being substituted: one that can split around blocks, or one that has to stay whole. */
+type ParagraphMode = 'split' | 'join';
 
 /** Lists the node types whose children may be blocks. */
 const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'list', 'listItem']);
@@ -478,10 +486,10 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
     });
 
   /**
-   * @param lines - the nodes are a paragraph's children, and a whole-line placeholder may take blocks.
+   * @param paragraph - the nodes are a paragraph's children, and whether the paragraph can split.
    * @param blocks - the nodes may be blocks.
    */
-  const substituteInNodes = (nodes: RootContent[], lines: boolean, blocks: boolean): Piece[] =>
+  const substituteInNodes = (nodes: RootContent[], paragraph: ParagraphMode | undefined, blocks: boolean): Piece[] =>
     nodes.flatMap((node, i): Piece[] => {
       const inlineHtml = asInlineHtmlNode(node);
       if (inlineHtml) {
@@ -493,16 +501,19 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
         const name = placeholderName(placeholder);
         const value = resolveValue(values, name);
         if (value === undefined) return [node];
-        const wholeLine = lines && isWholeLine(nodes, i);
-        if (wholeLine && isBlockLike(value)) return [{ blocks: blockNodes(value, `{@ ${name} @}`) }];
+        const wholeLine = paragraph !== undefined && isWholeLine(nodes, i);
+        if (paragraph === 'split' && wholeLine && isBlockLike(value)) {
+          return [{ blocks: blockNodes(value, `{@ ${name} @}`) }];
+        }
         const inline = valueAsInline(value, name);
         // On a line of its own, a value is trimmed as an argument is.
-        return wholeLine ? trimBlanks(inline) : inline;
+        const shown = wholeLine ? trimBlanks(inline) : inline;
+        return shown.length || !paragraph ? shown : [{ empty: true }];
       }
       switch (node.type) {
         case 'paragraph': {
-          const pieces = substituteInNodes(node.children, blocks, false);
-          return splitParagraph(node, endAtEmptyLines(pieces, blocks));
+          const mode = blocks ? 'split' : 'join';
+          return splitParagraph(node, withoutEmptiedLines(substituteInNodes(node.children, mode, false), mode));
         }
         case 'yaml':
           node.value = replacePlaceholders(node.value, (name: string) => {
@@ -520,7 +531,7 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
         default:
           if ('children' in node) {
             const blockChildren = blocks && blockContainers.has(node.type);
-            const children = substituteInNodes(node.children, false, blockChildren);
+            const children = substituteInNodes(node.children, undefined, blockChildren);
             // A list's children are its items already; any other block container may get list items from values.
             const grouped = blockChildren && node.type !== 'list' ? inLists(children as RootContent[]) : children;
             node.children = grouped as typeof node.children;
@@ -529,7 +540,7 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
       }
     });
 
-  root.children = inLists(substituteInNodes(root.children, false, allowBlocks) as RootContent[]);
+  root.children = inLists(substituteInNodes(root.children, undefined, allowBlocks) as RootContent[]);
 }
 
 /** Rebuild a paragraph from its children after substitution, split around the blocks among them. */
@@ -562,73 +573,83 @@ function isBlockSlot(piece: Piece): piece is BlockSlot {
 }
 
 /**
- * Return the pieces with each empty line that substitution left in the text as the end of the paragraph, as passing
- * the values directly would make it. Where blocks can't go, the empty line goes instead, since it can't end anything.
- * @param canSplit - blocks can go where the paragraph is.
+ * Return a paragraph's pieces without the lines that values showing nothing left empty, as passing the values
+ * directly would: where the paragraph can split, such a line ends it; otherwise the line goes, with its line ending.
  */
-function endAtEmptyLines(pieces: readonly Piece[], canSplit: boolean): Piece[] {
-  // Text left next to text, once the values between are gone, is one line.
-  const joined: Piece[] = [];
-  for (const piece of pieces) {
-    const before = joined.at(-1);
-    if (before && isTextPiece(before) && isTextPiece(piece)) {
-      joined[joined.length - 1] = { ...before, value: before.value + piece.value };
-    } else {
-      joined.push(piece);
+function withoutEmptiedLines(pieces: readonly Piece[], mode: ParagraphMode): Piece[] {
+  if (!pieces.some(isEmptySlot)) return [...pieces];
+  const lines = piecesByLine(pieces);
+  const result: Piece[] = [];
+  // How many pieces at the end of the result are the line ending of the line before.
+  let ending = 0;
+  lines.forEach((line, i) => {
+    if (!isEmptiedLine(line.pieces)) {
+      for (const piece of line.pieces) if (!isEmptySlot(piece)) result.push(piece);
+      for (const piece of line.ending) result.push(piece);
+      ending = line.ending.length;
+      return;
     }
+    if (mode === 'split') {
+      result.push({ blocks: [] });
+      ending = 0;
+      return;
+    }
+    // The last line has no line ending of its own to go with it, so the one before it goes.
+    if (i === lines.length - 1) result.length -= ending;
+    ending = 0;
+  });
+  return result;
+}
+
+/** Describes one line of a paragraph's pieces. */
+interface PieceLine {
+  readonly pieces: Piece[];
+  /** Holds the text of the line ending after the line, if it isn't a line break. */
+  readonly ending: Piece[];
+}
+
+/** Split a paragraph's pieces into lines, at each line ending in text and after each line break. */
+function piecesByLine(pieces: readonly Piece[]): PieceLine[] {
+  const lines: PieceLine[] = [{ pieces: [], ending: [] }];
+  for (const piece of pieces) {
+    if (!isTextPiece(piece)) {
+      lines[lines.length - 1].pieces.push(piece);
+      if (!isBlockSlot(piece) && !isEmptySlot(piece) && piece.type === 'break') lines.push({ pieces: [], ending: [] });
+      continue;
+    }
+    const { value } = piece;
+    let start = 0;
+    for (let i = 0; i < value.length; ++i) {
+      if (value[i] !== '\r' && value[i] !== '\n') continue;
+      const end = value[i] === '\r' && value[i + 1] === '\n' ? i + 2 : i + 1;
+      const line = lines[lines.length - 1];
+      if (i > start) line.pieces.push({ ...piece, value: value.slice(start, i) });
+      line.ending.push({ ...piece, value: value.slice(i, end) });
+      lines.push({ pieces: [], ending: [] });
+      start = end;
+      i = end - 1;
+    }
+    if (start < value.length) lines[lines.length - 1].pieces.push({ ...piece, value: value.slice(start) });
   }
-  return joined.flatMap((piece) => (isTextPiece(piece) ? splitAtEmptyLines(piece, canSplit) : [piece]));
+  return lines;
+}
+
+/** Check whether a line holds a value that shows nothing, and nothing else but spaces and tabs. */
+function isEmptiedLine(pieces: readonly Piece[]): boolean {
+  return pieces.some(isEmptySlot) && pieces.every((piece) => isEmptySlot(piece) || isBlankText(piece));
+}
+
+function isEmptySlot(piece: Piece): piece is EmptySlot {
+  return 'empty' in piece;
 }
 
 function isTextPiece(piece: Piece): piece is Text {
-  return !isBlockSlot(piece) && piece.type === 'text';
+  return !isBlockSlot(piece) && !isEmptySlot(piece) && piece.type === 'text';
 }
 
-/** Split text at each run of empty lines inside it, or join the lines around the run where blocks can't go. */
-function splitAtEmptyLines(text: Text, canSplit: boolean): Piece[] {
-  const { value } = text;
-  const lines = lineSpans(value);
-  const pieces: Piece[] = [];
-  let start = 0;
-  for (let i = 1; i < lines.length - 1; ++i) {
-    if (!isBlankLine(value, lines[i])) continue;
-    let last = i;
-    while (last + 1 < lines.length - 1 && isBlankLine(value, lines[last + 1])) ++last;
-    pieces.push({ ...text, value: value.slice(start, lines[i - 1].end) });
-    pieces.push(canSplit ? { blocks: [] } : { ...text, value: '\n' });
-    start = lines[last].next;
-    i = last;
-  }
-  pieces.push({ ...text, value: value.slice(start) });
-  return pieces.filter((piece) => !isTextPiece(piece) || piece.value);
-}
-
-interface LineSpan {
-  readonly start: number;
-  /** Holds where the line ends, before its line ending. */
-  readonly end: number;
-  /** Holds where the next line starts. */
-  readonly next: number;
-}
-
-function lineSpans(text: string): LineSpan[] {
-  const lines: LineSpan[] = [];
-  let start = 0;
-  for (;;) {
-    let end = start;
-    while (end < text.length && text[end] !== '\r' && text[end] !== '\n') ++end;
-    if (end === text.length) {
-      lines.push({ start, end, next: end });
-      return lines;
-    }
-    const next = text[end] === '\r' && text[end + 1] === '\n' ? end + 2 : end + 1;
-    lines.push({ start, end, next });
-    start = next;
-  }
-}
-
-function isBlankLine(text: string, line: LineSpan): boolean {
-  for (let i = line.start; i < line.end; ++i) if (text[i] !== ' ' && text[i] !== '\t') return false;
+function isBlankText(piece: Piece): boolean {
+  if (!isTextPiece(piece)) return false;
+  for (const c of piece.value) if (c !== ' ' && c !== '\t') return false;
   return true;
 }
 

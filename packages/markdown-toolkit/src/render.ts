@@ -1,11 +1,11 @@
-import type { Delete, Emphasis, Html, Nodes, Parent, PhrasingContent, Root, RootContent, Strong, Yaml } from 'mdast';
+import type { Html, Nodes, Parent, PhrasingContent, Root, RootContent, Yaml } from 'mdast';
 import remarkGfm from 'remark-gfm';
 import remarkStringify from 'remark-stringify';
 import type { Options as StyleOptions } from 'remark-stringify';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
-import { trimBlanksAroundBreaks, trimLineEdges } from './blanks.ts';
+import { isFormatting, trimBlanksAroundBreaks, trimLineEdges, withoutEmptyLines } from './blanks.ts';
 import type { HtmlEntityNode } from './htmlEntityNode.ts';
 import type { InlineHtmlNode } from './inlineHtmlNode.ts';
 import type { PlaceholderNode } from './placeholderNode.ts';
@@ -37,17 +37,20 @@ const handlers = {
  * Escaping is left to remark, which knows where each node sits.
  */
 export function renderNodes(children: RootContent[], style: StyleOptions | undefined): string {
-  const root: Root = { type: 'root', children: withoutEmptyParagraphs(structuredClone(children)) };
+  const root: Root = { type: 'root', children: structuredClone(children) };
   // Before line breaks in a table cell or heading become `<br/>`.
   visit(root, (node) => {
-    // Only text, links, formatting and code sit next to a line break.
+    // Only text, links, formatting and code sit in the same parent as text or a line break.
     if ('children' in node) {
-      node.children = trimBlanksAroundBreaks(node.children as PhrasingContent[]) as typeof node.children;
+      const inline = node.children as PhrasingContent[];
+      node.children = withoutEmptyLines(trimBlanksAroundBreaks(inline)) as typeof node.children;
     }
     if (node.type === 'paragraph' || node.type === 'heading' || node.type === 'tableCell') {
       node.children = trimLineEdges(node.children);
     }
   });
+  // After the trimming, which can leave a paragraph empty.
+  root.children = withoutEmptyParagraphs(root.children);
   visit(root, (node) => {
     if (node.type === 'tableCell' || node.type === 'heading') visit(node, oneLine);
     // Markdown has no empty code: two backticks show as text, and two such pairs turn the text between them into code.
@@ -75,10 +78,6 @@ function withoutEmptyParagraphs<T extends RootContent>(nodes: readonly T[]): T[]
     if (!children.length && node.type === 'paragraph') return [];
     return [{ ...node, children } as T];
   });
-}
-
-function isFormatting(node: Nodes): node is Delete | Emphasis | Strong {
-  return node.type === 'strong' || node.type === 'emphasis' || node.type === 'delete';
 }
 
 /**
