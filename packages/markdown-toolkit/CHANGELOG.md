@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.2.0](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/markdown-toolkit@1.1.1...@streetsidesoftware/markdown-toolkit@1.2.0) (2026-10-31)
+
+
+### Features
+
+* **markdown-toolkit:** accept a resolver function for template values ([#125](https://github.com/streetsidesoftware/toolbox/issues/125)) ([7f83364](https://github.com/streetsidesoftware/toolbox/commit/7f83364c80021d6f8879fae9089d343c1915b00c))
+* **markdown-toolkit:** add `p` as an alias of `paragraph` ([#80](https://github.com/streetsidesoftware/toolbox/issues/80)) ([f13a216](https://github.com/streetsidesoftware/toolbox/commit/f13a216ab8b843914172e2e3c86bf740313c7648))
+* **markdown-toolkit:** add a GFM table builder ([#76](https://github.com/streetsidesoftware/toolbox/issues/76)) ([b030c0b](https://github.com/streetsidesoftware/toolbox/commit/b030c0b0f38017eaa3553291546a4f2edf4ee8b5))
+* **markdown-toolkit:** add an HTML table builder ([#87](https://github.com/streetsidesoftware/toolbox/issues/87)) ([d2aee36](https://github.com/streetsidesoftware/toolbox/commit/d2aee36935ae978b33de5cb55568e0814780364a))
+* **markdown-toolkit:** add htmlEntity ([#117](https://github.com/streetsidesoftware/toolbox/issues/117)) ([bbf3fb0](https://github.com/streetsidesoftware/toolbox/commit/bbf3fb0778e542f86b6b45e845de33b12964809e))
+* **markdown-toolkit:** add li and taskListItem for list items with a checkbox ([#119](https://github.com/streetsidesoftware/toolbox/issues/119)) ([e09a225](https://github.com/streetsidesoftware/toolbox/commit/e09a2251b3aa27b1bcb3ac43e6db21e45a680b0b))
+* **markdown-toolkit:** add numbered lists ([#114](https://github.com/streetsidesoftware/toolbox/issues/114)) ([bf07459](https://github.com/streetsidesoftware/toolbox/commit/bf074595143dfb2179466d71cf8ccbdc27306888))
+* **markdown-toolkit:** give each element a type to tell it apart ([#88](https://github.com/streetsidesoftware/toolbox/issues/88)) ([55896d0](https://github.com/streetsidesoftware/toolbox/commit/55896d0f4440f0d9323318a23605b65a10eae4ee))
+* **markdown-toolkit:** put each argument of document, listItem and details on its own line ([#118](https://github.com/streetsidesoftware/toolbox/issues/118)) ([c1ef030](https://github.com/streetsidesoftware/toolbox/commit/c1ef03016ff275cbf67bf3e413b75d21fba19c53))
+
+
+### Updates and Bug Fixes
+
+* **markdown-toolkit:** let substitutePlaceholders take a string ([#106](https://github.com/streetsidesoftware/toolbox/issues/106)) ([994b021](https://github.com/streetsidesoftware/toolbox/commit/994b0219272b0d0bd411cfc00cda630597446ea4))
+* **markdown-toolkit:** make list items outside a list form a list ([#112](https://github.com/streetsidesoftware/toolbox/issues/112)) ([621b466](https://github.com/streetsidesoftware/toolbox/commit/621b4665b0996fbaca6c43efcc8d85aec47054ad))
+* **markdown-toolkit:** name HTML in the error for a wrong-kind placeholder value ([#73](https://github.com/streetsidesoftware/toolbox/issues/73)) ([3ee7390](https://github.com/streetsidesoftware/toolbox/commit/3ee73901004bb1e11926d58d97cd5dbfef195671))
+* **markdown-toolkit:** render empty formatting and paragraphs as nothing ([#110](https://github.com/streetsidesoftware/toolbox/issues/110)) ([0073f47](https://github.com/streetsidesoftware/toolbox/commit/0073f47feddb37b394d6b926de2fdfaae11d2dbe))
+* **markdown-toolkit:** show empty formatting as a space ([#113](https://github.com/streetsidesoftware/toolbox/issues/113)) ([65128f4](https://github.com/streetsidesoftware/toolbox/commit/65128f4d789047aad825fa7f97745297182f52c8))
+* **markdown-toolkit:** show empty inline code as a space ([#111](https://github.com/streetsidesoftware/toolbox/issues/111)) ([24be7e0](https://github.com/streetsidesoftware/toolbox/commit/24be7e0f51b3514cb7d42261679be86121ba9e6c))
+* **markdown-toolkit:** support list item options ([#120](https://github.com/streetsidesoftware/toolbox/issues/120)) ([8f3f71e](https://github.com/streetsidesoftware/toolbox/commit/8f3f71e39dcb20106e252b0d24c5901bcb977270))
+
 ## [1.1.1](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/markdown-toolkit@1.1.0...@streetsidesoftware/markdown-toolkit@1.1.1) (2026-10-28)
 
 

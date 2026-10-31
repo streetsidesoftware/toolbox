@@ -1,6 +1,6 @@
 {
-  ".": "1.2.1",
-  "packages/markdown-toolkit": "1.1.1",
+  ".": "1.3.0",
+  "packages/markdown-toolkit": "1.2.0",
   "packages/placeholders": "1.1.0",
   "packages/test-each": "1.0.0",
   "packages/unindent": "1.0.1"
