@@ -1,5 +1,6 @@
 import type { Html, PhrasingContent, RootContent } from 'mdast';
 
+import { asHtmlEntityNode } from './htmlEntityNode.ts';
 import {
   blockNodes,
   describe,
@@ -23,7 +24,7 @@ import type {
 } from './types.ts';
 
 /**
- * Creates a collapsible section: the reader sees `summary` and clicks it to show the content.
+ * Create a collapsible section: the reader sees `summary` and clicks it to show the content.
  *
  * The content can hold anything a page can, such as paragraphs, lists and tables.
  *
@@ -41,7 +42,7 @@ export function details(summary: InlineContent, ...content: AnyContent[]): MDDet
 }
 
 /**
- * Creates a list of terms, each followed by its definition.
+ * Create a list of terms, each followed by its definition.
  *
  * Give one `[term, definition]` pair per entry. A definition can hold anything, including lists and paragraphs.
  *
@@ -72,7 +73,7 @@ export function dl(entries: readonly DefinitionEntry[]): MDDefinitionList {
 export const definitionList: typeof dl = dl;
 
 /**
- * Creates a table whose cells can hold anything, including lists and paragraphs.
+ * Create a table whose cells can hold anything, including lists and paragraphs.
  *
  * With an empty header, the table has no header row.
  *
@@ -134,30 +135,34 @@ export function htmlTable(
 }
 
 /**
- * Inline content in an HTML element, with HTML written before and after it.
- * Plain text goes on one line, HTML-escaped, since Markdown isn't read there. Anything else gets blank lines, so it renders.
+ * Return the nodes for inline content in an HTML element, with HTML written before and after it.
+ * Plain text and HTML entities go on one line, since Markdown isn't read there.
+ * Anything else gets blank lines, so it renders.
  */
 function wrapped(before: string, tag: string, content: InlineContent, after: string, where: string): RootContent[] {
   const children = inlineNodes(content, where);
-  if (children.every((node) => node.type === 'text')) {
-    const text = htmlEscape(children.map((node) => node.value).join(''));
+  const parts = children.map((node) => (node.type === 'text' ? htmlEscape(node.value) : asHtmlEntityNode(node)?.value));
+  if (parts.every((part) => part !== undefined)) {
+    const text = withoutBlankLines(parts.join(''));
     return [html(`${before}<${tag}>${text}</${tag}>${after}`)];
   }
   return [html(`${before}<${tag}>`), { type: 'paragraph', children }, html(`</${tag}>${after}`)];
 }
 
-/** Text for an HTML block: `&` and `<` escaped, and no blank line, which would end the block. */
-function htmlEscape(text: string): string {
+/** Drop blank lines from text for an HTML block, since a blank line would end the block. */
+function withoutBlankLines(text: string): string {
   return text
     .split(/\r\n?|\n/)
     .map((line) => line.trim())
     .filter(Boolean)
-    .join('\n')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;');
+    .join('\n');
 }
 
-/** The blocks of a table cell, grouped as in a document, with each line ending in a string as a line break. */
+function htmlEscape(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+}
+
+/** Return the blocks of a table cell, grouped as in a document, with each line ending in a string as a line break. */
 function cellNodes(content: AnyContent): RootContent[] {
   const nodes = mapParagraphsAndBlocks(
     content,
@@ -173,7 +178,7 @@ function cellInlineNodes(content: InlineContent): PhrasingContent[] {
   return typeof content === 'string' || isText(content) ? nodes.flatMap(lineBreaks) : nodes;
 }
 
-/** A text node with each line ending, and the spaces around it, as a line break. */
+/** Turn each line ending in a text node, with the spaces around it, into a line break. */
 function lineBreaks(node: PhrasingContent): PhrasingContent[] {
   if (node.type !== 'text') return [node];
   return node.value
@@ -185,20 +190,20 @@ function lineBreaks(node: PhrasingContent): PhrasingContent[] {
 }
 
 /**
- * A cell's HTML when it can stay on its tag's line: empty, or one paragraph of text and line breaks.
- * `undefined` means the cell has Markdown and needs blank lines around it.
+ * Return a cell's HTML when it can stay on its tag's line: empty, or one paragraph of text, HTML entities and line
+ * breaks.
+ * Return `undefined` when the cell has Markdown and needs blank lines around it.
  */
 function plainText(blocks: RootContent[]): string | undefined {
   if (!blocks.length) return '';
   const [first] = blocks;
   if (blocks.length !== 1 || first.type !== 'paragraph') return undefined;
-  const children = first.children;
-  if (!children.every((node) => node.type === 'text' || node.type === 'break')) return undefined;
+  const parts = first.children.map((node) =>
+    node.type === 'text' ? htmlEscape(node.value) : node.type === 'break' ? '<br/>' : asHtmlEntityNode(node)?.value,
+  );
+  if (!parts.every((part) => part !== undefined)) return undefined;
   // A line break at the start or end can't display, as in a paragraph.
-  return children
-    .map((node) => (node.type === 'text' ? node.value.replace(/&/g, '&amp;').replace(/</g, '&lt;') : '<br/>'))
-    .join('')
-    .replace(/^(?:<br\/>)+|(?:<br\/>)+$/g, '');
+  return parts.join('').replace(/^(?:<br\/>)+|(?:<br\/>)+$/g, '');
 }
 
 function html(value: string): Html {

@@ -61,11 +61,11 @@ export async function updateApiReference(packageDir: string, rootDir: string = R
   return true;
 }
 
-/** Render one function's line: `` `name(params)` (also `alias`): summary ``. */
+/** Render one function's line, `` `name(params)` (also `alias`): summary ``, or a constant's, `` `name`: summary ``. */
 function functionLine(fn: ApiFunction): InlineContent[] {
   const aliases = fn.aliases.flatMap((alias, i) => [i ? ', ' : ' (also ', md.inlineCode(alias)]);
   return [
-    md.inlineCode(`${fn.name}(${fn.params.join(', ')})`),
+    md.inlineCode(fn.params ? `${fn.name}(${fn.params.join(', ')})` : fn.name),
     ...aliases,
     fn.aliases.length ? '): ' : ': ',
     // The summary is Markdown that goes inside a line, so block syntax in it stays text.

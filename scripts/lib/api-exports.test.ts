@@ -179,9 +179,59 @@ describe('readApiFunctions', () => {
     });
   });
 
-  test('throws on a value export that is not a function, and on export *', async () => {
-    await withModules({ 'index.ts': 'export const answer = 42;\n' }, async (index) => {
-      await assert.rejects(readApiFunctions(index), /answer in .*index\.ts isn't a function/);
+  test('reads a const that names no function as a constant, without parameters', async () => {
+    await withModules(
+      {
+        'index.ts': '/**\n * The answer.\n *\n * More detail.\n * @category Numbers\n */\nexport const answer = 42;\n',
+      },
+      async (index) => {
+        assert.deepEqual(await readApiFunctions(index), [
+          { name: 'answer', params: undefined, summary: 'The answer.', category: 'Numbers', aliases: [] },
+        ]);
+      },
+    );
+  });
+
+  test('reads a const holding a function as a function, with its parameters', async () => {
+    await withModules(
+      {
+        'index.ts':
+          '/**\n * Make it.\n * @category c\n */\nexport const make = (a: string, b?: number) => a;\n' +
+          '/**\n * Old style.\n * @category c\n */\nexport const old = function (x: string) { return x; };\n',
+      },
+      async (index) => {
+        assert.deepEqual(await readApiFunctions(index), [
+          { name: 'make', params: ['a', 'b?'], summary: 'Make it.', category: 'c', aliases: [] },
+          { name: 'old', params: ['x'], summary: 'Old style.', category: 'c', aliases: [] },
+        ]);
+      },
+    );
+  });
+
+  test('a const that names a constant is its alias', async () => {
+    await withModules(
+      {
+        'index.ts':
+          '/**\n * A no-break space.\n * @category c\n */\nexport const nbsp = 1;\n' +
+          '/** The same as nbsp. */\nexport const nonBreakingSpace = nbsp;\n',
+      },
+      async (index) => {
+        assert.deepEqual(await readApiFunctions(index), [
+          {
+            name: 'nbsp',
+            params: undefined,
+            summary: 'A no-break space.',
+            category: 'c',
+            aliases: ['nonBreakingSpace'],
+          },
+        ]);
+      },
+    );
+  });
+
+  test('throws on a value export that is not a function or a const, and on export *', async () => {
+    await withModules({ 'index.ts': 'export let answer = 42;\n' }, async (index) => {
+      await assert.rejects(readApiFunctions(index), /answer in .*index\.ts isn't a function or a const/);
     });
     await withModules({ 'index.ts': 'export const { a, b: [c] } = { a: 1, b: [2] };\n' }, async (index) => {
       await assert.rejects(readApiFunctions(index), /a in .*index\.ts isn't a function/);

@@ -8,6 +8,7 @@ import { text } from './builders.ts';
 import { detectMarkdownStyle } from './detectStyle.ts';
 import { DocumentElement } from './documentElement.ts';
 import { readFrontmatter, yamlNode } from './frontmatter.ts';
+import { isHtmlEntity } from './htmlEntity.ts';
 import {
   blockNodes,
   describe,
@@ -39,11 +40,11 @@ import type {
   MDText,
 } from './types.ts';
 
-/** A value a template placeholder can take. */
+/** Describes a value a template placeholder can take. */
 export type TemplateValue = string | number | boolean | MDElement | readonly TemplateValue[];
 
 /**
- * The values for a template.
+ * Holds the values for a template, by placeholder name.
  * - A top-level key may be a dotted name, such as `'engines.cspell'`.
  * - A nested object is walked one segment at a time.
  * - When several keys could supply a name, the later key wins.
@@ -53,12 +54,13 @@ export interface TemplateValues {
 }
 
 /**
- * Creates Markdown from a template by substituting values for its `{​@ name @​}` placeholders.
+ * Create Markdown from a template by substituting values for its `{​@ name @​}` placeholders.
  *
  * - A string value shows exactly as given.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
- * - A placeholder inside code or HTML takes only a string, which goes in as given.
+ * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
+ *   entity shows as its character in code, and as its reference in HTML.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * A result of one paragraph can go anywhere a string can. A longer one goes where paragraphs can.
@@ -76,12 +78,13 @@ export function template(markdown: string, values: TemplateValues): MDFragment |
 }
 
 /**
- * Creates paragraphs and other blocks from a template by substituting values for its `{​@ name @​}` placeholders.
+ * Create paragraphs and other blocks from a template by substituting values for its `{​@ name @​}` placeholders.
  *
  * - A string value shows exactly as given.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
- * - A placeholder inside code or HTML takes only a string, which goes in as given.
+ * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
+ *   entity shows as its character in code, and as its reference in HTML.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
@@ -103,7 +106,7 @@ export function blockTemplate(markdown: string, values: TemplateValues): MDFragm
 }
 
 /**
- * Creates a line of Markdown from a template by substituting values for its `{​@ name @​}` placeholders.
+ * Create a line of Markdown from a template by substituting values for its `{​@ name @​}` placeholders.
  *
  * Use the result in a heading, a table cell, a link or a sentence.
  *
@@ -136,14 +139,14 @@ export function inlineTemplate(markdown: string, values: TemplateValues): MDInli
 }
 
 /**
- * Parses Markdown text so it can be added to a page with its formatting.
+ * Parse Markdown text so it can be added to a page with its formatting.
  *
  * Text of one paragraph can go anywhere a string can, even in a heading.
  * Longer text goes where paragraphs can, such as in a document or a list item.
  *
  * @example
  * md.parse('Some **bold** text.');
- * // On the page, "bold" is bold.
+ * // The page shows "Some bold text." with "bold" in bold.
  * @category text
  */
 export function parse(markdown: string): MDFragment | MDInlineFragment {
@@ -153,7 +156,7 @@ export function parse(markdown: string): MDFragment | MDInlineFragment {
 }
 
 /**
- * Parses a whole Markdown file, frontmatter included.
+ * Parse a whole Markdown file, frontmatter included.
  *
  * Its frontmatter, formatting and `{​@ name @​}` placeholders stay as they are, ready for {@link substitutePlaceholders}.
  *
@@ -173,14 +176,15 @@ export function parseDocument(markdown: string): MDDocument {
 }
 
 /**
- * Creates a whole Markdown file from a template by substituting values for its `{​@ name @​}` placeholders.
+ * Create a whole Markdown file from a template by substituting values for its `{​@ name @​}` placeholders.
  *
  * Placeholders in the frontmatter work too, and a value there goes in as given.
  *
  * - A string value shows exactly as given.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
- * - A placeholder inside code or HTML takes only a string, which goes in as given.
+ * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
+ *   entity shows as its character in code, and as its reference in HTML.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
@@ -201,12 +205,12 @@ export function templateDocument(markdown: string, values: TemplateValues): MDDo
  * When the first argument is a string, it shows exactly as given, even if it contains Markdown or HTML. For a string
  * that's already Markdown, use {@link template}.
  *
- * Placeholders without a value stay in place, so you can substitute values in steps.
- *
  * - A string value shows exactly as given.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
- * - A placeholder inside code or HTML takes only a string, which goes in as given.
+ * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
+ *   entity shows as its character in code, and as its reference in HTML.
+ * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
  * @example
@@ -241,6 +245,8 @@ export function substitutePlaceholders(content: MDElement | string, values: Temp
   if (typeof content === 'string') return substitutePlaceholders(text(content), values);
   const rendering = renderingOf(content);
   if (!rendering) throw new TypeError(`expected a string or a Markdown element, got ${describe(content)}`);
+  // An HTML entity has no placeholder in it, and keeps its character.
+  if (isHtmlEntity(content)) return content;
   const substituted = isText(content) ? substituteInText(content.text, values) : undefined;
   if (substituted !== undefined) return text(substituted);
   const { style } = rendering;
@@ -287,7 +293,7 @@ export function substitutePlaceholders(content: MDElement | string, values: Temp
   }
 }
 
-/** A tree of nodes with the placeholders that have values replaced. */
+/** Return a tree of the nodes, with the placeholders that have values replaced. */
 function substitutedTree(nodes: RootContent[], values: TemplateValues, allowBlocks: boolean): Root {
   const root: Root = { type: 'root', children: nodes };
   substituteInTree(root, values, allowBlocks);
@@ -295,7 +301,7 @@ function substitutedTree(nodes: RootContent[], values: TemplateValues, allowBloc
 }
 
 /**
- * Text with its placeholders substituted, or `undefined` if a value isn't a string or text.
+ * Return the text with its placeholders substituted, or `undefined` if a value isn't a string or text.
  * A placeholder with no value is kept as written.
  */
 function substituteInText(text: string, values: TemplateValues): string | undefined {
@@ -311,7 +317,7 @@ function substituteInText(text: string, values: TemplateValues): string | undefi
   return onlyText ? result : undefined;
 }
 
-/** A whole file as a document, its body read by `read`, with values substituted when there are any. */
+/** Read a whole file as a document, its body by `read`, with values substituted when there are any. */
 function documentOf(markdown: string, read: (body: string) => Root, values?: TemplateValues): MDDocument {
   const front = readFrontmatter(markdown);
   const body = front ? markdown.slice(front.end) : markdown;
@@ -322,12 +328,12 @@ function documentOf(markdown: string, read: (body: string) => Root, values?: Tem
   return new DocumentElement(root.children, style);
 }
 
-/** A parsed tree as an element, in the style of its text. */
+/** Return a parsed tree as an element, in the style of its text. */
 function fragment(root: Root, markdown: string): MDFragment | MDInlineFragment {
   return fragmentOf(root, detectMarkdownStyle(root, markdown));
 }
 
-/** A tree as an element. A single paragraph is inline, and anything else is blocks. */
+/** Return a tree as an element. A single paragraph is inline, and anything else is blocks. */
 function fragmentOf(root: Root, style: StyleOptions | undefined): MDFragment | MDInlineFragment {
   const [only, ...rest] = root.children;
   if (only?.type === 'paragraph' && !rest.length) {
@@ -345,7 +351,7 @@ function keepPlaceholders(parent: Parent): void {
   });
 }
 
-/** A template's tree, with each placeholder in its text as a node of its own. */
+/** Parse a template into a tree, with each placeholder in its text as a node of its own. */
 function templateTree(markdown: string, inline: boolean): Root {
   const root = parseTree(markdown, inline);
   splitPlaceholders(root);
@@ -374,7 +380,7 @@ function placeholderPieces(text: string): PhrasingContent[] {
 }
 
 /**
- * Block constructs, turned off when parsing an inline template.
+ * Lists the block constructs turned off when parsing an inline template.
  * The names are micromark's construct names.
  */
 const blockConstructs = [
@@ -445,14 +451,14 @@ function isTemplateValue(value: unknown): value is TemplateValue {
   );
 }
 
-/** Blocks in place of a placeholder that is a whole line, until its paragraph is split around them. */
+/** Holds the blocks in place of a placeholder that is a whole line, until its paragraph is split around them. */
 interface BlockSlot {
   readonly blocks: RootContent[];
 }
 
 type Piece = RootContent | BlockSlot;
 
-/** Node types whose children may be blocks. */
+/** Lists the node types whose children may be blocks. */
 const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'list', 'listItem']);
 
 /**
@@ -518,7 +524,7 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
   root.children = inLists(substituteInNodes(root.children, false, allowBlocks) as RootContent[]);
 }
 
-/** A paragraph from its children after substitution, split around the blocks among them. */
+/** Rebuild a paragraph from its children after substitution, split around the blocks among them. */
 function splitParagraph(paragraph: Paragraph, pieces: Piece[]): RootContent[] {
   if (!pieces.some(isBlockSlot)) {
     paragraph.children = pieces as PhrasingContent[];
@@ -547,7 +553,7 @@ function isBlockSlot(piece: Piece): piece is BlockSlot {
   return 'blocks' in piece;
 }
 
-/** Inline nodes without the line endings at their start and end. */
+/** Return the inline nodes without the line endings at their start and end. */
 function trimLine(nodes: PhrasingContent[]): PhrasingContent[] {
   const result = nodes.filter((node, i) => node.type !== 'break' || (i > 0 && i < nodes.length - 1));
   const first = result[0];
@@ -557,12 +563,12 @@ function trimLine(nodes: PhrasingContent[]): PhrasingContent[] {
   return result.filter((node) => node.type !== 'text' || node.value);
 }
 
-/** Whether the node at `i` has nothing else on its line. */
+/** Check whether the node at `i` has nothing else on its line. */
 function isWholeLine(nodes: readonly RootContent[], i: number): boolean {
   return endsLine(nodes[i - 1], /\n[ \t]*$/) && endsLine(nodes[i + 1], /^[ \t]*\r?\n/);
 }
 
-/** Whether a neighbor ends the line at its side: there is none, or it's a line break. */
+/** Check whether a neighbor ends the line at its side: there is none, or it's a line break. */
 function endsLine(node: RootContent | undefined, lineEnd: RegExp): boolean {
   return !node || node.type === 'break' || (node.type === 'text' && lineEnd.test(node.value));
 }
@@ -578,20 +584,29 @@ function valueAsInline(value: TemplateValue, name: string): PhrasingContent[] {
   return inlineNodes(value as InlineContent, `{@ ${name} @}`);
 }
 
-/** A value inside code or HTML, as `inside` says: only a string, text, or a placeholder, inserted as is. */
+/**
+ * Convert a value for use inside code or HTML, as `inside` says.
+ * Only a string, text, a placeholder or an HTML entity goes in, as is.
+ * An entity goes in as its reference in HTML, which reads it, and as its character in code, which doesn't.
+ */
 function valueAsCode(value: TemplateValue, name: string, inside: 'code' | 'HTML'): string {
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
   if (isText(value)) return value.text;
   if (isKind(value, 'inline') && value.type === 'placeholder') return value.toString();
+  if (isHtmlEntity(value)) return inside === 'HTML' ? value.toString() : value.character;
   throw new TypeError(
-    `{@ ${name} @} is inside ${inside} and takes only a string, text, or a placeholder, got ${describe(value)}`,
+    `{@ ${name} @} is inside ${inside} and takes only a string, text, a placeholder or an HTML entity, got ${describe(value)}`,
   );
 }
 
-/** A value inside frontmatter, inserted as is: a string as written, and a Markdown element as rendered. */
+/**
+ * Convert a value for use inside frontmatter, as is: a string as written, and a Markdown element as rendered.
+ * An HTML entity goes in as its character, since YAML doesn't read references.
+ */
 function valueAsFrontmatter(value: TemplateValue): string {
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
   if (isText(value)) return value.text;
+  if (isHtmlEntity(value)) return value.character;
   // A template value can be any kind. groupedNodes throws when a piece isn't Markdown content.
   if (!isArray(value)) return value.toString();
   return new MarkdownElement(
