@@ -421,6 +421,11 @@ export function codeBlock(code: string, lang?: string): MDCodeBlock {
  * md.listItem('Dutch', md.list(['Flemish']));
  * // - Dutch
  * //   - Flemish
+ * @example
+ * md.listItem('Write tests', { checked: true });
+ * // Markdown:
+ * // - [x] Write tests
+ * // The page shows a checked box next to "Write tests".
  * @category lists
  */
 export function listItem(
