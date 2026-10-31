@@ -32,7 +32,3 @@ Options:
 ```
 
 <!--- @@inject-end: output.md#lang=text --->
-
-The `\` after the opening backtick is a line continuation, so the text starts on the template's first line. Without it,
-the newline after the backtick is kept. To drop it every time, see
-[Trimming the first and last lines](#trimming-the-first-and-last-lines).

@@ -38,10 +38,6 @@ Options:
   -o, --out DIR  Write the result to DIR.
 ```
 
-The `\` after the opening backtick is a line continuation, so the text starts on the template's first line. Without it,
-the newline after the backtick is kept. To drop it every time, see
-[Trimming the first and last lines](#trimming-the-first-and-last-lines).
-
 <!--- @@inject-end: examples/help-text/README.md --->
 
 <!--- @@inject: examples/plain-string/README.md --->
@@ -182,7 +178,7 @@ console.log(items.join('\n'));
 ## Behavior details
 
 - **Leading and trailing newlines are kept.** Use [`createUnindent`](#trimming-the-first-and-last-lines) to drop
-  them, or start the template with ``unindent`\`` (a line continuation) to leave out the first newline.
+  them.
 - **Blank and whitespace-only lines are ignored** when finding the common indentation. A whitespace-only line
   longer than that indentation keeps the extra whitespace.
 - **Indentation is counted in characters.** A tab and a space each count as one, and mixed indentation is not
