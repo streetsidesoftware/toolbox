@@ -163,7 +163,9 @@ The concerns that apply at injection time, such as untrusted values and link reb
 
 ### Resolving names
 
-The values are a plain object, and dotted names walk into it: `template(tpl, { pkg: { name: '@cspell/dict-grc' } })`. The object resolves names the same way inject-markdown does:
+The values are a plain object or a function. A function gets the whole name, so the values can come from anywhere, such as a `Map`. When it returns `undefined`, the placeholder is kept, as it is for a missing key. A result that isn't a value counts as no value, as it does in an object.
+
+In an object, dotted names walk into it: `template(tpl, { pkg: { name: '@cspell/dict-grc' } })`. An object resolves a name like this:
 
 - The top-level keys are candidates, in the object's key order. A top-level key may be a dotted name. Below the top level, a key is a single segment, and only own properties count.
 - The last key wins: keys are tried from last to first.
