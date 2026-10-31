@@ -112,7 +112,7 @@ endings.
 ### Trimming the first and last lines
 
 Use `createUnindent` to get an `unindent` that also drops the newline after the opening backtick and the
-whitespace-only line before the closing one. A shell script needs this, since its `#!` line must come first:
+whitespace-only line before the closing one. An error message needs both, so it has no blank line before or after it:
 
 ```ts
 import {
@@ -120,28 +120,28 @@ import {
   unindent,
 } from '@streetsidesoftware/unindent';
 
-const trimmed = createUnindent({
+const trimmedUnindent = createUnindent({
   trimFirstNewline: true,
   trimLastLine: true,
 });
 
-const kept = unindent`
-  #!/bin/sh
-  echo "Hello"
+const untrimmed = unindent`
+  Could not read config.json.
+  Run tool init to create one.
 `;
 
-const script = trimmed`
-  #!/bin/sh
-  echo "Hello"
+const trimmed = trimmedUnindent`
+  Could not read config.json.
+  Run tool init to create one.
 `;
 
-console.log(JSON.stringify(kept));
-console.log(JSON.stringify(script));
+console.log(JSON.stringify(untrimmed));
+console.log(JSON.stringify(trimmed));
 ```
 
 ```text
-"\n#!/bin/sh\necho \"Hello\"\n"
-"#!/bin/sh\necho \"Hello\""
+"\nCould not read config.json.\nRun tool init to create one.\n"
+"Could not read config.json.\nRun tool init to create one."
 ```
 
 | Option             | Default | Effect                                                                      |

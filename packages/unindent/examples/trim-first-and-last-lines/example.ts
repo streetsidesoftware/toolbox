@@ -3,20 +3,20 @@ import {
   unindent,
 } from '@streetsidesoftware/unindent';
 
-const trimmed = createUnindent({
+const trimmedUnindent = createUnindent({
   trimFirstNewline: true,
   trimLastLine: true,
 });
 
-const kept = unindent`
-  #!/bin/sh
-  echo "Hello"
+const untrimmed = unindent`
+  Could not read config.json.
+  Run tool init to create one.
 `;
 
-const script = trimmed`
-  #!/bin/sh
-  echo "Hello"
+const trimmed = trimmedUnindent`
+  Could not read config.json.
+  Run tool init to create one.
 `;
 
-console.log(JSON.stringify(kept));
-console.log(JSON.stringify(script));
+console.log(JSON.stringify(untrimmed));
+console.log(JSON.stringify(trimmed));
