@@ -582,7 +582,7 @@ describe('errors', () => {
   });
 });
 
-// Loads a second copy of the package: `?copy` gives index.ts, and each local module it imports, a new module instance.
+// Load a second copy of the package: `?copy` gives index.ts, and each local module it imports, a new module instance.
 async function importCopy(): Promise<typeof Builders> {
   registerHooks({
     resolve(specifier, context, nextResolve) {

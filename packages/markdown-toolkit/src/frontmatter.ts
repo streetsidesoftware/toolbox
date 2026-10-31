@@ -3,27 +3,27 @@ import type { Yaml } from 'mdast';
 import { MarkdownElement, renderingOf } from './nodes.ts';
 import type { MDFrontmatter } from './types.ts';
 
-/** A first line of exactly `---`, up to the next line of exactly `---`. */
+/** Matches a first line of exactly `---`, up to the next line of exactly `---`. */
 const frontmatterPattern = /^---\r?\n(?:([\s\S]*?)\r?\n)??---(?:\r?\n|$)/;
 
-/** Frontmatter read from the start of a file. */
+/** Describes frontmatter read from the start of a file. */
 export interface FrontmatterMatch {
-  /** The YAML text between the `---` lines. */
+  /** Holds the YAML text between the `---` lines. */
   readonly yaml: string;
-  /** The offset just past the closing `---` line, line ending included. */
+  /** Holds the offset just past the closing `---` line, line ending included. */
   readonly end: number;
 }
 
-/** The frontmatter at the very start of a whole file, or `undefined` if it has none. */
+/** Read the frontmatter at the very start of a whole file, or return `undefined` if it has none. */
 export function readFrontmatter(markdown: string): FrontmatterMatch | undefined {
   const match = frontmatterPattern.exec(markdown);
   return match ? { yaml: match[1] ?? '', end: match[0].length } : undefined;
 }
 
 /**
- * Creates YAML frontmatter for the start of a file, between `---` lines.
+ * Create YAML frontmatter for the start of a file, between `---` lines.
  *
- * The YAML goes in as given, so it's up to you to make it valid.
+ * The YAML goes in as given, without a check that it's valid.
  *
  * @example
  * md.frontmatter('title: Hello');

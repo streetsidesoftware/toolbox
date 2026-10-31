@@ -14,7 +14,7 @@ class HtmlEntityElement extends MarkdownElement<'inline', 'htmlEntity'> implemen
 }
 
 /**
- * Creates a character written as an HTML reference, such as `&nbsp;` for a no-break space.
+ * Create a character written as an HTML reference, such as `&nbsp;` for a no-break space.
  *
  * Use it for a character that's hard to type or to see in the file, such as a no-break space.
  *
@@ -47,60 +47,60 @@ export function htmlEntity(value: string): MDHtmlEntity {
 }
 
 /**
- * A no-break space, written `&nbsp;`. The words on either side of it stay on one line.
+ * Holds a no-break space, written `&nbsp;`. The words on either side of it stay on one line.
  * @category text
  */
 export const nbsp: MDHtmlEntity = htmlEntity('nbsp');
 
 /**
- * A space as wide as the letter n, written `&ensp;`.
+ * Holds a space as wide as the letter n, written `&ensp;`.
  * @category text
  */
 export const ensp: MDHtmlEntity = htmlEntity('ensp');
 
 /**
- * A space as wide as the letter m, written `&emsp;`.
+ * Holds a space as wide as the letter m, written `&emsp;`.
  * @category text
  */
 export const emsp: MDHtmlEntity = htmlEntity('emsp');
 
 /**
- * A thin space, written `&thinsp;`.
+ * Holds a thin space, written `&thinsp;`.
  * @category text
  */
 export const thinsp: MDHtmlEntity = htmlEntity('thinsp');
 
 /**
- * A soft hyphen, written `&shy;`. A long word may break there, and shows a hyphen only when it does.
+ * Holds a soft hyphen, written `&shy;`. A long word may break there, and shows a hyphen only when it does.
  * @category text
  */
 export const shy: MDHtmlEntity = htmlEntity('shy');
 
 /**
- * An em dash, written `&mdash;`.
+ * Holds an em dash, written `&mdash;`.
  * @category text
  */
 export const mdash: MDHtmlEntity = htmlEntity('mdash');
 
 /**
- * An en dash, written `&ndash;`.
+ * Holds an en dash, written `&ndash;`.
  * @category text
  */
 export const ndash: MDHtmlEntity = htmlEntity('ndash');
 
 /**
- * An ellipsis, written `&hellip;`.
+ * Holds an ellipsis, written `&hellip;`.
  * @category text
  */
 export const hellip: MDHtmlEntity = htmlEntity('hellip');
 
 /**
- * A copyright sign, written `&copy;`.
+ * Holds a copyright sign, written `&copy;`.
  * @category text
  */
 export const copy: MDHtmlEntity = htmlEntity('copy');
 
-/** Whether a value is a character made by `htmlEntity`. */
+/** Check whether a value is a character made by {@link htmlEntity}. */
 export function isHtmlEntity(value: unknown): value is MDHtmlEntity {
   return isKind(value, 'inline') && value.type === 'htmlEntity';
 }
@@ -111,11 +111,12 @@ function numberFor(character: string): string {
 
 let names: Map<string, string> | undefined;
 
-/** Familiar HTML 4 names for characters whose alphabetical tie picks an obscure one, such as `angst` for Å. */
+/** Holds familiar HTML 4 names for characters whose alphabetical tie picks an obscure one, such as `angst` for Å. */
 const familiarNames: Record<string, string> = { '\u00C5': 'Aring', '\u00A8': 'uml' };
 
 /**
- * The name for a character: its shortest, and between spellings of one name, such as `lt` and `LT`, the lowercase one.
+ * Return the name for a character: its shortest, and between spellings of one name, such as `lt` and `LT`, the
+ * lowercase one.
  * Other ties go to the first name alphabetically, ignoring case, unless the character has a familiar name.
  */
 function nameOf(character: string): string | undefined {

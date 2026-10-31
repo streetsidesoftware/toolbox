@@ -4,7 +4,7 @@ import { describe, inlineNodes, isArray, MarkdownElement } from './nodes.ts';
 import type { ColumnAlign, InlineContent, MDTable, TableOptions } from './types.ts';
 
 /**
- * Creates a table with a header row, then one row per entry.
+ * Create a table with a header row, then one row per entry.
  *
  * A cell holds text, links, formatting or code, but not lists or paragraphs. For those, use {@link htmlTable}.
  *
@@ -41,7 +41,7 @@ function rowNode(cells: readonly InlineContent[]): TableRow {
   };
 }
 
-/** The alignment of a column, or `null` for none. */
+/** Return the alignment of a column, or `null` for none. */
 export function alignOf(align: ColumnAlign): AlignType {
   if (align === undefined || align === 'left' || align === 'center' || align === 'right') return align ?? null;
   const delimiter = /^(:?)-+(:?)$/.exec(align);
