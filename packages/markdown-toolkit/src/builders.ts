@@ -416,6 +416,9 @@ type LIContent = ListItemContent;
  * - A list item right before or after a list becomes one more item of it.
  * - In a heading, a link or anywhere else inside a line, a list item is an error.
  *
+ * Options can follow the pieces. With `{ checked: true }` the page shows a checked box, and with `{ checked: false }`
+ * an empty one. Without `checked`, the item has no box.
+ *
  * @example
  * md.listItem('Dutch', md.list(['Flemish']));
  * // - Dutch
@@ -452,37 +455,14 @@ export function listItem(
 ): MDListItem;
 export function listItem(...contentRest: (LIContent | ListItemOptions | undefined)[]): MDListItem;
 export function listItem(...contentRest: (LIContent | ListItemOptions | undefined)[]): MDListItem {
-  const options = contentRest.find(isListItemOptions);
-  const content = contentRest.filter((value): value is LIContent => value !== undefined && !isListItemOptions(value));
-  return buildListItem(content, options);
+  return buildListItem(...piecesAndOptions(contentRest));
 }
+
+/** The same as {@link listItem}. */
+export const li: typeof listItem = listItem;
 
 function isListItemOptions(value: ListItemOptions | LIContent | undefined): value is ListItemOptions {
   return typeof value === 'object' && value !== null && !Array.isArray(value) && !('kind' in value);
-}
-
-/**
- * Create one list item, which can have a checkbox.
- *
- * The content is one piece or an array of pieces, like a {@link list} entry. Pieces in a row join into one line. A
- * paragraph, list or other block goes on its own lines below them.
- *
- * It goes in a {@link list}, or anywhere a paragraph can go:
- * - List items in a row form a list.
- * - A list item right before or after a list becomes one more item of it.
- * - In a heading, a link or anywhere else inside a line, a list item is an error.
- *
- * @param options - `checked: true` shows a checked box, and `checked: false` an empty one. Without `checked`, the item
- * has no box.
- * @example
- * md.li('Write tests', { checked: true });
- * // Markdown:
- * // - [x] Write tests
- * // The page shows a checked box next to "Write tests".
- * @category lists
- */
-export function li(content: ListItemContent | readonly ListItemContent[], options?: ListItemOptions): MDListItem {
-  return buildListItem(isArray(content) ? content : [content], options);
 }
 
 function buildListItem(content: readonly ListItemContent[], options?: ListItemOptions): MDListItem {
@@ -494,15 +474,15 @@ function buildListItem(content: readonly ListItemContent[], options?: ListItemOp
 /**
  * Create one task list item: a list item with a checkbox.
  *
- * The content is one piece or an array of pieces, like a {@link list} entry. Pieces in a row join into one line. A
- * paragraph, list or other block goes on its own lines below them.
+ * Pieces in a row join into one line. A paragraph, list or other block goes on its own lines below them.
  *
  * It goes in a {@link list}, or anywhere a paragraph can go:
  * - List items in a row form a list.
  * - A list item right before or after a list becomes one more item of it.
  * - In a heading, a link or anywhere else inside a line, a list item is an error.
  *
- * @param checked - `true` shows a checked box. Without it, the box is empty.
+ * Options can follow the pieces. The box is empty unless they hold `{ checked: true }`.
+ *
  * @example
  * md.taskListItem('Ship');
  * // Markdown:
@@ -510,8 +490,19 @@ function buildListItem(content: readonly ListItemContent[], options?: ListItemOp
  * // The page shows an empty box next to "Ship".
  * @category lists
  */
-export function taskListItem(content: ListItemContent | readonly ListItemContent[], checked?: boolean): MDListItem {
-  return li(content, { checked: checked ?? false });
+export const taskListItem: typeof listItem = function taskListItem(
+  ...contentRest: (LIContent | ListItemOptions | undefined)[]
+): MDListItem {
+  const [content, options] = piecesAndOptions(contentRest);
+  return buildListItem(content, { checked: options?.checked ?? false });
+};
+
+function piecesAndOptions(
+  contentRest: readonly (LIContent | ListItemOptions | undefined)[],
+): [content: LIContent[], options: ListItemOptions | undefined] {
+  const options = contentRest.find(isListItemOptions);
+  const content = contentRest.filter((value): value is LIContent => value !== undefined && !isListItemOptions(value));
+  return [content, options];
 }
 
 /**
