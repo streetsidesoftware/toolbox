@@ -34,7 +34,7 @@
     {
       "heading": "Lists and tables",
       "categories": ["lists", "tables"],
-      "functions": ["list", "ol", "ul", "li", "taskListItem", "listItem", "table", "htmlTable"]
+      "functions": ["list", "ol", "ul", "listItem", "taskListItem", "table", "htmlTable"]
     },
     {
       "heading": "Code",

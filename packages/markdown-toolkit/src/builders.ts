@@ -414,38 +414,36 @@ export function codeBlock(code: string, lang?: string): MDCodeBlock {
  * - A list item right before or after a list becomes one more item of it.
  * - In a heading, a link or anywhere else inside a line, a list item is an error.
  *
+ * Options can follow the pieces. With `{ checked: true }` the page shows a checked box, and with `{ checked: false }`
+ * an empty one. Without `checked`, the item has no box.
+ *
  * @example
  * md.listItem('Dutch', md.list(['Flemish']));
  * // - Dutch
  * //   - Flemish
- * @category lists
- */
-export function listItem(...content: ListItemContent[]): MDListItem {
-  return new MarkdownElement('listItem', 'listItem', 'a list item', [listItemNode(content)]);
-}
-
-/**
- * Create one list item, which can have a checkbox.
- *
- * The content is one piece or an array of pieces, like a {@link list} entry. Pieces in a row join into one line. A
- * paragraph, list or other block goes on its own lines below them.
- *
- * It goes in a {@link list}, or anywhere a paragraph can go:
- * - List items in a row form a list.
- * - A list item right before or after a list becomes one more item of it.
- * - In a heading, a link or anywhere else inside a line, a list item is an error.
- *
- * @param options - `checked: true` shows a checked box, and `checked: false` an empty one. Without `checked`, the item
- * has no box.
  * @example
- * md.li('Write tests', { checked: true });
+ * md.listItem('Write tests', { checked: true });
  * // Markdown:
  * // - [x] Write tests
  * // The page shows a checked box next to "Write tests".
  * @category lists
  */
-export function li(content: ListItemContent | readonly ListItemContent[], options?: ListItemOptions): MDListItem {
-  const item = listItemNode(isArray(content) ? content : [content]);
+export function listItem(
+  ...content:
+    [ListItemContent, ...ListItemContent[]] | [ListItemContent, ...ListItemContent[], ListItemOptions | undefined]
+): MDListItem {
+  return buildListItem(...piecesAndOptions(content));
+}
+
+/** The same as {@link listItem}. */
+export const li: typeof listItem = listItem;
+
+function isListItemOptions(value: ListItemOptions | ListItemContent | undefined): value is ListItemOptions {
+  return typeof value === 'object' && value !== null && !Array.isArray(value) && !isMarkdown(value);
+}
+
+function buildListItem(content: readonly ListItemContent[], options?: ListItemOptions): MDListItem {
+  const item = listItemNode(content);
   if (options?.checked !== undefined) item.checked = options.checked;
   return new MarkdownElement('listItem', 'listItem', 'a list item', [item]);
 }
@@ -453,15 +451,15 @@ export function li(content: ListItemContent | readonly ListItemContent[], option
 /**
  * Create one task list item: a list item with a checkbox.
  *
- * The content is one piece or an array of pieces, like a {@link list} entry. Pieces in a row join into one line. A
- * paragraph, list or other block goes on its own lines below them.
+ * Pieces in a row join into one line. A paragraph, list or other block goes on its own lines below them.
  *
  * It goes in a {@link list}, or anywhere a paragraph can go:
  * - List items in a row form a list.
  * - A list item right before or after a list becomes one more item of it.
  * - In a heading, a link or anywhere else inside a line, a list item is an error.
  *
- * @param checked - `true` shows a checked box. Without it, the box is empty.
+ * Options can follow the pieces. The box is empty unless they hold `{ checked: true }`.
+ *
  * @example
  * md.taskListItem('Ship');
  * // Markdown:
@@ -469,8 +467,21 @@ export function li(content: ListItemContent | readonly ListItemContent[], option
  * // The page shows an empty box next to "Ship".
  * @category lists
  */
-export function taskListItem(content: ListItemContent | readonly ListItemContent[], checked?: boolean): MDListItem {
-  return li(content, { checked: checked ?? false });
+export function taskListItem(
+  ...content:
+    [ListItemContent, ...ListItemContent[]] | [ListItemContent, ...ListItemContent[], ListItemOptions | undefined]
+): MDListItem {
+  const [pieces, options] = piecesAndOptions(content);
+  return buildListItem(pieces, { checked: options?.checked ?? false });
+}
+
+/** Split a list item's arguments into its pieces and the options that can follow them. */
+function piecesAndOptions(
+  content: readonly (ListItemContent | ListItemOptions | undefined)[],
+): [pieces: ListItemContent[], options: ListItemOptions | undefined] {
+  const last = content.at(-1);
+  if (last !== undefined && !isListItemOptions(last)) return [content as ListItemContent[], undefined];
+  return [content.slice(0, -1) as ListItemContent[], last];
 }
 
 /**

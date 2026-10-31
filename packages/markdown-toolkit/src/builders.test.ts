@@ -242,14 +242,14 @@ describe('li', () => {
     ${li('a')}                                                    | ${'- a'}
     ${li('a', { checked: true })}                                 | ${'- [x] a'}
     ${li('a', { checked: false })}                                | ${'- [ ] a'}
-    ${li(['See ', link('docs', 'u')], { checked: true })}         | ${'- [x] See [docs](u)'}
-    ${li(['Steps:', list(['one'])], { checked: false })}          | ${'- [ ] Steps:\n  - one'}
+    ${li('See ', link('docs', 'u'), { checked: true })}           | ${'- [x] See [docs](u)'}
+    ${li('Steps:', list(['one']), { checked: false })}            | ${'- [ ] Steps:\n  - one'}
     ${ol([li('a', { checked: true }), 'b'])}                      | ${'1. [x] a\n1. b'}
     ${document(li('a', { checked: true }), li('b'))}              | ${'- [x] a\n- b\n'}
     ${taskListItem('a')}                                          | ${'- [ ] a'}
-    ${taskListItem('a', true)}                                    | ${'- [x] a'}
-    ${taskListItem('a', false)}                                   | ${'- [ ] a'}
-    ${taskListItem(['a', list(['b'])], true)}                     | ${'- [x] a\n  - b'}
+    ${taskListItem('a', { checked: true })}                       | ${'- [x] a'}
+    ${taskListItem('a', { checked: false })}                      | ${'- [ ] a'}
+    ${taskListItem('a', list(['b']), { checked: true })}          | ${'- [x] a\n  - b'}
   `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
     assert.equal(value.toString(), expected);
   });
@@ -261,6 +261,47 @@ describe('li', () => {
     ];
     const md = list(tasks.map((task) => li(task.title, { checked: task.done })));
     assert.equal(md.toString(), '- [x] Write tests\n- [ ] Ship');
+  });
+
+  test('a list item needs a piece', () => {
+    // @ts-expect-error a list item needs a piece
+    assert.equal(listItem().toString(), '-');
+    // @ts-expect-error options are not a piece
+    assert.equal(listItem({ checked: true }).toString(), '-');
+  });
+
+  test('options come once, after the pieces', () => {
+    const error = new TypeError('list item content must be inline, got an object');
+    // @ts-expect-error options go after the pieces
+    assert.throws(() => listItem({ checked: true }, 'a'), error);
+    // @ts-expect-error one options object at most
+    assert.throws(() => listItem('a', { checked: true }, { checked: false }), error);
+  });
+
+  test('options never hold kind or type', () => {
+    // @ts-expect-error an element's key
+    assert.equal(listItem('a', { checked: true, kind: undefined }).toString(), '- [x] a');
+    // @ts-expect-error an element's key
+    assert.equal(listItem('a', { checked: true, type: undefined }).toString(), '- [x] a');
+  });
+
+  test('only an element is taken for a piece', () => {
+    const notAnElement = { kind: 'inline', type: 'text', checked: true };
+    // @ts-expect-error options never hold kind or type
+    assert.equal(listItem('a', notAnElement).toString(), '- [x] a');
+    assert.equal(listItem('a', text('b')).toString(), '- ab');
+  });
+
+  test('options can be undefined', () => {
+    const options: { checked?: boolean } | undefined = undefined;
+    assert.equal(listItem('a', options).toString(), '- a');
+  });
+
+  test('a task list item needs a piece', () => {
+    // @ts-expect-error a box needs text after it
+    assert.equal(taskListItem().toString(), '-');
+    // @ts-expect-error options are not a piece
+    assert.equal(taskListItem({ checked: true }).toString(), '-');
   });
 });
 
