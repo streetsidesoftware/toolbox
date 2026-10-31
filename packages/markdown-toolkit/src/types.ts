@@ -327,8 +327,16 @@ export type AnyContent = BlockOrInlineContent | readonly BlockOrInlineContent[];
  */
 export type ListItemContent = BlockOrInlineContent;
 
+export const OPTION_TYPE_GUARD_SYMBOL: symbol = Symbol('option_type_guard');
+
+export interface OptionTypeGuard {
+  readonly [OPTION_TYPE_GUARD_SYMBOL]?: true;
+  readonly kind?: undefined;
+  readonly type?: undefined;
+}
+
 /** Describes a list item. */
-export interface ListItemOptions {
+export interface ListItemOptions extends OptionTypeGuard {
   /** Holds whether the item's checkbox is checked. Without it, the item has no checkbox. */
   checked?: boolean | undefined;
 }

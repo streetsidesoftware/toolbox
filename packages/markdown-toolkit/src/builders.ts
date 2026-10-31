@@ -48,6 +48,7 @@ import type {
   MDStrikethrough,
   MDStrong,
   MDText,
+  OptionTypeGuard,
   OrderedListOptions,
 } from './types.ts';
 
@@ -404,6 +405,8 @@ export function codeBlock(code: string, lang?: string): MDCodeBlock {
   return new MarkdownElement('block', 'codeBlock', 'a code block', [{ type: 'code', lang: lang || null, value: code }]);
 }
 
+type LIContent = ListItemContent;
+
 /**
  * Create one list item from several pieces.
  *
@@ -420,8 +423,43 @@ export function codeBlock(code: string, lang?: string): MDCodeBlock {
  * //   - Flemish
  * @category lists
  */
-export function listItem(...content: ListItemContent[]): MDListItem {
-  return new MarkdownElement('listItem', 'listItem', 'a list item', [listItemNode(content)]);
+export function listItem(options?: ListItemOptions): MDListItem;
+export function listItem(content: LIContent, options?: ListItemOptions): MDListItem;
+export function listItem(c1: LIContent, c2: LIContent, options?: ListItemOptions): MDListItem;
+export function listItem(c1: LIContent, c2: LIContent, c3: LIContent, options?: ListItemOptions): MDListItem;
+export function listItem(
+  c1: LIContent,
+  c2: LIContent,
+  c3: LIContent,
+  c4: LIContent,
+  options?: ListItemOptions,
+): MDListItem;
+export function listItem(
+  c1: LIContent,
+  c2: LIContent,
+  c3: LIContent,
+  c4: LIContent,
+  c5: LIContent,
+  options?: ListItemOptions,
+): MDListItem;
+export function listItem(
+  c1: LIContent,
+  c2: LIContent,
+  c3: LIContent,
+  c4: LIContent,
+  c5: LIContent,
+  c6: LIContent,
+  options?: ListItemOptions,
+): MDListItem;
+export function listItem(...contentRest: (LIContent | ListItemOptions | undefined)[]): MDListItem;
+export function listItem(...contentRest: (LIContent | ListItemOptions | undefined)[]): MDListItem {
+  const options = contentRest.find(isListItemOptions);
+  const content = contentRest.filter((value): value is LIContent => value !== undefined && !isListItemOptions(value));
+  return li(content, options);
+}
+
+function isListItemOptions(value: ListItemOptions | LIContent | undefined): value is ListItemOptions {
+  return typeof value === 'object' && value !== null && !('kind' in value);
 }
 
 /**
