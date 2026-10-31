@@ -130,6 +130,7 @@ A placeholder isn't inline or block by itself. Where it sits decides what it can
 - Inside a line, it takes only inline content.
 - On a line of its own, where blocks can go, it also takes blocks.
 - Inside code or HTML, it takes only a string, text, a placeholder or an HTML entity.
+- In a URL or a title, it takes only a string, text or a placeholder.
 
 A value substituted later gives the same result as the value passed directly. So a value on a line of its own is trimmed as a part is. Empty values that leave a line empty, alone or side by side, end the paragraph, as `document('a', '', 'b')` does. In an inline template, which is one paragraph, the empty line goes instead.
 
@@ -155,6 +156,7 @@ A value goes in where its placeholder sits, as [Placeholders](#placeholders) des
 - A string, number, or boolean is inserted as text and escaped.
 - A placeholder that is a whole line splits its paragraph around the blocks it takes, as it would around a list written in place: `Fruit:\n{@ fruit @}` gives `Fruit:` and then the list.
 - Inside code or HTML, a value is inserted as is, with no Markdown escaping. The common case is a package name in an install command. The renderer lengthens a code fence when the inserted text needs it.
+- In a link or image URL, a title, or a reference definition, a value is inserted as is, as in code, and takes only a string, text or a placeholder. The URL is the script's own, like code. The renderer writes it in a form that keeps it whole, such as `<a b>` for a URL with a space.
 - In frontmatter, a placeholder takes any value, inserted as is: a string as written, and a Markdown element as it renders. Nothing is escaped or checked as YAML. As in `unindent`, each line of a value after the first gets the leading whitespace of the placeholder's line, except an empty line, which stays empty. A multi-line value stays inside a YAML block.
 
 A placeholder with no value is kept as written. Templates can be chained, so a later template, `substitutePlaceholders`, or injection may substitute it. There's no strict option: a script that needs every placeholder substituted checks its output with `hasPlaceholders` or `listPlaceholders` from @streetsidesoftware/placeholders.

@@ -75,6 +75,7 @@ export type TemplateResolver = (name: string) => TemplateValue | undefined;
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
  *   entity shows as its character in code, and as its reference in HTML.
+ * - A placeholder in a link's URL or title takes only a string, which goes in as given.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * A result of one paragraph can go anywhere a string can. A longer one goes where paragraphs can.
@@ -100,6 +101,7 @@ export function template(markdown: string, values: TemplateValues | TemplateReso
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
  *   entity shows as its character in code, and as its reference in HTML.
+ * - A placeholder in a link's URL or title takes only a string, which goes in as given.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
@@ -202,6 +204,7 @@ export function parseDocument(markdown: string): MDDocument {
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
  *   entity shows as its character in code, and as its reference in HTML.
+ * - A placeholder in a link's URL or title takes only a string, which goes in as given.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
@@ -228,6 +231,7 @@ export function templateDocument(markdown: string, values: TemplateValues | Temp
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
  *   entity shows as its character in code, and as its reference in HTML.
+ * - A placeholder in a link's URL or title takes only a string, which goes in as given.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
@@ -520,6 +524,11 @@ function substituteInTree(root: Root, resolve: TemplateResolver, allowBlocks: bo
       const value = resolve(name);
       return value === undefined ? undefined : valueAsCode(value, name, inside);
     });
+  const substituteInLink = (written: string, inside: 'a URL' | 'a title'): string =>
+    replacePlaceholders(written, (name: string) => {
+      const value = resolve(name);
+      return value === undefined ? undefined : valueInLink(value, name, inside);
+    });
 
   /**
    * @param paragraph - the nodes are a paragraph's children, and whether the paragraph can split.
@@ -545,6 +554,10 @@ function substituteInTree(root: Root, resolve: TemplateResolver, allowBlocks: bo
         // On a line of its own, a value is trimmed as an argument is.
         const shown = wholeLine ? trimBlanks(inline) : inline;
         return shown.length || !paragraph ? shown : [{ empty: true }];
+      }
+      if (node.type === 'link' || node.type === 'image' || node.type === 'definition') {
+        node.url = substituteInLink(node.url, 'a URL');
+        if (node.title) node.title = substituteInLink(node.title, 'a title');
       }
       switch (node.type) {
         case 'paragraph': {
@@ -726,13 +739,29 @@ function valueAsInline(value: TemplateValue, name: string): PhrasingContent[] {
  * An entity goes in as its reference in HTML, which reads it, and as its character in code, which doesn't.
  */
 function valueAsCode(value: TemplateValue, name: string, inside: 'code' | 'HTML'): string {
-  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
-  if (isText(value)) return value.text;
-  if (isKind(value, 'inline') && value.type === 'placeholder') return value.toString();
+  const written = valueAsWritten(value);
+  if (written !== undefined) return written;
   if (isHtmlEntity(value)) return inside === 'HTML' ? value.toString() : value.character;
   throw new TypeError(
     `{@ ${name} @} is inside ${inside} and takes only a string, text, a placeholder or an HTML entity, got ${describe(value)}`,
   );
+}
+
+/** Convert a value for use in a link's URL or title. Only a string, text or a placeholder goes in, as is. */
+function valueInLink(value: TemplateValue, name: string, inside: 'a URL' | 'a title'): string {
+  const written = valueAsWritten(value);
+  if (written !== undefined) return written;
+  throw new TypeError(
+    `{@ ${name} @} is inside ${inside} and takes only a string, text or a placeholder, got ${describe(value)}`,
+  );
+}
+
+/** Return a string, text or placeholder value as written, or `undefined` for any other value. */
+function valueAsWritten(value: TemplateValue): string | undefined {
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (isText(value)) return value.text;
+  if (isKind(value, 'inline') && value.type === 'placeholder') return value.toString();
+  return undefined;
 }
 
 /**
