@@ -1,6 +1,6 @@
 {
   "name": "@streetsidesoftware/markdown-toolkit",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "A toolkit for generating Markdown: builders, templates and placeholders.",
   "repository": {
     "type": "git",
