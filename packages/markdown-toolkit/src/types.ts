@@ -331,8 +331,8 @@ export const OPTION_TYPE_GUARD_SYMBOL: unique symbol = Symbol('option_type_guard
 
 export interface OptionTypeGuard {
   readonly [OPTION_TYPE_GUARD_SYMBOL]?: true;
-  readonly kind?: undefined;
-  readonly type?: undefined;
+  readonly kind?: never;
+  readonly type?: never;
 }
 
 /** Describes a list item. */
