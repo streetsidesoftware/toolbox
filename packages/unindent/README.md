@@ -9,61 +9,135 @@ the code around it.
 npm install @streetsidesoftware/unindent
 ```
 
+<!--- @@inject: examples/help-text/README.md --->
+
 ## Usage
+
+Write the template indented to match the code around it. The common indentation is removed, and the lines keep their
+indentation relative to each other.
 
 ```ts
 import { unindent } from '@streetsidesoftware/unindent';
 
-function usage(): string {
-  return unindent`
-    Usage: tool [options]
+const HELP = unindent`\
+  Usage: tool [options] <file>
 
-    Options:
-      -h, --help  Show help.
-  `;
-}
-// "\nUsage: tool [options]\n\nOptions:\n  -h, --help  Show help.\n"
+  Options:
+    -h, --help     Show help.
+    -o, --out DIR  Write the result to DIR.
+`;
+
+process.stdout.write(HELP);
 ```
 
-Call `unindent` on a plain string too:
+```text
+Usage: tool [options] <file>
+
+Options:
+  -h, --help     Show help.
+  -o, --out DIR  Write the result to DIR.
+```
+
+<!--- @@inject-end: examples/help-text/README.md --->
+
+<!--- @@inject: examples/plain-string/README.md --->
+
+### Plain strings
+
+Call `unindent` on a string too, such as lines copied out of indented code:
 
 ```ts
-unindent('    a\n      b'); // "a\n  b"
+import { unindent } from '@streetsidesoftware/unindent';
+
+// Lines copied out of an indented function.
+const snippet = '    if (ok) {\n      run();\n    }';
+
+console.log(unindent(snippet));
 ```
+
+```text
+if (ok) {
+  run();
+}
+```
+
+<!--- @@inject-end: examples/plain-string/README.md --->
+
+<!--- @@inject: examples/multi-line-values/README.md --->
 
 ### Multi-line values
 
-When a value inserted with `${}` spans several lines, each line after the first gets the leading whitespace of
-the template line it is inserted on. The value keeps its shape in the result:
+When a value inserted with `${}` spans several lines, each line after the first gets the leading whitespace of the
+template line it is inserted on. The value keeps its shape in the result:
 
 ```ts
-const items = 'apple\nbanana';
+import { unindent } from '@streetsidesoftware/unindent';
 
-unindent`
-  fruit:
-    ${items}
+const steps = ['pnpm install', 'pnpm test'].join('\n');
+
+const workflow = unindent`\
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - run: |
+            ${steps}
 `;
-// "\nfruit:\n  apple\n  banana\n"
+
+process.stdout.write(workflow);
 ```
 
-The padding is the template line's leading whitespace, tabs included, not the column of the `${}`. An empty line
-in the value stays empty, and the rest of the value is kept as given: its own indentation, a trailing newline
-and its line endings.
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          pnpm install
+          pnpm test
+```
+
+The padding is the template line's leading whitespace, tabs included, not the column of the `${}`. An empty line in the
+value stays empty, and the rest of the value is kept as given: its own indentation, a trailing newline and its line
+endings.
+
+<!--- @@inject-end: examples/multi-line-values/README.md --->
+
+<!--- @@inject: examples/trim-first-and-last-lines/README.md --->
 
 ### Trimming the first and last lines
 
 Use `createUnindent` to get an `unindent` that also drops the newline after the opening backtick and the
-whitespace-only line before the closing one:
+whitespace-only line before the closing one. An error message needs both, so it has no blank line before or after it:
 
 ```ts
-import { createUnindent } from '@streetsidesoftware/unindent';
+import {
+  createUnindent,
+  unindent,
+} from '@streetsidesoftware/unindent';
 
-const u = createUnindent({ trimFirstNewline: true, trimLastLine: true });
+const trimmedUnindent = createUnindent({
+  trimFirstNewline: true,
+  trimLastLine: true,
+});
 
-u`
-  Usage: tool [options]
+const untrimmed = unindent`
+  Could not read config.json.
+  Run tool init to create one.
 `;
-// "Usage: tool [options]"
+
+const trimmed = trimmedUnindent`
+  Could not read config.json.
+  Run tool init to create one.
+`;
+
+console.log(JSON.stringify(untrimmed));
+console.log(JSON.stringify(trimmed));
+```
+
+```text
+"\nCould not read config.json.\nRun tool init to create one.\n"
+"Could not read config.json.\nRun tool init to create one."
 ```
 
 | Option             | Default | Effect                                                                      |
@@ -71,23 +145,40 @@ u`
 | `trimFirstNewline` | `false` | Drop one leading newline.                                                   |
 | `trimLastLine`     | `false` | Drop the last line, with the newline before it, when it is whitespace-only. |
 
+<!--- @@inject-end: examples/trim-first-and-last-lines/README.md --->
+
+<!--- @@inject: examples/indent/README.md --->
+
 ### `indent`
 
-Use `indent` to add padding to every line of a string except the first. An empty line stays empty. An optional
-third argument pads the first line:
+Use `indent` to add padding to every line of a string except the first, such as a multi-line entry in a list. An empty
+line stays empty. An optional third argument pads the first line:
 
 ```ts
 import { indent } from '@streetsidesoftware/unindent';
 
-indent('a\nb\nc', '  '); // "a\n  b\n  c"
-indent('a\nb', '  ', '- '); // "- a\n  b"
-indent('a\n\nb', '  '); // "a\n\n  b"
+const changes = [
+  'Fix a crash on empty input.\nIt now returns an empty string.',
+  'Add `indent`.',
+];
+
+const items = changes.map((change) => indent(change, '  ', '- '));
+
+console.log(items.join('\n'));
 ```
+
+```markdown
+- Fix a crash on empty input.
+  It now returns an empty string.
+- Add `indent`.
+```
+
+<!--- @@inject-end: examples/indent/README.md --->
 
 ## Behavior details
 
 - **Leading and trailing newlines are kept.** Use [`createUnindent`](#trimming-the-first-and-last-lines) to drop
-  them, or start the template with ``unindent`\`` (a line continuation) to leave out the first newline.
+  them.
 - **Blank and whitespace-only lines are ignored** when finding the common indentation. A whitespace-only line
   longer than that indentation keeps the extra whitespace.
 - **Indentation is counted in characters.** A tab and a space each count as one, and mixed indentation is not
