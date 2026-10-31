@@ -453,9 +453,9 @@ export function listItem(
   c6: LIContent,
   options?: ListItemOptions,
 ): MDListItem;
-export function listItem(...contentRest: (LIContent | ListItemOptions | undefined)[]): MDListItem;
-export function listItem(...contentRest: (LIContent | ListItemOptions | undefined)[]): MDListItem {
-  return buildListItem(...piecesAndOptions(contentRest));
+export function listItem(...content: (LIContent | ListItemOptions | undefined)[]): MDListItem;
+export function listItem(...content: (LIContent | ListItemOptions | undefined)[]): MDListItem {
+  return buildListItem(...piecesAndOptions(content));
 }
 
 /** The same as {@link listItem}. */
