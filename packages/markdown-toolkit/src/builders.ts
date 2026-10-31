@@ -439,7 +439,7 @@ export function listItem(
 export const li: typeof listItem = listItem;
 
 function isListItemOptions(value: ListItemOptions | ListItemContent | undefined): value is ListItemOptions {
-  return typeof value === 'object' && value !== null && !Array.isArray(value) && !('kind' in value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value) && !isMarkdown(value);
 }
 
 function buildListItem(content: readonly ListItemContent[], options?: ListItemOptions): MDListItem {
