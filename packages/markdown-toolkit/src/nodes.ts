@@ -1,6 +1,7 @@
 import { listPlaceholders } from '@streetsidesoftware/placeholders';
-import type { List, ListItem, BlockContent as MdastBlockContent, PhrasingContent, RootContent, Text } from 'mdast';
+import type { List, ListItem, BlockContent as MdastBlockContent, PhrasingContent, RootContent } from 'mdast';
 
+import { trimBlanks } from './blanks.ts';
 import { asInlineHtml } from './inlineHtmlNode.ts';
 import { placeholderNodeAsWritten } from './placeholderNode.ts';
 import { renderNodes } from './render.ts';
@@ -90,17 +91,11 @@ export function textNodes(text: string): PhrasingContent[] {
   return nodes;
 }
 
-/**
- * Return the text nodes for a string, with each line ending as a line break.
- * The spaces and tabs around a line ending go with it, since they would show as `&#x20;` at the edge of a line.
- */
+/** Return the text nodes for a string, with each line ending as a line break. */
 export function stringNodes(text: string): PhrasingContent[] {
-  const lines = text.split(/\r\n?|\n/);
-  return lines.flatMap((line, i): PhrasingContent[] => {
-    const afterBreak = i ? trimBlankStart(line) : line;
-    const trimmed = i < lines.length - 1 ? trimBlankEnd(afterBreak) : afterBreak;
-    return [...(i ? [{ type: 'break' } as const] : []), ...textNodes(trimmed)];
-  });
+  return text
+    .split(/\r\n?|\n/)
+    .flatMap((line, i): PhrasingContent[] => [...(i ? [{ type: 'break' } as const] : []), ...textNodes(line)]);
 }
 
 /**
@@ -256,45 +251,6 @@ function joinLines(lines: readonly PhrasingContent[][]): PhrasingContent[] {
     for (const node of line) result.push(node);
   }
   return result;
-}
-
-/** Return the inline nodes without the spaces and tabs at their start and end. Text left empty is dropped. */
-function trimBlanks(nodes: readonly PhrasingContent[]): PhrasingContent[] {
-  const result = [...nodes];
-  while (result[0]?.type === 'text') {
-    const value = trimBlankStart(result[0].value);
-    if (value) {
-      result[0] = { ...result[0], value };
-      break;
-    }
-    result.shift();
-  }
-  while (result.at(-1)?.type === 'text') {
-    const last = result.at(-1) as Text;
-    const value = trimBlankEnd(last.value);
-    if (value) {
-      result[result.length - 1] = { ...last, value };
-      break;
-    }
-    result.pop();
-  }
-  return result;
-}
-
-function trimBlankStart(text: string): string {
-  let start = 0;
-  while (isBlank(text[start])) ++start;
-  return text.slice(start);
-}
-
-function trimBlankEnd(text: string): string {
-  let end = text.length;
-  while (isBlank(text[end - 1])) --end;
-  return text.slice(0, end);
-}
-
-function isBlank(c: string | undefined): boolean {
-  return c === ' ' || c === '\t';
 }
 
 /**

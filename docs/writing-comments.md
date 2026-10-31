@@ -247,7 +247,9 @@ After: says what the reader gets, and shows it.
 
 ```ts
 /**
- * Create text that shows exactly as given, even if it contains Markdown or HTML.
+ * Create text whose Markdown and HTML show on the page as text, not as formatting.
+ *
+ * A newline in it starts a new line.
  *
  * @example
  * md.text('Use <details> for *long* notes');
@@ -308,7 +310,7 @@ After: one list for the value rules, one paragraph for where the result goes, an
 /**
  * Create Markdown from a template by substituting values for its `{@ name @}` placeholders.
  *
- * - A string value shows exactly as given.
+ * - A string value shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string, which goes in as given.

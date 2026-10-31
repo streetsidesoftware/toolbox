@@ -485,6 +485,22 @@ describe('a newline in a string is a line break', () => {
     assert.equal(value.toString(), expected);
   });
 
+  testEach`
+    value                                                 | expected
+    ${paragraph(['a ', '\nb'])}                           | ${'a\\\nb'}
+    ${paragraph(['a\n', ' b'])}                           | ${'a\\\nb'}
+    ${paragraph(['a ', lineBreak(), ' b'])}               | ${'a\\\nb'}
+    ${paragraph(strong(['a ', lineBreak(), '\tb']))}      | ${'**a\\\nb**'}
+    ${heading(3, ['a ', lineBreak(), ' b'])}              | ${'### a<br/>b'}
+    ${template('a {@ x @} b', { x: 'c\n' })}              | ${'a c\\\nb'}
+    ${details(['a ', '\n b'], 'c')}                       | ${'<details>\n<summary>a<br/>b</summary>\n\nc\n\n</details>'}
+  `(
+    'the spaces and tabs next to a line break go, wherever they come from: $expected',
+    ({ value, expected }: { value: MDElement; expected: string }) => {
+      assert.equal(value.toString(), expected);
+    },
+  );
+
   test('in a heading, a line break is <br/> at every depth', () => {
     for (const depth of [1, 2, 3, 4, 5, 6] as const) {
       const hashes = '#'.repeat(depth);
@@ -650,7 +666,6 @@ describe('document', () => {
     ${document('a', [], 'b')}                                      | ${'a\n\nb\n'}
     ${document('a', text(''), 'b')}                                | ${'a\n\nb\n'}
     ${document('a', parse(''), 'b')}                               | ${'a\n\nb\n'}
-    ${document('a', [], 'b')}                                      | ${'a\n\nb\n'}
     ${document('a', strong(''), 'b')}                              | ${'a\n**&#x20;**\nb\n'}
     ${document('a ', ' b')}                                        | ${'a\nb\n'}
     ${document('a\t', '\tb')}                                      | ${'a\nb\n'}

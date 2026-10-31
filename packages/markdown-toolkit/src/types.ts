@@ -66,7 +66,7 @@ export type MDValue = MDElement;
 export interface MDText extends MDElement {
   readonly kind: 'inline';
   readonly type: 'text';
-  /** Holds the string the text was made from, unescaped. */
+  /** Holds the string the text was made from. */
   readonly text: string;
 }
 

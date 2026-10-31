@@ -5,6 +5,7 @@ import type { Options as StyleOptions } from 'remark-stringify';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
+import { isBlank, trimBlanksAroundBreaks } from './blanks.ts';
 import type { HtmlEntityNode } from './htmlEntityNode.ts';
 import type { InlineHtmlNode } from './inlineHtmlNode.ts';
 import type { PlaceholderNode } from './placeholderNode.ts';
@@ -37,6 +38,13 @@ const handlers = {
  */
 export function renderNodes(children: RootContent[], style: StyleOptions | undefined): string {
   const root: Root = { type: 'root', children: withoutEmptyParagraphs(structuredClone(children)) };
+  // Before line breaks in a table cell or heading become `<br/>`.
+  visit(root, (node) => {
+    // Only text, links, formatting and code sit next to a line break.
+    if ('children' in node) {
+      node.children = trimBlanksAroundBreaks(node.children as PhrasingContent[]) as typeof node.children;
+    }
+  });
   visit(root, (node) => {
     if (node.type === 'paragraph' || node.type === 'heading' || node.type === 'tableCell') trimLines(node.children);
     if (node.type === 'tableCell' || node.type === 'heading') visit(node, oneLine);
@@ -116,8 +124,4 @@ function trimTrailingLineEndings(text: string): string {
   while (isBlank(text[i])) --i;
   const end = i + 1;
   return /[\r\n]/.test(text.slice(end)) ? text.slice(0, end) : text;
-}
-
-function isBlank(c: string | undefined): boolean {
-  return c === ' ' || c === '\t' || c === '\r' || c === '\n';
 }

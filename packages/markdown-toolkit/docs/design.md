@@ -28,7 +28,7 @@ Converting an element to a string too early loses its kind. Writing ``text(`see 
 
 Wherever inline content goes, a plain string is text and is escaped. A `{@ name @}` placeholder in it is kept as written. Inline code and code blocks take their string as code, inserted as is.
 
-A string is inline text everywhere, even where blocks can go. A newline in it, `\r\n` or `\r` included, is a line break wherever text goes: in a paragraph, link text, formatting, `text()`, a table cell, and a string substituted for a placeholder. That's what someone writing the string expects to see, and it's the same everywhere. The spaces and tabs around a newline go with it, since at the edge of a line they would only show up escaped.
+A string is inline text everywhere, even where blocks can go. A newline in it, `\r\n` or `\r` included, is a line break wherever text goes: in a paragraph, link text, formatting, `text()`, a table cell, and a string substituted for a placeholder. That's what someone writing the string expects to see, and it's the same everywhere. The spaces and tabs next to any line break go, wherever they come from, since at the edge of a line they would only show up escaped.
 
 A blank line in a string is two line breaks. A string never splits into paragraphs by itself, because the same string would then mean something different in a list item than in a paragraph.
 
@@ -44,7 +44,7 @@ An array is a sequence. Arrays are flattened.
 
 The parts of a document, a list item and details content are listed one by one, and each goes on a line of its own, as someone typing the file would put them. Parts of text in a row still form one paragraph, which the page shows with a space between them. Joining them with nothing ran sentences together, and a script that lists sentences one by one expects them apart. A sentence built from pieces goes in a paragraph or an array, which join as given. An array is one part.
 
-- A space or tab at the start or end of a part, or next to a block within one, is dropped. Before a line ending it would only show up escaped, and the page doesn't show it.
+- A space or tab at the start or end of a part, or next to a block within one, is dropped. Before a line ending it would only show up escaped, and the page doesn't show it. The same goes for the edges of a summary, a term and an HTML table cell.
 - A part that renders nothing still gets its line, so the parts around it are two paragraphs, as a blank line in the file would make them.
 - A part that starts or ends with a line break, such as a newline in a string, needs no second line ending.
 
@@ -131,7 +131,7 @@ A placeholder isn't inline or block by itself. Where it sits decides what it can
 - On a line of its own, where blocks can go, it also takes blocks.
 - Inside code or HTML, it takes only a string, text, a placeholder or an HTML entity.
 
-A value substituted later gives the same result as the value passed directly. So an empty value on a line of its own leaves an empty line, which ends the paragraph, as `document('a', '', 'b')` does.
+A value substituted later gives the same result as the value passed directly. So a value on a line of its own is trimmed as a part is, and an empty one leaves an empty line, which ends the paragraph, as `document('a', '', 'b')` does.
 
 Where a placeholder sits is the same whether it's written in Markdown text, in a string, or made with a builder:
 

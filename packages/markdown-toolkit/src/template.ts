@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import { unified } from 'unified';
 
+import { trimBlanks } from './blanks.ts';
 import { text } from './builders.ts';
 import { detectMarkdownStyle } from './detectStyle.ts';
 import { DocumentElement } from './documentElement.ts';
@@ -492,13 +493,14 @@ function substituteInTree(root: Root, values: TemplateValues, allowBlocks: boole
         const name = placeholderName(placeholder);
         const value = resolveValue(values, name);
         if (value === undefined) return [node];
-        if (lines && isWholeLine(nodes, i) && isBlockLike(value)) {
-          return [{ blocks: blockNodes(value, `{@ ${name} @}`) }];
-        }
+        const wholeLine = lines && isWholeLine(nodes, i);
+        if (wholeLine && isBlockLike(value)) return [{ blocks: blockNodes(value, `{@ ${name} @}`) }];
         const inline = valueAsInline(value, name);
-        // An empty value leaves an empty line, which ends the paragraph, as passing the value directly would.
-        if (lines && isWholeLine(nodes, i) && !inline.length) return [{ blocks: [] }];
-        return inline;
+        if (!wholeLine) return inline;
+        // On a line of its own, a value is trimmed as an argument is. An empty one leaves an empty line, which ends the
+        // paragraph, as passing it directly would.
+        const line = trimBlanks(inline);
+        return line.length ? line : [{ blocks: [] }];
       }
       switch (node.type) {
         case 'paragraph': {

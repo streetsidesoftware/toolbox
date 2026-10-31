@@ -383,12 +383,30 @@ describe('substitutePlaceholders', () => {
     ${''}          | ${"''"}
     ${[]}          | ${'[]'}
     ${text('')}    | ${"text('')"}
+    ${' \t'}       | ${"' \\t'"}
   `(
     'an empty value alone on its line ends the paragraph, as passing it directly does: $label',
     ({ value }: { value: TemplateValue }) => {
       assert.equal(substitutePlaceholders(document('a', placeholder('x'), 'b'), { x: value }).toString(), 'a\n\nb\n');
       assert.equal(document('a', value as AnyContent, 'b').toString(), 'a\n\nb\n');
       assert.equal(template('a\n{@ x @}\nb', { x: value }).toString(), 'a\n\nb');
+    },
+  );
+
+  testEach`
+    value      | expected
+    ${' c '}   | ${'a\nc\nb'}
+    ${'c\n'}   | ${'a\nc\\\nb'}
+    ${'\nc'}   | ${'a\\\nc\nb'}
+  `(
+    'a value alone on its line gives what passing it directly gives: $expected',
+    ({ value, expected }: { value: string; expected: string }) => {
+      assert.equal(document('a', value, 'b').toString(), `${expected}\n`);
+      assert.equal(
+        substitutePlaceholders(document('a', placeholder('x'), 'b'), { x: value }).toString(),
+        `${expected}\n`,
+      );
+      assert.equal(template('a\n{@ x @}\nb', { x: value }).toString(), expected);
     },
   );
 

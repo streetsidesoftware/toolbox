@@ -1,5 +1,6 @@
 import type { Html, PhrasingContent, RootContent } from 'mdast';
 
+import { trimBlanks, trimBlanksAroundBreaks } from './blanks.ts';
 import { asHtmlEntityNode } from './htmlEntityNode.ts';
 import {
   argumentNodes,
@@ -146,7 +147,7 @@ export function htmlTable(
  * Anything else gets blank lines, so it renders.
  */
 function wrapped(before: string, tag: string, content: InlineContent, after: string, where: string): RootContent[] {
-  const children = inlineNodes(content, where);
+  const children = trimBlanks(inlineNodes(content, where));
   const text = plainHtml(children);
   if (text !== undefined) return [html(`${before}<${tag}>${text}</${tag}>${after}`)];
   return [html(`${before}<${tag}>`), { type: 'paragraph', children }, html(`</${tag}>${after}`)];
@@ -156,7 +157,7 @@ function wrapped(before: string, tag: string, content: InlineContent, after: str
 function cellNodes(content: AnyContent): RootContent[] {
   const nodes = mapParagraphsAndBlocks(
     content,
-    (inline): RootContent => ({ type: 'paragraph', children: inlineNodes(inline, 'table cell') }),
+    (inline): RootContent => ({ type: 'paragraph', children: trimBlanks(inlineNodes(inline, 'table cell')) }),
     (block) => blockNodes(block, 'table cell'),
   );
   return inLists(nodes);
@@ -178,12 +179,19 @@ function plainText(blocks: RootContent[]): string | undefined {
  * A line ending in text, which a parsed paragraph can have, stays: it can't be a blank line, which would end the block.
  */
 function plainHtml(children: readonly PhrasingContent[]): string | undefined {
-  const parts = children.map((node) =>
-    node.type === 'text' ? htmlEscape(node.value) : node.type === 'break' ? '<br/>' : asHtmlEntityNode(node)?.value,
-  );
-  if (!parts.every((part) => part !== undefined)) return undefined;
+  const nodes = trimBlanksAroundBreaks(children);
   // A line break at the start or end can't display, as in a paragraph.
-  return parts.join('').replace(/^(?:<br\/>)+|(?:<br\/>)+$/g, '');
+  let start = 0;
+  let end = nodes.length;
+  while (nodes[start]?.type === 'break') ++start;
+  while (end > start && nodes[end - 1].type === 'break') --end;
+  const parts = nodes
+    .slice(start, end)
+    .map((node) =>
+      node.type === 'text' ? htmlEscape(node.value) : node.type === 'break' ? '<br/>' : asHtmlEntityNode(node)?.value,
+    );
+  if (!parts.every((part) => part !== undefined)) return undefined;
+  return parts.join('');
 }
 
 function htmlEscape(text: string): string {

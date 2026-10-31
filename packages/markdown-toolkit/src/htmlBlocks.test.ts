@@ -50,10 +50,36 @@ describe('details', () => {
     summary                         | expected
     ${'a < b & c'}                  | ${'<summary>a &lt; b &amp; c</summary>'}
     ${'*not* emphasis'}             | ${'<summary>*not* emphasis</summary>'}
-    ${text('a\n\n  b ')}            | ${'<summary>a<br/><br/>b </summary>'}
     ${['Use ', text('<x>')]}        | ${'<summary>Use &lt;x></summary>'}
   `('summary text is HTML-escaped: $expected', ({ summary, expected }: { summary: string; expected: string }) => {
     assert.equal(details(summary).toString(), `<details>\n${expected}\n\n</details>`);
+  });
+
+  testEach`
+    summary                  | expected
+    ${text('a\n\n  b ')}     | ${'<summary>a<br/><br/>b</summary>'}
+    ${'  a  '}               | ${'<summary>a</summary>'}
+    ${'\na\n'}               | ${'<summary>a</summary>'}
+    ${'\t\n \n'}             | ${'<summary></summary>'}
+  `(
+    'a summary keeps its line breaks, without the spaces, tabs and line breaks at its edges: $expected',
+    ({ summary, expected }: { summary: InlineContent; expected: string }) => {
+      assert.equal(details(summary).toString(), `<details>\n${expected}\n\n</details>`);
+    },
+  );
+
+  test('a summary with many line breaks builds in linear time', () => {
+    const start = performance.now();
+    details(`a${'\n'.repeat(40_000)}b`).toString();
+    assert.ok(performance.now() - start < 500);
+  });
+
+  test('a term and a cell lose the spaces and tabs at their edges', () => {
+    assert.equal(dl([['  a\t', 'b']]).toString(), '<dl>\n\n<dt>a</dt>\n<dd>\n\nb\n\n</dd>\n\n</dl>');
+    assert.equal(
+      htmlTable(['  a  '], [[' b ']]).toString(),
+      '<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>b</td>\n</tr>\n</tbody>\n</table>',
+    );
   });
 
   testEach`
