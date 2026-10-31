@@ -519,6 +519,21 @@ describe('paragraph', () => {
     assert.equal(document(p('A'), p('B')).toString(), 'A\n\nB\n');
   });
 
+  testEach`
+    value                                         | expected
+    ${paragraph(' a\t')}                          | ${'a'}
+    ${paragraph([strong('a '), ' '])}             | ${'**a**'}
+    ${heading(1, 'a ')}                           | ${'# a'}
+    ${template('# a {@ x @}', { x: '' })}         | ${'# a'}
+    ${table(['h '], [[' a']])}                    | ${'| h |\n| - |\n| a |'}
+    ${paragraph(' ')}                             | ${'&#x20;'}
+  `(
+    'a paragraph, heading or cell loses the spaces and tabs at its edges, unless it has nothing else: $expected',
+    ({ value, expected }: { value: MDElement; expected: string }) => {
+      assert.equal(value.toString(), expected);
+    },
+  );
+
   test('an empty paragraph renders nothing', () => {
     assert.equal(p('').toString(), '');
   });
@@ -593,7 +608,7 @@ describe('blockText', () => {
         ${'\n\na\n\n\n\nb\n\n'} | ${'a\n\nb'}
         ${'a\r\n\r\nb\rc'}      | ${'a\n\nb\nc'}
         ${'a\n- b\n# c\n1. d'}  | ${'a\n\\- b\n\\# c\n1\\. d'}
-        ${'a\n===\n\n    code'} | ${'a\n\\===\n\n&#x20;   code'}
+        ${'a\n===\n\n    code'} | ${'a\n\\===\n\ncode'}
         ${'a  \nb'}             | ${'a &#x20;\nb'}
         ${'see {@ x @}\n\n*b*'} | ${'see {@ x @}\n\n\\*b\\*'}
         ${''}                   | ${''}

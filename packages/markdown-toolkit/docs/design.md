@@ -145,7 +145,7 @@ A template is Markdown text with placeholders. Each template function substitute
 
 - `template(markdown, values)` lets the result decide its kind: a single paragraph is an inline fragment, without the whitespace around it, and anything else is a fragment. Checking `kind` narrows the result.
 - `blockTemplate(markdown, values)` always returns a fragment. A single paragraph stays a paragraph.
-- `inlineTemplate(markdown, values)` substitutes values in text for use inside a line. Its text must be one paragraph, and a blank line throws. Block syntax is parsed as text, so `' - Adds …'` stays text, not a list. Leading and trailing whitespace is kept.
+- `inlineTemplate(markdown, values)` substitutes values in text for use inside a line. Its text must be one paragraph, and a blank line throws. Block syntax is parsed as text, so `' - Adds …'` stays text, not a list. Leading and trailing whitespace is kept, so the fragment joins the pieces around it as written.
 - `templateDocument(markdown, values)` reads a whole file, frontmatter included, and returns a document.
 
 ### How values go in
@@ -222,6 +222,8 @@ A line ending or `lineBreak()` at the start or end of a paragraph, heading or ta
 Empty bold, italic or struck-through text, and empty inline code, render as one space in that form. The reader should still see that it's there. Markdown has no empty form of either: markers with nothing between them show as text, as in `a****b`, or as a horizontal rule for `****` on its own line, and two empty code spans turn the text between them into code. This covers content left empty by substitution. Whitespace stays as given.
 
 An empty paragraph renders nothing, since it would only add blank lines between blocks. A link always stays, even with no text or URL, since the Markdown is the output and a link's text and URL are part of it. A paragraph of whitespace or of empty formatting isn't empty: it still shows something.
+
+Spaces and tabs at the start or end of a paragraph, a heading or a table cell go, as line endings and line breaks there do. The page never shows them, so in the file they would only show up escaped. A paragraph of only whitespace keeps it.
 
 ## Errors
 
