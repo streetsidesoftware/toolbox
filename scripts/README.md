@@ -12,8 +12,8 @@ These scripts are used to help maintain the repo.
 
 - `new-package.ts` (`pnpm run new-package <name>`) creates `packages/<name>/`, a private package at
   `0.0.1-alpha.0` with a placeholder `src/`, test and `README.md`. See [releasing](../docs/releasing.md#new-packages).
-  It copies the files in [`static/templates/`](../static/templates), filling in `{@ name @}`, `{@ fullName @}`
-  and `{@ description @}` in their paths and text with `@streetsidesoftware/placeholders`, and copies the root
+  It copies the files in [`static/templates/`](../static/templates), substituting values for `{@ name @}`,
+  `{@ fullName @}` and `{@ description @}` in their paths and text with `@streetsidesoftware/placeholders`, and copies the root
   `LICENSE`. The templates sit two levels below the root, like `packages/<name>/`, so their relative paths resolve
   and they stay valid files. A placeholder the script has no value for fails the run.
 

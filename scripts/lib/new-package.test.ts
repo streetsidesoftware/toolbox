@@ -53,12 +53,12 @@ describe('newPackageFiles', async () => {
     const templates = await readTemplateFiles(TEMPLATE_DIR);
     const files = await newPackageFiles('my-pkg');
 
-    test('writes one file per template, with its path filled in, and LICENSE', () => {
+    test('writes one file per template, with placeholders in its path substituted, and LICENSE', () => {
       const expected = Object.keys(templates).map((path) => replacePlaceholders(path, { name: 'my-pkg' }));
       assert.deepEqual(Object.keys(files).sort(), [...expected, 'LICENSE'].sort());
     });
 
-    test('fills in every placeholder', () => {
+    test('substitutes every placeholder', () => {
       for (const [path, text] of Object.entries(files)) {
         assert.ok(!hasPlaceholders(path) && !hasPlaceholders(text), path);
       }
@@ -76,10 +76,10 @@ describe('newPackageFiles', async () => {
     });
   });
 
-  test('fills in name, fullName and description', async () => {
+  test('substitutes name, fullName and description', async () => {
     const text = '{@ name @} | {@ fullName @} | {@ description @}';
     assert.equal(
-      await fillOne(text, 'my-pkg', { description: 'Does a.' }),
+      await substituteOne(text, 'my-pkg', { description: 'Does a.' }),
       'my-pkg | @streetsidesoftware/my-pkg | Does a. -- Private until verified',
     );
   });
@@ -91,21 +91,21 @@ describe('newPackageFiles', async () => {
 
   test('appends the private suffix to a given description, once', async () => {
     for (const description of ['Does a.', 'Does a. -- Private until verified']) {
-      assert.equal(await fillOne('{@ description @}', 'a', { description }), 'Does a. -- Private until verified');
+      assert.equal(await substituteOne('{@ description @}', 'a', { description }), 'Does a. -- Private until verified');
     }
   });
 
   test('a blank description falls back to the default', async () => {
     for (const description of ['', '   ']) {
       assert.equal(
-        await fillOne('{@ description @}', 'a', { description }),
+        await substituteOne('{@ description @}', 'a', { description }),
         'TODO: describe the package. -- Private until verified',
       );
     }
   });
 
   test('package.json gets the lint fields, with engines.node from the root', async () => {
-    const pkg = await fillPackageJson({ name: '{@ fullName @}' }, 'my-pkg');
+    const pkg = await substitutePackageJson({ name: '{@ fullName @}' }, 'my-pkg');
     assert.equal(pkg.name, '@streetsidesoftware/my-pkg');
     assert.deepEqual(pkg.repository, { type: 'git', url: REPOSITORY_GIT_URL, directory: 'packages/my-pkg' });
     assert.deepEqual(pkg.publishConfig, { access: 'public', provenance: true });
@@ -114,7 +114,7 @@ describe('newPackageFiles', async () => {
 
   test('a description with quotes and placeholders stays as given in package.json', async () => {
     const description = 'Says "hi" to {@ name @}.';
-    const pkg = await fillPackageJson({ description: '{@ description @}' }, 'a', { description });
+    const pkg = await substitutePackageJson({ description: '{@ description @}' }, 'a', { description });
     assert.equal(pkg.description, 'Says "hi" to {@ name @}. -- Private until verified');
   });
 
@@ -122,7 +122,7 @@ describe('newPackageFiles', async () => {
     await assert.rejects(newPackageFiles('Bad'), /Invalid package name/);
   });
 
-  test('fills in placeholders in paths', async () => {
+  test('substitutes placeholders in paths', async () => {
     await withTempRoot(async (templateDir) => {
       await fs.mkdir(Path.join(templateDir, 'src'));
       await fs.writeFile(Path.join(templateDir, 'src', '{@name@}.ts'), '{@ fullName @}');
@@ -190,7 +190,7 @@ function fileText(files: Record<string, string>, path: string): string {
 }
 
 /** Substitute values into a one-file template and return the result. */
-async function fillOne(text: string, name: string, options: NewPackageOptions = {}): Promise<string> {
+async function substituteOne(text: string, name: string, options: NewPackageOptions = {}): Promise<string> {
   return withTempRoot(async (templateDir) => {
     await fs.writeFile(Path.join(templateDir, 'file.txt'), text);
     return fileText(await newPackageFiles(name, { ...options, templateDir }), 'file.txt');
@@ -198,7 +198,7 @@ async function fillOne(text: string, name: string, options: NewPackageOptions = 
 }
 
 /** Substitute values into a template that is only a `package.json`, and return the parsed result. */
-async function fillPackageJson(
+async function substitutePackageJson(
   template: PackageJson,
   name: string,
   options: NewPackageOptions = {},
