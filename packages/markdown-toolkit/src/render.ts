@@ -6,6 +6,7 @@ import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
 import { isFormatting, trimAroundLineEndings, trimBlanksAroundBreaks, trimLineEdges } from './blanks.ts';
+import { htmlEntityNode } from './htmlEntityNode.ts';
 import type { HtmlEntityNode } from './htmlEntityNode.ts';
 import type { InlineHtmlNode } from './inlineHtmlNode.ts';
 import type { PlaceholderNode } from './placeholderNode.ts';
@@ -53,6 +54,9 @@ export function renderNodes(children: RootContent[], style: StyleOptions | undef
   root.children = withoutEmptyParagraphs(root.children);
   visit(root, (node) => {
     if (node.type === 'tableCell' || node.type === 'heading') visit(node, oneLine);
+    if ('children' in node) {
+      node.children = withCodeSpansApart(node.children as PhrasingContent[]) as typeof node.children;
+    }
     // Markdown has no empty code: two backticks show as text, and two such pairs turn the text between them into code.
     if (node.type === 'inlineCode' && !node.value) node.value = ' ';
     // Formatting markers with nothing between them show as text, or as a horizontal rule on a line of their own.
@@ -83,6 +87,22 @@ function withoutEmptyParagraphs<T extends RootContent>(nodes: readonly T[]): T[]
     if (!children.length && node.type === 'paragraph') return [];
     return [{ ...node, children } as T];
   });
+}
+
+/**
+ * Return the pieces with `&ZeroWidthSpace;` between code spans that would otherwise touch.
+ * Their backticks would join into one run, which neither closes the first span nor opens the second.
+ */
+function withCodeSpansApart(pieces: readonly PhrasingContent[]): PhrasingContent[] {
+  const result: PhrasingContent[] = [];
+  let afterCode = false;
+  for (const piece of pieces) {
+    if (piece.type === 'inlineCode' && afterCode) result.push(htmlEntityNode('&ZeroWidthSpace;'));
+    result.push(piece);
+    // Empty text writes nothing, so a code span before it still touches the next piece.
+    if (piece.type !== 'text' || piece.value) afterCode = piece.type === 'inlineCode';
+  }
+  return result;
 }
 
 /**
