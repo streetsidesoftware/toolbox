@@ -10,7 +10,6 @@ import { detectMarkdownStyle } from './detectStyle.ts';
 import { DocumentElement } from './documentElement.ts';
 import { readFrontmatter, yamlNode } from './frontmatter.ts';
 import { isHtmlEntity } from './htmlEntity.ts';
-import { asInlineHtmlNode } from './inlineHtmlNode.ts';
 import {
   blockNodes,
   describe,
@@ -25,7 +24,7 @@ import {
   renderingOf,
   textNodes,
 } from './nodes.ts';
-import { asPlaceholderNode, placeholderNodeAsWritten } from './placeholderNode.ts';
+import { placeholderNodeAsWritten } from './placeholderNode.ts';
 import type { PlaceholderNode } from './placeholderNode.ts';
 import type { StyleOptions } from './render.ts';
 import type {
@@ -537,14 +536,12 @@ function substituteInNodes(
   blocks: boolean,
 ): Piece[] {
   return nodes.flatMap((node, i): Piece[] => {
-    const inlineHtml = asInlineHtmlNode(node);
-    if (inlineHtml) {
-      inlineHtml.value = substituteInCode(inlineHtml.value, resolve, 'HTML');
+    if (node.type === 'inlineHtml') {
+      node.value = substituteInCode(node.value, resolve, 'HTML');
       return [node];
     }
-    const placeholder = asPlaceholderNode(node);
-    if (placeholder) {
-      const name = placeholderName(placeholder);
+    if (node.type === 'placeholder') {
+      const name = placeholderName(node);
       const value = resolve(name);
       if (value === undefined) return [node];
       const wholeLine = paragraph !== undefined && isWholeLine(nodes, i);

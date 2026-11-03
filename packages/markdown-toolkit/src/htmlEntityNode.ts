@@ -1,4 +1,4 @@
-import type { Literal, PhrasingContent, RootContent } from 'mdast';
+import type { Literal, PhrasingContent } from 'mdast';
 
 /**
  * Describes an HTML character reference, such as `&nbsp;`. It has a node type of its own, so rendering writes it as is.
@@ -23,9 +23,4 @@ declare module 'mdast' {
 export function htmlEntityNode(reference: string): PhrasingContent {
   const node: HtmlEntityNode = { type: 'htmlEntity', value: reference };
   return node;
-}
-
-/** Return the node as an HTML entity node, or `undefined` when it is another node. */
-export function asHtmlEntityNode(node: RootContent): HtmlEntityNode | undefined {
-  return node.type === 'htmlEntity' ? node : undefined;
 }

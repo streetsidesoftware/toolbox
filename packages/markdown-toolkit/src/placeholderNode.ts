@@ -1,4 +1,4 @@
-import type { Literal, PhrasingContent, RootContent } from 'mdast';
+import type { Literal, PhrasingContent } from 'mdast';
 
 /**
  * Describes a placeholder kept as written. It has a node type of its own, so rendering writes it as is.
@@ -28,9 +28,4 @@ export function placeholderNode(name: string): PhrasingContent {
 export function placeholderNodeAsWritten(written: string): PhrasingContent {
   const node: PlaceholderNode = { type: 'placeholder', value: written };
   return node;
-}
-
-/** Return the node as a placeholder node, or `undefined` when it's another node. */
-export function asPlaceholderNode(node: RootContent): PlaceholderNode | undefined {
-  return node.type === 'placeholder' ? node : undefined;
 }

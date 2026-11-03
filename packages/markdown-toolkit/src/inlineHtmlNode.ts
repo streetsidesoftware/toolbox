@@ -30,8 +30,3 @@ export function inlineHtmlNode(value: string): PhrasingContent {
 export function asInlineHtml(node: RootContent): PhrasingContent {
   return node.type === 'html' ? inlineHtmlNode((node as Html).value) : (node as PhrasingContent);
 }
-
-/** Return the node as an inline HTML node, or `undefined` when it is another node. */
-export function asInlineHtmlNode(node: RootContent): InlineHtmlNode | undefined {
-  return node.type === 'inlineHtml' ? node : undefined;
-}
