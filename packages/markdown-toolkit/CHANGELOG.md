@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.0.1](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/markdown-toolkit@2.0.0...@streetsidesoftware/markdown-toolkit@2.0.1) (2026-11-03)
+
+
+### Updates and Bug Fixes
+
+* **markdown-toolkit:** add sup and sub builders ([#139](https://github.com/streetsidesoftware/toolbox/issues/139)) ([2e4f451](https://github.com/streetsidesoftware/toolbox/commit/2e4f451de90df4eed2ec19b7d4a5e5fab6814806))
+* **markdown-toolkit:** keep adjacent code spans apart ([#136](https://github.com/streetsidesoftware/toolbox/issues/136)) ([5b97daa](https://github.com/streetsidesoftware/toolbox/commit/5b97daab7a2e7937fd88b0923c767893a883b9de))
+* **markdown-toolkit:** keep an HTML entity written in Markdown as an entity ([#137](https://github.com/streetsidesoftware/toolbox/issues/137)) ([0690cd5](https://github.com/streetsidesoftware/toolbox/commit/0690cd51ab67e15914d7a544985e7161cd649280))
+* **markdown-toolkit:** make empty parse() and template() results inline ([#138](https://github.com/streetsidesoftware/toolbox/issues/138)) ([355795c](https://github.com/streetsidesoftware/toolbox/commit/355795c7b8348b1d5770153a1c8d940b763784e4))
+
 ## [2.0.0](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/markdown-toolkit@1.1.1...@streetsidesoftware/markdown-toolkit@2.0.0) (2026-11-03)
 
 
