@@ -524,11 +524,6 @@ function substituteInTree(root: Root, resolve: TemplateResolver, allowBlocks: bo
       const value = resolve(name);
       return value === undefined ? undefined : valueAsCode(value, name, inside);
     });
-  const substituteInLink = (written: string, inside: 'a URL' | 'a title'): string =>
-    replacePlaceholders(written, (name: string) => {
-      const value = resolve(name);
-      return value === undefined ? undefined : valueInLink(value, name, inside);
-    });
 
   /**
    * @param paragraph - the nodes are a paragraph's children, and whether the paragraph can split.
@@ -556,8 +551,8 @@ function substituteInTree(root: Root, resolve: TemplateResolver, allowBlocks: bo
         return shown.length || !paragraph ? shown : [{ empty: true }];
       }
       if (node.type === 'link' || node.type === 'image' || node.type === 'definition') {
-        node.url = substituteInLink(node.url, 'a URL');
-        if (node.title) node.title = substituteInLink(node.title, 'a title');
+        node.url = substituteInLink(node.url, resolve, 'a URL');
+        if (node.title) node.title = substituteInLink(node.title, resolve, 'a title');
       }
       switch (node.type) {
         case 'paragraph': {
@@ -590,6 +585,13 @@ function substituteInTree(root: Root, resolve: TemplateResolver, allowBlocks: bo
     });
 
   root.children = inLists(substituteInNodes(root.children, undefined, allowBlocks) as RootContent[]);
+}
+
+function substituteInLink(written: string, resolve: TemplateResolver, inside: 'a URL' | 'a title'): string {
+  return replacePlaceholders(written, (name: string) => {
+    const value = resolve(name);
+    return value === undefined ? undefined : valueInLink(value, name, inside);
+  });
 }
 
 /** Rebuild a paragraph from its children after substitution, split around the blocks among them. */
