@@ -60,7 +60,7 @@ export function renderNodes(children: RootContent[], style: StyleOptions | undef
     if (isFormatting(node) && !node.children.length) node.children.push({ type: 'text', value: ' ' });
     if (node.type === 'link') {
       // remark writes a link as an autolink only when its text is a single text node.
-      const text = asAutolinkText(node);
+      const text = joinedText(node);
       if (text) node.children = [text];
     }
   });
@@ -87,17 +87,14 @@ function withoutEmptyParagraphs<T extends RootContent>(nodes: readonly T[]): T[]
 }
 
 /**
- * Return a link's text as one text node, when the link is an autolink with a placeholder in its text.
- * The checks are the autolink rules remark applies too, so a joined text always renders as `<…>`, where nothing is escaped.
+ * Return a link's text as one text node, when it's only text and placeholders.
+ * Joining doesn't change how remark escapes the text: a placeholder starts with `{` and ends with `}`, which remark
+ * already sees next to each piece.
  */
-function asAutolinkText(link: Link): Text | undefined {
+function joinedText(link: Link): Text | undefined {
   const pieces = link.children;
-  if (link.title || !pieces.some((piece) => asPlaceholderNode(piece))) return undefined;
   if (!pieces.every((piece) => piece.type === 'text' || asPlaceholderNode(piece))) return undefined;
-  const value = pieces.map((piece) => (piece as Text | PlaceholderNode).value).join('');
-  if (value !== link.url) return undefined;
-  if (!/^[a-z][+\-.a-z]+:/i.test(link.url) || /[\0- <>\x7F]/.test(link.url)) return undefined;
-  return { type: 'text', value };
+  return { type: 'text', value: pieces.map((piece) => (piece as Text | PlaceholderNode).value).join('') };
 }
 
 /**
