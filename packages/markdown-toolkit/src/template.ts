@@ -75,7 +75,7 @@ export type TemplateResolver = (name: string) => TemplateValue | undefined;
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
  *   entity shows as its character in code, and as its reference in HTML.
- * - A placeholder in a link's URL or title takes only a string, which goes in as given.
+ * - A placeholder in a link or image URL, a title or a reference definition takes only a string, which goes in as given.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * A result of one paragraph can go anywhere a string can. A longer one goes where paragraphs can.
@@ -101,7 +101,7 @@ export function template(markdown: string, values: TemplateValues | TemplateReso
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
  *   entity shows as its character in code, and as its reference in HTML.
- * - A placeholder in a link's URL or title takes only a string, which goes in as given.
+ * - A placeholder in a link or image URL, a title or a reference definition takes only a string, which goes in as given.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
@@ -204,7 +204,7 @@ export function parseDocument(markdown: string): MDDocument {
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
  *   entity shows as its character in code, and as its reference in HTML.
- * - A placeholder in a link's URL or title takes only a string, which goes in as given.
+ * - A placeholder in a link or image URL, a title or a reference definition takes only a string, which goes in as given.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
@@ -231,7 +231,7 @@ export function templateDocument(markdown: string, values: TemplateValues | Temp
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
  *   entity shows as its character in code, and as its reference in HTML.
- * - A placeholder in a link's URL or title takes only a string, which goes in as given.
+ * - A placeholder in a link or image URL, a title or a reference definition takes only a string, which goes in as given.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
  * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
