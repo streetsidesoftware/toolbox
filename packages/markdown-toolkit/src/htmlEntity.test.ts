@@ -22,6 +22,8 @@ import {
   nbsp,
   ndash,
   paragraph,
+  parse,
+  parseDocument,
   shy,
   strong,
   substitutePlaceholders,
@@ -30,7 +32,7 @@ import {
   templateDocument,
   thinsp,
 } from './index.ts';
-import type { MDElement, MDHtmlEntity } from './index.ts';
+import type { MDElement, MDHtmlEntity, MDInlineFragment } from './index.ts';
 
 interface EntityRow {
   value: string;
@@ -160,5 +162,47 @@ describe('htmlEntity as a placeholder value', () => {
   test('substitution keeps an entity as it is', () => {
     assert.equal(substitutePlaceholders(nbsp, { x: 'y' }), nbsp);
     assert.equal(substitutePlaceholders(paragraph(nbsp, '{@ x @}'), { x: 'y' }).toString(), '&nbsp;y');
+  });
+});
+
+describe('an entity written in Markdown', () => {
+  testEach`
+    source                               | expected
+    ${'[`A`](#a)&ZeroWidthSpace;`[]`'}   | ${'[`A`](#a)&ZeroWidthSpace;`[]`'}
+    ${'a&nbsp;b'}                        | ${'a&nbsp;b'}
+    ${'&copy; &amp; &lt;'}               | ${'&copy; &amp; &lt;'}
+    ${'a&#8203;b&#x200B;c'}              | ${'a&#8203;b&#x200B;c'}
+    ${'&nbsp;a\n&nbsp;b'}               | ${'&nbsp;a\n&nbsp;b'}
+    ${'**a&nbsp;b**'}                    | ${'**a&nbsp;b**'}
+    ${'[a&nbsp;b](#a)'}                  | ${'[a&nbsp;b](#a)'}
+    ${'<b>&nbsp;</b>'}                   | ${'<b>&nbsp;</b>'}
+    ${'| a&nbsp;b |\n| - |\n| c |'}    | ${'| a&nbsp;b |\n| -------- |\n| c        |'}
+    ${'\\&nbsp;'}                      | ${'\\&nbsp;'}
+    ${'`a&nbsp;b`'}                      | ${'`a&nbsp;b`'}
+  `('parse keeps $source', ({ source, expected }: { source: string; expected: string }) => {
+    assert.equal(parse(source).toString(), expected);
+  });
+
+  test('templates and parseDocument keep it', () => {
+    assert.equal(template('`a`&ZeroWidthSpace;{@ x @}', { x: '[]' }).toString(), '`a`&ZeroWidthSpace;\\[]');
+    assert.equal(inlineTemplate('a&nbsp;{@ x @}', { x: 'b' }).toString(), 'a&nbsp;b');
+    assert.equal(blockTemplate('a&nbsp;{@ x @}', { x: 'b' }).toString(), 'a&nbsp;b');
+    assert.equal(templateDocument('a&nbsp;{@ x @}', { x: 'b' }).toString(), 'a&nbsp;b\n');
+    assert.equal(parseDocument('a&nbsp;b').toString(), 'a&nbsp;b\n');
+  });
+
+  test('a parsed table cell keeps it', () => {
+    assert.equal(
+      table(['a'], [[parse('x&nbsp;y') as MDInlineFragment]]).toString(),
+      '| a        |\n| -------- |\n| x&nbsp;y |',
+    );
+  });
+
+  test('a URL, a title and an image description hold the character', () => {
+    assert.equal(
+      parse('[a](https://example.com/?a&amp;b "&copy;")').toString(),
+      '[a](https://example.com/?a\\&b "\u00A9")',
+    );
+    assert.equal(parse('![a&copy;](x.png)').toString(), '![a\u00A9](x.png)');
   });
 });

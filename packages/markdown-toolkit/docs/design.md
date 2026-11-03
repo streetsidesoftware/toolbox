@@ -77,6 +77,8 @@ Some characters are better written as an HTML reference, such as `&nbsp;`: a spa
 
 Raw HTML won't do: the renderer turns a line ending before raw HTML into a space. So an entity is a node of its own, written as is. As a placeholder value, it goes in as its reference in HTML, and as its character in code and frontmatter, which don't read references.
 
+An entity in parsed Markdown is read as an entity element, so it stays a reference in the output, not the character it stands for. The character would be hard to see, and a script reading the file may strip it.
+
 ### Tables
 
 A table takes a header and rows as arrays: `table(header, rows)`, the shape scripts already have their data in. Each cell holds inline content. Rendering keeps every cell on one line, which a GFM row needs:

@@ -3,6 +3,7 @@ import type { Paragraph, Parent, PhrasingContent, Root, RootContent, Text } from
 import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import { unified } from 'unified';
+import type { Processor } from 'unified';
 
 import { trimBlanks } from './blanks.ts';
 import { text } from './builders.ts';
@@ -10,6 +11,7 @@ import { detectMarkdownStyle } from './detectStyle.ts';
 import { DocumentElement } from './documentElement.ts';
 import { readFrontmatter, yamlNode } from './frontmatter.ts';
 import { isHtmlEntity } from './htmlEntity.ts';
+import { htmlEntityFromMarkdown } from './htmlEntityNode.ts';
 import {
   blockNodes,
   describe,
@@ -163,6 +165,8 @@ export function inlineTemplate(markdown: string, values: TemplateValues | Templa
  *
  * Text of one paragraph can go anywhere a string can, even in a heading.
  * Longer text goes where paragraphs can, such as in a document or a list item.
+ * An HTML entity in the text, such as `&nbsp;`, stays an entity in the Markdown, so a character that's hard to see
+ * stays visible in the file.
  *
  * @example
  * md.parse('Some **bold** text.');
@@ -179,6 +183,7 @@ export function parse(markdown: string): MDFragment | MDInlineFragment {
  * Parse a whole Markdown file, frontmatter included.
  *
  * Its frontmatter, formatting and `{​@ name @​}` placeholders stay as they are, ready for {@link substitutePlaceholders}.
+ * An HTML entity in the text, such as `&nbsp;`, stays an entity too.
  *
  * @example
  * md.parseDocument('# Title\n\n* item\n');
@@ -434,7 +439,7 @@ const blockConstructs = [
 ];
 
 function parseTree(markdown: string, inline: boolean): Root {
-  const processor = unified().use(remarkParse).use(remarkGfm);
+  const processor = unified().use(remarkParse).use(remarkGfm).use(readEntities);
   if (inline) {
     processor.use(function disableBlocks() {
       const data = this.data();
@@ -442,6 +447,10 @@ function parseTree(markdown: string, inline: boolean): Root {
     });
   }
   return processor.parse(markdown);
+}
+
+function readEntities(this: Processor): void {
+  (this.data().fromMarkdownExtensions ??= []).push(htmlEntityFromMarkdown);
 }
 
 /** Return a lookup for the values. A resolver's result that isn't a template value counts as no value. */
