@@ -326,6 +326,22 @@ describe('parse', () => {
   );
 });
 
+describe('autolinks', () => {
+  testEach`
+        markdown                      | expected
+        ${'<https://e.com/{@a@}>'}    | ${'<https://e.com/{@a@}>'}
+        ${'https://e.com/{@a_b@}'}    | ${'<https://e.com/{@a_b@}>'}
+        ${'<{@a@}@e.com>'}            | ${'<{@a@}@e.com>'}
+        ${'[{@a_b@}]({@a_b@})'}       | ${'[{@a_b@}]({@a_b@})'}
+    `(
+    'a placeholder in an autolink keeps its form: $markdown',
+    ({ markdown, expected }: { markdown: string; expected: string }) => {
+      assert.equal(parse(markdown).toString(), expected);
+      assert.equal(template(markdown, {}).toString(), expected);
+    },
+  );
+});
+
 describe('substitutePlaceholders', () => {
   test('a placeholder with no value is kept, so content can be built in steps', () => {
     const md = paragraph(placeholder('a'), ' and ', placeholder('_b_'));

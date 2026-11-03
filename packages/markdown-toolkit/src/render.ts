@@ -1,4 +1,4 @@
-import type { Html, Nodes, Parent, PhrasingContent, Root, RootContent, Yaml } from 'mdast';
+import type { Html, Link, Nodes, Parent, PhrasingContent, Root, RootContent, Text, Yaml } from 'mdast';
 import remarkGfm from 'remark-gfm';
 import remarkStringify from 'remark-stringify';
 import type { Options as StyleOptions } from 'remark-stringify';
@@ -8,6 +8,7 @@ import { visit } from 'unist-util-visit';
 import { isFormatting, trimAroundLineEndings, trimBlanksAroundBreaks, trimLineEdges } from './blanks.ts';
 import type { HtmlEntityNode } from './htmlEntityNode.ts';
 import type { InlineHtmlNode } from './inlineHtmlNode.ts';
+import { asPlaceholderNode } from './placeholderNode.ts';
 import type { PlaceholderNode } from './placeholderNode.ts';
 
 export type { Options as StyleOptions } from 'remark-stringify';
@@ -57,6 +58,11 @@ export function renderNodes(children: RootContent[], style: StyleOptions | undef
     if (node.type === 'inlineCode' && !node.value) node.value = ' ';
     // Formatting markers with nothing between them show as text, or as a horizontal rule on a line of their own.
     if (isFormatting(node) && !node.children.length) node.children.push({ type: 'text', value: ' ' });
+    if (node.type === 'link') {
+      // remark writes a link as an autolink only when its text is a single text node.
+      const text = asAutolinkText(node);
+      if (text) node.children = [text];
+    }
   });
   // A field set to `undefined` keeps the default, rather than falling back to remark's own default.
   const given = Object.entries(style ?? {}).filter(([, value]) => value !== undefined);
@@ -78,6 +84,20 @@ function withoutEmptyParagraphs<T extends RootContent>(nodes: readonly T[]): T[]
     if (!children.length && node.type === 'paragraph') return [];
     return [{ ...node, children } as T];
   });
+}
+
+/**
+ * Return a link's text as one text node, when the link is an autolink with a placeholder in its text.
+ * The checks are the autolink rules remark applies too, so a joined text always renders as `<…>`, where nothing is escaped.
+ */
+function asAutolinkText(link: Link): Text | undefined {
+  const pieces = link.children;
+  if (link.title || !pieces.some((piece) => asPlaceholderNode(piece))) return undefined;
+  if (!pieces.every((piece) => piece.type === 'text' || asPlaceholderNode(piece))) return undefined;
+  const value = pieces.map((piece) => (piece as Text).value).join('');
+  if (value !== link.url && 'mailto:' + value !== link.url) return undefined;
+  if (!/^[a-z][+\-.a-z]+:/i.test(link.url) || /[\0- <>\x7F]/.test(link.url)) return undefined;
+  return { type: 'text', value };
 }
 
 /**
