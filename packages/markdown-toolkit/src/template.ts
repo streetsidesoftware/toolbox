@@ -587,8 +587,8 @@ function substituteInTree(root: Root, resolve: TemplateResolver, allowBlocks: bo
   root.children = inLists(substituteInNodes(root.children, undefined, allowBlocks) as RootContent[]);
 }
 
-function substituteInLink(written: string, resolve: TemplateResolver, inside: 'a URL' | 'a title'): string {
-  return replacePlaceholders(written, (name: string) => {
+function substituteInLink(urlOrTitle: string, resolve: TemplateResolver, inside: 'a URL' | 'a title'): string {
+  return replacePlaceholders(urlOrTitle, (name: string) => {
     const value = resolve(name);
     return value === undefined ? undefined : valueInLink(value, name, inside);
   });
