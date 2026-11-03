@@ -264,10 +264,14 @@ describe('li', () => {
     assert.equal(md.toString(), '- [x] Write tests\n- [ ] Ship');
   });
 
-  test('a list item needs a piece', () => {
-    // @ts-expect-error a list item needs a piece
+  test('a list item takes an array of pieces spread into its arguments', () => {
+    const pieces: string[] = ['a', 'b'];
+    assert.equal(listItem(...pieces).toString(), '- a\n  b');
+    assert.equal(listItem(...pieces, { checked: true }).toString(), '- [x] a\n  b');
+  });
+
+  test('a list item with no pieces has no box', () => {
     assert.equal(listItem().toString(), '-');
-    // @ts-expect-error options are not a piece
     assert.equal(listItem({ checked: true }).toString(), '-');
   });
 
@@ -298,10 +302,13 @@ describe('li', () => {
     assert.equal(listItem('a', options).toString(), '- a');
   });
 
-  test('a task list item needs a piece', () => {
-    // @ts-expect-error a box needs text after it
+  test('a task list item takes an array of pieces spread into its arguments', () => {
+    const pieces: string[] = ['a', 'b'];
+    assert.equal(taskListItem(...pieces).toString(), '- [ ] a\n  b');
+  });
+
+  test('a task list item with no pieces has no box', () => {
     assert.equal(taskListItem().toString(), '-');
-    // @ts-expect-error options are not a piece
     assert.equal(taskListItem({ checked: true }).toString(), '-');
   });
 });

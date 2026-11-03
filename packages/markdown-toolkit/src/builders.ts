@@ -439,8 +439,7 @@ export function codeBlock(code: string, lang?: string): MDCodeBlock {
  * @category lists
  */
 export function listItem(
-  ...content:
-    [ListItemContent, ...ListItemContent[]] | [ListItemContent, ...ListItemContent[], ListItemOptions | undefined]
+  ...content: ListItemContent[] | [...ListItemContent[], ListItemOptions | undefined]
 ): MDListItem {
   return buildListItem(...piecesAndOptions(content));
 }
@@ -483,8 +482,7 @@ function buildListItem(content: readonly ListItemContent[], options?: ListItemOp
  * @category lists
  */
 export function taskListItem(
-  ...content:
-    [ListItemContent, ...ListItemContent[]] | [ListItemContent, ...ListItemContent[], ListItemOptions | undefined]
+  ...content: ListItemContent[] | [...ListItemContent[], ListItemOptions | undefined]
 ): MDListItem {
   const [pieces, options] = piecesAndOptions(content);
   return buildListItem(pieces, { checked: options?.checked ?? false });
