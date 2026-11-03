@@ -156,7 +156,7 @@ A value goes in where its placeholder sits, as [Placeholders](#placeholders) des
 - A string, number, or boolean is inserted as text and escaped.
 - A placeholder that is a whole line splits its paragraph around the blocks it takes, as it would around a list written in place: `Fruit:\n{@ fruit @}` gives `Fruit:` and then the list.
 - Inside code or HTML, a value is inserted as is, with no Markdown escaping. The common case is a package name in an install command. The renderer lengthens a code fence when the inserted text needs it.
-- In a link or image URL, a title, or a reference definition, a value is inserted as is, as in code. The URL is the script's own, like code.
+- In a link or image URL, a title, or a reference definition, a value is inserted as is, as in code. The URL is the script's own, like code. A template is read as Markdown, which allows no spaces in a URL, so a placeholder there is written `{@name@}` or wrapped as `<{@ name @}>`. `[x]({@ name @})` is text, as it is on GitHub.
 - In frontmatter, a placeholder takes any value, inserted as is: a string as written, and a Markdown element as it renders. Nothing is escaped or checked as YAML. As in `unindent`, each line of a value after the first gets the leading whitespace of the placeholder's line, except an empty line, which stays empty. A multi-line value stays inside a YAML block.
 
 A placeholder with no value is kept as written. Templates can be chained, so a later template, `substitutePlaceholders`, or injection may substitute it. There's no strict option: a script that needs every placeholder substituted checks its output with `hasPlaceholders` or `listPlaceholders` from @streetsidesoftware/placeholders.
