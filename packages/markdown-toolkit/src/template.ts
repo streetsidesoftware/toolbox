@@ -741,8 +741,8 @@ function valueAsInline(value: TemplateValue, name: string): PhrasingContent[] {
  * An entity goes in as its reference in HTML, which reads it, and as its character in code, which doesn't.
  */
 function valueAsCode(value: TemplateValue, name: string, inside: 'code' | 'HTML'): string {
-  const written = valueAsWritten(value);
-  if (written !== undefined) return written;
+  const plain = valueAsPlainText(value);
+  if (plain !== undefined) return plain;
   if (isHtmlEntity(value)) return inside === 'HTML' ? value.toString() : value.character;
   throw new TypeError(
     `{@ ${name} @} is inside ${inside} and takes only a string, text, a placeholder or an HTML entity, got ${describe(value)}`,
@@ -751,15 +751,15 @@ function valueAsCode(value: TemplateValue, name: string, inside: 'code' | 'HTML'
 
 /** Convert a value for use in a link's URL or title. Only a string, text or a placeholder goes in, as is. */
 function valueInLink(value: TemplateValue, name: string, inside: 'a URL' | 'a title'): string {
-  const written = valueAsWritten(value);
-  if (written !== undefined) return written;
+  const plain = valueAsPlainText(value);
+  if (plain !== undefined) return plain;
   throw new TypeError(
     `{@ ${name} @} is inside ${inside} and takes only a string, text or a placeholder, got ${describe(value)}`,
   );
 }
 
-/** Return a string, text or placeholder value as written, or `undefined` for any other value. */
-function valueAsWritten(value: TemplateValue): string | undefined {
+/** Return `undefined` for a value that isn't plain text, such as a link or an HTML entity. */
+function valueAsPlainText(value: TemplateValue): string | undefined {
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
   if (isText(value)) return value.text;
   if (isKind(value, 'inline') && value.type === 'placeholder') return value.toString();
