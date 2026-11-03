@@ -35,7 +35,7 @@ export const htmlEntityFromMarkdown: FromMarkdownExtension = {
   exit: { characterReference: exitReference },
 };
 
-/** Holds the fragments that collect a label, whose nodes become a link's text. Other fragments collect a string. */
+/** Holds the fragments that collect a link's or an image's label. Only a link's label becomes text. */
 const labels = new WeakSet<object>();
 
 function enterLabel(this: CompileContext): undefined {

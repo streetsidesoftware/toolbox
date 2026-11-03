@@ -205,4 +205,22 @@ describe('an entity written in Markdown', () => {
     );
     assert.equal(parse('![a&copy;](x.png)').toString(), '![a\u00A9](x.png)');
   });
+
+  testEach`
+    source                             | expected
+    ${'![a [b&copy;](u)](x.png)'}      | ${'![a b\u00A9](x.png)'}
+    ${'[b ![c&copy;](i.png)](u)'}      | ${'[b ![c\u00A9](i.png)](u)'}
+    ${'```js&amp;x\ny\n```'}           | ${'```js&x\ny\n```'}
+    ${'[^a&amp;]\n\n[^a&amp;]: n'}      | ${'[^a&]\n\n[^a&]: n'}
+  `(
+    'a string holds the character, even nested: $source',
+    ({ source, expected }: { source: string; expected: string }) => {
+      assert.equal(parse(source).toString(), expected);
+    },
+  );
+
+  test('an entity is text, so it is not part of a placeholder and does not leave a line empty', () => {
+    assert.equal(template('{@&#32;x&#32;@}', { x: 'y' }).toString(), '{@&#32;x&#32;@}');
+    assert.equal(blockTemplate('a\n&#32;{@ x @}\nb', { x: '' }).toString(), 'a\n&#32;\nb');
+  });
 });

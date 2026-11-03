@@ -165,6 +165,7 @@ export function inlineTemplate(markdown: string, values: TemplateValues | Templa
  *
  * Text of one paragraph can go anywhere a string can, even in a heading.
  * Longer text goes where paragraphs can, such as in a document or a list item.
+ *
  * An HTML entity in the text, such as `&nbsp;`, stays an entity in the Markdown, so a character that's hard to see
  * stays visible in the file.
  *
