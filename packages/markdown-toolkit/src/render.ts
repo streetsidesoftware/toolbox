@@ -94,8 +94,8 @@ function asAutolinkText(link: Link): Text | undefined {
   const pieces = link.children;
   if (link.title || !pieces.some((piece) => asPlaceholderNode(piece))) return undefined;
   if (!pieces.every((piece) => piece.type === 'text' || asPlaceholderNode(piece))) return undefined;
-  const value = pieces.map((piece) => (piece as Text).value).join('');
-  if (value !== link.url && 'mailto:' + value !== link.url) return undefined;
+  const value = pieces.map((piece) => (piece as Text | PlaceholderNode).value).join('');
+  if (value !== link.url) return undefined;
   if (!/^[a-z][+\-.a-z]+:/i.test(link.url) || /[\0- <>\x7F]/.test(link.url)) return undefined;
   return { type: 'text', value };
 }

@@ -331,8 +331,10 @@ describe('autolink', () => {
         markdown                      | expected
         ${'<https://e.com/{@a@}>'}    | ${'<https://e.com/{@a@}>'}
         ${'https://e.com/{@a_b@}'}    | ${'<https://e.com/{@a_b@}>'}
-        ${'<{@a@}@e.com>'}            | ${'<{@a@}@e.com>'}
+        ${'<mailto:{@a@}@e.com>'}     | ${'<mailto:{@a@}@e.com>'}
         ${'[{@a_b@}]({@a_b@})'}       | ${'[{@a_b@}]({@a_b@})'}
+        ${'[https://e.com/{@a_b@} x](<https://e.com/{@a_b@} x>)'} | ${'[https://e.com/{@a_b@} x](<https://e.com/{@a_b@} x>)'}
+        ${'[https://e.com/{@a_b@}](https://e.com/{@a_b@} "t")'}   | ${'[https://e.com/{@a_b@}](https://e.com/{@a_b@} "t")'}
     `(
     'a placeholder in an autolink keeps its form: $markdown',
     ({ markdown, expected }: { markdown: string; expected: string }) => {
