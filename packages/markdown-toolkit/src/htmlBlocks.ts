@@ -184,13 +184,15 @@ function plainHtml(children: readonly PhrasingContent[]): string | undefined {
   let end = nodes.length;
   while (nodes[start]?.type === 'break') ++start;
   while (end > start && nodes[end - 1].type === 'break') --end;
-  const parts = nodes.slice(start, end).map((node) => {
-    if (node.type === 'text') return htmlEscape(node.value);
-    if (node.type === 'break') return '<br/>';
-    return node.type === 'htmlEntity' ? node.value : undefined;
-  });
-  if (!parts.every((part) => part !== undefined)) return undefined;
-  return parts.join('');
+  let markup = '';
+  for (let i = start; i < end; ++i) {
+    const node = nodes[i];
+    if (node.type === 'text') markup += htmlEscape(node.value);
+    else if (node.type === 'break') markup += '<br/>';
+    else if (node.type === 'htmlEntity') markup += node.value;
+    else return undefined;
+  }
+  return markup;
 }
 
 function htmlEscape(text: string): string {
