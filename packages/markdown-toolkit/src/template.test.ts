@@ -22,6 +22,7 @@ import {
   placeholder,
   strong,
   substitutePlaceholders,
+  table,
   template,
   templateDocument,
   text,
@@ -83,6 +84,12 @@ describe('template kinds', () => {
   test('a lone placeholder takes its kind from its value', () => {
     assert.equal(template('{@ x @}', { x: 'hi' }).kind, 'inline');
     assert.equal(template('{@ x @}', { x: list(['a']) }).kind, 'block');
+  });
+
+  test('an empty result is inline', () => {
+    assert.equal(template('', {}).kind, 'inline');
+    assert.equal(template('{@ x @}', { x: '' }).kind, 'inline');
+    assert.equal(substitutePlaceholders(parse('{@ x @}'), { x: '' }).kind, 'inline');
   });
 
   test('anything else is blocks', () => {
@@ -338,6 +345,18 @@ describe('parse', () => {
     if (md.kind !== 'inline') throw new Error('expected inline');
     assert.equal(md.toString(), 'Hello *you*');
     assert.equal(link(md, 'https://example.com').toString(), '[Hello _you_](https://example.com)');
+  });
+
+  testEach`
+        markdown
+        ${''}
+        ${'  '}
+        ${'\n'}
+    `('text with no content is inline: $markdown', ({ markdown }: { markdown: string }) => {
+    const md = parse(markdown);
+    assert.equal(md.kind, 'inline');
+    assert.equal(md.toString(), '');
+    if (md.kind === 'inline') assert.equal(table(['T'], [[md]]).toString(), '| T |\n| - |\n|   |');
   });
 
   test('an empty link stays', () => {

@@ -78,7 +78,7 @@ export type TemplateResolver = (name: string) => TemplateValue | undefined;
  *   Markdown allows no spaces in a URL, so write `{​@name@​}` there, or wrap the URL in `<…>`.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
- * A result of one paragraph can go anywhere a string can. A longer one goes where paragraphs can.
+ * An empty result, or one of one paragraph, can go anywhere a string can. A longer one goes where paragraphs can.
  *
  * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
  *   `engines.cspell`, reaches into a nested object.
@@ -161,7 +161,7 @@ export function inlineTemplate(markdown: string, values: TemplateValues | Templa
 /**
  * Parse Markdown text so it can be added to a page with its formatting.
  *
- * Text of one paragraph can go anywhere a string can, even in a heading.
+ * Text of one paragraph, or with no text at all, can go anywhere a string can, even in a heading.
  * Longer text goes where paragraphs can, such as in a document or a list item.
  *
  * @example
@@ -369,11 +369,11 @@ function fragment(root: Root, markdown: string): MDFragment | MDInlineFragment {
   return fragmentOf(root, detectMarkdownStyle(root, markdown));
 }
 
-/** Return a tree as an element. A single paragraph is inline, and anything else is blocks. */
+/** Return a tree as an element. An empty tree or a single paragraph is inline, and anything else is blocks. */
 function fragmentOf(root: Root, style: StyleOptions | undefined): MDFragment | MDInlineFragment {
   const [only, ...rest] = root.children;
-  if (only?.type === 'paragraph' && !rest.length) {
-    return new MarkdownElement('inline', 'inlineFragment', 'an inline Markdown fragment', only.children, style);
+  if (!only || (only.type === 'paragraph' && !rest.length)) {
+    return new MarkdownElement('inline', 'inlineFragment', 'an inline Markdown fragment', only?.children ?? [], style);
   }
   return new MarkdownElement('block', 'fragment', 'a Markdown fragment', root.children, style);
 }
