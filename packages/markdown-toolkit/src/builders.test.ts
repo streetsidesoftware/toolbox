@@ -482,19 +482,19 @@ describe('inlineCode', () => {
     assert.equal(substitutePlaceholders(md, { x: '' }).toString(), 'a` `b');
   });
 
-  const ab = ['a', 'b'];
+  const bothSpans = ['a', 'b'];
 
   testEach`
         value                                                                   | expected                                       | spans
-        ${paragraph(inlineCode('a'), inlineCode('b'))}                          | ${'`a`&ZeroWidthSpace;`b`'}                     | ${ab}
-        ${paragraph(inlineCode('a'), '', inlineCode('b'))}                      | ${'`a`&ZeroWidthSpace;`b`'}                     | ${ab}
+        ${paragraph(inlineCode('a'), inlineCode('b'))}                          | ${'`a`&ZeroWidthSpace;`b`'}                     | ${bothSpans}
+        ${paragraph(inlineCode('a'), '', inlineCode('b'))}                      | ${'`a`&ZeroWidthSpace;`b`'}                     | ${bothSpans}
         ${paragraph(inlineCode('a`'), inlineCode('`b'))}                        | ${'`` a` ``&ZeroWidthSpace;`` `b ``'}           | ${['a`', '`b']}
         ${paragraph(inlineCode('a'), inlineCode('b'), inlineCode('c'))}         | ${'`a`&ZeroWidthSpace;`b`&ZeroWidthSpace;`c`'}  | ${['a', 'b', 'c']}
-        ${heading(2, [inlineCode('a'), inlineCode('b')])}                       | ${'## `a`&ZeroWidthSpace;`b`'}                  | ${ab}
-        ${paragraph(link([inlineCode('a'), inlineCode('b')], 'u'))}            | ${'[`a`&ZeroWidthSpace;`b`](u)'}                | ${ab}
-        ${paragraph(strong([inlineCode('a'), inlineCode('b')]))}               | ${'**`a`&ZeroWidthSpace;`b`**'}                 | ${ab}
-        ${list([[inlineCode('a'), inlineCode('b')]])}                           | ${'- `a`&ZeroWidthSpace;`b`'}                   | ${ab}
-        ${substitutePlaceholders(paragraph(placeholder('x'), inlineCode('b')), { x: inlineCode('a') })} | ${'`a`&ZeroWidthSpace;`b`'} | ${ab}
+        ${heading(2, [inlineCode('a'), inlineCode('b')])}                       | ${'## `a`&ZeroWidthSpace;`b`'}                  | ${bothSpans}
+        ${paragraph(link([inlineCode('a'), inlineCode('b')], 'u'))}            | ${'[`a`&ZeroWidthSpace;`b`](u)'}                | ${bothSpans}
+        ${paragraph(strong([inlineCode('a'), inlineCode('b')]))}               | ${'**`a`&ZeroWidthSpace;`b`**'}                 | ${bothSpans}
+        ${list([[inlineCode('a'), inlineCode('b')]])}                           | ${'- `a`&ZeroWidthSpace;`b`'}                   | ${bothSpans}
+        ${substitutePlaceholders(paragraph(placeholder('x'), inlineCode('b')), { x: inlineCode('a') })} | ${'`a`&ZeroWidthSpace;`b`'} | ${bothSpans}
     `('adjacent code spans stay apart: $expected', ({ value, expected, spans }: CodeSpansCase) => {
     const md = value.toString();
     assert.equal(md, expected);
@@ -505,6 +505,11 @@ describe('inlineCode', () => {
     const md = table(['T'], [[[inlineCode('string'), inlineCode('[]')]]]).toString();
     assert.equal(md.split('\n')[2], '| `string`&ZeroWidthSpace;`[]` |');
     assert.deepEqual(codeSpans(md), ['string', '[]']);
+  });
+
+  test('the separator reads back as a zero-width space', () => {
+    const md = paragraph(inlineCode('a'), inlineCode('b')).toString();
+    assert.deepEqual(readBack(md), ['inlineCode:a', 'text:\u200B', 'inlineCode:b']);
   });
 
   test('a separator given between code spans is not doubled', () => {
@@ -520,11 +525,14 @@ describe('inlineCode', () => {
         ${paragraph(link(inlineCode('a'), 'u'), inlineCode('b'))}     | ${'[`a`](u)`b`'}
         ${paragraph(inlineCode('a'), comment('x'), inlineCode('b'))}  | ${'`a`<!-- x -->`b`'}
         ${paragraph(inlineCode('a'), lineBreak(), inlineCode('b'))}   | ${'`a`\\\n`b`'}
-    `('code spans with a marker between them need no separator: $expected', ({ value, expected }: CodeSpansCase) => {
-    const md = value.toString();
-    assert.equal(md, expected);
-    assert.deepEqual(codeSpans(md), ab);
-  });
+    `(
+    'code spans with a marker between them need no separator: $expected',
+    ({ value, expected }: { value: MDElement; expected: string }) => {
+      const md = value.toString();
+      assert.equal(md, expected);
+      assert.deepEqual(codeSpans(md), bothSpans);
+    },
+  );
 });
 
 describe('line breaks', () => {
