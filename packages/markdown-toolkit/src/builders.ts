@@ -136,10 +136,6 @@ export const inlineText: typeof text = text;
 export function blockText(value: string): MDFragment {
   const paragraphs: Paragraph[] = [];
   let lines: string[] = [];
-  const endParagraph = (): void => {
-    if (lines.length) paragraphs.push({ type: 'paragraph', children: textNodes(lines.join('\n')) });
-    lines = [];
-  };
   for (const line of value.split(/\r\n?|\n/)) {
     if (/^[ \t]*$/.test(line)) {
       endParagraph();
@@ -149,6 +145,11 @@ export function blockText(value: string): MDFragment {
   }
   endParagraph();
   return new MarkdownElement('block', 'fragment', 'a Markdown fragment', paragraphs);
+
+  function endParagraph(): void {
+    if (lines.length) paragraphs.push({ type: 'paragraph', children: textNodes(lines.join('\n')) });
+    lines = [];
+  }
 }
 
 /**
