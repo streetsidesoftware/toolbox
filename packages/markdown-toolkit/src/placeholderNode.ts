@@ -3,10 +3,20 @@ import type { Literal, PhrasingContent, RootContent } from 'mdast';
 /**
  * Describes a placeholder kept as written. It has a node type of its own, so rendering writes it as is.
  * As HTML, a line ending before it would render as a space.
- * mdast has no such node type, so placeholder nodes are made and recognized only here.
+ * Only this package's own code sees it in mdast's content types; the published types leave mdast unchanged.
  */
 export interface PlaceholderNode extends Literal {
   type: 'placeholder';
+}
+
+// mdast builds `RootContent` from its own map, so the node goes in both.
+declare module 'mdast' {
+  interface PhrasingContentMap {
+    placeholder: PlaceholderNode;
+  }
+  interface RootContentMap {
+    placeholder: PlaceholderNode;
+  }
 }
 
 /** Return the node for the placeholder `name`. */
@@ -17,10 +27,10 @@ export function placeholderNode(name: string): PhrasingContent {
 /** Return the node for a placeholder kept exactly as written, spacing included. */
 export function placeholderNodeAsWritten(written: string): PhrasingContent {
   const node: PlaceholderNode = { type: 'placeholder', value: written };
-  return node as Literal as PhrasingContent;
+  return node;
 }
 
 /** Return the node as a placeholder node, or `undefined` when it's another node. */
 export function asPlaceholderNode(node: RootContent): PlaceholderNode | undefined {
-  return (node.type as string) === 'placeholder' ? (node as Literal as PlaceholderNode) : undefined;
+  return node.type === 'placeholder' ? node : undefined;
 }
