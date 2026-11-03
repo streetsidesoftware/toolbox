@@ -26,6 +26,8 @@
 - `strong(content)`: Create bold text.
 - `emphasis(content)`: Create italic text.
 - `strikethrough(content)`: Create text with a line through it.
+- `sub(content)`: Create subscript text, lowered below the line.
+- `sup(content)`: Create superscript text, raised above the line.
 
 ### Headings and sections
 

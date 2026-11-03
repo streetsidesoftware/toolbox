@@ -19,6 +19,8 @@ export type MDType =
   | 'strong'
   | 'emphasis'
   | 'strikethrough'
+  | 'sup'
+  | 'sub'
   | 'inlineCode'
   | 'lineBreak'
   | 'br'
@@ -116,6 +118,18 @@ export interface MDEmphasis extends MDElement {
 export interface MDStrikethrough extends MDElement {
   readonly kind: 'inline';
   readonly type: 'strikethrough';
+}
+
+/** Describes superscript text, made by {@link sup}. */
+export interface MDSup extends MDElement {
+  readonly kind: 'inline';
+  readonly type: 'sup';
+}
+
+/** Describes subscript text, made by {@link sub}. */
+export interface MDSub extends MDElement {
+  readonly kind: 'inline';
+  readonly type: 'sub';
 }
 
 /** Describes code within a line of text, made by {@link inlineCode}. */
@@ -275,6 +289,8 @@ export type MDInline =
   | MDStrong
   | MDEmphasis
   | MDStrikethrough
+  | MDSup
+  | MDSub
   | MDInlineCode
   | MDLineBreak
   | MDBr

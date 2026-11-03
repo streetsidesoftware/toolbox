@@ -3,6 +3,7 @@ import { registerHooks } from 'node:module';
 import { describe, test } from 'node:test';
 
 import { testEach } from '@streetsidesoftware/test-each';
+import type { PhrasingContent } from 'mdast';
 import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import { unified } from 'unified';
@@ -42,7 +43,9 @@ import {
   placeholder,
   strikethrough,
   strong,
+  sub,
   substitutePlaceholders,
+  sup,
   table,
   taskListItem,
   template,
@@ -61,6 +64,8 @@ describe('element types', () => {
         ${strong('a')}                          | ${'strong'}           | ${'strong text'}
         ${emphasis('a')}                        | ${'emphasis'}         | ${'emphasized text'}
         ${strikethrough('a')}                   | ${'strikethrough'}    | ${'struck-through text'}
+        ${sup('a')}                             | ${'sup'}              | ${'superscript text'}
+        ${sub('a')}                             | ${'sub'}              | ${'subscript text'}
         ${inlineCode('a')}                      | ${'inlineCode'}       | ${'inline code'}
         ${lineBreak()}                          | ${'lineBreak'}        | ${'a line break'}
         ${br()}                                 | ${'br'}               | ${'a <br/>'}
@@ -368,6 +373,94 @@ describe('strong, emphasis, strikethrough', () => {
     assert.throws(() => strong(list(['a'])), new TypeError('strong content must be inline, got a list'));
   });
 });
+
+describe('sup, sub', () => {
+  testEach`
+        value                                          | expected
+        ${sup('2')}                                    | ${'<sup>2</sup>'}
+        ${sub('2')}                                    | ${'<sub>2</sub>'}
+        ${sup(emphasis('req'))}                        | ${'<sup>_req_</sup>'}
+        ${sub(sup(emphasis('< required >')))}          | ${'<sub><sup>_< required >_</sup></sub>'}
+        ${sup([' ', emphasis('req'), ' '])}            | ${'<sup> _req_ </sup>'}
+        ${sup('<b> *c*')}                              | ${'<sup>\\<b> \\*c\\*</sup>'}
+        ${sup('')}                                     | ${'<sup></sup>'}
+        ${sup(link('1', 'https://cspell.org'))}        | ${'<sup>[1](https://cspell.org)</sup>'}
+    `('$expected', ({ value, expected }: { value: MDInline; expected: string }) => {
+    assert.equal(paragraph(value).toString(), expected);
+  });
+
+  test('the content reads back as Markdown between the tags', () => {
+    const md = paragraph('name ', sub(sup(emphasis('< required >'))));
+    assert.deepEqual(readBack(md.toString()), [
+      'text:name ',
+      'html:<sub>',
+      'html:<sup>',
+      'emphasis:< required >',
+      'html:</sup>',
+      'html:</sub>',
+    ]);
+  });
+
+  test('text that looks like a tag reads back as text', () => {
+    assert.deepEqual(readBack(paragraph(sup('<b>')).toString()), ['html:<sup>', 'text:<b>', 'html:</sup>']);
+  });
+
+  test('a line break inside stays inside', () => {
+    const md = paragraph(sup('a\nb'));
+    assert.equal(md.toString(), '<sup>a\\\nb</sup>');
+    assert.deepEqual(readBack(md.toString()), ['html:<sup>', 'text:a', 'break:', 'text:b', 'html:</sup>']);
+  });
+
+  test('in a table cell', () => {
+    const md = table(['Name'], [[['name ', sup(emphasis('req'))]]]);
+    assert.equal(md.toString(), '| Name                  |\n| --------------------- |\n| name <sup>_req_</sup> |');
+  });
+
+  test('in a heading', () => {
+    assert.equal(heading(2, ['x', sup('2')]).toString(), '## x<sup>2</sup>');
+  });
+
+  test('a placeholder inside is substituted', () => {
+    const md = paragraph('name ', sup(placeholder('marker')));
+    assert.equal(md.toString(), 'name <sup>{@ marker @}</sup>');
+    assert.equal(substitutePlaceholders(md, { marker: emphasis('req') }).toString(), 'name <sup>_req_</sup>');
+  });
+
+  test('a template value', () => {
+    assert.equal(template('name {@x@}', { x: sup(emphasis('req')) }).toString(), 'name <sup>_req_</sup>');
+  });
+
+  test('a backslash at the end stays text', () => {
+    const md = paragraph(sup('C:\\'));
+    assert.equal(md.toString(), '<sup>C:\\\\</sup>');
+    assert.deepEqual(readBack(md.toString()), ['html:<sup>', 'text:C:\\', 'html:</sup>']);
+  });
+
+  testEach`
+        build  | name
+        ${sup} | ${'superscript'}
+        ${sub} | ${'subscript'}
+    `('$name: a block is refused', ({ build, name }: { build: typeof sup; name: string }) => {
+    assert.throws(() => build(paragraph('a') as unknown as MDInline), {
+      name: 'TypeError',
+      message: `${name} content must be inline, got a paragraph`,
+    });
+  });
+});
+
+/** Parse Markdown and return its first paragraph's pieces as `type:value`, nested formatting as its text. */
+function readBack(markdown: string): string[] {
+  const root = unified().use(remarkParse).use(remarkGfm).parse(markdown);
+  const [first] = root.children;
+  assert.equal(first.type, 'paragraph');
+  return first.children.map((node) => `${node.type}:${textOf(node)}`);
+}
+
+function textOf(node: PhrasingContent): string {
+  if ('value' in node) return node.value;
+  if ('children' in node) return node.children.map(textOf).join('');
+  return '';
+}
 
 describe('inlineCode', () => {
   testEach`

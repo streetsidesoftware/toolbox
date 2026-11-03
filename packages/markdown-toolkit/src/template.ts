@@ -3,6 +3,7 @@ import type { Paragraph, Parent, PhrasingContent, Root, RootContent, Text } from
 import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import { unified } from 'unified';
+import type { Processor } from 'unified';
 
 import { trimBlanks } from './blanks.ts';
 import { text } from './builders.ts';
@@ -10,6 +11,7 @@ import { detectMarkdownStyle } from './detectStyle.ts';
 import { DocumentElement } from './documentElement.ts';
 import { readFrontmatter, yamlNode } from './frontmatter.ts';
 import { isHtmlEntity } from './htmlEntity.ts';
+import { htmlEntityFromMarkdown } from './htmlEntityNode.ts';
 import {
   blockNodes,
   describe,
@@ -78,7 +80,7 @@ export type TemplateResolver = (name: string) => TemplateValue | undefined;
  *   Markdown allows no spaces in a URL, so write `{​@name@​}` there, or wrap the URL in `<…>`.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
- * A result of one paragraph can go anywhere a string can. A longer one goes where paragraphs can.
+ * A result of one paragraph, or an empty one, can go anywhere a string can. A longer one goes where paragraphs can.
  *
  * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
  *   `engines.cspell`, reaches into a nested object.
@@ -161,8 +163,11 @@ export function inlineTemplate(markdown: string, values: TemplateValues | Templa
 /**
  * Parse Markdown text so it can be added to a page with its formatting.
  *
- * Text of one paragraph can go anywhere a string can, even in a heading.
+ * Text of one paragraph, or blank text, can go anywhere a string can, even in a heading.
  * Longer text goes where paragraphs can, such as in a document or a list item.
+ *
+ * An HTML entity in the text, such as `&nbsp;`, stays an entity in the Markdown, so a character that's hard to see
+ * stays visible in the file.
  *
  * @example
  * md.parse('Some **bold** text.');
@@ -179,6 +184,7 @@ export function parse(markdown: string): MDFragment | MDInlineFragment {
  * Parse a whole Markdown file, frontmatter included.
  *
  * Its frontmatter, formatting and `{​@ name @​}` placeholders stay as they are, ready for {@link substitutePlaceholders}.
+ * An HTML entity in the text, such as `&nbsp;`, stays an entity too.
  *
  * @example
  * md.parseDocument('# Title\n\n* item\n');
@@ -369,11 +375,11 @@ function fragment(root: Root, markdown: string): MDFragment | MDInlineFragment {
   return fragmentOf(root, detectMarkdownStyle(root, markdown));
 }
 
-/** Return a tree as an element. A single paragraph is inline, and anything else is blocks. */
+/** Return a tree as an element. An empty tree or a single paragraph is inline, and anything else is blocks. */
 function fragmentOf(root: Root, style: StyleOptions | undefined): MDFragment | MDInlineFragment {
   const [only, ...rest] = root.children;
-  if (only?.type === 'paragraph' && !rest.length) {
-    return new MarkdownElement('inline', 'inlineFragment', 'an inline Markdown fragment', only.children, style);
+  if (!only || (only.type === 'paragraph' && !rest.length)) {
+    return new MarkdownElement('inline', 'inlineFragment', 'an inline Markdown fragment', only?.children ?? [], style);
   }
   return new MarkdownElement('block', 'fragment', 'a Markdown fragment', root.children, style);
 }
@@ -434,7 +440,7 @@ const blockConstructs = [
 ];
 
 function parseTree(markdown: string, inline: boolean): Root {
-  const processor = unified().use(remarkParse).use(remarkGfm);
+  const processor = unified().use(remarkParse).use(remarkGfm).use(readEntities);
   if (inline) {
     processor.use(function disableBlocks() {
       const data = this.data();
@@ -442,6 +448,10 @@ function parseTree(markdown: string, inline: boolean): Root {
     });
   }
   return processor.parse(markdown);
+}
+
+function readEntities(this: Processor): void {
+  (this.data().fromMarkdownExtensions ??= []).push(htmlEntityFromMarkdown);
 }
 
 /** Return a lookup for the values. A resolver's result that isn't a template value counts as no value. */
