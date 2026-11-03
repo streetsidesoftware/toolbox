@@ -144,7 +144,7 @@ Where a placeholder sits is the same whether it's written in Markdown text, in a
 
 A template is Markdown text with placeholders. Each template function substitutes the values in one call. A script that reuses a template keeps the string and calls the function again.
 
-- `template(markdown, values)` lets the result decide its kind: a single paragraph is an inline fragment, without the whitespace around it, and anything else is a fragment. Checking `kind` narrows the result.
+- `template(markdown, values)` lets the result decide its kind: a single paragraph is an inline fragment, without the whitespace around it, and so is an empty result. Anything else is a fragment. Checking `kind` narrows the result.
 - `blockTemplate(markdown, values)` always returns a fragment. A single paragraph stays a paragraph.
 - `inlineTemplate(markdown, values)` substitutes values in text for use inside a line. Its text must be one paragraph, and a blank line throws. Block syntax is parsed as text, so `' - Adds …'` stays text, not a list. Leading and trailing whitespace is kept, so the fragment joins the pieces around it as written.
 - `templateDocument(markdown, values)` reads a whole file, frontmatter included, and returns a document.
@@ -191,7 +191,7 @@ JavaScript moves integer-like keys, such as `'2'`, to the front of the key order
 
 ### Markdown made elsewhere
 
-The function `parse(markdown)` brings in Markdown that is already written, such as a `markdownDescription` from a `package.json`. It's `template()` without the substitution: a single paragraph is an inline fragment, anything else is a fragment, and placeholders are kept as written. Its counterpart `parseDocument(markdown)` reads a whole file as a document.
+The function `parse(markdown)` brings in Markdown that is already written, such as a `markdownDescription` from a `package.json`. It's `template()` without the substitution: a single paragraph or blank text is an inline fragment, anything else is a fragment, and placeholders are kept as written. Its counterpart `parseDocument(markdown)` reads a whole file as a document.
 
 Whether a leading `---` starts frontmatter or is a rule can't be told from the text alone, so the script says what it reads:
 
