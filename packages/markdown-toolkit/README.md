@@ -177,8 +177,9 @@ Run it on every file in the project.
 
 ### Links and inline formatting
 
-These go inside a line: `link`, `inlineCode`, `strong`, `emphasis` and `strikethrough`. Each one except
-`inlineCode` takes inline content, so they nest, as in a link with strong text.
+These go inside a line: `link`, `inlineCode`, `strong`, `emphasis`, `strikethrough`, `sup` and `sub`. Each one
+except `inlineCode` takes inline content, so they nest, as in a link with strong text. For HTML or MDX, `sup` and
+`sub` write `<sup>` and `<sub>` tags around their content.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -776,6 +777,8 @@ console.log(section.toString());
 - `strong(content)`: Create bold text.
 - `emphasis(content)`: Create italic text.
 - `strikethrough(content)`: Create text with a line through it.
+- `sub(content)`: Create subscript text, written inside `<sub>` and `</sub>`.
+- `sup(content)`: Create superscript text, written inside `<sup>` and `</sup>`.
 
 ### Headings and sections
 

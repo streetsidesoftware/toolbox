@@ -1,8 +1,9 @@
 import { isValidPlaceholderName } from '@streetsidesoftware/placeholders';
-import type { ListItem, Paragraph } from 'mdast';
+import type { ListItem, Paragraph, PhrasingContent } from 'mdast';
 
 import { DocumentElement } from './documentElement.ts';
 import { isFrontmatter } from './frontmatter.ts';
+import { inlineHtmlNode } from './inlineHtmlNode.ts';
 import {
   argumentNodes,
   describe,
@@ -48,6 +49,8 @@ import type {
   MDPlaceholder,
   MDStrikethrough,
   MDStrong,
+  MDSub,
+  MDSup,
   MDText,
   OrderedListOptions,
 } from './types.ts';
@@ -250,6 +253,39 @@ export function strikethrough(content: InlineContent): MDStrikethrough {
   return new MarkdownElement('inline', 'strikethrough', 'struck-through text', [
     { type: 'delete', children: inlineNodes(content, 'strikethrough content') },
   ]);
+}
+
+/**
+ * Create superscript text, written inside `<sup>` and `</sup>`.
+ *
+ * The content is Markdown, so it can hold formatting, links, or {@link sub}.
+ *
+ * @example
+ * md.p('name ', md.sup(md.emphasis('req')));
+ * // name <sup>_req_</sup>
+ * @category formatting
+ */
+export function sup(content: InlineContent): MDSup {
+  return new MarkdownElement('inline', 'sup', 'superscript text', htmlWrapped('sup', content, 'superscript content'));
+}
+
+/**
+ * Create subscript text, written inside `<sub>` and `</sub>`.
+ *
+ * The content is Markdown, so it can hold formatting, links, or {@link sup}.
+ *
+ * @example
+ * md.p('H', md.sub('2'), 'O');
+ * // H<sub>2</sub>O
+ * @category formatting
+ */
+export function sub(content: InlineContent): MDSub {
+  return new MarkdownElement('inline', 'sub', 'subscript text', htmlWrapped('sub', content, 'subscript content'));
+}
+
+/** Return the nodes for inline content between an HTML tag's start and end. */
+function htmlWrapped(tag: string, content: InlineContent, where: string): PhrasingContent[] {
+  return [inlineHtmlNode(`<${tag}>`), ...inlineNodes(content, where), inlineHtmlNode(`</${tag}>`)];
 }
 
 /**
