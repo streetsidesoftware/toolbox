@@ -9,6 +9,7 @@ import {
   codeBlock,
   document,
   heading,
+  htmlEntity,
   inlineCode,
   inlineTemplate,
   lineBreak,
@@ -17,7 +18,9 @@ import {
   listItem,
   paragraph,
   parse,
+  parseDocument,
   placeholder,
+  strong,
   substitutePlaceholders,
   template,
   templateDocument,
@@ -146,6 +149,49 @@ describe('template', () => {
       ),
     );
   });
+
+  testEach`
+        tpl                                | expected
+        ${'[x]({@a@})'}                    | ${'[x](u)'}
+        ${'[x](<{@ a @}>)'}                | ${'[x](u)'}
+        ${'![i]({@a@})'}                   | ${'![i](u)'}
+        ${'[x](u "{@ a @}")'}              | ${'[x](u "u")'}
+        ${'![i](u "{@ a @}")'}             | ${'![i](u "u")'}
+        ${'[x]({@b@})'}                    | ${'[x]({@b@})'}
+        ${'[x][r]\n\n[r]: {@a@} "{@a@}"'} | ${'[x][r]\n\n[r]: u "u"'}
+        ${'<https://e.com/{@a@}>'}         | ${'<https://e.com/u>'}
+        ${'https://e.com/{@a@}'}           | ${'<https://e.com/u>'}
+    `(
+    'a placeholder in a URL or title is replaced as is: $tpl',
+    ({ tpl, expected }: { tpl: string; expected: string }) => {
+      assert.equal(template(tpl, { a: 'u' }).toString(), expected);
+    },
+  );
+
+  testEach`
+        value                  | expected
+        ${'a b'}               | ${'[x](<a b>)'}
+        ${'a)b'}               | ${'[x](a\\)b)'}
+    `('a value in a URL keeps the link whole: $value', ({ value, expected }: { value: string; expected: string }) => {
+    assert.equal(template('[x]({@a@})', { a: value }).toString(), expected);
+  });
+
+  testEach`
+        tpl                    | value                   | inside
+        ${'[x]({@x@})'}        | ${link('a', 'b')}       | ${'a URL'}
+        ${'[x](u "{@x@}")'}    | ${strong('s')}          | ${'a title'}
+        ${'[x]({@x@})'}        | ${htmlEntity('&amp;')}  | ${'a URL'}
+    `(
+    'any other value inside $inside throws, an HTML entity too: $tpl',
+    ({ tpl, value, inside }: { tpl: string; value: MDInline; inside: string }) => {
+      assert.throws(
+        () => template(tpl, { x: value }),
+        new TypeError(
+          `{@ x @} is inside ${inside} and takes only a string, text or a placeholder, got ${value.description}`,
+        ),
+      );
+    },
+  );
 
   test('code takes text', () => {
     assert.equal(template('`{@ x @}`', { x: text('a*b') }).toString(), '`a*b`');
@@ -497,6 +543,12 @@ describe('substitutePlaceholders', () => {
         '{@ x @} is inside code and takes only a string, text, a placeholder or an HTML entity, got a link',
       ),
     );
+  });
+
+  test('in a URL, a placeholder takes a string, inserted as is', () => {
+    const md = paragraph(link('x', placeholder('a').toString()));
+    assert.equal(substitutePlaceholders(md, { a: 'a b' }).toString(), '[x](<a b>)');
+    assert.equal(substitutePlaceholders(parseDocument('[x]({@a@})'), { a: 'u' }).toString(), '[x](u)\n');
   });
 
   test('text stays text when every value is a string or text', () => {
