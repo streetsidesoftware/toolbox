@@ -326,7 +326,7 @@ describe('parse', () => {
   );
 });
 
-describe('autolinks', () => {
+describe('autolink', () => {
   testEach`
         markdown                      | expected
         ${'<https://e.com/{@a@}>'}    | ${'<https://e.com/{@a@}>'}
