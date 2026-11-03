@@ -8,7 +8,6 @@ import { visit } from 'unist-util-visit';
 import { isFormatting, trimAroundLineEndings, trimBlanksAroundBreaks, trimLineEdges } from './blanks.ts';
 import type { HtmlEntityNode } from './htmlEntityNode.ts';
 import type { InlineHtmlNode } from './inlineHtmlNode.ts';
-import { asPlaceholderNode } from './placeholderNode.ts';
 import type { PlaceholderNode } from './placeholderNode.ts';
 
 export type { Options as StyleOptions } from 'remark-stringify';
@@ -92,9 +91,9 @@ function withoutEmptyParagraphs<T extends RootContent>(nodes: readonly T[]): T[]
  */
 function asAutolinkText(link: Link): Text | undefined {
   const pieces = link.children;
-  if (link.title || !pieces.some((piece) => asPlaceholderNode(piece))) return undefined;
-  if (!pieces.every((piece) => piece.type === 'text' || asPlaceholderNode(piece))) return undefined;
-  const value = pieces.map((piece) => (piece as Text | PlaceholderNode).value).join('');
+  if (link.title || !pieces.some((piece) => piece.type === 'placeholder')) return undefined;
+  if (!pieces.every((piece) => piece.type === 'text' || piece.type === 'placeholder')) return undefined;
+  const value = pieces.map((piece) => piece.value).join('');
   if (value !== link.url) return undefined;
   if (!/^[a-z][+\-.a-z]+:/i.test(link.url) || /[\0- <>\x7F]/.test(link.url)) return undefined;
   return { type: 'text', value };

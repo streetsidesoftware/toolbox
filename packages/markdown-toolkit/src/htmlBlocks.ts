@@ -1,7 +1,6 @@
 import type { Html, PhrasingContent, RootContent } from 'mdast';
 
 import { trimBlanks, trimBlanksAroundBreaks } from './blanks.ts';
-import { asHtmlEntityNode } from './htmlEntityNode.ts';
 import {
   argumentNodes,
   blockNodes,
@@ -185,11 +184,11 @@ function plainHtml(children: readonly PhrasingContent[]): string | undefined {
   let end = nodes.length;
   while (nodes[start]?.type === 'break') ++start;
   while (end > start && nodes[end - 1].type === 'break') --end;
-  const parts = nodes
-    .slice(start, end)
-    .map((node) =>
-      node.type === 'text' ? htmlEscape(node.value) : node.type === 'break' ? '<br/>' : asHtmlEntityNode(node)?.value,
-    );
+  const parts = nodes.slice(start, end).map((node) => {
+    if (node.type === 'text') return htmlEscape(node.value);
+    if (node.type === 'break') return '<br/>';
+    return node.type === 'htmlEntity' ? node.value : undefined;
+  });
   if (!parts.every((part) => part !== undefined)) return undefined;
   return parts.join('');
 }
