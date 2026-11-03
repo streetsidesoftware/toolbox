@@ -258,7 +258,9 @@ export function strikethrough(content: InlineContent): MDStrikethrough {
 /**
  * Create superscript text, raised above the line.
  *
- * It can hold text, links, formatting or code, including {@link sub}. Empty text shows nothing.
+ * It can hold text, links, formatting or code, including {@link sub}.
+ *
+ * Empty text shows nothing.
  *
  * The Markdown holds `<sup>` and `</sup>` tags, so the page must render HTML.
  *
@@ -274,7 +276,9 @@ export function sup(content: InlineContent): MDSup {
 /**
  * Create subscript text, lowered below the line.
  *
- * It can hold text, links, formatting or code, including {@link sup}. Empty text shows nothing.
+ * It can hold text, links, formatting or code, including {@link sup}.
+ *
+ * Empty text shows nothing.
  *
  * The Markdown holds `<sub>` and `</sub>` tags, so the page must render HTML.
  *
