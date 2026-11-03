@@ -239,6 +239,9 @@ importers:
       '@types/mdast':
         specifier: ^4.0.4
         version: 4.0.4
+      mdast-util-from-markdown:
+        specifier: ^2.1.0
+        version: 2.1.0(supports-color@9.4.0)
 
   packages/placeholders:
     devDependencies:
