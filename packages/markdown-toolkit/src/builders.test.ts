@@ -3,6 +3,10 @@ import { registerHooks } from 'node:module';
 import { describe, test } from 'node:test';
 
 import { testEach } from '@streetsidesoftware/test-each';
+import remarkGfm from 'remark-gfm';
+import remarkParse from 'remark-parse';
+import { unified } from 'unified';
+import { visit } from 'unist-util-visit';
 
 import type * as Builders from './index.ts';
 import type { MDElement, MDInline, MDParagraph } from './index.ts';
@@ -21,6 +25,7 @@ import {
   heading,
   horizontalRule,
   hr,
+  htmlEntity,
   htmlTable,
   inlineCode,
   inlineText,
@@ -382,6 +387,50 @@ describe('inlineCode', () => {
   test('code left empty by substitution shows as a space', () => {
     const md = paragraph('a', inlineCode('{@ x @}'), 'b');
     assert.equal(substitutePlaceholders(md, { x: '' }).toString(), 'a` `b');
+  });
+
+  const ab = ['a', 'b'];
+
+  testEach`
+        value                                                                   | expected                                       | spans
+        ${paragraph(inlineCode('a'), inlineCode('b'))}                          | ${'`a`&ZeroWidthSpace;`b`'}                     | ${ab}
+        ${paragraph(inlineCode('a'), '', inlineCode('b'))}                      | ${'`a`&ZeroWidthSpace;`b`'}                     | ${ab}
+        ${paragraph(inlineCode('a`'), inlineCode('`b'))}                        | ${'`` a` ``&ZeroWidthSpace;`` `b ``'}           | ${['a`', '`b']}
+        ${paragraph(inlineCode('a'), inlineCode('b'), inlineCode('c'))}         | ${'`a`&ZeroWidthSpace;`b`&ZeroWidthSpace;`c`'}  | ${['a', 'b', 'c']}
+        ${heading(2, [inlineCode('a'), inlineCode('b')])}                       | ${'## `a`&ZeroWidthSpace;`b`'}                  | ${ab}
+        ${paragraph(link([inlineCode('a'), inlineCode('b')], 'u'))}            | ${'[`a`&ZeroWidthSpace;`b`](u)'}                | ${ab}
+        ${paragraph(strong([inlineCode('a'), inlineCode('b')]))}               | ${'**`a`&ZeroWidthSpace;`b`**'}                 | ${ab}
+        ${list([[inlineCode('a'), inlineCode('b')]])}                           | ${'- `a`&ZeroWidthSpace;`b`'}                   | ${ab}
+        ${substitutePlaceholders(paragraph(placeholder('x'), inlineCode('b')), { x: inlineCode('a') })} | ${'`a`&ZeroWidthSpace;`b`'} | ${ab}
+    `('adjacent code spans stay apart: $expected', ({ value, expected, spans }: CodeSpansCase) => {
+    const md = value.toString();
+    assert.equal(md, expected);
+    assert.deepEqual(codeSpans(md), spans);
+  });
+
+  test('adjacent code spans in a table cell stay apart', () => {
+    const md = table(['T'], [[[inlineCode('string'), inlineCode('[]')]]]).toString();
+    assert.equal(md.split('\n')[2], '| `string`&ZeroWidthSpace;`[]` |');
+    assert.deepEqual(codeSpans(md), ['string', '[]']);
+  });
+
+  test('a separator given between code spans is not doubled', () => {
+    const md = paragraph(inlineCode('a'), htmlEntity('ZeroWidthSpace'), inlineCode('b')).toString();
+    assert.equal(md, '`a`&ZeroWidthSpace;`b`');
+  });
+
+  testEach`
+        value                                                         | expected
+        ${paragraph(strong(inlineCode('a')), inlineCode('b'))}        | ${'**`a`**`b`'}
+        ${paragraph(emphasis(inlineCode('a')), inlineCode('b'))}      | ${'_`a`_`b`'}
+        ${paragraph(strikethrough(inlineCode('a')), inlineCode('b'))} | ${'~~`a`~~`b`'}
+        ${paragraph(link(inlineCode('a'), 'u'), inlineCode('b'))}     | ${'[`a`](u)`b`'}
+        ${paragraph(inlineCode('a'), comment('x'), inlineCode('b'))}  | ${'`a`<!-- x -->`b`'}
+        ${paragraph(inlineCode('a'), lineBreak(), inlineCode('b'))}   | ${'`a`\\\n`b`'}
+    `('code spans with a marker between them need no separator: $expected', ({ value, expected }: CodeSpansCase) => {
+    const md = value.toString();
+    assert.equal(md, expected);
+    assert.deepEqual(codeSpans(md), ab);
   });
 });
 
@@ -804,4 +853,19 @@ async function importCopy(): Promise<typeof Builders> {
   });
   const copy = './index.ts?copy';
   return import(copy);
+}
+
+interface CodeSpansCase {
+  value: MDElement;
+  expected: string;
+  spans: string[];
+}
+
+/** Return the text of each code span in the Markdown, as a reader sees it. */
+function codeSpans(md: string): string[] {
+  const spans: string[] = [];
+  visit(unified().use(remarkParse).use(remarkGfm).parse(md), 'inlineCode', (node) => {
+    spans.push(node.value);
+  });
+  return spans;
 }
