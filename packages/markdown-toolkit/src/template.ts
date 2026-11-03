@@ -78,7 +78,7 @@ export type TemplateResolver = (name: string) => TemplateValue | undefined;
  *   Markdown allows no spaces in a URL, so write `{​@name@​}` there, or wrap the URL in `<…>`.
  * - A placeholder without a value stays in place, so a later call can substitute it.
  *
- * An empty result, or one of one paragraph, can go anywhere a string can. A longer one goes where paragraphs can.
+ * A result of one paragraph, or an empty one, can go anywhere a string can. A longer one goes where paragraphs can.
  *
  * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
  *   `engines.cspell`, reaches into a nested object.
@@ -161,7 +161,7 @@ export function inlineTemplate(markdown: string, values: TemplateValues | Templa
 /**
  * Parse Markdown text so it can be added to a page with its formatting.
  *
- * Text of one paragraph, or with no text at all, can go anywhere a string can, even in a heading.
+ * Text of one paragraph, or blank text, can go anywhere a string can, even in a heading.
  * Longer text goes where paragraphs can, such as in a document or a list item.
  *
  * @example

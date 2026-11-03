@@ -92,6 +92,10 @@ describe('template kinds', () => {
     assert.equal(substitutePlaceholders(parse('{@ x @}'), { x: '' }).kind, 'inline');
   });
 
+  test('an empty value leaves no paragraph', () => {
+    assert.equal(template('a\n\n{@ x @}\n\nb', { x: '' }).toString(), 'a\n\nb');
+  });
+
   test('anything else is blocks', () => {
     assert.equal(template('- a', {}).kind, 'block');
     assert.equal(template('a\n\nb', {}).kind, 'block');
@@ -354,9 +358,10 @@ describe('parse', () => {
         ${'\n'}
     `('text with no content is inline: $markdown', ({ markdown }: { markdown: string }) => {
     const md = parse(markdown);
-    assert.equal(md.kind, 'inline');
+    assert.ok(md.kind === 'inline');
     assert.equal(md.toString(), '');
-    if (md.kind === 'inline') assert.equal(table(['T'], [[md]]).toString(), '| T |\n| - |\n|   |');
+    assert.equal(table(['T'], [[md]]).toString(), '| T |\n| - |\n|   |');
+    assert.equal(document('a', md, 'b').toString(), 'a\n\nb\n');
   });
 
   test('an empty link stays', () => {
