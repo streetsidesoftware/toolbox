@@ -424,10 +424,24 @@ describe('sup, sub', () => {
     assert.equal(substitutePlaceholders(md, { marker: emphasis('req') }).toString(), 'name <sup>_req_</sup>');
   });
 
-  test('a block is refused', () => {
-    assert.throws(() => sup(paragraph('a') as unknown as MDInline), {
+  test('a template value', () => {
+    assert.equal(template('name {@x@}', { x: sup(emphasis('req')) }).toString(), 'name <sup>_req_</sup>');
+  });
+
+  test('a backslash at the end stays text', () => {
+    const md = paragraph(sup('C:\\'));
+    assert.equal(md.toString(), '<sup>C:\\\\</sup>');
+    assert.deepEqual(readBack(md.toString()), ['html:<sup>', 'text:C:\\', 'html:</sup>']);
+  });
+
+  testEach`
+        build  | name
+        ${sup} | ${'superscript'}
+        ${sub} | ${'subscript'}
+    `('$name: a block is refused', ({ build, name }: { build: typeof sup; name: string }) => {
+    assert.throws(() => build(paragraph('a') as unknown as MDInline), {
       name: 'TypeError',
-      message: 'superscript content must be inline, got a paragraph',
+      message: `${name} content must be inline, got a paragraph`,
     });
   });
 });

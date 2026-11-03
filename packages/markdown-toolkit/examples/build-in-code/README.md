@@ -94,7 +94,11 @@ const page = md.document(
     md.link('the docs', 'https://cspell.org'),
     ' for options.',
   ),
-  md.p('language', md.sup(md.emphasis('req')), ': the language to check.'),
+  md.p(
+    'language',
+    md.sup(md.emphasis('req')),
+    ': the language to check.',
+  ),
 );
 
 console.log(page.toString());

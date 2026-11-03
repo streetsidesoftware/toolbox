@@ -256,13 +256,15 @@ export function strikethrough(content: InlineContent): MDStrikethrough {
 }
 
 /**
- * Create superscript text, written inside `<sup>` and `</sup>`.
+ * Create superscript text, raised above the line.
  *
- * The content is Markdown, so it can hold formatting, links, or {@link sub}.
+ * It can hold text, links, formatting or code, including {@link sub}. Empty text shows nothing.
+ *
+ * The Markdown holds `<sup>` and `</sup>` tags, so the page must render HTML.
  *
  * @example
- * md.p('name ', md.sup(md.emphasis('req')));
- * // name <sup>_req_</sup>
+ * md.sup(md.emphasis('req'));
+ * // <sup>_req_</sup>
  * @category formatting
  */
 export function sup(content: InlineContent): MDSup {
@@ -270,13 +272,15 @@ export function sup(content: InlineContent): MDSup {
 }
 
 /**
- * Create subscript text, written inside `<sub>` and `</sub>`.
+ * Create subscript text, lowered below the line.
  *
- * The content is Markdown, so it can hold formatting, links, or {@link sup}.
+ * It can hold text, links, formatting or code, including {@link sup}. Empty text shows nothing.
+ *
+ * The Markdown holds `<sub>` and `</sub>` tags, so the page must render HTML.
  *
  * @example
- * md.p('H', md.sub('2'), 'O');
- * // H<sub>2</sub>O
+ * md.sub('2');
+ * // <sub>2</sub>
  * @category formatting
  */
 export function sub(content: InlineContent): MDSub {
