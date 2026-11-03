@@ -378,14 +378,26 @@ describe('autolink', () => {
         ${'<https://e.com/{@a@}>'}    | ${'<https://e.com/{@a@}>'}
         ${'https://e.com/{@a_b@}'}    | ${'<https://e.com/{@a_b@}>'}
         ${'<mailto:{@a@}@e.com>'}     | ${'<mailto:{@a@}@e.com>'}
-        ${'[{@a_b@}]({@a_b@})'}       | ${'[{@a_b@}]({@a_b@})'}
-        ${'[https://e.com/{@a_b@} x](<https://e.com/{@a_b@} x>)'} | ${'[https://e.com/{@a_b@} x](<https://e.com/{@a_b@} x>)'}
-        ${'[https://e.com/{@a_b@}](https://e.com/{@a_b@} "t")'}   | ${'[https://e.com/{@a_b@}](https://e.com/{@a_b@} "t")'}
     `(
     'a placeholder in an autolink keeps its form: $markdown',
     ({ markdown, expected }: { markdown: string; expected: string }) => {
       assert.equal(parse(markdown).toString(), expected);
       assert.equal(template(markdown, {}).toString(), expected);
+    },
+  );
+
+  // Each row is a link remark doesn't write as `<…>`, one per check in `asAutolinkText`. Joined, its `_` would be escaped.
+  testEach`
+        markdown
+        ${'See [the {@ a_ @} page](https://e.com).'}
+        ${'[{@a_@}]({@a_@})'}
+        ${'[https://e.com/{@a_@} x](<https://e.com/{@a_@} x>)'}
+        ${'[https://e.com/{@a_@}](https://e.com/{@a_@} "t")'}
+    `(
+    'a placeholder in the text of any other link is never escaped: $markdown',
+    ({ markdown }: { markdown: string }) => {
+      assert.equal(parse(markdown).toString(), markdown);
+      assert.equal(template(markdown, {}).toString(), markdown);
     },
   );
 });
