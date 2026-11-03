@@ -519,72 +519,79 @@ const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'list', 'li
  * @param allowBlocks - the root's children may be blocks.
  */
 function substituteInTree(root: Root, resolve: TemplateResolver, allowBlocks: boolean): void {
-  const substituteInCode = (code: string, inside: 'code' | 'HTML'): string =>
-    replacePlaceholders(code, (name: string) => {
+  root.children = inLists(substituteInNodes(root.children, resolve, undefined, allowBlocks) as RootContent[]);
+}
+
+/**
+ * @param paragraph - the nodes are a paragraph's children, and whether the paragraph can split.
+ * @param blocks - the nodes may be blocks.
+ */
+function substituteInNodes(
+  nodes: RootContent[],
+  resolve: TemplateResolver,
+  paragraph: ParagraphMode | undefined,
+  blocks: boolean,
+): Piece[] {
+  return nodes.flatMap((node, i): Piece[] => {
+    const inlineHtml = asInlineHtmlNode(node);
+    if (inlineHtml) {
+      inlineHtml.value = substituteInCode(inlineHtml.value, resolve, 'HTML');
+      return [node];
+    }
+    const placeholder = asPlaceholderNode(node);
+    if (placeholder) {
+      const name = placeholderName(placeholder);
       const value = resolve(name);
-      return value === undefined ? undefined : valueAsCode(value, name, inside);
-    });
-
-  /**
-   * @param paragraph - the nodes are a paragraph's children, and whether the paragraph can split.
-   * @param blocks - the nodes may be blocks.
-   */
-  const substituteInNodes = (nodes: RootContent[], paragraph: ParagraphMode | undefined, blocks: boolean): Piece[] =>
-    nodes.flatMap((node, i): Piece[] => {
-      const inlineHtml = asInlineHtmlNode(node);
-      if (inlineHtml) {
-        inlineHtml.value = substituteInCode(inlineHtml.value, 'HTML');
+      if (value === undefined) return [node];
+      const wholeLine = paragraph !== undefined && isWholeLine(nodes, i);
+      if (paragraph === 'split' && wholeLine && isBlockLike(value)) {
+        return [{ blocks: blockNodes(value, `{@ ${name} @}`) }];
+      }
+      const inline = valueAsInline(value, name);
+      // On a line of its own, a value is trimmed as an argument is.
+      const shown = wholeLine ? trimBlanks(inline) : inline;
+      return shown.length || !paragraph ? shown : [{ empty: true }];
+    }
+    if (node.type === 'link' || node.type === 'image' || node.type === 'definition') {
+      node.url = substituteInLink(node.url, resolve, 'a URL');
+      if (node.title) node.title = substituteInLink(node.title, resolve, 'a title');
+    }
+    switch (node.type) {
+      case 'paragraph': {
+        const mode = blocks ? 'split' : 'join';
+        return splitParagraph(node, withoutEmptiedLines(substituteInNodes(node.children, resolve, mode, false), mode));
+      }
+      case 'yaml':
+        node.value = replacePlaceholders(node.value, (name: string) => {
+          const value = resolve(name);
+          return value === undefined ? undefined : valueAsFrontmatter(value);
+        });
         return [node];
-      }
-      const placeholder = asPlaceholderNode(node);
-      if (placeholder) {
-        const name = placeholderName(placeholder);
-        const value = resolve(name);
-        if (value === undefined) return [node];
-        const wholeLine = paragraph !== undefined && isWholeLine(nodes, i);
-        if (paragraph === 'split' && wholeLine && isBlockLike(value)) {
-          return [{ blocks: blockNodes(value, `{@ ${name} @}`) }];
+      case 'html':
+        node.value = substituteInCode(node.value, resolve, 'HTML');
+        return [node];
+      case 'inlineCode':
+      case 'code':
+        node.value = substituteInCode(node.value, resolve, 'code');
+        return [node];
+      default:
+        if ('children' in node) {
+          const blockChildren = blocks && blockContainers.has(node.type);
+          const children = substituteInNodes(node.children, resolve, undefined, blockChildren);
+          // A list's children are its items already; any other block container may get list items from values.
+          const grouped = blockChildren && node.type !== 'list' ? inLists(children as RootContent[]) : children;
+          node.children = grouped as typeof node.children;
         }
-        const inline = valueAsInline(value, name);
-        // On a line of its own, a value is trimmed as an argument is.
-        const shown = wholeLine ? trimBlanks(inline) : inline;
-        return shown.length || !paragraph ? shown : [{ empty: true }];
-      }
-      if (node.type === 'link' || node.type === 'image' || node.type === 'definition') {
-        node.url = substituteInLink(node.url, resolve, 'a URL');
-        if (node.title) node.title = substituteInLink(node.title, resolve, 'a title');
-      }
-      switch (node.type) {
-        case 'paragraph': {
-          const mode = blocks ? 'split' : 'join';
-          return splitParagraph(node, withoutEmptiedLines(substituteInNodes(node.children, mode, false), mode));
-        }
-        case 'yaml':
-          node.value = replacePlaceholders(node.value, (name: string) => {
-            const value = resolve(name);
-            return value === undefined ? undefined : valueAsFrontmatter(value);
-          });
-          return [node];
-        case 'html':
-          node.value = substituteInCode(node.value, 'HTML');
-          return [node];
-        case 'inlineCode':
-        case 'code':
-          node.value = substituteInCode(node.value, 'code');
-          return [node];
-        default:
-          if ('children' in node) {
-            const blockChildren = blocks && blockContainers.has(node.type);
-            const children = substituteInNodes(node.children, undefined, blockChildren);
-            // A list's children are its items already; any other block container may get list items from values.
-            const grouped = blockChildren && node.type !== 'list' ? inLists(children as RootContent[]) : children;
-            node.children = grouped as typeof node.children;
-          }
-          return [node];
-      }
-    });
+        return [node];
+    }
+  });
+}
 
-  root.children = inLists(substituteInNodes(root.children, undefined, allowBlocks) as RootContent[]);
+function substituteInCode(code: string, resolve: TemplateResolver, inside: 'code' | 'HTML'): string {
+  return replacePlaceholders(code, (name: string) => {
+    const value = resolve(name);
+    return value === undefined ? undefined : valueAsCode(value, name, inside);
+  });
 }
 
 function substituteInLink(urlOrTitle: string, resolve: TemplateResolver, inside: 'a URL' | 'a title'): string {
@@ -602,11 +609,6 @@ function splitParagraph(paragraph: Paragraph, pieces: Piece[]): RootContent[] {
   }
   const result: RootContent[] = [];
   let line: PhrasingContent[] = [];
-  const endParagraph = (): void => {
-    const children = trimLine(line);
-    if (children.length) result.push({ type: 'paragraph', children });
-    line = [];
-  };
   for (const piece of pieces) {
     if (!isBlockSlot(piece)) {
       line.push(piece as PhrasingContent);
@@ -617,6 +619,12 @@ function splitParagraph(paragraph: Paragraph, pieces: Piece[]): RootContent[] {
   }
   endParagraph();
   return result;
+
+  function endParagraph(): void {
+    const children = trimLine(line);
+    if (children.length) result.push({ type: 'paragraph', children });
+    line = [];
+  }
 }
 
 function isBlockSlot(piece: Piece): piece is BlockSlot {
