@@ -14,8 +14,9 @@ export interface HtmlGroupNode extends Parent {
 
 /**
  * Describes content between two tags.
- * - `htmlInlineSlot`: one paragraph, such as a summary. A placeholder in it takes only inline values.
- * - `htmlBlockSlot`: anything a document can hold, such as a table cell.
+ * - `htmlInlineSlot`: one paragraph, such as a summary. It goes on one line, and a placeholder in it takes only inline
+ *   values.
+ * - `htmlBlockSlot`: anything a document can hold, such as a table cell. It gets blank lines, unless it's empty.
  */
 export interface HtmlSlotNode extends Parent {
   type: 'htmlInlineSlot' | 'htmlBlockSlot';
@@ -35,8 +36,7 @@ declare module 'mdast' {
 
 /**
  * Return the nodes with each HTML group written as HTML.
- * Tags and content that fit on one line form one `html` node, since remark joins nodes with blank lines.
- * Content that can't be written as HTML gets blank lines around it, so it renders.
+ * Tags and content on one line form one `html` node, since remark joins nodes with blank lines.
  */
 export function writeHtmlGroups(nodes: readonly RootContent[]): RootContent[] {
   return nodes.flatMap((node): RootContent[] => {
@@ -56,7 +56,7 @@ function writeGroup(group: HtmlGroupNode): RootContent[] {
       lines.push(child.value);
       continue;
     }
-    const markup = writeSlot(child.children);
+    const markup = child.type === 'htmlInlineSlot' ? writeInlineSlot(child.children) : writeEmptySlot(child.children);
     if (markup !== undefined) {
       lines.push(`${child.open}${markup}${child.close}`);
       continue;
@@ -69,13 +69,17 @@ function writeGroup(group: HtmlGroupNode): RootContent[] {
   return nodes;
 }
 
-/** Return a slot's HTML when it's empty or one paragraph that can be written as HTML, or `undefined` otherwise. */
-function writeSlot(blocks: readonly RootContent[]): string | undefined {
-  if (!blocks.length) return '';
-  const [first] = blocks;
-  if (blocks.length !== 1 || first.type !== 'paragraph') return undefined;
+/** Return the HTML of a slot's paragraph, or `undefined` when it can't be written as HTML. */
+function writeInlineSlot(blocks: readonly RootContent[]): string | undefined {
+  const [paragraph] = blocks;
+  if (paragraph?.type !== 'paragraph') return '';
   // A line break at the start or end can't display, as in a paragraph.
-  return writeInline(trimLineEdges(trimBlanksAroundBreaks(first.children)));
+  return writeInline(trimLineEdges(trimBlanksAroundBreaks(paragraph.children)));
+}
+
+/** Return no HTML for a slot with nothing in it, or `undefined` when it has content. */
+function writeEmptySlot(blocks: readonly RootContent[]): string | undefined {
+  return blocks.every((block) => block.type === 'paragraph' && !block.children.length) ? '' : undefined;
 }
 
 function writeInline(nodes: readonly PhrasingContent[]): string | undefined {

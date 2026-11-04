@@ -131,8 +131,8 @@ describe('htmlEntity in content', () => {
     assert.match(dl([[['a', nbsp], 'c']]).toString(), /<dt>a&nbsp;<\/dt>/);
   });
 
-  test('an HTML table cell with an entity stays on the tag line', () => {
-    assert.match(htmlTable([], [[['x<', nbsp, 'y']]]).toString(), /<td>x&lt;&nbsp;y<\/td>/);
+  test('an HTML table cell with an entity keeps it', () => {
+    assert.match(htmlTable([], [[['x', nbsp, 'y']]]).toString(), /<td>\n\nx&nbsp;y\n\n<\/td>/);
   });
 });
 
