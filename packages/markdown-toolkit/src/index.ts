@@ -11,7 +11,6 @@ export {
   hr,
   inlineCode,
   inlineText,
-  isMarkdown,
   lineBreak,
   link,
   list,
@@ -29,13 +28,26 @@ export {
   text,
   toBlock,
   ul,
-} from './builders.ts';
-export { frontmatter } from './frontmatter.ts';
-export { definitionList, details, dl, htmlTable } from './htmlBlocks.ts';
-export { copy, emsp, ensp, hellip, htmlEntity, mdash, nbsp, ndash, shy, thinsp } from './htmlEntity.ts';
-export { detectStyle } from './style.ts';
-export { table } from './table.ts';
-export type { TemplateResolver, TemplateValue, TemplateValues } from './template.ts';
+  frontmatter,
+  definitionList,
+  details,
+  dl,
+  htmlTable,
+  copy,
+  emsp,
+  ensp,
+  hellip,
+  htmlEntity,
+  mdash,
+  nbsp,
+  ndash,
+  shy,
+  thinsp,
+  table,
+} from './builder/index.ts';
+export { isMarkdown } from './element/index.ts';
+export { detectStyle } from './detectStyle.ts';
+export type { TemplateResolver, TemplateValue, TemplateValues } from './template/index.ts';
 export {
   blockTemplate,
   inlineTemplate,
@@ -46,7 +58,7 @@ export {
   template,
   templateDocument,
   template as templateFragment,
-} from './template.ts';
+} from './template/index.ts';
 export type {
   AnyContent,
   BlockContent,

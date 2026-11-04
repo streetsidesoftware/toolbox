@@ -1,7 +1,7 @@
 import type { Yaml } from 'mdast';
 
-import { MarkdownElement, renderingOf } from './nodes.ts';
-import type { MDFrontmatter } from './types.ts';
+import { MarkdownElement, renderingOf } from '../element/index.ts';
+import type { MDFrontmatter } from '../types.ts';
 
 /** Matches a first line of exactly `---`, up to the next line of exactly `---`. */
 const frontmatterPattern = /^---\r?\n(?:([\s\S]*?)\r?\n)??---(?:\r?\n|$)/;
