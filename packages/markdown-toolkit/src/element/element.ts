@@ -9,7 +9,7 @@ import type { MarkdownStyle, MDElement, MDKind, MDListItem, MDText, MDType } fro
  */
 const renderingKey: unique symbol = Symbol.for('@streetsidesoftware/markdown-toolkit.value');
 
-/** Describes the nodes an element renders as, and the style to render them in. */
+/** The nodes an element renders as, and the style to render them in. */
 interface Rendering {
   nodes: RootContent[];
   style: MarkdownStyle | undefined;

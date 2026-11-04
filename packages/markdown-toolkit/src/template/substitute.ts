@@ -157,19 +157,19 @@ function substituteInText(text: string, resolve: TemplateResolver): string | und
   return onlyText ? result : undefined;
 }
 
-/** Describes the blocks that replace a placeholder on a line of its own, until its paragraph is split around them. */
+/** The blocks that replace a placeholder on a line of its own, until its paragraph is split around them. */
 interface BlockSlot {
   readonly blocks: RootContent[];
 }
 
-/** Describes a placeholder whose value shows nothing, until its paragraph is rebuilt. */
+/** A placeholder whose value shows nothing, until its paragraph is rebuilt. */
 interface EmptySlot {
   readonly empty: true;
 }
 
 type Piece = RootContent | BlockSlot | EmptySlot;
 
-/** Describes a paragraph being substituted: one that can split around blocks, or one that has to stay whole. */
+/** A paragraph being substituted: one that can split around blocks, or one that has to stay whole. */
 type ParagraphMode = 'split' | 'join';
 
 /** Lists the node types whose children may be blocks. */
@@ -322,7 +322,7 @@ function withoutEmptiedLines(pieces: readonly Piece[], mode: ParagraphMode): Pie
   return result;
 }
 
-/** Describes one line of a paragraph's pieces. */
+/** One line of a paragraph's pieces. */
 interface PieceLine {
   readonly pieces: Piece[];
   /** The line ending after the line, as text. It's empty after a line break or at the paragraph's end. */
