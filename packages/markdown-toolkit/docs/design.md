@@ -76,7 +76,7 @@ An aligned column uses the `align` attribute, because GitHub keeps it and strips
 
 A details summary and a definition term are inline. The content and each definition are like a document's.
 
-Markdown inside HTML is read only after a blank line, so rendering picks the form that works on GitHub. Plain text stays on its tag's line, as in GitHub's own examples, and anything else gets blank lines around it, so it renders.
+Markdown inside HTML is read only after a blank line, so rendering picks the form that works on GitHub.
 
 ### Documents and frontmatter
 
@@ -180,6 +180,6 @@ A possible feature. The issue it addresses is real: Docusaurus 3 parses even `.m
   - `{` and `<` in text are escaped.
   - A comment renders as `{/* … */}`. Docusaurus accepts `<!-- -->` today only through its MDX 1 compatibility setting, which its v4 defaults turn off.
   - Raw HTML is valid JSX, as `<br/>` already is.
-  - A plain-text summary or term, written on one line for GitHub, also needs Markdown escaping. MDX reads Markdown inside JSX, where GitHub reads raw HTML.
+  - A summary or term written on one line for GitHub also needs Markdown escaping. MDX reads Markdown inside JSX, where GitHub reads raw HTML.
   - A kept placeholder throws when rendering. The text `{@ name @}` is an invalid MDX expression, and an MDX document is final output.
 - Flavor-only constructs, such as GitHub alerts (`> [!NOTE]`) and Docusaurus admonitions (`:::note`), wait until a script needs them.
