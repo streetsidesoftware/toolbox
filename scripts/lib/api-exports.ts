@@ -46,9 +46,11 @@ interface Module {
 }
 
 interface ValueExport {
+  /** Holds the name other modules import it by. */
   exported: string;
+  /** Holds its name in `file`. */
   local: string;
-  /** Holds the module `local` comes from: this one, or the one it's re-exported from. */
+  /** Holds the module that has the name `local`: the one in `export … from`, or else the exporting module. */
   file: string;
 }
 
