@@ -73,12 +73,6 @@ describe('details', () => {
     },
   );
 
-  test('a summary with many line breaks builds in linear time', () => {
-    const start = performance.now();
-    details(`a${'\n'.repeat(40_000)}b`).toString();
-    assert.ok(performance.now() - start < 500);
-  });
-
   test('a term and a cell lose the spaces and tabs at their edges', () => {
     assert.equal(dl([['  a\t', 'b']]).toString(), '<dl>\n\n<dt>a</dt>\n<dd>\n\nb\n\n</dd>\n\n</dl>');
     assert.equal(

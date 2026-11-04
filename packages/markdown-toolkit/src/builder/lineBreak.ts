@@ -26,5 +26,6 @@ export function lineBreak(): MDLineBreak {
  * @category line-breaks
  */
 export function br(): MDBr {
+  // Never `<br>`: MDX reads HTML as JSX, where an unclosed tag is a syntax error.
   return new MarkdownElement('inline', 'br', 'a <br/>', [{ type: 'html', value: '<br/>' }]);
 }

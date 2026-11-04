@@ -33,6 +33,7 @@ export class MarkdownElement<K extends MDKind = MDKind, T extends MDType = MDTyp
     Object.assign(this, { [renderingKey]: { nodes, style } });
   }
 
+  // Takes no options: a template literal passes no arguments.
   toString(): string {
     const { nodes, style } = renderingOf(this) ?? { nodes: [] };
     if (this.kind === 'inline') {

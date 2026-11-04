@@ -109,6 +109,7 @@ export function htmlTable(
     for (let i = 0; i < columns; ++i) {
       parts.push({
         type: 'htmlBlockSlot',
+        // GitHub keeps the `align` attribute and strips `style`.
         open: align[i] ? `<${tag} align="${align[i]}">` : `<${tag}>`,
         close: `</${tag}>`,
         children: cellNodes(cells[i] ?? []),
