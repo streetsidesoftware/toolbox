@@ -1,14 +1,30 @@
 /** The delimiters that mark a placeholder. */
 export interface PlaceholderOptions {
-  /** The text that starts a placeholder. It can't be empty. Default: `{@`. */
+  /**
+   * The text that starts a placeholder.
+   *
+   * It can't be empty.
+   *
+   * @default '{@'
+   */
   open?: string | undefined;
-  /** The text that ends a placeholder. It can't be empty. Default: `@}`. */
+  /**
+   * The text that ends a placeholder.
+   *
+   * It can't be empty.
+   *
+   * @default '@}'
+   */
   close?: string | undefined;
 }
 
 /** The delimiters, and whether {@link replacePlaceholders} indents a multi-line value. */
 export interface ReplacePlaceholdersOptions extends PlaceholderOptions {
-  /** Gives each later line of a multi-line value the leading whitespace of its placeholder's line. Default: `true`. */
+  /**
+   * Gives each later line of a multi-line value the leading whitespace of its placeholder's line.
+   *
+   * @default true
+   */
   autoIndent?: boolean | undefined;
 }
 
