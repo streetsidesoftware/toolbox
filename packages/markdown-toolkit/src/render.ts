@@ -11,6 +11,7 @@ import {
   trimAroundLineEndings,
   trimBlanksAroundBreaks,
   trimLineEdges,
+  writeHtmlGroups,
 } from './mdast/index.ts';
 import type { HtmlEntityNode, InlineHtmlNode, PlaceholderNode } from './mdast/index.ts';
 
@@ -41,7 +42,7 @@ const handlers = {
  * Escaping is left to remark, which knows where each node sits.
  */
 export function renderNodes(children: RootContent[], style: StyleOptions | undefined): string {
-  const root: Root = { type: 'root', children: structuredClone(children) };
+  const root: Root = { type: 'root', children: writeHtmlGroups(structuredClone(children)) };
   // Before line breaks in a table cell or heading become `<br/>`.
   visit(root, (node) => {
     // Only text, links, formatting and code sit in the same parent as text or a line break.

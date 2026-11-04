@@ -1,5 +1,4 @@
-import { hasPlaceholders } from '@streetsidesoftware/placeholders';
-import type { Html, PhrasingContent, RootContent } from 'mdast';
+import type { Html, RootContent } from 'mdast';
 
 import {
   argumentNodes,
@@ -12,7 +11,8 @@ import {
   mapParagraphsAndBlocks,
   MarkdownElement,
 } from '../element/index.ts';
-import { trimBlanks, trimBlanksAroundBreaks, trimLineEdges } from '../mdast/index.ts';
+import { trimBlanks } from '../mdast/index.ts';
+import type { HtmlGroupNode, HtmlSlotNode } from '../mdast/index.ts';
 import type {
   AnyContent,
   DefinitionEntry,
@@ -42,7 +42,7 @@ import { alignOf } from './table.ts';
  */
 export function details(summary: InlineContent, ...content: AnyContent[]): MDDetails {
   return new MarkdownElement('block', 'details', 'a details block', [
-    ...wrapped('<details>\n', 'summary', summary, '', 'details summary'),
+    { type: 'htmlGroup', children: [html('<details>'), inlineSlot('summary', summary, 'details summary')] },
     ...argumentNodes(content, 'details content'),
     html('</details>'),
   ]);
@@ -68,7 +68,7 @@ export function dl(entries: readonly DefinitionEntry[]): MDDefinitionList {
     }
     const [term, definition] = entry;
     return [
-      ...wrapped('', 'dt', term, '\n<dd>', 'definition term'),
+      { type: 'htmlGroup', children: [inlineSlot('dt', term, 'definition term'), html('<dd>')] },
       ...groupedNodes([definition], 'definition'),
       html('</dd>'),
     ];
@@ -102,55 +102,40 @@ export function htmlTable(
   }
   const columns = rows.reduce((n, row) => Math.max(n, row.length), header.length);
   const align = (options?.align ?? []).map(alignOf);
-  const nodes: RootContent[] = [];
-  // Tags written since the last cell with Markdown. They form one HTML node, since nodes are joined by blank lines.
-  let tags = '<table>\n';
-
-  function flush(): void {
-    nodes.push(html(tags.replace(/\n$/, '')));
-    tags = '';
-  }
+  const parts: HtmlGroupNode['children'] = [html('<table>')];
 
   function addRow(tag: 'th' | 'td', cells: readonly AnyContent[]): void {
-    tags += '<tr>\n';
+    parts.push(html('<tr>'));
     for (let i = 0; i < columns; ++i) {
-      const open = align[i] ? `<${tag} align="${align[i]}">` : `<${tag}>`;
-      const blocks = cellNodes(cells[i] ?? []);
-      const markup = writeCell(blocks);
-      if (markup !== undefined) {
-        tags += `${open}${markup}</${tag}>\n`;
-        continue;
-      }
-      tags += open;
-      flush();
-      nodes.push(...blocks);
-      tags = `</${tag}>\n`;
+      parts.push({
+        type: 'htmlBlockSlot',
+        open: align[i] ? `<${tag} align="${align[i]}">` : `<${tag}>`,
+        close: `</${tag}>`,
+        children: cellNodes(cells[i] ?? []),
+      });
     }
-    tags += '</tr>\n';
+    parts.push(html('</tr>'));
   }
 
   if (header.length) {
-    tags += '<thead>\n';
+    parts.push(html('<thead>'));
     addRow('th', header);
-    tags += '</thead>\n';
+    parts.push(html('</thead>'));
   }
-  tags += '<tbody>\n';
+  parts.push(html('<tbody>'));
   rows.forEach((row) => addRow('td', row));
-  tags += '</tbody>\n</table>';
-  flush();
-  return new MarkdownElement('block', 'htmlTable', 'an HTML table', nodes);
+  parts.push(html('</tbody>'), html('</table>'));
+  return new MarkdownElement('block', 'htmlTable', 'an HTML table', [{ type: 'htmlGroup', children: parts }]);
 }
 
-/**
- * Return the nodes for inline content in an HTML element, with HTML written before and after it.
- * It goes on one line as HTML, since Markdown isn't read there. Content {@link writeLine} can't write gets blank lines,
- * so it renders.
- */
-function wrapped(before: string, tag: string, content: InlineContent, after: string, where: string): RootContent[] {
-  const children = trimBlanks(inlineNodes(content, where));
-  const markup = writeLine(children);
-  if (markup !== undefined) return [html(`${before}<${tag}>${markup}</${tag}>${after}`)];
-  return [html(`${before}<${tag}>`), { type: 'paragraph', children }, html(`</${tag}>${after}`)];
+/** Return a slot for inline content between a tag's start and end. */
+function inlineSlot(tag: string, content: InlineContent, where: string): HtmlSlotNode {
+  return {
+    type: 'htmlInlineSlot',
+    open: `<${tag}>`,
+    close: `</${tag}>`,
+    children: [{ type: 'paragraph', children: trimBlanks(inlineNodes(content, where)) }],
+  };
 }
 
 /** Return the blocks of a table cell, grouped as in a document. */
@@ -161,103 +146,6 @@ function cellNodes(content: AnyContent): RootContent[] {
     (block) => blockNodes(block, 'table cell'),
   );
   return inLists(nodes);
-}
-
-/**
- * Return a cell's HTML when it can stay on its tag's line: empty, or one paragraph that {@link writeLine} can write.
- * Return `undefined` when the cell needs blank lines around it.
- */
-function writeCell(blocks: RootContent[]): string | undefined {
-  if (!blocks.length) return '';
-  const [first] = blocks;
-  if (blocks.length !== 1 || first.type !== 'paragraph') return undefined;
-  return writeLine(first.children);
-}
-
-/**
- * Return inline content as HTML for one line, or `undefined` when it has to stay Markdown.
- * Content with a placeholder stays Markdown: inside HTML, a placeholder takes only a string or an entity, and a string
- * isn't escaped. The check is on the finished line, so it also finds one written in code or a URL, or split across text.
- * A line break at its start or end can't display, as in a paragraph, so it goes.
- */
-function writeLine(children: readonly PhrasingContent[]): string | undefined {
-  const markup = writeInline(trimLineEdges(trimBlanksAroundBreaks(children)));
-  return markup === undefined || hasPlaceholders(markup) ? undefined : markup;
-}
-
-function writeInline(nodes: readonly PhrasingContent[]): string | undefined {
-  let markup = '';
-  for (const node of trimBlanksAroundBreaks(nodes)) {
-    const written = writeNode(node);
-    if (written === undefined) return undefined;
-    markup += written;
-  }
-  return markup;
-}
-
-/**
- * Return one inline node as HTML, or `undefined` when it has to stay Markdown:
- * - It's a placeholder.
- * - It's HTML with a blank line in it, which would end the HTML block.
- * - It has no HTML form, such as a reference, whose URL is in a definition that only Markdown can look up.
- *
- * A line ending in text, which a parsed paragraph can have, stays: it can't be a blank line.
- */
-function writeNode(node: PhrasingContent): string | undefined {
-  switch (node.type) {
-    case 'text':
-      return htmlEscape(node.value);
-    case 'break':
-      return '<br/>';
-    case 'htmlEntity':
-      return node.value;
-    case 'html':
-    case 'inlineHtml':
-      return hasBlankLine(node.value) ? undefined : node.value;
-    case 'inlineCode':
-      // Empty code shows as one space, and a line ending as a space, as in Markdown.
-      return `<code>${htmlEscape(node.value.replace(/\r\n?|\n/g, ' ') || ' ')}</code>`;
-    case 'strong':
-      return writeFormatting('strong', node.children);
-    case 'emphasis':
-      return writeFormatting('em', node.children);
-    case 'delete':
-      return writeFormatting('del', node.children);
-    case 'link': {
-      const inner = writeInline(node.children);
-      if (inner === undefined) return undefined;
-      return `<a${writeAttributes(['href', node.url], ['title', node.title])}>${inner}</a>`;
-    }
-    case 'image': {
-      return `<img${writeAttributes(['src', node.url], ['alt', node.alt], ['title', node.title])}/>`;
-    }
-    default:
-      return undefined;
-  }
-}
-
-/** Return formatting as HTML. Empty formatting shows as one formatted space, as in Markdown. */
-function writeFormatting(tag: string, children: readonly PhrasingContent[]): string | undefined {
-  const inner = writeInline(children);
-  return inner === undefined ? undefined : `<${tag}>${inner || ' '}</${tag}>`;
-}
-
-/** Return the attributes that have a value. */
-function writeAttributes(...attributes: readonly [string, string | null | undefined][]): string {
-  let markup = '';
-  for (const [name, value] of attributes) {
-    if (value === null || value === undefined) continue;
-    markup += ` ${name}="${htmlEscape(value).replace(/"/g, '&quot;')}"`;
-  }
-  return markup;
-}
-
-function hasBlankLine(text: string): boolean {
-  return text.split(/\r\n?|\n/).some((line) => !line.trim());
-}
-
-function htmlEscape(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 }
 
 function html(value: string): Html {
