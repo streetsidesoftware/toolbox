@@ -2,6 +2,25 @@
 
 The [repo's contributing guide](../../CONTRIBUTING.md) covers how to work in this repo. This file holds what's specific to this package.
 
+## The goal
+
+This package makes it easy for scripts to generate Markdown. A script builds elements or writes a template, and never needs to know Markdown's escaping rules.
+
+## Principles
+
+- The caller says what the content is, and rendering picks the form. An explicit option exists only when it's needed.
+- A call produces what it says, as the caller would type the file. Every Markdown form a person could type stays reachable.
+- Drop only pure noise. Keep content, and don't polish valid Markdown.
+- Export only this package's own functions and types. Nothing is re-exported from another package.
+
+## Naming exports
+
+- A builder is named for the Markdown or HTML concept, such as `heading` or `details`.
+- A common element also has its short HTML name, such as `p`, `ul` or `hr`.
+- An entity constant uses its HTML name, such as `nbsp`.
+- A variant leads with its kind or ends with its target, such as `blockTemplate` or `parseDocument`.
+- An element type starts with `MD`, such as `MDLink`.
+
 ## Writing the README
 
 The README opens with two examples that make the same page, one with a template and one with builders, to show that generating Markdown from data is easy. A guide follows, and each part goes from common and simple elements to rare ones.

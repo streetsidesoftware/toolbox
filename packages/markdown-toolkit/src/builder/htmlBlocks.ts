@@ -113,6 +113,7 @@ export function htmlTable(
   function addRow(tag: 'th' | 'td', cells: readonly AnyContent[]): void {
     tags += '<tr>\n';
     for (let i = 0; i < columns; ++i) {
+      // GitHub keeps the `align` attribute and strips `style`.
       const open = align[i] ? `<${tag} align="${align[i]}">` : `<${tag}>`;
       const blocks = cellNodes(cells[i] ?? []);
       const text = plainText(blocks);
