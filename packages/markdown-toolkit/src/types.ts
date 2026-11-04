@@ -4,11 +4,10 @@
  * Describes what an element is, which decides where it may go:
  * - `inline`: inside a line.
  * - `block`: on its own lines.
- * - `comment`: either one.
  * - `listItem`: only directly in a list.
  * - `frontmatter`: only first in a document.
  */
-export type MDKind = 'inline' | 'block' | 'comment' | 'listItem' | 'frontmatter';
+export type MDKind = 'inline' | 'block' | 'listItem' | 'frontmatter';
 
 /** Lists the types that tell the MDElement interfaces apart, one for each. See {@link MDElement.type}. */
 export type MDType =
@@ -26,6 +25,8 @@ export type MDType =
   | 'br'
   | 'htmlEntity'
   | 'comment'
+  | 'inlineComment'
+  | 'blockComment'
   | 'heading'
   | 'paragraph'
   | 'horizontalRule'
@@ -158,10 +159,25 @@ export interface MDHtmlEntity extends MDElement {
   readonly character: string;
 }
 
-/** Describes an HTML comment, which the page doesn't show, made by {@link comment}. */
+/**
+ * Describes an HTML comment, which the page doesn't show, made by {@link comment}.
+ * Its text decides whether it goes inside a line or on its own lines.
+ */
 export interface MDComment extends MDElement {
-  readonly kind: 'comment';
+  readonly kind: 'inline' | 'block';
   readonly type: 'comment';
+}
+
+/** Describes an HTML comment on one line, made by {@link inlineComment}. */
+export interface MDInlineComment extends MDElement {
+  readonly kind: 'inline';
+  readonly type: 'inlineComment';
+}
+
+/** Describes an HTML comment with its markers on lines of their own, made by {@link blockComment}. */
+export interface MDBlockComment extends MDElement {
+  readonly kind: 'block';
+  readonly type: 'blockComment';
 }
 
 /** Describes a heading, made by {@link heading}. */
@@ -280,7 +296,7 @@ export type HeadingDepth = 1 | 2 | 3 | 4 | 5 | 6;
 /**
  * Describes an element that goes inside a line, such as text, a link or formatting.
  *
- * A comment goes either inside a line or on its own.
+ * A comment from {@link comment} may go here or on its own lines, depending on its text.
  */
 export type MDInline =
   | MDText
@@ -296,6 +312,7 @@ export type MDInline =
   | MDBr
   | MDHtmlEntity
   | MDComment
+  | MDInlineComment
   | MDInlineFragment;
 
 /** Describes an element that goes on its own lines, such as a paragraph, list or table. */
@@ -310,6 +327,7 @@ export type MDBlock =
   | MDTable
   | MDHtmlTable
   | MDComment
+  | MDBlockComment
   | MDDocument
   | MDFragment
   | MDBlockPlaceholder;

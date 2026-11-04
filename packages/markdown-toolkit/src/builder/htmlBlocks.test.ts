@@ -108,7 +108,6 @@ describe('details', () => {
     ${inlineTemplate('![a](b.png)', {})}                   | ${'<img src="b.png" alt="a"/>'}
     ${['a', br(), 'b']}                                    | ${'a<br/>b'}
     ${comment('note')}                                     | ${'<!-- note -->'}
-    ${comment('a\nb')}                                     | ${'<!-- a\nb -->'}
   `(
     'a summary with inline elements is HTML on one line: $expected',
     ({ summary, expected }: { summary: InlineContent; expected: string }) => {
@@ -167,21 +166,12 @@ describe('details', () => {
     );
   });
 
-  testEach`
-    summary                  | expected
-    ${comment('a\n\nb')}     | ${'<!-- a\n\nb -->'}
-    ${comment('a\n \nb')}    | ${'<!-- a\n \nb -->'}
-    ${comment('a\r\n\r\nb')} | ${'<!-- a\r\n\r\nb -->'}
-    ${comment('a\r\rb')}     | ${'<!-- a\r\rb -->'}
-  `(
-    'a summary with a blank line in HTML has blank lines: $expected',
-    ({ summary, expected }: { summary: InlineContent; expected: string }) => {
-      assert.equal(
-        details(summary, 'b').toString(),
-        `<details>\n<summary>\n\n${expected}\n\n</summary>\n\nb\n\n</details>`,
-      );
-    },
-  );
+  test('a summary with a multi-line comment throws', () => {
+    assert.throws(
+      () => details(comment('a\nb'), 'c'),
+      new TypeError('details summary must be inline, got a multi-line comment'),
+    );
+  });
 
   test('it goes in a list item', () => {
     assert.equal(

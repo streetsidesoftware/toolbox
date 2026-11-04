@@ -6,6 +6,7 @@ import { testEach } from '@streetsidesoftware/test-each';
 
 import type * as Builders from './index.ts';
 import {
+  blockComment,
   blockPlaceholder,
   blockText,
   br,
@@ -20,6 +21,7 @@ import {
   horizontalRule,
   htmlTable,
   inlineCode,
+  inlineComment,
   isMarkdown,
   lineBreak,
   link,
@@ -53,6 +55,9 @@ describe('element types', () => {
         ${lineBreak()}                          | ${'lineBreak'}        | ${'a line break'}
         ${br()}                                 | ${'br'}               | ${'a <br/>'}
         ${comment('a')}                         | ${'comment'}          | ${'a comment'}
+        ${comment('a\nb')}                      | ${'comment'}          | ${'a multi-line comment'}
+        ${inlineComment('a')}                   | ${'inlineComment'}    | ${'an inline comment'}
+        ${blockComment('a')}                    | ${'blockComment'}     | ${'a block comment'}
         ${heading(1, 'a')}                      | ${'heading'}          | ${'a heading'}
         ${paragraph('a')}                       | ${'paragraph'}        | ${'a paragraph'}
         ${horizontalRule()}                     | ${'horizontalRule'}   | ${'a horizontal rule'}

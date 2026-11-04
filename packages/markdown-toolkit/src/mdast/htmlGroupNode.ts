@@ -93,11 +93,8 @@ function writeInline(nodes: readonly PhrasingContent[]): string | undefined {
 }
 
 /**
- * Return one inline node as HTML, or `undefined` when it has to stay Markdown:
- * - It's HTML with a blank line in it, which would end the HTML block.
- * - It has no HTML form, such as a reference, whose URL is in a definition that only Markdown can look up.
- *
- * A line ending in text, which a parsed paragraph can have, stays: it can't be a blank line.
+ * Return one inline node as HTML, or `undefined` when it has to stay Markdown because it has no HTML form, such as a
+ * reference, whose URL is in a definition that only Markdown can look up.
  */
 function writeNode(node: PhrasingContent): string | undefined {
   switch (node.type) {
@@ -107,10 +104,9 @@ function writeNode(node: PhrasingContent): string | undefined {
       return '<br/>';
     case 'htmlEntity':
     case 'placeholder':
-      return (node as Literal).value;
     case 'html':
     case 'inlineHtml':
-      return hasBlankLine(node.value) ? undefined : node.value;
+      return (node as Literal).value;
     case 'inlineCode':
       // Empty code shows as one space, and a line ending as a space, as in Markdown.
       return `<code>${htmlEscape(node.value.replace(/\r\n?|\n/g, ' ') || ' ')}</code>`;
@@ -146,10 +142,6 @@ function writeAttributes(...attributes: readonly [string, string | null | undefi
     markup += ` ${name}="${htmlEscape(value).replace(/"/g, '&quot;')}"`;
   }
   return markup;
-}
-
-function hasBlankLine(text: string): boolean {
-  return text.split(/\r\n?|\n/).some((line) => !line.trim());
 }
 
 function htmlEscape(text: string): string {
