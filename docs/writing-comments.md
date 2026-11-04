@@ -166,6 +166,7 @@ which function to use instead.
 
 ### Tags
 
+- `@default` on a line of its own for a field's default: `@default true`. Quote a string: `@default '{@'`.
 - `@param` only where the name and type don't say enough: `@param depth - 1 for the page title, 2 for its sections,
 and so on down to 6.`
 - No `@throws`. It goes stale fast and misleads. Say what isn't allowed in the details instead.
