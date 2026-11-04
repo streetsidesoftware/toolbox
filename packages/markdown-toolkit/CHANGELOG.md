@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.1.0](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/markdown-toolkit@2.0.1...@streetsidesoftware/markdown-toolkit@2.1.0) (2026-11-04)
+
+
+### Features
+
+* **markdown-toolkit:** add blockComment and inlineComment ([#155](https://github.com/streetsidesoftware/toolbox/issues/155)) ([1278bf7](https://github.com/streetsidesoftware/toolbox/commit/1278bf76053e4b3fb2222dce5c6433730a513b9c))
+
+
+### Updates and Bug Fixes
+
+* **markdown-toolkit:** keep third-party imports out of the published types ([#147](https://github.com/streetsidesoftware/toolbox/issues/147)) ([7a64d60](https://github.com/streetsidesoftware/toolbox/commit/7a64d6078282d0328c333a6bca544f3b586e9372))
+* **markdown-toolkit:** write inline elements in a summary, term or cell as HTML ([#149](https://github.com/streetsidesoftware/toolbox/issues/149)) ([ab857fb](https://github.com/streetsidesoftware/toolbox/commit/ab857fb37ab34203bd6921b5b74557c25d41ae9d))
+
 ## [2.0.1](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/markdown-toolkit@2.0.0...@streetsidesoftware/markdown-toolkit@2.0.1) (2026-11-03)
 
 
