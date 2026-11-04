@@ -3,7 +3,7 @@ export { blockPlaceholder, placeholder } from './placeholder.ts';
 export { emphasis, link, strikethrough, strong, sub, sup } from './formatting.ts';
 export { codeBlock, inlineCode } from './code.ts';
 export { br, lineBreak } from './lineBreak.ts';
-export { comment } from './comment.ts';
+export { blockComment, comment, inlineComment } from './comment.ts';
 export { heading, horizontalRule, hr, p, paragraph, toBlock } from './block.ts';
 export { li, list, listItem, ol, taskListItem, ul } from './list.ts';
 export { DocumentElement, document } from './document.ts';

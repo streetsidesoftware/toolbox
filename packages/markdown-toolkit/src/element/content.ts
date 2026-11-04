@@ -40,7 +40,7 @@ export function inlineNodes(content: InlineContent, where: string): PhrasingCont
   if (isArray(content)) return content.flatMap((c) => inlineNodes(c, where));
   const rendering = renderingOf(content);
   // Inside a line, HTML such as a comment or `<br/>` is written as is, so a line ending before it stays.
-  if (rendering && isKind(content, 'inline', 'comment')) return rendering.nodes.map(asInlineHtml);
+  if (rendering && isKind(content, 'inline')) return rendering.nodes.map(asInlineHtml);
   if (isListItem(content)) throw new TypeError(`${where} can't hold a list item; a list item goes in a list`);
   throw new TypeError(`${where} must be inline, got ${describe(content)}`);
 }
@@ -52,7 +52,7 @@ export function inlineNodes(content: InlineContent, where: string): PhrasingCont
 export function blockNodes(content: BlockLike, where: string): RootContent[] {
   if (isArray(content)) return content.flatMap((c) => blockNodes(c, where));
   const rendering = renderingOf(content);
-  if (rendering && isKind(content, 'block', 'comment', 'listItem')) return rendering.nodes;
+  if (rendering && isKind(content, 'block', 'listItem')) return rendering.nodes;
   throw new TypeError(`${where} must be blocks, got ${describe(content)}`);
 }
 
