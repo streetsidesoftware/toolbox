@@ -6,23 +6,23 @@ import { fromMarkdown } from 'mdast-util-from-markdown';
 import type { BindingPattern, BindingRestElement, Comment, ParamPattern, Statement } from 'oxc-parser';
 import { parseSync } from 'oxc-parser';
 
-/** Holds the longest summary, in characters: the length of one comment line. */
+/** The maximum length of a summary, in characters, which is the length of one comment line. */
 export const SUMMARY_LIMIT = 140;
 
 /** Describes a function or constant a package exports, with what its JSDoc says about it. */
 export interface ApiFunction {
-  /** Holds the name it's declared with, or the first name it's exported as when that one isn't exported. */
+  /** The name it's declared with, or the first name it's exported as when that one isn't exported. */
   name: string;
   /**
-   * Holds the parameter names: `lang?` when optional, `...content` for a rest parameter.
+   * The parameter names: `lang?` when optional, `...content` for a rest parameter.
    * A constant has none, not even an empty list.
    */
   params: string[] | undefined;
-  /** Holds its `@summary` tag, or else the first paragraph of its JSDoc, as one line of Markdown. */
+  /** The `@summary` tag, or else the first paragraph of its JSDoc, as one line of Markdown. */
   summary: string;
-  /** Holds its `@category` tag. */
+  /** The `@category` tag in its JSDoc. */
   category: string;
-  /** Holds the other names it's exported as. */
+  /** The other names it's exported as. */
   aliases: string[];
 }
 
@@ -31,26 +31,26 @@ interface FunctionDeclaration {
   file: string;
   name: string;
   params: string[] | undefined;
-  /** Holds the JSDoc of its first declaration, an overload's when it has them. */
+  /** The JSDoc of its first declaration, which for overloads is the first overload's. */
   jsdoc: string | undefined;
 }
 
 interface Module {
   file: string;
   functions: Map<string, FunctionDeclaration>;
-  /** Maps an alias name to a function name, for a `const a = b` where `b` is a function. */
+  /** The name each alias points to, from a `const a = b`. */
   aliases: Map<string, string>;
   exports: ValueExport[];
-  /** Holds an `export *` or `export default`, which the reference can't list. */
+  /** The first `export *` or `export default` found, which the reference can't list. */
   unsupported: string | undefined;
 }
 
 interface ValueExport {
-  /** Holds the name other modules import it by. */
+  /** The name other modules import it by. */
   exported: string;
-  /** Holds its name in `file`. */
+  /** The name it has in `file`. */
   local: string;
-  /** Holds the path of the file that declares or re-exports `local`. */
+  /** The path of the file that declares or re-exports `local`. */
   file: string;
 }
 

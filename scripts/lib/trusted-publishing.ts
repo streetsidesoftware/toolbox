@@ -5,11 +5,11 @@ import { REPO_ROOT_DIR } from './consts.ts';
 import { compare } from './packages.ts';
 import { readJsonFile } from './release-please.ts';
 
-/** Holds the file name of the workflow each package names as its npm trusted publisher. */
+/** The file name of the workflow each package names as its npm trusted publisher. */
 export const WORKFLOW_FILE = 'publish.yml';
 
 /**
- * Holds the path of each package's publication state, relative to the repo root. A package's entry is:
+ * The path of each package's publication state, relative to the repo root. A package's entry is:
  * - `{ "trustedPublishing": false }` while it waits for publication.
  * - `{ "trustedPublishing": true }` once it trusts {@link WORKFLOW_FILE}.
  * - `false` for a package never to publish.

@@ -3,20 +3,20 @@ import fs from 'node:fs/promises';
 import type { ApiFunction } from './api-exports.ts';
 import { compare } from './packages.ts';
 
-/** Holds the path of a package's reference config, relative to the package. */
+/** The path of a package's reference config, relative to the package. */
 export const CONFIG_FILE = '.api-referencerc.json';
 
 /** Describes how a package's function reference is laid out. */
 export interface ApiReferenceConfig {
-  /** Holds the `###` sections, in the order the reference lists them. */
+  /** The `###` sections, in the order the reference lists them. */
   groups: ApiGroupConfig[];
 }
 
 export interface ApiGroupConfig {
   heading: string;
-  /** Holds the `@category` values whose functions go under this heading. */
+  /** The `@category` values whose functions go under this heading. */
   categories: string[];
-  /** Holds the functions to list first, in this order. The rest follow alphabetically. */
+  /** The functions to list first, in this order. The rest follow alphabetically. */
   functions?: string[];
 }
 
