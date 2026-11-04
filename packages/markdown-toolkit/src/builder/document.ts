@@ -1,7 +1,6 @@
 import type { RootContent } from 'mdast';
 
 import { argumentNodes, MarkdownElement, renderingOf } from '../element/index.ts';
-import type { StyleOptions } from '../render.ts';
 import type { AnyContent, MarkdownStyle, MDDocument, MDFrontmatter } from '../types.ts';
 import { isFrontmatter } from './frontmatter.ts';
 
@@ -38,7 +37,7 @@ export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument
 
 /** Implements a whole document. It renders with a trailing newline, since it stands alone as a file. */
 export class DocumentElement extends MarkdownElement<'block', 'document'> implements MDDocument {
-  constructor(nodes: RootContent[], style?: StyleOptions) {
+  constructor(nodes: RootContent[], style?: MarkdownStyle) {
     super('block', 'document', 'a document', nodes, style);
   }
 
