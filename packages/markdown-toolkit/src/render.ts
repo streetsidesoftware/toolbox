@@ -5,11 +5,14 @@ import type { Options as StyleOptions } from 'remark-stringify';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
-import { isFormatting, trimAroundLineEndings, trimBlanksAroundBreaks, trimLineEdges } from './blanks.ts';
-import { htmlEntityNode } from './htmlEntityNode.ts';
-import type { HtmlEntityNode } from './htmlEntityNode.ts';
-import type { InlineHtmlNode } from './inlineHtmlNode.ts';
-import type { PlaceholderNode } from './placeholderNode.ts';
+import {
+  htmlEntityNode,
+  isFormatting,
+  trimAroundLineEndings,
+  trimBlanksAroundBreaks,
+  trimLineEdges,
+} from './mdast/index.ts';
+import type { HtmlEntityNode, InlineHtmlNode, PlaceholderNode } from './mdast/index.ts';
 
 export type { Options as StyleOptions } from 'remark-stringify';
 

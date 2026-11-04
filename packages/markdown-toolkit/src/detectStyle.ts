@@ -1,7 +1,25 @@
 import type { Root } from 'mdast';
+import remarkGfm from 'remark-gfm';
+import remarkParse from 'remark-parse';
+import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
 import type { MarkdownStyle } from './types.ts';
+
+/**
+ * Detect how existing Markdown is written, such as its bullet and emphasis markers.
+ *
+ * Pass the result to {@link MDDocument.withStyle}, so new content matches the file.
+ *
+ * @example
+ * md.document(md.list(['German'])).withStyle(md.detectStyle('* Dutch\n'));
+ * // * German
+ * @category style
+ */
+export function detectStyle(markdown: string): MarkdownStyle {
+  const root = unified().use(remarkParse).use(remarkGfm).parse(markdown);
+  return detectMarkdownStyle(root, markdown);
+}
 
 /**
  * Detect the markers that `tree` uses, such as its bullets, emphasis and fences, by majority vote over its nodes.

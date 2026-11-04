@@ -1,6 +1,5 @@
 import type { Html, PhrasingContent, RootContent } from 'mdast';
 
-import { trimBlanks, trimBlanksAroundBreaks } from './blanks.ts';
 import {
   argumentNodes,
   blockNodes,
@@ -11,8 +10,8 @@ import {
   isArray,
   mapParagraphsAndBlocks,
   MarkdownElement,
-} from './nodes.ts';
-import { alignOf } from './table.ts';
+} from '../element/index.ts';
+import { trimBlanks, trimBlanksAroundBreaks } from '../mdast/index.ts';
 import type {
   AnyContent,
   DefinitionEntry,
@@ -21,7 +20,8 @@ import type {
   MDDetails,
   MDHtmlTable,
   TableOptions,
-} from './types.ts';
+} from '../types.ts';
+import { alignOf } from './table.ts';
 
 /**
  * Create a collapsible section: the reader sees `summary` and clicks it to show the content.

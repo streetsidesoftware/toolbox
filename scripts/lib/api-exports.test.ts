@@ -126,6 +126,34 @@ describe('readApiFunctions', () => {
     );
   });
 
+  test('follows a re-export through another module, under each name it gets', async () => {
+    await withModules(
+      {
+        'index.ts': "export { g, g as h } from './folder.ts';\n",
+        'folder.ts': "export { f as g } from './a.ts';\n",
+        'a.ts': '/**\n * F.\n * @category C\n */\nexport function f(x: string): void {}\n',
+      },
+      async (index) => {
+        assert.deepEqual(await readApiFunctions(index), [
+          { name: 'g', params: ['x'], summary: 'F.', category: 'C', aliases: ['h'] },
+        ]);
+      },
+    );
+  });
+
+  test('throws when a module it re-exports from does not export the name', async () => {
+    await withModules(
+      {
+        'index.ts': "export { g } from './folder.ts';\n",
+        'folder.ts': "export { f } from './a.ts';\n",
+        'a.ts': '/**\n * F.\n * @category C\n */\nexport function f(): void {}\n',
+      },
+      async (index) => {
+        await assert.rejects(readApiFunctions(index), /g in .*folder\.ts isn't a function or a const/);
+      },
+    );
+  });
+
   test('ignores export * and export default in a module it only re-exports from', async () => {
     await withModules(
       {

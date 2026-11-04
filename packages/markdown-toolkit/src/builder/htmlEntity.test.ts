@@ -31,8 +31,8 @@ import {
   template,
   templateDocument,
   thinsp,
-} from './index.ts';
-import type { MDElement, MDHtmlEntity, MDInlineFragment } from './index.ts';
+} from '../index.ts';
+import type { MDElement, MDHtmlEntity, MDInlineFragment } from '../index.ts';
 
 interface EntityRow {
   value: string;

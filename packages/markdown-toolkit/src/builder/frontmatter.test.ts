@@ -3,7 +3,6 @@ import { describe, test } from 'node:test';
 
 import { testEach } from '@streetsidesoftware/test-each';
 
-import { readFrontmatter } from './frontmatter.ts';
 import {
   document,
   frontmatter,
@@ -18,8 +17,9 @@ import {
   template,
   templateDocument,
   templateFragment,
-} from './index.ts';
-import type { MDElement } from './index.ts';
+} from '../index.ts';
+import type { MDElement } from '../index.ts';
+import { readFrontmatter } from './frontmatter.ts';
 
 const page = '---\n# AUTO-GENERATED\ntitle: CSpell\nid: cspell\n---\n\n# CSpell\n';
 

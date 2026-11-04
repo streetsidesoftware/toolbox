@@ -1,7 +1,7 @@
 import type { AlignType, TableRow } from 'mdast';
 
-import { describe, inlineNodes, isArray, MarkdownElement } from './nodes.ts';
-import type { ColumnAlign, InlineContent, MDTable, TableOptions } from './types.ts';
+import { describe, inlineNodes, isArray, MarkdownElement } from '../element/index.ts';
+import type { ColumnAlign, InlineContent, MDTable, TableOptions } from '../types.ts';
 
 /**
  * Create a table with a header row, then one row per entry.

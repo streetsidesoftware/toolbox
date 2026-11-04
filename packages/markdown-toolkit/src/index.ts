@@ -4,49 +4,61 @@ export {
   br,
   codeBlock,
   comment,
+  copy,
+  definitionList,
+  details,
+  dl,
   document,
   emphasis,
+  emsp,
+  ensp,
+  frontmatter,
   heading,
+  hellip,
   horizontalRule,
   hr,
+  htmlEntity,
+  htmlTable,
   inlineCode,
   inlineText,
-  isMarkdown,
+  li,
   lineBreak,
   link,
   list,
-  li,
   listItem,
+  mdash,
+  nbsp,
+  ndash,
   ol,
   p,
   paragraph,
   placeholder,
+  shy,
   strikethrough,
   strong,
   sub,
   sup,
+  table,
   taskListItem,
   text,
+  thinsp,
   toBlock,
   ul,
-} from './builders.ts';
-export { frontmatter } from './frontmatter.ts';
-export { definitionList, details, dl, htmlTable } from './htmlBlocks.ts';
-export { copy, emsp, ensp, hellip, htmlEntity, mdash, nbsp, ndash, shy, thinsp } from './htmlEntity.ts';
-export { detectStyle } from './style.ts';
-export { table } from './table.ts';
-export type { TemplateResolver, TemplateValue, TemplateValues } from './template.ts';
+} from './builder/index.ts';
+export { isMarkdown } from './element/index.ts';
+export { detectStyle } from './detectStyle.ts';
+export type { TemplateResolver, TemplateValue, TemplateValues } from './template/index.ts';
 export {
   blockTemplate,
   inlineTemplate,
   parse,
-  parseDocument,
   parse as parseFragment,
+  parseDocument,
   substitutePlaceholders,
   template,
-  templateDocument,
   template as templateFragment,
-} from './template.ts';
+  templateDocument,
+} from './template/index.ts';
 export type {
   AnyContent,
   BlockContent,
