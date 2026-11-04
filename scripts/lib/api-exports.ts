@@ -50,7 +50,7 @@ interface ValueExport {
   exported: string;
   /** Holds its name in `file`. */
   local: string;
-  /** Holds the module that has the name `local`: the one in `export … from`, or else the exporting module. */
+  /** Holds the path of the file that declares or re-exports `local`. */
   file: string;
 }
 
