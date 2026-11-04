@@ -14,11 +14,10 @@ import {
   writeHtmlGroups,
 } from './mdast/index.ts';
 import type { HtmlEntityNode, InlineHtmlNode, PlaceholderNode } from './mdast/index.ts';
-
-export type { Options as StyleOptions } from 'remark-stringify';
+import type { MarkdownStyle } from './types.ts';
 
 /** Holds the style for constructs an element carries no style for. */
-export const defaultStyle: StyleOptions = {
+const defaultStyle: StyleOptions = {
   bullet: '-',
   emphasis: '_',
   fence: '`',
@@ -41,7 +40,7 @@ const handlers = {
  * Render Markdown nodes as text, without a trailing newline.
  * Escaping is left to remark, which knows where each node sits.
  */
-export function renderNodes(children: RootContent[], style: StyleOptions | undefined): string {
+export function renderNodes(children: RootContent[], style: MarkdownStyle | undefined): string {
   const root: Root = { type: 'root', children: writeHtmlGroups(structuredClone(children)) };
   // Before line breaks in a table cell or heading become `<br/>`.
   visit(root, (node) => {

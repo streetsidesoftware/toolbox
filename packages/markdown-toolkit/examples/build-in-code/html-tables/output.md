@@ -1,8 +1,16 @@
 <table>
 <thead>
 <tr>
-<th>Option</th>
-<th>Description</th>
+<th>
+
+Option
+
+</th>
+<th>
+
+Description
+
+</th>
 </tr>
 </thead>
 <tbody>
@@ -12,7 +20,11 @@
 `--words`
 
 </td>
-<td>Words to accept as correct.</td>
+<td>
+
+Words to accept as correct.
+
+</td>
 </tr>
 <tr>
 <td>

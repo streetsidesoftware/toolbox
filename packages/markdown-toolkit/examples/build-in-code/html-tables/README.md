@@ -37,8 +37,16 @@ console.log(page.toString());
 <table>
 <thead>
 <tr>
-<th>Option</th>
-<th>Description</th>
+<th>
+
+Option
+
+</th>
+<th>
+
+Description
+
+</th>
 </tr>
 </thead>
 <tbody>
@@ -48,7 +56,11 @@ console.log(page.toString());
 `--words`
 
 </td>
-<td>Words to accept as correct.</td>
+<td>
+
+Words to accept as correct.
+
+</td>
 </tr>
 <tr>
 <td>
