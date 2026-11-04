@@ -1,8 +1,7 @@
 import type { ListItem, PhrasingContent, RootContent } from 'mdast';
 
 import { renderNodes } from '../render.ts';
-import type { StyleOptions } from '../render.ts';
-import type { MDElement, MDKind, MDListItem, MDText, MDType } from '../types.ts';
+import type { MarkdownStyle, MDElement, MDKind, MDListItem, MDText, MDType } from '../types.ts';
 
 /**
  * Holds the key an element's rendering is stored under. Having it is what makes a value a Markdown element.
@@ -13,7 +12,7 @@ const renderingKey: unique symbol = Symbol.for('@streetsidesoftware/markdown-too
 /** Describes the nodes an element renders as, and the style to render them in. */
 interface Rendering {
   nodes: RootContent[];
-  style: StyleOptions | undefined;
+  style: MarkdownStyle | undefined;
 }
 
 /**
@@ -25,7 +24,7 @@ export class MarkdownElement<K extends MDKind = MDKind, T extends MDType = MDTyp
   readonly type: T;
   readonly description: string;
 
-  constructor(kind: K, type: T, description: string, nodes: RootContent[], style?: StyleOptions) {
+  constructor(kind: K, type: T, description: string, nodes: RootContent[], style?: MarkdownStyle) {
     this.kind = kind;
     this.type = type;
     this.description = description;
