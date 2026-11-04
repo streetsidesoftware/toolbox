@@ -18,7 +18,7 @@ export interface PlaceholderOptions {
   close?: string | undefined;
 }
 
-/** The delimiters, and whether {@link replacePlaceholders} indents a multi-line value. */
+/** The options of {@link replacePlaceholders}. */
 export interface ReplacePlaceholdersOptions extends PlaceholderOptions {
   /**
    * Gives each later line of a multi-line value the leading whitespace of its placeholder's line.
