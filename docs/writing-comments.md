@@ -142,8 +142,8 @@ renders the comment as Markdown.
 ### The summary
 
 The summary is the first paragraph: one sentence that says what the function does. It starts with a verb in the
-imperative for a function or method, and in the third person for a function type. Anything else may use a noun phrase
-instead of a sentence. [Every comment](#every-comment) has the details.
+imperative for a function, a method or a property that holds a function, and in the third person for a function type.
+Anything else may use a noun phrase instead of a sentence. [Every comment](#every-comment) has the details.
 
 - Say what it makes or does, from the reader's side: "Create bold text.", "Start a new line without starting a new
   paragraph."
