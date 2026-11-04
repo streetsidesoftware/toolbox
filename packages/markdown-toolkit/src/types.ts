@@ -253,12 +253,9 @@ export interface MDDocument extends MDElement {
   readonly kind: 'block';
   readonly type: 'document';
   /**
-   * Return a copy of the document that writes its Markdown in the given style.
+   * Return a copy of the document with the given style preferences.
    *
-   * The style replaces any style the document had, and applies to everything inside it.
-   *
-   * Without this call, a template or parsed text keeps the style of its own text. Spacing and table padding may still
-   * change.
+   * The style is replaced and not merged with the existing document style.
    *
    * @example
    * md.document(md.list(['German'])).withStyle({ bullet: '*' });
