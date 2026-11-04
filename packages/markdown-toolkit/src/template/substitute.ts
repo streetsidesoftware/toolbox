@@ -173,7 +173,7 @@ type Piece = RootContent | BlockSlot | EmptySlot;
 type ParagraphMode = 'split' | 'join';
 
 /** Lists the node types whose children may be blocks. */
-const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'list', 'listItem']);
+const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'htmlBlockSlot', 'htmlGroup', 'list', 'listItem']);
 
 /**
  * Replace the placeholders that have values, in place.

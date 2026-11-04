@@ -1,4 +1,4 @@
-import type { Html, PhrasingContent, RootContent } from 'mdast';
+import type { Html, RootContent } from 'mdast';
 
 import {
   argumentNodes,
@@ -11,7 +11,8 @@ import {
   mapParagraphsAndBlocks,
   MarkdownElement,
 } from '../element/index.ts';
-import { trimBlanks, trimBlanksAroundBreaks } from '../mdast/index.ts';
+import { trimBlanks } from '../mdast/index.ts';
+import type { HtmlGroupNode, HtmlSlotNode } from '../mdast/index.ts';
 import type {
   AnyContent,
   DefinitionEntry,
@@ -41,7 +42,7 @@ import { alignOf } from './table.ts';
  */
 export function details(summary: InlineContent, ...content: AnyContent[]): MDDetails {
   return new MarkdownElement('block', 'details', 'a details block', [
-    ...wrapped('<details>\n', 'summary', summary, '', 'details summary'),
+    { type: 'htmlGroup', children: [html('<details>'), inlineSlot('summary', summary, 'details summary')] },
     ...argumentNodes(content, 'details content'),
     html('</details>'),
   ]);
@@ -67,7 +68,7 @@ export function dl(entries: readonly DefinitionEntry[]): MDDefinitionList {
     }
     const [term, definition] = entry;
     return [
-      ...wrapped('', 'dt', term, '\n<dd>', 'definition term'),
+      { type: 'htmlGroup', children: [inlineSlot('dt', term, 'definition term'), html('<dd>')] },
       ...groupedNodes([definition], 'definition'),
       html('</dd>'),
     ];
@@ -101,55 +102,41 @@ export function htmlTable(
   }
   const columns = rows.reduce((n, row) => Math.max(n, row.length), header.length);
   const align = (options?.align ?? []).map(alignOf);
-  const nodes: RootContent[] = [];
-  // Tags written since the last cell with Markdown. They form one HTML node, since nodes are joined by blank lines.
-  let tags = '<table>\n';
-
-  function flush(): void {
-    nodes.push(html(tags.replace(/\n$/, '')));
-    tags = '';
-  }
+  const parts: HtmlGroupNode['children'] = [html('<table>')];
 
   function addRow(tag: 'th' | 'td', cells: readonly AnyContent[]): void {
-    tags += '<tr>\n';
+    parts.push(html('<tr>'));
     for (let i = 0; i < columns; ++i) {
-      const open = align[i] ? `<${tag} align="${align[i]}">` : `<${tag}>`;
-      const blocks = cellNodes(cells[i] ?? []);
-      const text = plainText(blocks);
-      if (text !== undefined) {
-        tags += `${open}${text}</${tag}>\n`;
-        continue;
-      }
-      tags += open;
-      flush();
-      nodes.push(...blocks);
-      tags = `</${tag}>\n`;
+      parts.push({
+        type: 'htmlBlockSlot',
+        // GitHub keeps the `align` attribute and strips `style`.
+        open: align[i] ? `<${tag} align="${align[i]}">` : `<${tag}>`,
+        close: `</${tag}>`,
+        children: cellNodes(cells[i] ?? []),
+      });
     }
-    tags += '</tr>\n';
+    parts.push(html('</tr>'));
   }
 
   if (header.length) {
-    tags += '<thead>\n';
+    parts.push(html('<thead>'));
     addRow('th', header);
-    tags += '</thead>\n';
+    parts.push(html('</thead>'));
   }
-  tags += '<tbody>\n';
+  parts.push(html('<tbody>'));
   rows.forEach((row) => addRow('td', row));
-  tags += '</tbody>\n</table>';
-  flush();
-  return new MarkdownElement('block', 'htmlTable', 'an HTML table', nodes);
+  parts.push(html('</tbody>'), html('</table>'));
+  return new MarkdownElement('block', 'htmlTable', 'an HTML table', [{ type: 'htmlGroup', children: parts }]);
 }
 
-/**
- * Return the nodes for inline content in an HTML element, with HTML written before and after it.
- * Plain text and HTML entities go on one line, since Markdown isn't read there.
- * Anything else gets blank lines, so it renders.
- */
-function wrapped(before: string, tag: string, content: InlineContent, after: string, where: string): RootContent[] {
-  const children = trimBlanks(inlineNodes(content, where));
-  const text = plainHtml(children);
-  if (text !== undefined) return [html(`${before}<${tag}>${text}</${tag}>${after}`)];
-  return [html(`${before}<${tag}>`), { type: 'paragraph', children }, html(`</${tag}>${after}`)];
+/** Return a slot for inline content between a tag's start and end. */
+function inlineSlot(tag: string, content: InlineContent, where: string): HtmlSlotNode {
+  return {
+    type: 'htmlInlineSlot',
+    open: `<${tag}>`,
+    close: `</${tag}>`,
+    children: [{ type: 'paragraph', children: trimBlanks(inlineNodes(content, where)) }],
+  };
 }
 
 /** Return the blocks of a table cell, grouped as in a document. */
@@ -160,43 +147,6 @@ function cellNodes(content: AnyContent): RootContent[] {
     (block) => blockNodes(block, 'table cell'),
   );
   return inLists(nodes);
-}
-
-/**
- * Return a cell's HTML when it can stay on its tag's line: empty, or one paragraph that {@link plainHtml} can write.
- * Return `undefined` when the cell has Markdown and needs blank lines around it.
- */
-function plainText(blocks: RootContent[]): string | undefined {
-  if (!blocks.length) return '';
-  const [first] = blocks;
-  if (blocks.length !== 1 || first.type !== 'paragraph') return undefined;
-  return plainHtml(first.children);
-}
-
-/**
- * Return text, HTML entities and line breaks as HTML on one line, or `undefined` when there is anything else.
- * A line ending in text, which a parsed paragraph can have, stays: it can't be a blank line, which would end the block.
- */
-function plainHtml(children: readonly PhrasingContent[]): string | undefined {
-  const nodes = trimBlanksAroundBreaks(children);
-  // A line break at the start or end can't display, as in a paragraph.
-  let start = 0;
-  let end = nodes.length;
-  while (nodes[start]?.type === 'break') ++start;
-  while (end > start && nodes[end - 1].type === 'break') --end;
-  let markup = '';
-  for (let i = start; i < end; ++i) {
-    const node = nodes[i];
-    if (node.type === 'text') markup += htmlEscape(node.value);
-    else if (node.type === 'break') markup += '<br/>';
-    else if (node.type === 'htmlEntity') markup += node.value;
-    else return undefined;
-  }
-  return markup;
-}
-
-function htmlEscape(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 }
 
 function html(value: string): Html {
