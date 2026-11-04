@@ -149,11 +149,6 @@ describe('errors', () => {
     // @ts-expect-error a code block is not inline
     assert.throws(() => paragraph(['a', codeBlock('x')]), TypeError);
   });
-
-  test('a heading depth outside 1 to 6', () => {
-    // @ts-expect-error 7 is not a heading depth
-    assert.throws(() => heading(7, 'x'), /heading depth must be 1 to 6, got 7/);
-  });
 });
 
 // Load a second copy of the package: `?copy` gives index.ts, and each local module it imports, a new module instance.

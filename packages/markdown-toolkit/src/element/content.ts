@@ -2,8 +2,8 @@ import { listPlaceholders } from '@streetsidesoftware/placeholders';
 import type { List, BlockContent as MdastBlockContent, PhrasingContent, RootContent } from 'mdast';
 
 import { asInlineHtml, placeholderNodeAsWritten, trimBlanks } from '../mdast/index.ts';
-import type { AnyContent, BlockContent, InlineContent, MDBlock, MDListItem, MDText } from '../types.ts';
-import { describe, isArray, isKind, renderingOf } from './element.ts';
+import type { AnyContent, BlockContent, InlineContent, MDBlock, MDListItem } from '../types.ts';
+import { describe, isArray, isKind, isListItem, renderingOf } from './element.ts';
 
 /** Describes content on its own lines, where list items in a row form a list. */
 type BlockLike = BlockContent | MDListItem | readonly (BlockContent | MDListItem)[];
@@ -66,16 +66,6 @@ export function isBlockContent(content: unknown): content is BlockContent {
 export function isBlockLike(content: unknown): content is BlockLike {
   if (Array.isArray(content)) return content.length > 0 && content.every(isBlockLike);
   return isKind(content, 'block', 'listItem');
-}
-
-/** Check whether a value is a list item made by `listItem`. */
-export function isListItem(value: unknown): value is MDListItem {
-  return isKind(value, 'listItem');
-}
-
-/** Check whether a value is text made by `text` or `inlineText`. */
-export function isText(value: unknown): value is MDText {
-  return isKind(value, 'inline') && value.type === 'text';
 }
 
 /**

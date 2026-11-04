@@ -6,10 +6,25 @@ import remarkParse from 'remark-parse';
 import { unified } from 'unified';
 
 import { detectMarkdownStyle, firstNonSpace, orderedMarkerAt } from './detectStyle.ts';
+import { detectStyle, document, emphasis, list } from './index.ts';
 
 function parse(content: string) {
   return unified().use(remarkParse).use(remarkGfm).parse(content);
 }
+
+describe('detectStyle', () => {
+  test('detectStyle reads the style an existing file uses', () => {
+    const existing = '# Title\n\n* one\n* two\n\nSome *em* and __strong__.\n\n~~~\ncode\n~~~\n';
+    const style = detectStyle(existing);
+    assert.partialDeepStrictEqual(style, { bullet: '*', emphasis: '*', strong: '_', fence: '~' });
+    assert.equal(
+      document(list([emphasis('x')]))
+        .withStyle(style)
+        .toString(),
+      '* *x*\n',
+    );
+  });
+});
 
 describe('detectMarkdownStyle', () => {
   test('falls back to defaults for a document with none of the detected constructs', () => {

@@ -22,6 +22,13 @@ import {
 } from '../index.ts';
 import type { MDElement, MDParagraph } from '../index.ts';
 
+describe('heading', () => {
+  test('a heading depth outside 1 to 6', () => {
+    // @ts-expect-error 7 is not a heading depth
+    assert.throws(() => heading(7, 'x'), /heading depth must be 1 to 6, got 7/);
+  });
+});
+
 describe('toBlock', () => {
   test('a block is returned unchanged', () => {
     const block = list(['a']);

@@ -2,7 +2,7 @@ import type { ListItem, PhrasingContent, RootContent } from 'mdast';
 
 import { renderNodes } from '../render.ts';
 import type { StyleOptions } from '../render.ts';
-import type { MDElement, MDKind, MDType } from '../types.ts';
+import type { MDElement, MDKind, MDListItem, MDText, MDType } from '../types.ts';
 
 /**
  * Holds the key an element's rendering is stored under. Having it is what makes a value a Markdown element.
@@ -55,6 +55,16 @@ export function renderingOf(value: unknown): Rendering | undefined {
 /** Check whether a value is a Markdown element, and of one of the given kinds. */
 export function isKind(value: unknown, ...kinds: MDElement['kind'][]): value is MDElement {
   return renderingOf(value) !== undefined && kinds.includes((value as MDElement).kind);
+}
+
+/** Check whether a value is a list item made by `listItem`. */
+export function isListItem(value: unknown): value is MDListItem {
+  return isKind(value, 'listItem');
+}
+
+/** Check whether a value is text made by `text` or `inlineText`. */
+export function isText(value: unknown): value is MDText {
+  return isKind(value, 'inline') && value.type === 'text';
 }
 
 /** Check whether a value is an array, as `Array.isArray` does, but narrowing readonly arrays too. */

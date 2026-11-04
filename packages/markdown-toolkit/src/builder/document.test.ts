@@ -7,7 +7,6 @@ import {
   codeBlock,
   definitionList,
   details,
-  detectStyle,
   document,
   emphasis,
   frontmatter,
@@ -60,18 +59,6 @@ describe('document', () => {
   test('a template inside renders in the document style', () => {
     const md = document(toBlock(template('* a\n* b\n', {}))).withStyle({ bullet: '+' });
     assert.equal(md.toString(), '+ a\n+ b\n');
-  });
-
-  test('detectStyle reads the style an existing file uses', () => {
-    const existing = '# Title\n\n* one\n* two\n\nSome *em* and __strong__.\n\n~~~\ncode\n~~~\n';
-    const style = detectStyle(existing);
-    assert.partialDeepStrictEqual(style, { bullet: '*', emphasis: '*', strong: '_', fence: '~' });
-    assert.equal(
-      document(list([emphasis('x')]))
-        .withStyle(style)
-        .toString(),
-      '* *x*\n',
-    );
   });
 
   testEach`
