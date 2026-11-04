@@ -18,9 +18,17 @@ export interface Unindent {
 
 /** The options that decide which lines {@link createUnindent} drops. */
 export interface UnindentOptions {
-  /** Drops one leading newline. Default: `false`. */
+  /**
+   * Drops one leading newline.
+   *
+   * @default false
+   */
   trimFirstNewline?: boolean | undefined;
-  /** Drops the last line, with the newline before it, when it's blank or whitespace-only. Default: `false`. */
+  /**
+   * Drops the last line, with the newline before it, when it's blank or whitespace-only.
+   *
+   * @default false
+   */
   trimLastLine?: boolean | undefined;
 }
 
