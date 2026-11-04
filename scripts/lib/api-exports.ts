@@ -48,7 +48,7 @@ interface Module {
 interface ValueExport {
   exported: string;
   local: string;
-  /** Holds the module that declares `local`. */
+  /** Holds the module `local` comes from: this one, or the one it's re-exported from. */
   file: string;
 }
 
@@ -64,7 +64,7 @@ export async function readApiFunctions(entryFile: string): Promise<ApiFunction[]
   const entry = await readModule(entryFile, modules);
   if (entry.unsupported) throw new Error(`${shown(entryFile)}: ${entry.unsupported} isn't supported`);
   for (const { exported, local, file } of entry.exports) {
-    const fn = resolveFunction(await readModule(file, modules), local);
+    const fn = await resolveFunction(file, local, modules);
     exportedAs.set(fn, [...(exportedAs.get(fn) ?? []), exported]);
   }
   return [...exportedAs].map(([fn, names]) => {
@@ -147,7 +147,11 @@ function addDeclaration(module: Module, statement: Statement, jsdoc: string | un
   return [];
 }
 
-function resolveFunction(module: Module, name: string): FunctionDeclaration {
+/** Find the declaration of a name in a module, following re-exports to the module that declares it. */
+async function resolveFunction(file: string, name: string, modules: Map<string, Module>): Promise<FunctionDeclaration> {
+  const module = await readModule(file, modules);
+  const reexport = module.exports.find((e) => e.exported === name && e.file !== file);
+  if (reexport) return resolveFunction(reexport.file, reexport.local, modules);
   const fn = module.functions.get(name) ?? module.functions.get(module.aliases.get(name) ?? '');
   if (!fn) throw new Error(`${name} in ${shown(module.file)} isn't a function or a const`);
   return fn;
