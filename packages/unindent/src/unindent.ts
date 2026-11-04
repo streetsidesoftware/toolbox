@@ -1,4 +1,4 @@
-/** Describes a function that removes the common leading whitespace, called on a string or as a template tag. */
+/** A function that removes the common leading whitespace, called on a string or as a template tag. */
 export interface Unindent {
   /**
    * Remove the common leading whitespace from every line of a multi-line string.
@@ -16,11 +16,19 @@ export interface Unindent {
   (template: TemplateStringsArray, ...values: unknown[]): string;
 }
 
-/** Describes which lines {@link createUnindent} drops. */
+/** The options that decide which lines {@link createUnindent} drops. */
 export interface UnindentOptions {
-  /** Drops one leading newline. Default: `false`. */
+  /**
+   * Drops one leading newline.
+   *
+   * @default false
+   */
   trimFirstNewline?: boolean | undefined;
-  /** Drops the last line, with the newline before it, when it's blank or whitespace-only. Default: `false`. */
+  /**
+   * Drops the last line, with the newline before it, when it's blank or whitespace-only.
+   *
+   * @default false
+   */
   trimLastLine?: boolean | undefined;
 }
 
