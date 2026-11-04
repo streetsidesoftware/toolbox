@@ -76,7 +76,9 @@ export interface MDText extends MDElement {
 /**
  * A `{​@ name @​}` placeholder that goes anywhere a string can, made by {@link placeholder}.
  *
- * Where it sits decides what it takes.
+ * What it takes depends on where it sits:
+ * - Within a sentence, text, links, formatting or code.
+ * - On a line of its own, also a list, table or other block.
  */
 export interface MDPlaceholder extends MDElement {
   readonly kind: 'inline';
@@ -161,20 +163,22 @@ export interface MDHtmlEntity extends MDElement {
 
 /**
  * An HTML comment, which the page doesn't show, made by {@link comment}.
- * Its text decides whether it goes inside a line or on its own lines.
+ *
+ * - Text without a line ending goes on one line, and works anywhere a string can go.
+ * - Text with a line ending gets its markers on lines of their own, and goes on its own lines.
  */
 export interface MDComment extends MDElement {
   readonly kind: 'inline' | 'block';
   readonly type: 'comment';
 }
 
-/** An HTML comment on one line, made by {@link inlineComment}. */
+/** An HTML comment on one line, which the page doesn't show, made by {@link inlineComment}. */
 export interface MDInlineComment extends MDElement {
   readonly kind: 'inline';
   readonly type: 'inlineComment';
 }
 
-/** An HTML comment with its markers on lines of their own, made by {@link blockComment}. */
+/** An HTML comment with its markers on lines of their own, which the page doesn't show, made by {@link blockComment}. */
 export interface MDBlockComment extends MDElement {
   readonly kind: 'block';
   readonly type: 'blockComment';
@@ -243,7 +247,7 @@ export interface MDHtmlTable extends MDElement {
 /**
  * A whole Markdown file, made by {@link document}, {@link parseDocument} or {@link templateDocument}.
  *
- * Its Markdown ends with a newline, as a file should.
+ * Its Markdown ends with a newline.
  */
 export interface MDDocument extends MDElement {
   readonly kind: 'block';
@@ -275,16 +279,22 @@ export interface MDFrontmatter extends MDElement {
 
 /**
  * Paragraphs, lists and other blocks that go where paragraphs can.
- * {@link parse} returns this for anything but one paragraph or blank text.
  *
- * Markdown from text keeps the style of that text, such as its bullet markers.
+ * {@link blockText} and {@link blockTemplate} always make this. {@link parse} and {@link template} make it for anything
+ * but one paragraph or blank text.
+ *
+ * Parsed Markdown keeps its style, such as its bullet markers.
  */
 export interface MDFragment extends MDElement {
   readonly kind: 'block';
   readonly type: 'fragment';
 }
 
-/** Formatted text that goes anywhere a string can. {@link parse} returns this for one paragraph or blank text. */
+/**
+ * Formatted text that goes anywhere a string can.
+ *
+ * {@link inlineTemplate} always makes this. {@link parse} and {@link template} make it for one paragraph or blank text.
+ */
 export interface MDInlineFragment extends MDElement {
   readonly kind: 'inline';
   readonly type: 'inlineFragment';
@@ -344,27 +354,34 @@ export type InlineContent = string | MDInline | readonly InlineContent[];
 export type BlockContent = MDBlock | readonly BlockContent[];
 
 /**
- * Text, links, formatting or code; a list, table or other block; or a list item.
- *
- * A list item forms a list with the list items next to it.
+ * One piece of content:
+ * - text, links, formatting or code
+ * - a paragraph, list, table or other block
+ * - a list item, which forms a list with the list items next to it
  */
 export type BlockOrInlineContent = InlineContent | BlockContent | MDListItem;
 
-/** One {@link BlockOrInlineContent} value, or an array that mixes several. */
+/** Any content, including an array that mixes text, blocks and list items. */
 export type AnyContent = BlockOrInlineContent | readonly BlockOrInlineContent[];
 
 /**
- * A piece of a list item: text, links, formatting or code; a paragraph, list or other block; or a list item.
- *
- * A list item forms a list with the list items next to it.
+ * A piece of a list item:
+ * - text, links, formatting or code
+ * - a paragraph, list, table or other block
+ * - another list item, which forms a list with the list items next to it
  */
 export type ListItemContent = BlockOrInlineContent;
 
-/** The key that marks a type as options. No object sets it. */
+/**
+ * The key that marks a type as options.
+ *
+ * No object sets it.
+ */
 export const OPTION_TYPE_GUARD_SYMBOL: unique symbol = Symbol('option_type_guard');
 
 /**
  * The type {@link ListItemOptions} extends, so that an element never passes for options.
+ *
  * Every element has a `kind` and a `type`, and options never do.
  */
 export interface OptionTypeGuard {
@@ -384,13 +401,21 @@ export interface ListItemOptions extends OptionTypeGuard {
   checked?: boolean | undefined;
 }
 
-/** One item of a list: a single piece, or an array of pieces. */
+/**
+ * One item of a list: a single piece, or an array of pieces.
+ *
+ * A list among the pieces makes a nested list.
+ */
 export type ListEntry = InlineContent | MDBlock | MDListItem | readonly ListItemContent[];
 
-/** The options of {@link list}: bulleted by default, or numbered with `ordered: true`. */
+/**
+ * The options of {@link list}:
+ * - `ordered: true` - a numbered list, which can also take `start`
+ * - `ordered: false` or left out - a bulleted list
+ */
 export type ListOptions = { ordered?: false | undefined } | ({ ordered: true } & OrderedListOptions);
 
-/** The options of a numbered list. */
+/** The options of {@link ol}, and of {@link list} with `ordered: true`. */
 export interface OrderedListOptions {
   /**
    * The number of the first item, a whole number from 0 to 999999999.
@@ -403,29 +428,50 @@ export interface OrderedListOptions {
 /** One entry of a definition list: a term and its definition. */
 export type DefinitionEntry = readonly [term: InlineContent, definition: AnyContent];
 
-/** The name of a table column's alignment. */
+/** A table column's alignment, by name. */
 export type ColumnAlignName = 'left' | 'center' | 'right';
 
-/** The table delimiters GitHub's docs use: `:---` left, `:---:` center, `---:` right, `---` none. */
+/**
+ * A table column's alignment, written as one of the delimiters GitHub's docs use:
+ * - `:---` - left-aligned
+ * - `:---:` - centered
+ * - `---:` - right-aligned
+ * - `---` - not aligned
+ */
 export type ColumnDelimiterExplicit = ':---' | ':---:' | '---:' | '---';
 
 /**
- * How a table column is aligned, as its delimiter is written in a table: `:---` left, `:---:` center,
- * `---:` right, or `---` for none.
+ * A table column's alignment, written as a delimiter in a table:
+ * - a `:` at the start - left-aligned
+ * - a `:` at both ends - centered
+ * - a `:` at the end - right-aligned
+ * - no `:` - not aligned
  *
- * Any number of `-` works, one or more. It's a string with a pattern, so it maps to a JSON schema.
+ * It has one or more `-`. It's a string with a pattern, so it maps to a JSON schema.
  *
  * @pattern ^:?-+:?$
  * @example ':---:'
  */
 export type ColumnDelimiter = string;
 
-/** How a table column is aligned: a name, a delimiter, or `undefined` for none. */
+/**
+ * The alignment of a table column:
+ * - `'left'` or `':---'` - left-aligned
+ * - `'center'` or `':---:'` - centered
+ * - `'right'` or `'---:'` - right-aligned
+ * - `'---'` or `undefined` - not aligned
+ *
+ * A delimiter can have any number of `-`.
+ */
 export type ColumnAlign = ColumnAlignName | ColumnDelimiter | ColumnDelimiterExplicit | undefined;
 
 /** The options of {@link table} and {@link htmlTable}. */
 export interface TableOptions {
-  /** The alignment of each column, one entry per column. A column without one isn't aligned. */
+  /**
+   * The alignment of each column, one entry per column.
+   *
+   * A column without an entry isn't aligned.
+   */
   align?: readonly ColumnAlign[] | undefined;
 }
 

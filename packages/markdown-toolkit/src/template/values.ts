@@ -14,7 +14,7 @@ import {
 } from '../element/index.ts';
 import type { AnyContent, InlineContent, MDElement } from '../types.ts';
 
-/** A value a template placeholder can take. */
+/** A value for a template placeholder: a string, number or boolean, a Markdown element, or an array of these. */
 export type TemplateValue = string | number | boolean | MDElement | readonly TemplateValue[];
 
 /**
