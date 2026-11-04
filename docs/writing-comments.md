@@ -13,23 +13,29 @@ at a time.
 
 ## Voice
 
-| Comment on                                            | Voice                       | Example                              |
-| ----------------------------------------------------- | --------------------------- | ------------------------------------ |
-| A function or method                                  | Imperative                  | "Create bold text."                  |
-| A class, interface or type, including a function type | Third person, present tense | "Describes how Markdown is written." |
-| A property                                            | Third person, present tense | "Holds the URL."                     |
-| A constant or variable                                | Third person, present tense | "Holds the default style."           |
+| Comment on                                            | Voice                                       | Example                              |
+| ----------------------------------------------------- | ------------------------------------------- | ------------------------------------ |
+| A function or method                                  | Imperative                                  | "Create bold text."                  |
+| A property that holds a function                      | Imperative                                  | "Return the text for a placeholder." |
+| A class, interface or type, including a function type | Third person, present tense                 | "Describes how Markdown is written." |
+| Any other property, a constant or a variable          | Noun phrase, or third person, present tense | "The marker around italic text."     |
 
 ## Every comment
 
-- Keep a comment short. It covers the "what" and, only when it's non-obvious, a bit of the "why".
+- A comment clears something up, so the reader never has to decode it. It covers the "what" and, only when it's
+  non-obvious, a bit of the "why".
 - Write short sentences, one idea each, as many as the comment needs. Don't squeeze several facts into one long line.
   There's no one-line limit.
 - Start a function or method comment with a verb in the imperative: "Render Markdown nodes as text.", "Create bold
-  text."
-- Write the comment on a type, an interface, a property, a constant or a variable in the third person, present
-  tense: "Holds…", "Describes…", "Returns…". A function type counts as a type.
+  text." A property that holds a function does the same, since it runs when called.
+- Write the comment on a type or an interface in the third person, present tense: "Describes…". A function type counts
+  as a type.
+- Open the comment on any other property, a constant or a variable with a noun phrase or a verb in the third person,
+  present tense, whichever best describes its intent. Most are best served by a noun phrase, and booleans by a verb.
+- Don't open with a verb that adds nothing. "Holds the URL." says no more than "The URL."
 - Use a list when a comment covers several cases.
+- Give a boolean a list when its values do different things, with a line for `undefined` when that behaves differently
+  too. A boolean that only turns one effect on or off gets a sentence that says what `true` does.
 - Don't restate what a well-named identifier already says.
 - Keep a comment line to 140 characters or fewer.
 
@@ -135,8 +141,8 @@ renders the comment as Markdown.
 ### The summary
 
 The summary is the first paragraph: one sentence that says what the function does. It starts with a verb in the
-imperative for a function or method, and in the third person for a type or property, as
-[Every comment](#every-comment) says.
+imperative for a function or method, and in the third person for a type. A property or constant may use a noun phrase
+instead of a sentence. [Every comment](#every-comment) has the details.
 
 - Say what it makes or does, from the reader's side: "Create bold text.", "Start a new line without starting a new
   paragraph."
