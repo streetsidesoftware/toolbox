@@ -4,7 +4,7 @@ import { renderNodes } from '../render.ts';
 import type { MarkdownStyle, MDElement, MDKind, MDListItem, MDText, MDType } from '../types.ts';
 
 /**
- * Holds the key an element's rendering is stored under. Having it is what makes a value a Markdown element.
+ * The key an element's rendering is stored under. Having it is what makes a value a Markdown element.
  * It comes from the global symbol registry, so another loaded copy of this module recognizes the element too.
  */
 const renderingKey: unique symbol = Symbol.for('@streetsidesoftware/markdown-toolkit.value');

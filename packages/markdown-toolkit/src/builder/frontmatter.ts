@@ -8,9 +8,9 @@ const frontmatterPattern = /^---\r?\n(?:([\s\S]*?)\r?\n)??---(?:\r?\n|$)/;
 
 /** Describes frontmatter read from the start of a file. */
 export interface FrontmatterMatch {
-  /** Holds the YAML text between the `---` lines. */
+  /** The YAML text between the `---` lines. */
   readonly yaml: string;
-  /** Holds the offset just past the closing `---` line, line ending included. */
+  /** The offset just past the closing `---` line, line ending included. */
   readonly end: number;
 }
 

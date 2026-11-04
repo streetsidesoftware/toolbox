@@ -27,7 +27,7 @@ export function htmlEntityNode(reference: string): PhrasingContent {
 }
 
 /**
- * Holds the parser extension that reads a character reference in text, such as `&nbsp;`, as an `htmlEntity` node.
+ * The parser extension that reads a character reference in text, such as `&nbsp;`, as an `htmlEntity` node.
  * Where the parser collects a string instead, such as a URL, a title or an image's alt text, it stays decoded.
  */
 export const htmlEntityFromMarkdown: FromMarkdownExtension = {
@@ -35,7 +35,7 @@ export const htmlEntityFromMarkdown: FromMarkdownExtension = {
   exit: { characterReference: exitReference },
 };
 
-/** Holds the fragments that collect a link's or an image's label. Only a link's label becomes text. */
+/** The fragments that collect a link's or an image's label. Only a link's label becomes text. */
 const labels = new WeakSet<object>();
 
 function enterLabel(this: CompileContext): undefined {

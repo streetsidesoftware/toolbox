@@ -44,11 +44,11 @@ export type MDType =
 
 /** Describes a Markdown element, such as a paragraph or a link. */
 export interface MDElement {
-  /** Holds what the element is, which decides where it can go, such as inside a line or on its own lines. */
+  /** The group that decides where the element can go, such as inside a line or on its own lines. */
   readonly kind: MDKind;
-  /** Holds the type that tells each MDElement interface apart, such as `'link'` for {@link MDLink}. */
+  /** The name that tells each element interface apart, such as `'link'` for {@link MDLink}. */
   readonly type: MDType;
-  /** Holds what the element is, for error messages only, such as `a list`. */
+  /** A short name for the element in error messages, such as `a list`. */
   readonly description: string;
   /** Return the element's Markdown. */
   toString(): string;
@@ -69,7 +69,7 @@ export type MDValue = MDElement;
 export interface MDText extends MDElement {
   readonly kind: 'inline';
   readonly type: 'text';
-  /** Holds the string the text was made from. */
+  /** The string the text was made from. */
   readonly text: string;
 }
 
@@ -81,7 +81,7 @@ export interface MDText extends MDElement {
 export interface MDPlaceholder extends MDElement {
   readonly kind: 'inline';
   readonly type: 'placeholder';
-  /** Holds the name its value is looked up by. */
+  /** The name the placeholder's value is looked up by. */
   readonly name: string;
 }
 
@@ -93,7 +93,7 @@ export interface MDPlaceholder extends MDElement {
 export interface MDBlockPlaceholder extends MDElement {
   readonly kind: 'block';
   readonly type: 'blockPlaceholder';
-  /** Holds the name its value is looked up by. */
+  /** The name the placeholder's value is looked up by. */
   readonly name: string;
 }
 
@@ -155,7 +155,7 @@ export interface MDBr extends MDElement {
 export interface MDHtmlEntity extends MDElement {
   readonly kind: 'inline';
   readonly type: 'htmlEntity';
-  /** Holds the character the reference stands for. */
+  /** The character the reference stands for. */
   readonly character: string;
 }
 
@@ -360,7 +360,7 @@ export type AnyContent = BlockOrInlineContent | readonly BlockOrInlineContent[];
  */
 export type ListItemContent = BlockOrInlineContent;
 
-/** Holds the key that marks a type as options. No object sets it. */
+/** The key that marks a type as options. No object sets it. */
 export const OPTION_TYPE_GUARD_SYMBOL: unique symbol = Symbol('option_type_guard');
 
 /**
@@ -375,7 +375,12 @@ export interface OptionTypeGuard {
 
 /** Describes a list item. */
 export interface ListItemOptions extends OptionTypeGuard {
-  /** Holds whether the item's checkbox is checked. Without it, the item has no checkbox. */
+  /**
+   * Controls the list item checkbox:
+   * - `true` - the checkbox is checked
+   * - `false` - the checkbox is not checked
+   * - `undefined` - {@link listItem} shows no checkbox, and {@link taskListItem} shows one that is not checked
+   */
   checked?: boolean | undefined;
 }
 
@@ -387,7 +392,7 @@ export type ListOptions = { ordered?: false | undefined } | ({ ordered: true } &
 
 /** Describes a numbered list. */
 export interface OrderedListOptions {
-  /** Holds the number of the first item, a whole number from 0 to 999999999. It's 1 by default. */
+  /** The number of the first item, a whole number from 0 to 999999999. It's 1 by default. */
   start?: number | undefined;
 }
 
@@ -416,7 +421,7 @@ export type ColumnAlign = ColumnAlignName | ColumnDelimiter | ColumnDelimiterExp
 
 /** Describes the options of {@link table} and {@link htmlTable}. */
 export interface TableOptions {
-  /** Holds each column's alignment, one entry per column. A column without one isn't aligned. */
+  /** The alignment of each column, one entry per column. A column without one isn't aligned. */
   align?: readonly ColumnAlign[] | undefined;
 }
 
@@ -432,25 +437,33 @@ export type FenceMarker = '`' | '~';
 export type RuleMarker = '*' | '-' | '_';
 
 /**
- * Describes how Markdown is written.
+ * Describes how you prefer Markdown to be written.
  *
  * A field left out keeps the default.
  */
 export interface MarkdownStyle {
-  /** Holds the marker of a bulleted list item. */
+  /** The preferred marker of a bulleted list item. */
   bullet?: BulletMarker | undefined;
-  /** Holds the marker after the number of a numbered list item. */
+  /** The preferred marker after the number of a numbered list item. */
   bulletOrdered?: OrderedBulletMarker | undefined;
-  /** Holds the marker around italic text. */
+  /** The marker around italic text. */
   emphasis?: EmphasisMarker | undefined;
-  /** Holds the marker around bold text, written twice. */
+  /** The marker around bold text, written twice on each side. */
   strong?: EmphasisMarker | undefined;
-  /** Holds the character of a code fence. */
+  /** The character a code fence is made of. */
   fence?: FenceMarker | undefined;
-  /** Holds whether a code block is fenced, rather than indented. */
+  /**
+   * Sets the preferred form of a code block:
+   * - `true` - a code fence like ```` ``` ````
+   * - `false` - an indent, where the block can use one
+   */
   fences?: boolean | undefined;
-  /** Holds whether numbered list numbers count up, rather than repeat. */
+  /**
+   * Controls how a numbered list's numbers are written:
+   * - `true` - the numbers count up: `1.`, `2.`, `3.`
+   * - `false` - every item repeats the first number: `1.`, `1.`, `1.`
+   */
   incrementListMarker?: boolean | undefined;
-  /** Holds the character of a line across the page. */
+  /** The character a line across the page is made of. */
   rule?: RuleMarker | undefined;
 }
