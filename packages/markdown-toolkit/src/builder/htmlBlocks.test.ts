@@ -5,6 +5,7 @@ import { testEach } from '@streetsidesoftware/test-each';
 import { createUnindent } from '@streetsidesoftware/unindent';
 
 import {
+  blockTemplate,
   br,
   codeBlock,
   comment,
@@ -12,8 +13,10 @@ import {
   details,
   dl,
   document,
+  emphasis,
   htmlTable,
   inlineCode,
+  inlineTemplate,
   lineBreak,
   link,
   list,
@@ -21,8 +24,10 @@ import {
   paragraph,
   parse,
   placeholder,
+  strikethrough,
   strong,
   substitutePlaceholders,
+  sup,
   text,
 } from '../index.ts';
 import type { AnyContent, InlineContent } from '../index.ts';
@@ -72,36 +77,125 @@ describe('details', () => {
     assert.equal(dl([['  a\t', 'b']]).toString(), '<dl>\n\n<dt>a</dt>\n<dd>\n\nb\n\n</dd>\n\n</dl>');
     assert.equal(
       htmlTable(['  a  '], [[' b ']]).toString(),
-      '<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>b</td>\n</tr>\n</tbody>\n</table>',
+      '<table>\n<thead>\n<tr>\n<th>\n\na\n\n</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>\n\nb\n\n</td>\n</tr>\n</tbody>\n</table>',
     );
   });
 
   testEach`
-    summary                                | expected
-    ${['Use ', inlineCode('x')]}           | ${'Use `x`'}
-    ${link('a]b', 'https://example.com')}  | ${'[a\\]b](https://example.com)'}
-    ${placeholder('name')}                 | ${'{@ name @}'}
-    ${comment('note')}                     | ${'<!-- note -->'}
+    summary                                                | expected
+    ${['CSpell Settings ', inlineCode('cspell.json')]}     | ${'CSpell Settings <code>cspell.json</code>'}
+    ${inlineCode('a < b & c')}                             | ${'<code>a &lt; b &amp; c</code>'}
+    ${inlineCode('a\nb')}                                  | ${'<code>a b</code>'}
+    ${inlineCode('a\r\nb')}                                | ${'<code>a b</code>'}
+    ${inlineCode('')}                                      | ${'<code> </code>'}
+    ${[inlineCode('a'), inlineCode('b')]}                  | ${'<code>a</code><code>b</code>'}
+    ${strong('a')}                                         | ${'<strong>a</strong>'}
+    ${strong('')}                                          | ${'<strong> </strong>'}
+    ${emphasis('a < b')}                                   | ${'<em>a &lt; b</em>'}
+    ${strikethrough('a')}                                  | ${'<del>a</del>'}
+    ${sup(inlineCode('a'))}                                | ${'<sup><code>a</code></sup>'}
+    ${strong(['a', lineBreak(), 'b'])}                     | ${'<strong>a<br/>b</strong>'}
+    ${strong(['a ', lineBreak(), ' b'])}                   | ${'<strong>a<br/>b</strong>'}
+    ${[strong(['a', lineBreak()]), 'b']}                   | ${'<strong>a<br/></strong>b'}
+    ${strong(['a', lineBreak()])}                          | ${'<strong>a</strong>'}
+    ${['x ', strong(' a '), ' y']}                         | ${'x <strong> a </strong> y'}
+    ${strong(emphasis(inlineCode('a')))}                   | ${'<strong><em><code>a</code></em></strong>'}
+    ${link('a]b', 'https://example.com')}                  | ${'<a href="https://example.com">a]b</a>'}
+    ${link(inlineCode('a'), 'https://a.b/?c=1&d="e"')}     | ${'<a href="https://a.b/?c=1&amp;d=&quot;e&quot;"><code>a</code></a>'}
+    ${link('a', '')}                                       | ${'<a href="">a</a>'}
+    ${inlineTemplate('[a](b "c")', {})}                    | ${'<a href="b" title="c">a</a>'}
+    ${inlineTemplate('![a "b"](c.png "d")', {})}           | ${'<img src="c.png" alt="a &quot;b&quot;" title="d"/>'}
+    ${inlineTemplate('![a](b.png)', {})}                   | ${'<img src="b.png" alt="a"/>'}
+    ${['a', br(), 'b']}                                    | ${'a<br/>b'}
+    ${comment('note')}                                     | ${'<!-- note -->'}
+    ${comment('a\nb')}                                     | ${'<!-- a\nb -->'}
   `(
-    'a summary with Markdown has blank lines: $expected',
+    'a summary with inline elements is HTML on one line: $expected',
     ({ summary, expected }: { summary: InlineContent; expected: string }) => {
+      assert.equal(details(summary, 'b').toString(), `<details>\n<summary>${expected}</summary>\n\nb\n\n</details>`);
+    },
+  );
+
+  testEach`
+    summary                                         | expected
+    ${placeholder('name')}                          | ${'{@ name @}'}
+    ${['Use ', placeholder('name')]}                | ${'Use {@ name @}'}
+    ${strong(placeholder('name'))}                  | ${'<strong>{@ name @}</strong>'}
+    ${link(strong(placeholder('name')), 'u')}       | ${'<a href="u"><strong>{@ name @}</strong></a>'}
+    ${sup(placeholder('name'))}                     | ${'<sup>{@ name @}</sup>'}
+    ${inlineCode('{@ name @}')}                     | ${'<code>{@ name @}</code>'}
+    ${link('a', '{@ name @}')}                      | ${'<a href="{@ name @}">a</a>'}
+    ${inlineTemplate('[a](b "{@ name @}")', {})}    | ${'<a href="b" title="{@ name @}">a</a>'}
+    ${inlineTemplate('![{@ name @}](b.png)', {})}   | ${'<img src="b.png" alt="{@ name @}"/>'}
+    ${comment('{@ name @}')}                        | ${'<!-- {@ name @} -->'}
+  `(
+    'a placeholder with no value is treated as text: $expected',
+    ({ summary, expected }: { summary: InlineContent; expected: string }) => {
+      assert.equal(details(summary, 'b').toString(), `<details>\n<summary>${expected}</summary>\n\nb\n\n</details>`);
+    },
+  );
+
+  testEach`
+    summary                         | value                 | expected
+    ${placeholder('x')}             | ${'a'}                | ${'a'}
+    ${placeholder('x')}             | ${'  a  '}            | ${'a'}
+    ${placeholder('x')}             | ${'a < b & c'}        | ${'a &lt; b &amp; c'}
+    ${placeholder('x')}             | ${''}                 | ${''}
+    ${placeholder('x')}             | ${'a\nb'}             | ${'a<br/>b'}
+    ${placeholder('x')}             | ${strong('a')}        | ${'<strong>a</strong>'}
+    ${placeholder('x')}             | ${inlineCode('a')}    | ${'<code>a</code>'}
+    ${placeholder('x')}             | ${placeholder('y')}   | ${'{@ y @}'}
+    ${['Use ', placeholder('x')]}   | ${link('a', 'u')}     | ${'Use <a href="u">a</a>'}
+    ${strong(placeholder('x'))}     | ${emphasis('a')}      | ${'<strong><em>a</em></strong>'}
+    ${inlineCode('{@ x @}')}        | ${'a<b'}              | ${'<code>a&lt;b</code>'}
+    ${link('a', '{@ x @}')}         | ${'https://a.b/?c&d'} | ${'<a href="https://a.b/?c&amp;d">a</a>'}
+    ${comment('{@ x @}')}           | ${'a'}                | ${'<!-- a -->'}
+  `(
+    'a substituted summary is the same as one given the value: $expected',
+    ({ summary, value, expected }: { summary: InlineContent; value: never; expected: string }) => {
       assert.equal(
-        details(summary, 'b').toString(),
-        md`
-          <details>
-          <summary>
-
-          ${expected}
-
-          </summary>
-
-          b
-
-          </details>
-        `,
+        substitutePlaceholders(document(details(summary, 'b')), { x: value }).toString(),
+        `<details>\n<summary>${expected}</summary>\n\nb\n\n</details>\n`,
       );
     },
   );
+
+  test('a placeholder in a summary takes only inline values', () => {
+    assert.throws(
+      () => substitutePlaceholders(document(details(placeholder('x'), 'b')), { x: list(['a']) }),
+      /\{@ x @\}/,
+    );
+  });
+
+  testEach`
+    summary                  | expected
+    ${comment('a\n\nb')}     | ${'<!-- a\n\nb -->'}
+    ${comment('a\n \nb')}    | ${'<!-- a\n \nb -->'}
+    ${comment('a\r\n\r\nb')} | ${'<!-- a\r\n\r\nb -->'}
+    ${comment('a\r\rb')}     | ${'<!-- a\r\rb -->'}
+  `(
+    'a summary with a blank line in HTML has blank lines: $expected',
+    ({ summary, expected }: { summary: InlineContent; expected: string }) => {
+      assert.equal(
+        details(summary, 'b').toString(),
+        `<details>\n<summary>\n\n${expected}\n\n</summary>\n\nb\n\n</details>`,
+      );
+    },
+  );
+
+  test('it goes in a list item', () => {
+    assert.equal(
+      list([listItem(details(inlineCode('s'), 'b'))]).toString(),
+      '- <details>\n  <summary><code>s</code></summary>\n\n  b\n  </details>',
+    );
+  });
+
+  test('it goes in a table cell', () => {
+    assert.equal(
+      bodyCell(details(inlineCode('s'), 'b')),
+      '<td>\n\n<details>\n<summary><code>s</code></summary>\n\nb\n\n</details>\n\n</td>',
+    );
+  });
 
   test('inline content is a paragraph, and blocks follow', () => {
     assert.equal(
@@ -133,10 +227,6 @@ describe('details', () => {
         </details>
       ` + '\n',
     );
-  });
-
-  test('a summary of empty formatting shows a space', () => {
-    assert.equal(details(strong(''), '').toString(), '<details>\n<summary>\n\n**&#x20;**\n\n</summary>\n\n</details>');
   });
 
   test('an empty paragraph in the content adds no blank lines', () => {
@@ -215,17 +305,13 @@ describe('definitionList', () => {
     );
   });
 
-  test('a term with Markdown has blank lines', () => {
+  test('a term with inline elements is HTML on one line', () => {
     assert.equal(
-      dl([[inlineCode('x'), 'y']]).toString(),
+      dl([[['Use ', inlineCode('x')], 'y']]).toString(),
       md`
         <dl>
 
-        <dt>
-
-        \`x\`
-
-        </dt>
+        <dt>Use <code>x</code></dt>
         <dd>
 
         y
@@ -234,6 +320,15 @@ describe('definitionList', () => {
 
         </dl>
       `,
+    );
+  });
+
+  test('a term with a placeholder stays on one line, with or without a value', () => {
+    const terms = dl([[strong(placeholder('x')), 'y']]);
+    assert.equal(terms.toString(), '<dl>\n\n<dt><strong>{@ x @}</strong></dt>\n<dd>\n\ny\n\n</dd>\n\n</dl>');
+    assert.equal(
+      substitutePlaceholders(document(terms), { x: emphasis('a') }).toString(),
+      '<dl>\n\n<dt><strong><em>a</em></strong></dt>\n<dd>\n\ny\n\n</dd>\n\n</dl>\n',
     );
   });
 
@@ -274,21 +369,29 @@ describe('definitionList', () => {
 });
 
 describe('htmlTable', () => {
-  test('plain-text cells are on one line, and a cell with Markdown has blank lines around it', () => {
+  test('every cell has blank lines around its content', () => {
     assert.equal(
       htmlTable(
         ['Option', 'Description'],
         [
           [inlineCode('--fix'), ['Fixes what it can:', list(['spelling', 'case'])]],
-          ['plain', 'Stays on one line'],
+          ['plain', ''],
         ],
       ).toString(),
       md`
         <table>
         <thead>
         <tr>
-        <th>Option</th>
-        <th>Description</th>
+        <th>
+
+        Option
+
+        </th>
+        <th>
+
+        Description
+
+        </th>
         </tr>
         </thead>
         <tbody>
@@ -308,8 +411,12 @@ describe('htmlTable', () => {
         </td>
         </tr>
         <tr>
-        <td>plain</td>
-        <td>Stays on one line</td>
+        <td>
+
+        plain
+
+        </td>
+        <td></td>
         </tr>
         </tbody>
         </table>
@@ -318,52 +425,64 @@ describe('htmlTable', () => {
   });
 
   testEach`
-    content                          | expected
-    ${'a < b & c > d'}               | ${'<td>a &lt; b &amp; c > d</td>'}
-    ${'*not* emphasis | x'}          | ${'<td>*not* emphasis | x</td>'}
-    ${'line one\nline two'}          | ${'<td>line one<br/>line two</td>'}
-    ${'a \r\n b\n\nc'}               | ${'<td>a<br/>b<br/><br/>c</td>'}
-    ${'\nedges\n'}                   | ${'<td>edges</td>'}
-    ${text('a\nb')}                  | ${'<td>a<br/>b</td>'}
-    ${['a', lineBreak(), 'b']}       | ${'<td>a<br/>b</td>'}
-    ${parse('soft\nbreak')}          | ${'<td>soft\nbreak</td>'}
-    ${''}                            | ${'<td></td>'}
-    ${[]}                            | ${'<td></td>'}
-  `('a plain-text cell: $expected', ({ content, expected }: { content: AnyContent; expected: string }) => {
-    assert.equal(bodyCell(content), expected);
+    content                                  | expected
+    ${'a < b & c > d'}                       | ${'a < b & c > d'}
+    ${'*not* emphasis | x'}                  | ${'\\*not\\* emphasis | x'}
+    ${'line one\nline two'}                  | ${'line one\\\nline two'}
+    ${'a \r\n b\n\nc'}                       | ${'a\\\nb\\\n\\\nc'}
+    ${'\nedges\n'}                           | ${'edges'}
+    ${text('a\nb')}                          | ${'a\\\nb'}
+    ${['a', lineBreak(), 'b']}               | ${'a\\\nb'}
+    ${parse('soft\nbreak')}                  | ${'soft\nbreak'}
+    ${['See ', inlineCode('x'), '\nnext']}   | ${'See `x`\\\nnext'}
+    ${strong(link('a', 'https://a.b'))}      | ${'**[a](https://a.b)**'}
+    ${br()}                                  | ${'<br/>'}
+    ${placeholder('name')}                   | ${'{@ name @}'}
+    ${strong(placeholder('name'))}           | ${'**{@ name @}**'}
+    ${codeBlock('x', 'ts')}                  | ${'```ts\nx\n```'}
+    ${[listItem('x'), listItem('y')]}        | ${'- x\n- y'}
+  `('a cell holds Markdown: $expected', ({ content, expected }: { content: AnyContent; expected: string }) => {
+    assert.equal(bodyCell(content), `<td>\n\n${expected}\n\n</td>`);
   });
 
   testEach`
-    content                                  | expected
-    ${['See ', inlineCode('x'), '\nnext']}   | ${'See `x`\\\nnext'}
-    ${placeholder('name')}                   | ${'{@ name @}'}
-    ${br()}                                  | ${'<br/>'}
-    ${codeBlock('x', 'ts')}                  | ${'```ts\nx\n```'}
-    ${[listItem('x'), listItem('y')]}        | ${'- x\n- y'}
-  `('a cell with Markdown: $expected', ({ content, expected }: { content: AnyContent; expected: string }) => {
-    assert.equal(bodyCell(content), `<td>\n\n${expected}\n\n</td>`);
+    content
+    ${''}
+    ${'  '}
+    ${[]}
+  `('an empty cell has no blank lines: $content', ({ content }: { content: AnyContent }) => {
+    assert.equal(bodyCell(content), '<td></td>');
   });
 
   test('every row is filled with empty cells to the widest row', () => {
     assert.equal(
-      htmlTable(['Name', 'Size'], [['a.ts', '1 KB', 'extra'], ['b.ts']]).toString(),
+      htmlTable(['Name'], [['a', 'b'], []]).toString(),
       md`
         <table>
         <thead>
         <tr>
-        <th>Name</th>
-        <th>Size</th>
+        <th>
+
+        Name
+
+        </th>
         <th></th>
         </tr>
         </thead>
         <tbody>
         <tr>
-        <td>a.ts</td>
-        <td>1 KB</td>
-        <td>extra</td>
+        <td>
+
+        a
+
+        </td>
+        <td>
+
+        b
+
+        </td>
         </tr>
         <tr>
-        <td>b.ts</td>
         <td></td>
         <td></td>
         </tr>
@@ -374,7 +493,7 @@ describe('htmlTable', () => {
   });
 
   test('an empty header leaves out <thead>', () => {
-    assert.equal(htmlTable([], [['a']]).toString(), '<table>\n<tbody>\n<tr>\n<td>a</td>\n</tr>\n</tbody>\n</table>');
+    assert.equal(htmlTable([], [['']]).toString(), '<table>\n<tbody>\n<tr>\n<td></td>\n</tr>\n</tbody>\n</table>');
   });
 
   test('no rows', () => {
@@ -383,29 +502,29 @@ describe('htmlTable', () => {
 
   test('align sets align on each cell of a column', () => {
     assert.equal(
-      htmlTable(['A', 'B', 'C', 'D'], [['1', '2', [inlineCode('3')], '4']], {
+      htmlTable(['', '', '', ''], [['', '', inlineCode('3'), '']], {
         align: ['left', ':-:', '---:', '---'],
       }).toString(),
       md`
         <table>
         <thead>
         <tr>
-        <th align="left">A</th>
-        <th align="center">B</th>
-        <th align="right">C</th>
-        <th>D</th>
+        <th align="left"></th>
+        <th align="center"></th>
+        <th align="right"></th>
+        <th></th>
         </tr>
         </thead>
         <tbody>
         <tr>
-        <td align="left">1</td>
-        <td align="center">2</td>
+        <td align="left"></td>
+        <td align="center"></td>
         <td align="right">
 
         \`3\`
 
         </td>
-        <td>4</td>
+        <td></td>
         </tr>
         </tbody>
         </table>
@@ -417,18 +536,32 @@ describe('htmlTable', () => {
     assert.throws(() => htmlTable(['A'], [], { align: ['up'] }), new Error('invalid column alignment: "up"'));
   });
 
-  test('a placeholder in a cell is substituted', () => {
-    const t = document(htmlTable(['Name'], [[placeholder('name')]]));
+  testEach`
+    value              | expected
+    ${'a < b'}         | ${'<td>\n\na < b\n\n</td>'}
+    ${strong('a')}     | ${'<td>\n\n**a**\n\n</td>'}
+    ${list(['a'])}     | ${'<td>\n\n- a\n\n</td>'}
+  `(
+    'a placeholder in a cell takes any value, before or after toString: $expected',
+    ({ value, expected }: { value: never; expected: string }) => {
+      const table = document(htmlTable([], [[placeholder('x')]]));
+      const page = `<table>\n<tbody>\n<tr>\n${expected}\n</tr>\n</tbody>\n</table>`;
+      assert.equal(substitutePlaceholders(table, { x: value }).toString(), `${page}\n`);
+      assert.equal(blockTemplate(table.toString(), { x: value }).toString(), page);
+    },
+  );
+
+  test('a placeholder in a cell with an empty value leaves the cell empty', () => {
     assert.equal(
-      substitutePlaceholders(t, { name: list(['a']) }).toString(),
-      '<table>\n<thead>\n<tr>\n<th>Name</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>\n\n- a\n\n</td>\n</tr>\n</tbody>\n</table>\n',
+      substitutePlaceholders(document(htmlTable([], [[placeholder('x')]])), { x: '' }).toString(),
+      '<table>\n<tbody>\n<tr>\n<td></td>\n</tr>\n</tbody>\n</table>\n',
     );
   });
 
   test('it goes in a document', () => {
     assert.equal(
       document('Intro', htmlTable([], [['a']])).toString(),
-      'Intro\n\n<table>\n<tbody>\n<tr>\n<td>a</td>\n</tr>\n</tbody>\n</table>\n',
+      'Intro\n\n<table>\n<tbody>\n<tr>\n<td>\n\na\n\n</td>\n</tr>\n</tbody>\n</table>\n',
     );
   });
 
