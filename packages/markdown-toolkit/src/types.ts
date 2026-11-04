@@ -392,7 +392,11 @@ export type ListOptions = { ordered?: false | undefined } | ({ ordered: true } &
 
 /** The options of a numbered list. */
 export interface OrderedListOptions {
-  /** The number of the first item, a whole number from 0 to 999999999. It's 1 by default. */
+  /**
+   * The number of the first item, a whole number from 0 to 999999999.
+   *
+   * @default 1
+   */
   start?: number | undefined;
 }
 
