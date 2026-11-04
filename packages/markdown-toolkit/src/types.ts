@@ -441,7 +441,7 @@ export type FenceMarker = '`' | '~';
 export type RuleMarker = '*' | '-' | '_';
 
 /**
- * How you prefer Markdown to be written.
+ * Markdown style preferences.
  *
  * A field left out keeps the default.
  */
