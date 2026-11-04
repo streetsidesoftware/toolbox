@@ -228,7 +228,7 @@ Street Side Software
 
 ### Multi-line comments
 
-When the text of a `comment` has a line ending, its markers go on lines of their own. It can't go inside a line, so in a paragraph or a summary it throws. The text is written as given, with no trimming.
+When the text of a `comment` has a line ending, its markers go on lines of their own. It can't go inside a line, so in a paragraph or a summary it throws. Nothing is trimmed, and blank lines stay.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';

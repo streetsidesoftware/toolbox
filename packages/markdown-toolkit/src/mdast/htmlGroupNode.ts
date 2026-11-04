@@ -95,8 +95,6 @@ function writeInline(nodes: readonly PhrasingContent[]): string | undefined {
 /**
  * Return one inline node as HTML, or `undefined` when it has to stay Markdown because it has no HTML form, such as a
  * reference, whose URL is in a definition that only Markdown can look up.
- *
- * A line ending in text, which a parsed paragraph can have, stays: it can't be a blank line.
  */
 function writeNode(node: PhrasingContent): string | undefined {
   switch (node.type) {

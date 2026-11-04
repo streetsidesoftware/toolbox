@@ -19,7 +19,7 @@
 - `copy`: Holds a copyright sign, written `&copy;`.
 - `blockComment(text)`: Create an HTML comment with its markers on lines of their own, which the page doesn't show.
 - `br()`: Start a new line with an HTML `<br/>` tag.
-- `comment(text)`: Create an HTML comment, which the page doesn't show, in the form that fits its text.
+- `comment(text)`: Create an HTML comment, which the page doesn't show, on one line or with its markers on lines of their own.
 - `inlineComment(text)`: Create an HTML comment on one line, `<!-- text -->`, which the page doesn't show.
 
 ### Links and formatting

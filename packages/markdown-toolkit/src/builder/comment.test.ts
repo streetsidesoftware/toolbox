@@ -19,7 +19,9 @@ import {
   list,
   listItem,
   paragraph,
+  parse,
   substitutePlaceholders,
+  template,
 } from '../index.ts';
 import type { MDElement } from '../index.ts';
 
@@ -87,12 +89,38 @@ describe('comment chooses its form from its text', () => {
     assert.equal(substitutePlaceholders(comment('{@ x @}'), { x: 'y\nz' }).kind, 'inline');
   });
 
+  test('a comment with a line ending stays a block after substitution', () => {
+    const substituted = substitutePlaceholders(comment('a\n{@ x @}'), { x: 'y' });
+    assert.equal(substituted.kind, 'block');
+    assert.equal(substituted.toString(), '<!--\na\ny\n-->');
+  });
+
+  test('a multi-line comment as a value goes on its own lines', () => {
+    assert.equal(template('x\n{@ v @}\ny', { v: comment('a\nb') }).toString(), 'x\n\n<!--\na\nb\n-->\n\ny');
+  });
+
   test('a value goes in a summary as given', () => {
     const page = details(comment('{@ x @}'), 'b');
     assert.equal(
       substitutePlaceholders(page, { x: 'y\n\nz' }).toString(),
       '<details>\n<summary><!-- y\n\nz --></summary>\n\nb\n\n</details>',
     );
+  });
+});
+
+describe('a comment reads back as written', () => {
+  testEach`
+    value
+    ${document(paragraph('a'), inlineComment('b'), paragraph('c'))}
+    ${document(paragraph('a'), blockComment('b\n\nc'), paragraph('d'))}
+    ${document(paragraph('a'), comment('b\r\nc'), paragraph('d'))}
+    ${list([listItem('a', comment('b\r\nc'), 'd')])}
+    ${details(inlineComment('a'), blockComment('b'))}
+    ${dl([[inlineComment('a'), blockComment('b')]])}
+    ${htmlTable(['h'], [[blockComment('a\n\nb')]])}
+  `('$value', ({ value }: { value: MDElement }) => {
+    const written = value.toString().trimEnd();
+    assert.equal(parse(written).toString(), written);
   });
 });
 
@@ -113,6 +141,10 @@ describe('inlineComment', () => {
     assert.equal(inlineComment('a --> b --!> c').toString(), '<!-- a -- > b -- !> c -->');
   });
 
+  test('a value goes in as given, even with a line ending', () => {
+    assert.equal(substitutePlaceholders(inlineComment('{@ x @}'), { x: 'y\nz' }).toString(), '<!-- y\nz -->');
+  });
+
   testEach`
     text
     ${'a\nb'}
@@ -120,7 +152,10 @@ describe('inlineComment', () => {
     ${'a\rb'}
     ${'a\n'}
   `('a line ending throws: $text', ({ text }: { text: string }) => {
-    assert.throws(() => inlineComment(text), new TypeError('an inline comment has no line endings; use blockComment'));
+    assert.throws(
+      () => inlineComment(text),
+      new TypeError("inlineComment text can't have a line ending; use blockComment"),
+    );
   });
 });
 

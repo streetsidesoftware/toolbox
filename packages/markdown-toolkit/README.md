@@ -315,7 +315,7 @@ Street Side Software
 
 ### Multi-line comments
 
-When the text of a `comment` has a line ending, its markers go on lines of their own. It can't go inside a line, so in a paragraph or a summary it throws. The text is written as given, with no trimming.
+When the text of a `comment` has a line ending, its markers go on lines of their own. It can't go inside a line, so in a paragraph or a summary it throws. Nothing is trimmed, and blank lines stay.
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -808,7 +808,7 @@ console.log(section.toString());
 - `copy`: Holds a copyright sign, written `&copy;`.
 - `blockComment(text)`: Create an HTML comment with its markers on lines of their own, which the page doesn't show.
 - `br()`: Start a new line with an HTML `<br/>` tag.
-- `comment(text)`: Create an HTML comment, which the page doesn't show, in the form that fits its text.
+- `comment(text)`: Create an HTML comment, which the page doesn't show, on one line or with its markers on lines of their own.
 - `inlineComment(text)`: Create an HTML comment on one line, `<!-- text -->`, which the page doesn't show.
 
 ### Links and formatting
