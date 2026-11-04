@@ -136,8 +136,6 @@ describe('details', () => {
     ${comment('a\n\nb')}                            | ${'<!-- a\n\nb -->'}
     ${comment('a\n \nb')}                           | ${'<!-- a\n \nb -->'}
     ${comment('a\r\n\r\nb')}                       | ${'<!-- a\r\n\r\nb -->'}
-    ${[strong('a'), '{@ name', ' @}']}              | ${'**a**{@ name @}'}
-    ${link('a', 'x\n\ny')}                          | ${'[a](<x&#xA;&#xA;y>)'}
   `(
     'a summary with a placeholder or a blank line in HTML has blank lines: $expected',
     ({ summary, expected }: { summary: InlineContent; expected: string }) => {

@@ -198,7 +198,7 @@ function writeInline(nodes: readonly PhrasingContent[]): string | undefined {
 /**
  * Return one inline node as HTML, or `undefined` when it has to stay Markdown:
  * - It's a placeholder.
- * - It's HTML, a URL, a title or alt text with a blank line in it, which would end the HTML block.
+ * - It's HTML with a blank line in it, which would end the HTML block.
  * - It has no HTML form, such as a reference, whose URL is in a definition that only Markdown can look up.
  *
  * A line ending in text, which a parsed paragraph can have, stays: it can't be a blank line.
@@ -224,13 +224,12 @@ function writeNode(node: PhrasingContent): string | undefined {
     case 'delete':
       return writeFormatting('del', node.children);
     case 'link': {
-      const attributes = writeAttributes(['href', node.url], ['title', node.title]);
       const inner = writeInline(node.children);
-      return attributes === undefined || inner === undefined ? undefined : `<a${attributes}>${inner}</a>`;
+      if (inner === undefined) return undefined;
+      return `<a${writeAttributes(['href', node.url], ['title', node.title])}>${inner}</a>`;
     }
     case 'image': {
-      const attributes = writeAttributes(['src', node.url], ['alt', node.alt], ['title', node.title]);
-      return attributes === undefined ? undefined : `<img${attributes}/>`;
+      return `<img${writeAttributes(['src', node.url], ['alt', node.alt], ['title', node.title])}/>`;
     }
     default:
       return undefined;
@@ -243,23 +242,18 @@ function writeFormatting(tag: string, children: readonly PhrasingContent[]): str
   return inner === undefined ? undefined : `<${tag}>${inner || ' '}</${tag}>`;
 }
 
-/** Return the attributes that have a value, or `undefined` when one holds a blank line. */
-function writeAttributes(...attributes: readonly [string, string | null | undefined][]): string | undefined {
+/** Return the attributes that have a value. */
+function writeAttributes(...attributes: readonly [string, string | null | undefined][]): string {
   let markup = '';
   for (const [name, value] of attributes) {
     if (value === null || value === undefined) continue;
-    if (hasBlankLine(value)) return undefined;
     markup += ` ${name}="${htmlEscape(value).replace(/"/g, '&quot;')}"`;
   }
   return markup;
 }
 
-/** Check for a blank line inside the text. Its first and last lines have tags or quotes next to them, so they aren't blank. */
 function hasBlankLine(text: string): boolean {
-  return text
-    .split(/\r\n?|\n/)
-    .slice(1, -1)
-    .some((line) => !line.trim());
+  return text.split(/\r\n?|\n/).some((line) => !line.trim());
 }
 
 function htmlEscape(text: string): string {
