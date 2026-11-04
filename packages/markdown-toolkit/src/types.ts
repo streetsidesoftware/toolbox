@@ -386,7 +386,7 @@ export type ColumnDelimiterExplicit = ':---' | ':---:' | '---:' | '---';
  * Describes how a table column is aligned, as its delimiter is written in a table: `:---` left, `:---:` center,
  * `---:` right, or `---` for none.
  *
- * Any number of `-` works, one or more.
+ * Any number of `-` works, one or more. It's a string with a pattern, so it maps to a JSON schema.
  *
  * @pattern ^:?-+:?$
  * @example ':---:'

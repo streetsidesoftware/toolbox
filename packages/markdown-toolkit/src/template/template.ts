@@ -82,6 +82,7 @@ export function blockTemplate(markdown: string, values: TemplateValues | Templat
  * @category templates
  */
 export function inlineTemplate(markdown: string, values: TemplateValues | TemplateResolver): MDInlineFragment {
+  // The whitespace around the text stays, so the fragment joins the pieces next to it as written.
   const start = markdown.trimStart();
   const lead = markdown.slice(0, markdown.length - start.length);
   const body = start.trimEnd();
