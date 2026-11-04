@@ -440,34 +440,58 @@ export type FenceMarker = '`' | '~';
 /** The characters that can make a line across the page. */
 export type RuleMarker = '*' | '-' | '_';
 
-/**
- * Markdown style preferences.
- *
- * A field left out keeps the default.
- */
+/** Markdown style preferences. */
 export interface MarkdownStyle {
-  /** The preferred marker of a bulleted list item. */
+  /**
+   * The preferred marker of a bulleted list item.
+   *
+   * @default '-'
+   */
   bullet?: BulletMarker | undefined;
-  /** The preferred marker after the number of a numbered list item. */
+  /**
+   * The preferred marker after the number of a numbered list item.
+   *
+   * @default '.'
+   */
   bulletOrdered?: OrderedBulletMarker | undefined;
-  /** The marker around italic text. */
+  /**
+   * The marker around italic text.
+   *
+   * @default '_'
+   */
   emphasis?: EmphasisMarker | undefined;
-  /** The marker around bold text, written twice on each side. */
+  /**
+   * The marker around bold text, written twice on each side.
+   *
+   * @default '*'
+   */
   strong?: EmphasisMarker | undefined;
-  /** The character a code fence is made of. */
+  /**
+   * The character a code fence is made of.
+   *
+   * @default '`'
+   */
   fence?: FenceMarker | undefined;
   /**
    * Sets the preferred form of a code block:
    * - `true` - a code fence like ```` ``` ````
    * - `false` - an indent, where the block can use one
+   *
+   * @default true
    */
   fences?: boolean | undefined;
   /**
    * Controls how a numbered list's numbers are written. The page counts up either way:
    * - `true` - the numbers count up: `1.`, `2.`, `3.`
    * - `false` - every item repeats the first number: `1.`, `1.`, `1.`
+   *
+   * @default false
    */
   incrementListMarker?: boolean | undefined;
-  /** The character a line across the page is made of. */
+  /**
+   * The character a line across the page is made of.
+   *
+   * @default '-'
+   */
   rule?: RuleMarker | undefined;
 }
