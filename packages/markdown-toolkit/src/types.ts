@@ -460,8 +460,6 @@ export type ColumnDelimiter = string;
  * - `'center'` or `':---:'` - centered
  * - `'right'` or `'---:'` - right-aligned
  * - `'---'` or `undefined` - not aligned
- *
- * A delimiter can have any number of `-`.
  */
 export type ColumnAlign = ColumnAlignName | ColumnDelimiter | ColumnDelimiterExplicit | undefined;
 
