@@ -9,7 +9,7 @@ import { parseSync } from 'oxc-parser';
 /** The maximum length of a summary, in characters, which is the length of one comment line. */
 export const SUMMARY_LIMIT = 140;
 
-/** Describes a function or constant a package exports, with what its JSDoc says about it. */
+/** A function or constant a package exports, with what its JSDoc says about it. */
 export interface ApiFunction {
   /** The name it's declared with, or the first name it's exported as when that one isn't exported. */
   name: string;
@@ -26,7 +26,7 @@ export interface ApiFunction {
   aliases: string[];
 }
 
-/** Describes a function, or a `const` whose value isn't another declaration's name, such as a constant or an arrow function. */
+/** A function, or a `const` whose value isn't another declaration's name, such as a constant or an arrow function. */
 interface FunctionDeclaration {
   file: string;
   name: string;

@@ -20,7 +20,7 @@ export interface NewPackageOptions {
   templateDir?: string | undefined;
 }
 
-/** Describes the values substituted for the templates' placeholders. */
+/** The values substituted for the templates' placeholders. */
 type TemplateValues = Record<'name' | 'fullName' | 'description', string>;
 
 export interface CreatePackageOptions extends NewPackageOptions {

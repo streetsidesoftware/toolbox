@@ -11,7 +11,7 @@ export const CONFIG_FILE = 'release-please-config.json';
 /** The path of the Release Please manifest, which records released versions, relative to the repo root. */
 export const MANIFEST_FILE = '.release-please-manifest.json';
 
-/** Describes a package's entry in the config's `packages`. */
+/** A package's entry in the config's `packages`. */
 export interface PackageEntry {
   component: string;
   'release-as'?: string;

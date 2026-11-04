@@ -6,7 +6,7 @@ import { compare } from './packages.ts';
 /** The path of a package's reference config, relative to the package. */
 export const CONFIG_FILE = '.api-referencerc.json';
 
-/** Describes how a package's function reference is laid out. */
+/** How a package's function reference is laid out. */
 export interface ApiReferenceConfig {
   /** The `###` sections, in the order the reference lists them. */
   groups: ApiGroupConfig[];
@@ -20,7 +20,7 @@ export interface ApiGroupConfig {
   functions?: string[];
 }
 
-/** Describes one `###` section of the reference, its functions in order. */
+/** One `###` section of the reference, its functions in order. */
 export interface ApiGroup {
   heading: string;
   functions: ApiFunction[];
