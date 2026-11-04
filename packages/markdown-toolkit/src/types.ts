@@ -283,7 +283,8 @@ export interface MDFrontmatter extends MDElement {
  * {@link blockText} and {@link blockTemplate} always make this. {@link parse} and {@link template} make it for anything
  * but one paragraph or blank text.
  *
- * Parsed Markdown keeps its style, such as its bullet markers.
+ * Rendered alone, parsed Markdown keeps its style, such as its bullet markers. Inside a document or another element, it
+ * doesn't.
  */
 export interface MDFragment extends MDElement {
   readonly kind: 'block';
