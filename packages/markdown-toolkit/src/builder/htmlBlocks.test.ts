@@ -4,7 +4,6 @@ import { describe, test } from 'node:test';
 import { testEach } from '@streetsidesoftware/test-each';
 import { createUnindent } from '@streetsidesoftware/unindent';
 
-import type { AnyContent, InlineContent } from './index.ts';
 import {
   br,
   codeBlock,
@@ -25,7 +24,8 @@ import {
   strong,
   substitutePlaceholders,
   text,
-} from './index.ts';
+} from '../index.ts';
+import type { AnyContent, InlineContent } from '../index.ts';
 
 const md = createUnindent({ trimFirstNewline: true, trimLastLine: true });
 

@@ -3,7 +3,6 @@ import { describe, test } from 'node:test';
 
 import { testEach } from '@streetsidesoftware/test-each';
 
-import type { ColumnAlign, InlineContent } from './index.ts';
 import {
   br,
   document,
@@ -18,7 +17,8 @@ import {
   table,
   template,
   text,
-} from './index.ts';
+} from '../index.ts';
+import type { ColumnAlign, InlineContent } from '../index.ts';
 
 /** Render a one-column table, and return its body row. */
 function cell(content: InlineContent): string {
