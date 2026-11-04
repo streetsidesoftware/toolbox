@@ -56,8 +56,6 @@ Some characters are better written as an HTML reference, such as `&nbsp;`: a spa
 
 A character is written by name when it has one, since `&mdash;` reads better in the file than a number.
 
-An entity in parsed Markdown stays a reference in the output, not the character it stands for. The character would be hard to see, and a script reading the file may strip it.
-
 ### Tables
 
 A table takes a header and rows as arrays, the shape scripts already have their data in. Each cell holds inline content, and rendering keeps every cell on one line, which a GFM row needs. A `|` is escaped even in inline code, since on GitHub `\|` inside a code span displays as `|`.
