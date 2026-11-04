@@ -1,5 +1,4 @@
-import { listPlaceholders } from '@streetsidesoftware/placeholders';
-import type { Parent, PhrasingContent, Root, RootContent } from 'mdast';
+import type { Parent, Root, RootContent } from 'mdast';
 import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import { unified } from 'unified';
@@ -8,7 +7,7 @@ import type { Processor } from 'unified';
 import { DocumentElement, readFrontmatter, yamlNode } from '../builder/index.ts';
 import { detectMarkdownStyle } from '../detectStyle.ts';
 import { textNodes } from '../element/index.ts';
-import { htmlEntityFromMarkdown, placeholderNodeAsWritten } from '../mdast/index.ts';
+import { htmlEntityFromMarkdown } from '../mdast/index.ts';
 import type { MDDocument, MDFragment, MDInlineFragment } from '../types.ts';
 import { fragment } from './fragment.ts';
 import { substituteInTree } from './substitute.ts';
@@ -78,29 +77,8 @@ function keepPlaceholders(parent: Parent): void {
 /** Parse a template into a tree, with each placeholder in its text as a node of its own. */
 export function templateTree(markdown: string, inline: boolean): Root {
   const root = parseTree(markdown, inline);
-  splitPlaceholders(root);
+  keepPlaceholders(root);
   return root;
-}
-
-/** Make the placeholders in text nodes of their own, in place. */
-function splitPlaceholders(parent: Parent): void {
-  parent.children = parent.children.flatMap((child): RootContent[] => {
-    if (child.type === 'text') return placeholderPieces(child.value);
-    if ('children' in child) splitPlaceholders(child);
-    return [child];
-  });
-}
-
-function placeholderPieces(text: string): PhrasingContent[] {
-  const nodes: PhrasingContent[] = [];
-  let last = 0;
-  for (const { start, end } of listPlaceholders(text)) {
-    if (start > last) nodes.push({ type: 'text', value: text.slice(last, start) });
-    nodes.push(placeholderNodeAsWritten(text.slice(start, end)));
-    last = end;
-  }
-  if (last < text.length) nodes.push({ type: 'text', value: text.slice(last) });
-  return nodes;
 }
 
 /**
