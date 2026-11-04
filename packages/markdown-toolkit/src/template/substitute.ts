@@ -162,17 +162,17 @@ interface BlockSlot {
   readonly blocks: RootContent[];
 }
 
-/** A placeholder whose value shows nothing, until its paragraph is rebuilt. */
+/** Stands in for a placeholder whose value shows nothing, until its paragraph is rebuilt. */
 interface EmptySlot {
   readonly empty: true;
 }
 
 type Piece = RootContent | BlockSlot | EmptySlot;
 
-/** A paragraph being substituted: one that can split around blocks, or one that has to stay whole. */
+/** How a paragraph being substituted treats blocks: `split` splits it around them, and `join` keeps it whole. */
 type ParagraphMode = 'split' | 'join';
 
-/** Lists the node types whose children may be blocks. */
+/** The node types whose children may be blocks. */
 const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'htmlBlockSlot', 'htmlGroup', 'list', 'listItem']);
 
 /**

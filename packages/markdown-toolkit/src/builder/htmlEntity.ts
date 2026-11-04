@@ -47,7 +47,9 @@ export function htmlEntity(value: string): MDHtmlEntity {
 }
 
 /**
- * A no-break space, written `&nbsp;`. The words on either side of it stay on one line.
+ * A no-break space, written `&nbsp;`.
+ *
+ * The words on either side of it stay on one line.
  * @category text
  */
 export const nbsp: MDHtmlEntity = htmlEntity('nbsp');
@@ -71,7 +73,9 @@ export const emsp: MDHtmlEntity = htmlEntity('emsp');
 export const thinsp: MDHtmlEntity = htmlEntity('thinsp');
 
 /**
- * A soft hyphen, written `&shy;`. A long word may break there, and shows a hyphen only when it does.
+ * A soft hyphen, written `&shy;`.
+ *
+ * A long word may break there, and shows a hyphen only when it does.
  * @category text
  */
 export const shy: MDHtmlEntity = htmlEntity('shy');

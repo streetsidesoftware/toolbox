@@ -104,7 +104,7 @@ function placeholderPieces(text: string): PhrasingContent[] {
 }
 
 /**
- * Lists the block constructs turned off when parsing an inline template.
+ * The block constructs turned off when parsing an inline template.
  * The names are micromark's construct names.
  */
 const blockConstructs = [

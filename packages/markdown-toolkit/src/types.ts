@@ -4,12 +4,12 @@
  * Where an element may go:
  * - `inline`: inside a line.
  * - `block`: on its own lines.
- * - `listItem`: only directly in a list.
+ * - `listItem`: in a list, or anywhere a paragraph can go.
  * - `frontmatter`: only first in a document.
  */
 export type MDKind = 'inline' | 'block' | 'listItem' | 'frontmatter';
 
-/** The types that tell the MDElement interfaces apart, one for each. See {@link MDElement.type}. */
+/** The values of {@link MDElement.type}, one for each element interface. */
 export type MDType =
   | 'text'
   | 'placeholder'
@@ -46,7 +46,7 @@ export type MDType =
 export interface MDElement {
   /** Where the element can go, such as inside a line or on its own lines. */
   readonly kind: MDKind;
-  /** The name that tells each element interface apart, such as `'link'` for {@link MDLink}. */
+  /** A name unique to the element's interface, such as `'link'` for {@link MDLink}. */
   readonly type: MDType;
   /** A short name for the element in error messages, such as `a list`. */
   readonly description: string;
@@ -274,8 +274,8 @@ export interface MDFrontmatter extends MDElement {
 }
 
 /**
- * Paragraphs, lists and other blocks that go where paragraphs can, such as {@link parse} returns for text
- * longer than one paragraph.
+ * Paragraphs, lists and other blocks that go where paragraphs can.
+ * {@link parse} returns this for anything but one paragraph or blank text.
  *
  * Markdown from text keeps the style of that text, such as its bullet markers.
  */
@@ -284,7 +284,7 @@ export interface MDFragment extends MDElement {
   readonly type: 'fragment';
 }
 
-/** Formatted text that goes anywhere a string can, such as {@link parse} returns for one paragraph. */
+/** Formatted text that goes anywhere a string can. {@link parse} returns this for one paragraph or blank text. */
 export interface MDInlineFragment extends MDElement {
   readonly kind: 'inline';
   readonly type: 'inlineFragment';
@@ -350,7 +350,7 @@ export type BlockContent = MDBlock | readonly BlockContent[];
  */
 export type BlockOrInlineContent = InlineContent | BlockContent | MDListItem;
 
-/** Any {@link BlockOrInlineContent}, or an array that mixes them. */
+/** One {@link BlockOrInlineContent} value, or an array that mixes several. */
 export type AnyContent = BlockOrInlineContent | readonly BlockOrInlineContent[];
 
 /**
@@ -364,7 +364,7 @@ export type ListItemContent = BlockOrInlineContent;
 export const OPTION_TYPE_GUARD_SYMBOL: unique symbol = Symbol('option_type_guard');
 
 /**
- * The type every options type extends, so that an element never passes for options.
+ * The type {@link ListItemOptions} extends, so that an element never passes for options.
  * Every element has a `kind` and a `type`, and options never do.
  */
 export interface OptionTypeGuard {
@@ -459,7 +459,7 @@ export interface MarkdownStyle {
    */
   fences?: boolean | undefined;
   /**
-   * Controls how a numbered list's numbers are written:
+   * Controls how a numbered list's numbers are written. The page counts up either way:
    * - `true` - the numbers count up: `1.`, `2.`, `3.`
    * - `false` - every item repeats the first number: `1.`, `1.`, `1.`
    */
