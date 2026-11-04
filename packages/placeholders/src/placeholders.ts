@@ -1,8 +1,8 @@
 /** Describes the delimiters that mark a placeholder. */
 export interface PlaceholderOptions {
-  /** Holds the opening delimiter, which can't be empty. Default: `{@`. */
+  /** The text that starts a placeholder. It can't be empty. Default: `{@`. */
   open?: string | undefined;
-  /** Holds the closing delimiter, which can't be empty. Default: `@}`. */
+  /** The text that ends a placeholder. It can't be empty. Default: `@}`. */
   close?: string | undefined;
 }
 
@@ -25,17 +25,17 @@ export type PlaceholderValues = PlaceholderResolver | object;
 
 /** Describes a placeholder found in a string. */
 export interface Placeholder {
-  /** Holds the name, without the delimiters or the whitespace inside them. */
+  /** The placeholder's name, without its delimiters or any whitespace next to them. */
   name: string;
-  /** Holds the offset of the opening delimiter. */
+  /** The offset in the string where the placeholder starts. */
   start: number;
-  /** Holds the offset just past the closing delimiter. */
+  /** The offset in the string just past the placeholder's end. */
   end: number;
 }
 
-/** Holds the opening delimiter that {@link PlaceholderOptions} uses by default. */
+/** The text that starts a placeholder, unless {@link PlaceholderOptions} sets another. */
 export const DEFAULT_OPEN = '{@';
-/** Holds the closing delimiter that {@link PlaceholderOptions} uses by default. */
+/** The text that ends a placeholder, unless {@link PlaceholderOptions} sets another. */
 export const DEFAULT_CLOSE = '@}';
 
 // Matches one segment of a name. It's non-greedy, so a name ends at the first close delimiter even when the delimiter
@@ -44,7 +44,7 @@ const segment = '[A-Za-z0-9_][A-Za-z0-9_-]*?';
 const namePattern = `${segment}(?:\\.${segment})*?`;
 const validName = new RegExp(`^${namePattern}$`);
 
-// Holds the regex for the last delimiter pair used, so repeated calls with the same pair don't recompile it.
+// The regex for the last delimiter pair used, so repeated calls with the same pair don't compile it again.
 let cached: { open: string; close: string; regExp: RegExp } | undefined;
 
 /**
