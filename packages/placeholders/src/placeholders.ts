@@ -1,4 +1,4 @@
-/** Describes the delimiters that mark a placeholder. */
+/** The delimiters that mark a placeholder. */
 export interface PlaceholderOptions {
   /** The text that starts a placeholder. It can't be empty. Default: `{@`. */
   open?: string | undefined;
@@ -6,7 +6,7 @@ export interface PlaceholderOptions {
   close?: string | undefined;
 }
 
-/** Describes the delimiters, and whether {@link replacePlaceholders} indents a multi-line value. */
+/** The delimiters, and whether {@link replacePlaceholders} indents a multi-line value. */
 export interface ReplacePlaceholdersOptions extends PlaceholderOptions {
   /** Gives each later line of a multi-line value the leading whitespace of its placeholder's line. Default: `true`. */
   autoIndent?: boolean | undefined;
@@ -16,14 +16,14 @@ export interface ReplacePlaceholdersOptions extends PlaceholderOptions {
 export type PlaceholderResolver = (name: string) => string | undefined;
 
 /**
- * Supplies the values for placeholders: a {@link PlaceholderResolver}, or an object.
+ * The values for placeholders: a {@link PlaceholderResolver}, or an object.
  *
  * - A dotted name walks the object's own properties: `a.b` reads `values.a.b`.
  * - A string or number value is used. Anything else leaves the placeholder as written.
  */
 export type PlaceholderValues = PlaceholderResolver | object;
 
-/** Describes a placeholder found in a string. */
+/** A placeholder found in a string. */
 export interface Placeholder {
   /** The placeholder's name, without its delimiters or any whitespace next to them. */
   name: string;
