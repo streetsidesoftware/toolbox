@@ -100,6 +100,7 @@ describe('details', () => {
     ${strikethrough('a')}                                  | ${'<del>a</del>'}
     ${sup(inlineCode('a'))}                                | ${'<sup><code>a</code></sup>'}
     ${strong(['a', lineBreak(), 'b'])}                     | ${'<strong>a<br/>b</strong>'}
+    ${strong(['a ', lineBreak(), ' b'])}                   | ${'<strong>a<br/>b</strong>'}
     ${[strong(['a', lineBreak()]), 'b']}                   | ${'<strong>a<br/></strong>b'}
     ${strong(['a', lineBreak()])}                          | ${'<strong>a</strong>'}
     ${['x ', strong(' a '), ' y']}                         | ${'x <strong> a </strong> y'}
@@ -134,6 +135,8 @@ describe('details', () => {
     ${inlineTemplate('[a](b "{@ name @}")', {})}    | ${'[a](b "{@ name @}")'}
     ${comment('a\n\nb')}                            | ${'<!-- a\n\nb -->'}
     ${comment('a\n \nb')}                           | ${'<!-- a\n \nb -->'}
+    ${comment('a\r\n\r\nb')}                       | ${'<!-- a\r\n\r\nb -->'}
+    ${[strong('a'), '{@ name', ' @}']}              | ${'**a**{@ name @}'}
     ${link('a', 'x\n\ny')}                          | ${'[a](<x&#xA;&#xA;y>)'}
   `(
     'a summary with a placeholder or a blank line in HTML has blank lines: $expected',

@@ -176,10 +176,13 @@ function writeCell(blocks: RootContent[]): string | undefined {
 
 /**
  * Return inline content as HTML for one line, or `undefined` when it has to stay Markdown.
+ * Content with a placeholder stays Markdown: inside HTML, a placeholder takes only a string or an entity, and a string
+ * isn't escaped. The check is on the finished line, so it also finds one written in code or a URL, or split across text.
  * A line break at its start or end can't display, as in a paragraph, so it goes.
  */
 function writeLine(children: readonly PhrasingContent[]): string | undefined {
-  return writeInline(trimLineEdges(trimBlanksAroundBreaks(children)));
+  const markup = writeInline(trimLineEdges(trimBlanksAroundBreaks(children)));
+  return markup === undefined || hasPlaceholders(markup) ? undefined : markup;
 }
 
 function writeInline(nodes: readonly PhrasingContent[]): string | undefined {
@@ -194,7 +197,7 @@ function writeInline(nodes: readonly PhrasingContent[]): string | undefined {
 
 /**
  * Return one inline node as HTML, or `undefined` when it has to stay Markdown:
- * - It holds a placeholder. Inside HTML, a placeholder takes only a string or an entity, and a string isn't escaped.
+ * - It's a placeholder.
  * - It's HTML, a URL, a title or alt text with a blank line in it, which would end the HTML block.
  * - It has no HTML form, such as a reference, whose URL is in a definition that only Markdown can look up.
  *
@@ -210,9 +213,8 @@ function writeNode(node: PhrasingContent): string | undefined {
       return node.value;
     case 'html':
     case 'inlineHtml':
-      return hasPlaceholders(node.value) || hasBlankLine(node.value) ? undefined : node.value;
+      return hasBlankLine(node.value) ? undefined : node.value;
     case 'inlineCode':
-      if (hasPlaceholders(node.value)) return undefined;
       // Empty code shows as one space, and a line ending as a space, as in Markdown.
       return `<code>${htmlEscape(node.value.replace(/\r\n?|\n/g, ' ') || ' ')}</code>`;
     case 'strong':
@@ -241,12 +243,12 @@ function writeFormatting(tag: string, children: readonly PhrasingContent[]): str
   return inner === undefined ? undefined : `<${tag}>${inner || ' '}</${tag}>`;
 }
 
-/** Return the attributes that have a value, or `undefined` when one holds a placeholder or a blank line. */
+/** Return the attributes that have a value, or `undefined` when one holds a blank line. */
 function writeAttributes(...attributes: readonly [string, string | null | undefined][]): string | undefined {
   let markup = '';
   for (const [name, value] of attributes) {
     if (value === null || value === undefined) continue;
-    if (hasPlaceholders(value) || hasBlankLine(value)) return undefined;
+    if (hasBlankLine(value)) return undefined;
     markup += ` ${name}="${htmlEscape(value).replace(/"/g, '&quot;')}"`;
   }
   return markup;
