@@ -177,6 +177,7 @@ describe('details', () => {
     ${comment('a\n\nb')}     | ${'<!-- a\n\nb -->'}
     ${comment('a\n \nb')}    | ${'<!-- a\n \nb -->'}
     ${comment('a\r\n\r\nb')} | ${'<!-- a\r\n\r\nb -->'}
+    ${comment('a\r\rb')}     | ${'<!-- a\r\rb -->'}
   `(
     'a summary with a blank line in HTML has blank lines: $expected',
     ({ summary, expected }: { summary: InlineContent; expected: string }) => {
@@ -186,6 +187,20 @@ describe('details', () => {
       );
     },
   );
+
+  test('it goes in a list item', () => {
+    assert.equal(
+      list([listItem(details(inlineCode('s'), 'b'))]).toString(),
+      '- <details>\n  <summary><code>s</code></summary>\n\n  b\n  </details>',
+    );
+  });
+
+  test('it goes in a table cell', () => {
+    assert.equal(
+      bodyCell(details(inlineCode('s'), 'b')),
+      '<td>\n\n<details>\n<summary><code>s</code></summary>\n\nb\n\n</details>\n\n</td>',
+    );
+  });
 
   test('inline content is a paragraph, and blocks follow', () => {
     assert.equal(
