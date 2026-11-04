@@ -16,7 +16,11 @@ const NAME_REGEXP = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 
 export interface NewPackageOptions {
   description?: string | undefined;
-  /** The folder of template files. Default: {@link TEMPLATE_DIR}. */
+  /**
+   * The folder of template files.
+   *
+   * @default {@link TEMPLATE_DIR}
+   */
   templateDir?: string | undefined;
 }
 
