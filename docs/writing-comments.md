@@ -77,7 +77,7 @@ When a function changes:
 
 Examples from `packages/markdown-toolkit/src`:
 
-The contract, including the `undefined` case a caller must handle (`nodes.ts`, rewritten in the imperative):
+The contract, including the `undefined` case a caller must handle (rewritten in the imperative):
 
 ```ts
 /** Return how a Markdown element renders, or `undefined` for anything else. */
