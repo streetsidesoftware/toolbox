@@ -116,7 +116,7 @@ export function htmlTable(
     for (let i = 0; i < columns; ++i) {
       const open = align[i] ? `<${tag} align="${align[i]}">` : `<${tag}>`;
       const blocks = cellNodes(cells[i] ?? []);
-      const markup = cellHtml(blocks);
+      const markup = writeCell(blocks);
       if (markup !== undefined) {
         tags += `${open}${markup}</${tag}>\n`;
         continue;
@@ -143,12 +143,12 @@ export function htmlTable(
 
 /**
  * Return the nodes for inline content in an HTML element, with HTML written before and after it.
- * It goes on one line as HTML, since Markdown isn't read there. Content {@link lineHtml} can't write gets blank lines,
+ * It goes on one line as HTML, since Markdown isn't read there. Content {@link writeLine} can't write gets blank lines,
  * so it renders.
  */
 function wrapped(before: string, tag: string, content: InlineContent, after: string, where: string): RootContent[] {
   const children = trimBlanks(inlineNodes(content, where));
-  const markup = lineHtml(children);
+  const markup = writeLine(children);
   if (markup !== undefined) return [html(`${before}<${tag}>${markup}</${tag}>${after}`)];
   return [html(`${before}<${tag}>`), { type: 'paragraph', children }, html(`</${tag}>${after}`)];
 }
@@ -164,28 +164,28 @@ function cellNodes(content: AnyContent): RootContent[] {
 }
 
 /**
- * Return a cell's HTML when it can stay on its tag's line: empty, or one paragraph that {@link lineHtml} can write.
+ * Return a cell's HTML when it can stay on its tag's line: empty, or one paragraph that {@link writeLine} can write.
  * Return `undefined` when the cell needs blank lines around it.
  */
-function cellHtml(blocks: RootContent[]): string | undefined {
+function writeCell(blocks: RootContent[]): string | undefined {
   if (!blocks.length) return '';
   const [first] = blocks;
   if (blocks.length !== 1 || first.type !== 'paragraph') return undefined;
-  return lineHtml(first.children);
+  return writeLine(first.children);
 }
 
 /**
  * Return inline content as HTML for one line, or `undefined` when it has to stay Markdown.
  * A line break at its start or end can't display, as in a paragraph, so it goes.
  */
-function lineHtml(children: readonly PhrasingContent[]): string | undefined {
-  return inlineHtml(trimLineEdges(trimBlanksAroundBreaks(children)));
+function writeLine(children: readonly PhrasingContent[]): string | undefined {
+  return writeInline(trimLineEdges(trimBlanksAroundBreaks(children)));
 }
 
-function inlineHtml(nodes: readonly PhrasingContent[]): string | undefined {
+function writeInline(nodes: readonly PhrasingContent[]): string | undefined {
   let markup = '';
   for (const node of trimBlanksAroundBreaks(nodes)) {
-    const written = nodeHtml(node);
+    const written = writeNode(node);
     if (written === undefined) return undefined;
     markup += written;
   }
@@ -195,12 +195,12 @@ function inlineHtml(nodes: readonly PhrasingContent[]): string | undefined {
 /**
  * Return one inline node as HTML, or `undefined` when it has to stay Markdown:
  * - It holds a placeholder. Inside HTML, a placeholder takes only a string or an entity, and a string isn't escaped.
- * - It's HTML with a blank line in it, which would end the HTML block.
+ * - It's HTML, a URL, a title or alt text with a blank line in it, which would end the HTML block.
  * - It has no HTML form, such as a reference, whose URL is in a definition that only Markdown can look up.
  *
  * A line ending in text, which a parsed paragraph can have, stays: it can't be a blank line.
  */
-function nodeHtml(node: PhrasingContent): string | undefined {
+function writeNode(node: PhrasingContent): string | undefined {
   switch (node.type) {
     case 'text':
       return htmlEscape(node.value);
@@ -216,18 +216,18 @@ function nodeHtml(node: PhrasingContent): string | undefined {
       // Empty code shows as one space, and a line ending as a space, as in Markdown.
       return `<code>${htmlEscape(node.value.replace(/\r\n?|\n/g, ' ') || ' ')}</code>`;
     case 'strong':
-      return formattingHtml('strong', node.children);
+      return writeFormatting('strong', node.children);
     case 'emphasis':
-      return formattingHtml('em', node.children);
+      return writeFormatting('em', node.children);
     case 'delete':
-      return formattingHtml('del', node.children);
+      return writeFormatting('del', node.children);
     case 'link': {
-      const attributes = linkAttributes(['href', node.url], ['title', node.title]);
-      const inner = inlineHtml(node.children);
+      const attributes = writeAttributes(['href', node.url], ['title', node.title]);
+      const inner = writeInline(node.children);
       return attributes === undefined || inner === undefined ? undefined : `<a${attributes}>${inner}</a>`;
     }
     case 'image': {
-      const attributes = linkAttributes(['src', node.url], ['alt', node.alt], ['title', node.title]);
+      const attributes = writeAttributes(['src', node.url], ['alt', node.alt], ['title', node.title]);
       return attributes === undefined ? undefined : `<img${attributes}/>`;
     }
     default:
@@ -236,24 +236,28 @@ function nodeHtml(node: PhrasingContent): string | undefined {
 }
 
 /** Return formatting as HTML. Empty formatting shows as one formatted space, as in Markdown. */
-function formattingHtml(tag: string, children: readonly PhrasingContent[]): string | undefined {
-  const inner = inlineHtml(children);
+function writeFormatting(tag: string, children: readonly PhrasingContent[]): string | undefined {
+  const inner = writeInline(children);
   return inner === undefined ? undefined : `<${tag}>${inner || ' '}</${tag}>`;
 }
 
-/** Return the attributes that have a value, or `undefined` when one holds a placeholder. */
-function linkAttributes(...attributes: readonly [string, string | null | undefined][]): string | undefined {
+/** Return the attributes that have a value, or `undefined` when one holds a placeholder or a blank line. */
+function writeAttributes(...attributes: readonly [string, string | null | undefined][]): string | undefined {
   let markup = '';
   for (const [name, value] of attributes) {
     if (value === null || value === undefined) continue;
-    if (hasPlaceholders(value)) return undefined;
+    if (hasPlaceholders(value) || hasBlankLine(value)) return undefined;
     markup += ` ${name}="${htmlEscape(value).replace(/"/g, '&quot;')}"`;
   }
   return markup;
 }
 
+/** Check for a blank line inside the text. Its first and last lines have tags or quotes next to them, so they aren't blank. */
 function hasBlankLine(text: string): boolean {
-  return text.split(/\r\n?|\n/).some((line) => !line.trim());
+  return text
+    .split(/\r\n?|\n/)
+    .slice(1, -1)
+    .some((line) => !line.trim());
 }
 
 function htmlEscape(text: string): string {

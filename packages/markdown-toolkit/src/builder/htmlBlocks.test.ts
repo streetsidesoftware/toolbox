@@ -91,6 +91,7 @@ describe('details', () => {
     ${['CSpell Settings ', inlineCode('cspell.json')]}     | ${'CSpell Settings <code>cspell.json</code>'}
     ${inlineCode('a < b & c')}                             | ${'<code>a &lt; b &amp; c</code>'}
     ${inlineCode('a\nb')}                                  | ${'<code>a b</code>'}
+    ${inlineCode('a\r\nb')}                                | ${'<code>a b</code>'}
     ${inlineCode('')}                                      | ${'<code> </code>'}
     ${[inlineCode('a'), inlineCode('b')]}                  | ${'<code>a</code><code>b</code>'}
     ${strong('a')}                                         | ${'<strong>a</strong>'}
@@ -105,11 +106,13 @@ describe('details', () => {
     ${strong(emphasis(inlineCode('a')))}                   | ${'<strong><em><code>a</code></em></strong>'}
     ${link('a]b', 'https://example.com')}                  | ${'<a href="https://example.com">a]b</a>'}
     ${link(inlineCode('a'), 'https://a.b/?c=1&d="e"')}     | ${'<a href="https://a.b/?c=1&amp;d=&quot;e&quot;"><code>a</code></a>'}
+    ${link('a', '')}                                       | ${'<a href="">a</a>'}
     ${inlineTemplate('[a](b "c")', {})}                    | ${'<a href="b" title="c">a</a>'}
     ${inlineTemplate('![a "b"](c.png "d")', {})}           | ${'<img src="c.png" alt="a &quot;b&quot;" title="d"/>'}
     ${inlineTemplate('![a](b.png)', {})}                   | ${'<img src="b.png" alt="a"/>'}
     ${['a', br(), 'b']}                                    | ${'a<br/>b'}
     ${comment('note')}                                     | ${'<!-- note -->'}
+    ${comment('a\nb')}                                     | ${'<!-- a\nb -->'}
   `(
     'a summary with inline elements is HTML on one line: $expected',
     ({ summary, expected }: { summary: InlineContent; expected: string }) => {
@@ -128,7 +131,10 @@ describe('details', () => {
     ${link('a', '{@ name @}')}                      | ${'[a](<{@ name @}>)'}
     ${inlineTemplate('![{@ name @}](b.png)', {})}   | ${'![{@ name @}](b.png)'}
     ${comment('{@ name @}')}                        | ${'<!-- {@ name @} -->'}
+    ${inlineTemplate('[a](b "{@ name @}")', {})}    | ${'[a](b "{@ name @}")'}
     ${comment('a\n\nb')}                            | ${'<!-- a\n\nb -->'}
+    ${comment('a\n \nb')}                           | ${'<!-- a\n \nb -->'}
+    ${link('a', 'x\n\ny')}                          | ${'[a](<x&#xA;&#xA;y>)'}
   `(
     'a summary with a placeholder or a blank line in HTML has blank lines: $expected',
     ({ summary, expected }: { summary: InlineContent; expected: string }) => {
