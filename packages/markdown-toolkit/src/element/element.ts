@@ -57,7 +57,7 @@ export function isKind(value: unknown, ...kinds: MDElement['kind'][]): value is 
   return renderingOf(value) !== undefined && kinds.includes((value as MDElement).kind);
 }
 
-/** Check whether a value is a list item made by `listItem`. */
+/** Check whether a value is a list item. */
 export function isListItem(value: unknown): value is MDListItem {
   return isKind(value, 'listItem');
 }
