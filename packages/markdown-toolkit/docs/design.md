@@ -60,7 +60,7 @@ The function `toBlock(content)` makes content fit where only blocks can go: bloc
 
 There are two line-break elements, both inline. A `lineBreak()` is a Markdown hard break, as a newline in a string is. A `br()` is always `<br/>`, never `<br>`, because MDX reads HTML as JSX, where an unclosed `<br>` is a syntax error.
 
-Where a hard break can't go, a line break renders as `<br/>`: in a heading, a table cell, and a summary or term on one line. In a heading, remark writes a hard break as a space at depths 3 to 6, and turns depths 1 and 2 into underlined headings.
+Where a hard break can't go, a line break renders as `<br/>`: in a heading, a table cell, and a plain-text summary or term. In a heading, remark writes a hard break as a space at depths 3 to 6, and turns depths 1 and 2 into underlined headings.
 
 A comment renders as `<!-- … -->`, with two dashes, as third-party bots write them. The renderer keeps the text from ending the comment early.
 
@@ -98,9 +98,9 @@ A table always renders padded, so its pipes line up. There's no style field for 
 A GFM row is one line, so its cells hold only inline content. When a cell needs a list, a code block or a second paragraph, `htmlTable(header, rows)` writes a `<table>` instead. It takes the same arguments and options as `table()`, so a script can switch between them, and each cell holds any content, like a document. The output follows inject-markdown's HTML tables:
 
 - `<table>`, `<thead>`, `<tbody>`, each `<tr>` and its closing tag go on their own lines.
-- An inline cell stays on its tag's line as HTML, `<td><code>42</code></td>`, with `&` and `<` HTML-escaped. An empty cell is `<td></td>`.
-- A cell with a placeholder or blocks gets blank lines around it, so it renders. A placeholder inside HTML would take only a string or an entity.
-- A line break, such as a newline in a string, is `<br/>` in a cell on one line, and a hard break in a cell with blank lines. One at the start or end of a cell is dropped. Text from `parse()` is Markdown, so its line endings keep their Markdown meaning.
+- A cell of plain text stays on its tag's line, `<td>42</td>`, with `&` and `<` HTML-escaped. An empty cell is `<td></td>`.
+- Any other cell, with inline code, a link, a placeholder or blocks, gets blank lines around it, so it renders.
+- A line break, such as a newline in a string, is `<br/>` in a plain-text cell, and a hard break in a cell with Markdown. One at the start or end of a cell is dropped. Text from `parse()` is Markdown, so its line endings keep their Markdown meaning.
 - An aligned column puts `align="…"` on each of its cells. GitHub keeps the `align` attribute and strips `style`.
 - Every row, the header included, is filled with empty cells to the widest row, as in `table()`.
 - An empty header leaves out `<thead>`. Several header rows wait until a script needs them.
@@ -111,8 +111,8 @@ A `<details>` summary and a `<dl>` term are inline. The content and each definit
 
 Markdown inside HTML is read only after a blank line, so rendering picks the form that works on GitHub:
 
-- A summary or term is written on one line, `<summary>TypeScript:</summary>`, as in GitHub's own examples. Inline elements are written as HTML, such as `<code>` for inline code: GitHub would show backticks there as text, and blank lines would add a paragraph. Its `&` and `<` are HTML-escaped, and a line break is `<br/>`. HTML entities stay on the line too.
-- A summary or term with a placeholder gets blank lines around it, so the placeholder can still take formatting. A placeholder inside HTML would take only a string or an entity.
+- A summary or term of plain text is written on one line, `<summary>TypeScript:</summary>`, as in GitHub's own examples. Its `&` and `<` are HTML-escaped, and a line break is `<br/>`. HTML entities stay on the line too.
+- A summary or term with any other inline element, such as inline code or a placeholder, gets blank lines around it, so it renders.
 - The content and each definition always get blank lines around them.
 
 ### Documents and frontmatter
@@ -265,7 +265,7 @@ A possible feature. The issue it addresses is real: Docusaurus 3 parses even `.m
   - `{` and `<` in text are escaped.
   - A comment renders as `{/* … */}`. Docusaurus accepts `<!-- -->` today only through its MDX 1 compatibility setting, which its v4 defaults turn off.
   - Raw HTML is valid JSX, as `<br/>` already is.
-  - A summary or term, written on one line as HTML in `'github'`, also needs Markdown escaping. MDX reads Markdown inside JSX, where GitHub reads raw HTML.
+  - A plain-text summary or term, written on one line in `'github'`, also needs Markdown escaping. MDX reads Markdown inside JSX, where GitHub reads raw HTML.
   - A kept placeholder throws when rendering. The text `{@ name @}` is an invalid MDX expression, and an `'mdx'` document is final output.
 - Flavor-only constructs, such as GitHub alerts (`> [!NOTE]`) and Docusaurus admonitions (`:::note`), wait until a script needs them.
 
