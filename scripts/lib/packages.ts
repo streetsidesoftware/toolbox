@@ -6,7 +6,7 @@ import type { PackageJson } from './package-json-util.ts';
 import { readPackageJson } from './package-json-util.ts';
 
 export interface WorkspacePackage {
-  /** Holds the directory relative to the repo root, with `/` separators, such as `packages/unindent`. */
+  /** The package's directory relative to the repo root, with `/` separators, such as `packages/unindent`. */
   dir: string;
   packageJson: PackageJson;
 }
