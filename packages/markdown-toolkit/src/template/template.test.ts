@@ -7,6 +7,7 @@ import {
   blockTemplate,
   codeBlock,
   document,
+  emphasis,
   heading,
   htmlEntity,
   inlineCode,
@@ -16,6 +17,7 @@ import {
   list,
   listItem,
   parse,
+  parseDocument,
   placeholder,
   strong,
   substitutePlaceholders,
@@ -268,6 +270,49 @@ describe('template', () => {
   test('an empty value in an inline template or a document', () => {
     assert.equal(inlineTemplate('a **{@ x @}** b', { x: '' }).toString(), 'a&#x20;**&#x20;** b');
     assert.equal(templateDocument('a\n\n{@ x @}\n', { x: '' }).toString(), 'a\n');
+  });
+});
+
+describe('a value parsed from its own text', () => {
+  testEach`
+    markdown        | value                        | expected        | label
+    ${'Hi {@x@}.'}  | ${parse('*a*')}              | ${'Hi _a_.'}    | ${'emphasis from parse'}
+    ${'Hi {@x@}.'}  | ${parse('**a**')}            | ${'Hi **a**.'}  | ${'strong from parse'}
+    ${'Hi {@x@}.'}  | ${template('*a*', {})}       | ${'Hi _a_.'}    | ${'emphasis from template'}
+    ${'{@x@}'}      | ${parse('- a')}              | ${'- a'}        | ${'a list from parse'}
+    ${'{@x@}'}      | ${parse('---')}              | ${'---'}        | ${'a rule from parse'}
+    ${'{@x@}'}      | ${parseDocument('*a*\n')}    | ${'_a_'}        | ${'emphasis from parseDocument'}
+  `(
+    'template and blockTemplate take $label',
+    ({ markdown, value, expected }: { markdown: string; value: TemplateValue; expected: string }) => {
+      assert.equal(template(markdown, { x: value }).toString(), expected);
+      assert.equal(blockTemplate(markdown, { x: value }).toString(), expected);
+    },
+  );
+
+  test('the other ways to substitute it', () => {
+    assert.equal(templateDocument('Hi {@x@}.', { x: parse('*a*') }).toString(), 'Hi _a_.\n');
+    assert.equal(inlineTemplate('Hi {@x@}.', { x: parse('*a*') }).toString(), 'Hi _a_.');
+  });
+
+  test('a value with no markers to read', () => {
+    assert.equal(template('Hi {@x@}.', { x: emphasis('a') }).toString(), 'Hi _a_.');
+    assert.equal(template('Hi {@x@}.', { x: parse('plain') }).toString(), 'Hi plain.');
+  });
+
+  testEach`
+    create           | label
+    ${template}      | ${'template'}
+    ${blockTemplate} | ${'blockTemplate'}
+  `('the style of $label comes from its own text', ({ create }: { create: typeof blockTemplate }) => {
+    const list = parse('- a\n\ntext\n\n- b');
+    assert.equal(create('* one\n\ntext\n\n{@x@}', { x: list }).toString(), '* one\n\ntext\n\n* a\n\ntext\n\n* b');
+    assert.equal(create('*t* {@x@}', { x: parse('_a_') }).toString(), '*t* *a*');
+    // Two lists in a row need different bullets, or they would join into one.
+    assert.equal(create('* one\n\n{@x@}', { x: parse('- a') }).toString(), '* one\n\n- a');
+    // The value's markers are at the offsets of the `_`s in the template, so they'd outvote its `*` if they counted.
+    const value = parse('abcdefgh*a* ab*b*');
+    assert.equal(create('*t* and _ and _ {@x@}', { x: value }).toString(), '*t* and \\_ and \\_ abcdefgh*a* ab*b*');
   });
 });
 

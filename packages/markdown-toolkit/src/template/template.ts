@@ -1,7 +1,7 @@
 import { detectMarkdownStyle } from '../detectStyle.ts';
 import { MarkdownElement, textNodes } from '../element/index.ts';
 import type { MDDocument, MDFragment, MDInlineFragment } from '../types.ts';
-import { fragment } from './fragment.ts';
+import { fragmentOf } from './fragment.ts';
 import { documentOf, templateTree } from './parse.ts';
 import { substituteInTree } from './substitute.ts';
 import { resolverOf } from './values.ts';
@@ -30,8 +30,9 @@ import type { TemplateResolver, TemplateValues } from './values.ts';
  */
 export function template(markdown: string, values: TemplateValues | TemplateResolver): MDFragment | MDInlineFragment {
   const root = templateTree(markdown, false);
+  const style = detectMarkdownStyle(root, markdown);
   substituteInTree(root, resolverOf(values), true);
-  return fragment(root, markdown);
+  return fragmentOf(root, style);
 }
 
 /**
@@ -55,14 +56,9 @@ export function template(markdown: string, values: TemplateValues | TemplateReso
  */
 export function blockTemplate(markdown: string, values: TemplateValues | TemplateResolver): MDFragment {
   const root = templateTree(markdown, false);
+  const style = detectMarkdownStyle(root, markdown);
   substituteInTree(root, resolverOf(values), true);
-  return new MarkdownElement(
-    'block',
-    'fragment',
-    'a Markdown fragment',
-    root.children,
-    detectMarkdownStyle(root, markdown),
-  );
+  return new MarkdownElement('block', 'fragment', 'a Markdown fragment', root.children, style);
 }
 
 /**
