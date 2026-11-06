@@ -1,15 +1,15 @@
 /** The public types of the Markdown builders. This module imports nothing, so every other module can depend on it. */
 
 /**
- * Describes what an element is, which decides where it may go:
+ * Where an element may go:
  * - `inline`: inside a line.
  * - `block`: on its own lines.
- * - `listItem`: only directly in a list.
+ * - `listItem`: in a list, or anywhere a paragraph can go.
  * - `frontmatter`: only first in a document.
  */
 export type MDKind = 'inline' | 'block' | 'listItem' | 'frontmatter';
 
-/** Lists the types that tell the MDElement interfaces apart, one for each. See {@link MDElement.type}. */
+/** The values of {@link MDElement.type}, one for each element interface. */
 export type MDType =
   | 'text'
   | 'placeholder'
@@ -42,13 +42,13 @@ export type MDType =
   | 'fragment'
   | 'inlineFragment';
 
-/** Describes a Markdown element, such as a paragraph or a link. */
+/** A Markdown element, such as a paragraph or a link. */
 export interface MDElement {
-  /** Holds what the element is, which decides where it can go, such as inside a line or on its own lines. */
+  /** Where the element can go, such as inside a line or on its own lines. */
   readonly kind: MDKind;
-  /** Holds the type that tells each MDElement interface apart, such as `'link'` for {@link MDLink}. */
+  /** A name unique to the element's interface, such as `'link'` for {@link MDLink}. */
   readonly type: MDType;
-  /** Holds what the element is, for error messages only, such as `a list`. */
+  /** A short name for the element in error messages, such as `a list`. */
   readonly description: string;
   /** Return the element's Markdown. */
   toString(): string;
@@ -62,199 +62,200 @@ export interface MDElement {
 export type MDValue = MDElement;
 
 /**
- * Describes text whose Markdown and HTML show on the page as text, not as formatting, made by {@link text}.
+ * Text whose Markdown and HTML show on the page as text, not as formatting, made by {@link text}.
  *
  * A `{​@ name @​}` placeholder in it stays, so a later call can substitute it.
  */
 export interface MDText extends MDElement {
   readonly kind: 'inline';
   readonly type: 'text';
-  /** Holds the string the text was made from. */
+  /** The string the text was made from. */
   readonly text: string;
 }
 
 /**
- * Describes a `{​@ name @​}` placeholder that goes anywhere a string can, made by {@link placeholder}.
+ * A `{​@ name @​}` placeholder that goes anywhere a string can, made by {@link placeholder}.
  *
- * Where it sits decides what it takes.
+ * What it takes depends on where it sits:
+ * - Within a sentence, text, links, formatting or code.
+ * - On a line of its own, also a list, table or other block.
  */
 export interface MDPlaceholder extends MDElement {
   readonly kind: 'inline';
   readonly type: 'placeholder';
-  /** Holds the name its value is looked up by. */
+  /** The name the placeholder's value is looked up by. */
   readonly name: string;
 }
 
 /**
- * Describes a `{​@ name @​}` placeholder on lines of its own, made by {@link blockPlaceholder}.
+ * A `{​@ name @​}` placeholder on lines of its own, made by {@link blockPlaceholder}.
  *
  * It takes any value, including a list, table or other block.
  */
 export interface MDBlockPlaceholder extends MDElement {
   readonly kind: 'block';
   readonly type: 'blockPlaceholder';
-  /** Holds the name its value is looked up by. */
+  /** The name the placeholder's value is looked up by. */
   readonly name: string;
 }
 
-/** Describes a link, made by {@link link}. */
+/** A link, made by {@link link}. */
 export interface MDLink extends MDElement {
   readonly kind: 'inline';
   readonly type: 'link';
 }
 
-/** Describes bold text, made by {@link strong}. */
+/** Bold text, made by {@link strong}. */
 export interface MDStrong extends MDElement {
   readonly kind: 'inline';
   readonly type: 'strong';
 }
 
-/** Describes italic text, made by {@link emphasis}. */
+/** Italic text, made by {@link emphasis}. */
 export interface MDEmphasis extends MDElement {
   readonly kind: 'inline';
   readonly type: 'emphasis';
 }
 
-/** Describes text with a line through it, made by {@link strikethrough}. */
+/** Text with a line through it, made by {@link strikethrough}. */
 export interface MDStrikethrough extends MDElement {
   readonly kind: 'inline';
   readonly type: 'strikethrough';
 }
 
-/** Describes superscript text, made by {@link sup}. */
+/** Superscript text, made by {@link sup}. */
 export interface MDSup extends MDElement {
   readonly kind: 'inline';
   readonly type: 'sup';
 }
 
-/** Describes subscript text, made by {@link sub}. */
+/** Subscript text, made by {@link sub}. */
 export interface MDSub extends MDElement {
   readonly kind: 'inline';
   readonly type: 'sub';
 }
 
-/** Describes code within a line of text, made by {@link inlineCode}. */
+/** Code within a line of text, made by {@link inlineCode}. */
 export interface MDInlineCode extends MDElement {
   readonly kind: 'inline';
   readonly type: 'inlineCode';
 }
 
-/** Describes a new line that doesn't start a new paragraph, made by {@link lineBreak}. */
+/** A new line that doesn't start a new paragraph, made by {@link lineBreak}. */
 export interface MDLineBreak extends MDElement {
   readonly kind: 'inline';
   readonly type: 'lineBreak';
 }
 
-/** Describes an HTML `<br/>` line break, made by {@link br}. */
+/** An HTML `<br/>` line break, made by {@link br}. */
 export interface MDBr extends MDElement {
   readonly kind: 'inline';
   readonly type: 'br';
 }
 
-/** Describes a character written as an HTML reference, such as `&nbsp;`, made by {@link htmlEntity}. */
+/** A character written as an HTML reference, such as `&nbsp;`, made by {@link htmlEntity}. */
 export interface MDHtmlEntity extends MDElement {
   readonly kind: 'inline';
   readonly type: 'htmlEntity';
-  /** Holds the character the reference stands for. */
+  /** The character the reference stands for. */
   readonly character: string;
 }
 
 /**
- * Describes an HTML comment, which the page doesn't show, made by {@link comment}.
- * Its text decides whether it goes inside a line or on its own lines.
+ * An HTML comment, which the page doesn't show, made by {@link comment}.
+ *
+ * - Text without a line ending goes on one line, and works anywhere a string can go.
+ * - Text with a line ending gets its markers on lines of their own, and goes on its own lines.
  */
 export interface MDComment extends MDElement {
   readonly kind: 'inline' | 'block';
   readonly type: 'comment';
 }
 
-/** Describes an HTML comment on one line, made by {@link inlineComment}. */
+/** An HTML comment on one line, which the page doesn't show, made by {@link inlineComment}. */
 export interface MDInlineComment extends MDElement {
   readonly kind: 'inline';
   readonly type: 'inlineComment';
 }
 
-/** Describes an HTML comment with its markers on lines of their own, made by {@link blockComment}. */
+/** An HTML comment with its markers on lines of their own, which the page doesn't show, made by {@link blockComment}. */
 export interface MDBlockComment extends MDElement {
   readonly kind: 'block';
   readonly type: 'blockComment';
 }
 
-/** Describes a heading, made by {@link heading}. */
+/** A heading, made by {@link heading}. */
 export interface MDHeading extends MDElement {
   readonly kind: 'block';
   readonly type: 'heading';
 }
 
-/** Describes a paragraph, made by {@link p}. */
+/** A paragraph, made by {@link p}. */
 export interface MDParagraph extends MDElement {
   readonly kind: 'block';
   readonly type: 'paragraph';
 }
 
-/** Describes a line across the page between sections, made by {@link hr}. */
+/** A line across the page between sections, made by {@link hr}. */
 export interface MDHorizontalRule extends MDElement {
   readonly kind: 'block';
   readonly type: 'horizontalRule';
 }
 
-/** Describes a block of code, made by {@link codeBlock}. */
+/** A block of code, made by {@link codeBlock}. */
 export interface MDCodeBlock extends MDElement {
   readonly kind: 'block';
   readonly type: 'codeBlock';
 }
 
-/** Describes one list item, made by {@link listItem}. */
+/** One list item, made by {@link listItem} or {@link taskListItem}. */
 export interface MDListItem extends MDElement {
   readonly kind: 'listItem';
   readonly type: 'listItem';
 }
 
-/** Describes a bulleted or numbered list, made by {@link list}. */
+/** A bulleted or numbered list, made by {@link list}, {@link ul} or {@link ol}. */
 export interface MDList extends MDElement {
   readonly kind: 'block';
   readonly type: 'list';
 }
 
-/** Describes a collapsible section, made by {@link details}. */
+/** A collapsible section, made by {@link details}. */
 export interface MDDetails extends MDElement {
   readonly kind: 'block';
   readonly type: 'details';
 }
 
-/** Describes a list of terms and their definitions, made by {@link dl}. */
+/** A list of terms and their definitions, made by {@link dl}. */
 export interface MDDefinitionList extends MDElement {
   readonly kind: 'block';
   readonly type: 'definitionList';
 }
 
-/** Describes a table whose cells hold text, links, formatting or code, made by {@link table}. */
+/** A table whose cells hold text, links, formatting or code, made by {@link table}. */
 export interface MDTable extends MDElement {
   readonly kind: 'block';
   readonly type: 'table';
 }
 
-/** Describes a table whose cells can hold anything, including lists and paragraphs, made by {@link htmlTable}. */
+/** A table whose cells can hold anything, including lists and paragraphs, made by {@link htmlTable}. */
 export interface MDHtmlTable extends MDElement {
   readonly kind: 'block';
   readonly type: 'htmlTable';
 }
 
 /**
- * Describes a whole Markdown file, made by {@link document}, {@link parseDocument} or {@link templateDocument}.
+ * A whole Markdown file, made by {@link document}, {@link parseDocument} or {@link templateDocument}.
  *
- * Its Markdown ends with a newline, as a file should.
+ * Its Markdown ends with a newline.
  */
 export interface MDDocument extends MDElement {
   readonly kind: 'block';
   readonly type: 'document';
   /**
-   * Return a copy of the document that writes its Markdown in the given style.
+   * Return a copy of the document with the given style preferences.
    *
-   * The style replaces any style the document had, and applies to everything inside it.
-   *
-   * Without this call, a template or parsed text keeps the style of its own text. Spacing and table padding may still
-   * change.
+   * The style is replaced and not merged with the existing document style.
    *
    * @example
    * md.document(md.list(['German'])).withStyle({ bullet: '*' });
@@ -264,7 +265,7 @@ export interface MDDocument extends MDElement {
 }
 
 /**
- * Describes YAML frontmatter between `---` lines, made by {@link frontmatter}.
+ * YAML frontmatter between `---` lines, made by {@link frontmatter}.
  *
  * It goes only first in a document.
  */
@@ -274,29 +275,36 @@ export interface MDFrontmatter extends MDElement {
 }
 
 /**
- * Describes paragraphs, lists and other blocks that go where paragraphs can, such as {@link parse} returns for text
- * longer than one paragraph.
+ * Paragraphs, lists and other blocks that go where paragraphs can.
  *
- * Markdown from text keeps the style of that text, such as its bullet markers.
+ * {@link blockText} and {@link blockTemplate} always make this. {@link parse} and {@link template} make it unless the
+ * result is one paragraph or blank, when they make an {@link MDInlineFragment}.
+ *
+ * Alone, it writes the markers of the text it was parsed from, such as `*` bullets. Inside a document or another
+ * element, it writes that element's markers.
  */
 export interface MDFragment extends MDElement {
   readonly kind: 'block';
   readonly type: 'fragment';
 }
 
-/** Describes formatted text that goes anywhere a string can, such as {@link parse} returns for one paragraph. */
+/**
+ * Formatted text that goes anywhere a string can.
+ *
+ * {@link inlineTemplate} always makes this. {@link parse} and {@link template} make it for one paragraph or blank text.
+ */
 export interface MDInlineFragment extends MDElement {
   readonly kind: 'inline';
   readonly type: 'inlineFragment';
 }
 
-/** Describes a heading's depth: 1 for the page title, 2 for its sections, and so on down to 6. */
+/** A heading's depth: 1 for the page title, 2 for its sections, and so on down to 6. */
 export type HeadingDepth = 1 | 2 | 3 | 4 | 5 | 6;
 
 /**
- * Describes an element that goes inside a line, such as text, a link or formatting.
+ * An element that goes inside a line, such as text, a link or formatting.
  *
- * A comment from {@link comment} may go here or on its own lines, depending on its text.
+ * A comment from {@link comment} goes inside a line only when its text has no line ending.
  */
 export type MDInline =
   | MDText
@@ -315,7 +323,7 @@ export type MDInline =
   | MDInlineComment
   | MDInlineFragment;
 
-/** Describes an element that goes on its own lines, such as a paragraph, list or table. */
+/** An element that goes on its own lines, such as a paragraph, list or table. */
 export type MDBlock =
   | MDHeading
   | MDParagraph
@@ -333,38 +341,45 @@ export type MDBlock =
   | MDBlockPlaceholder;
 
 /**
- * Describes what goes inside a line: text, links, formatting or code.
+ * What goes inside a line: text, links, formatting or code.
  *
  * - A string's Markdown and HTML show as text, not as formatting, and each newline is a line break.
  * - An array's pieces are joined as given, with no spaces added.
  */
 export type InlineContent = string | MDInline | readonly InlineContent[];
 
-/** Describes a paragraph, list, table or other block, or an array of them. */
+/** A paragraph, list, table or other block, or an array of them. */
 export type BlockContent = MDBlock | readonly BlockContent[];
 
 /**
- * Describes text, links, formatting or code; a list, table or other block; or a list item.
- *
- * A list item forms a list with the list items next to it.
+ * One piece of content:
+ * - text, links, formatting or code
+ * - a paragraph, list, table or other block
+ * - a list item, which forms a list with the list items next to it
  */
 export type BlockOrInlineContent = InlineContent | BlockContent | MDListItem;
 
-/** Describes any {@link BlockOrInlineContent}, or an array that mixes them. */
+/** Any content, including an array that mixes text, blocks and list items. */
 export type AnyContent = BlockOrInlineContent | readonly BlockOrInlineContent[];
 
 /**
- * Describes a piece of a list item: text, links, formatting or code; a paragraph, list or other block; or a list item.
- *
- * A list item forms a list with the list items next to it.
+ * A piece of a list item:
+ * - text, links, formatting or code
+ * - a paragraph, list, table or other block
+ * - another list item, which forms a list with the list items next to it
  */
 export type ListItemContent = BlockOrInlineContent;
 
-/** Holds the key that marks a type as options. No object sets it. */
+/**
+ * The key that marks a type as options.
+ *
+ * No object sets it.
+ */
 export const OPTION_TYPE_GUARD_SYMBOL: unique symbol = Symbol('option_type_guard');
 
 /**
- * Describes what every options type extends, so that an element never passes for options.
+ * The type {@link ListItemOptions} extends, so that an element never passes for options.
+ *
  * Every element has a `kind` and a `type`, and options never do.
  */
 export interface OptionTypeGuard {
@@ -373,84 +388,154 @@ export interface OptionTypeGuard {
   readonly type?: never;
 }
 
-/** Describes a list item. */
+/** The options of {@link listItem} and {@link taskListItem}. */
 export interface ListItemOptions extends OptionTypeGuard {
-  /** Holds whether the item's checkbox is checked. Without it, the item has no checkbox. */
+  /**
+   * Controls the list item checkbox:
+   * - `true` - the checkbox is checked
+   * - `false` - the checkbox is not checked
+   * - `undefined` - {@link listItem} shows no checkbox, and {@link taskListItem} shows one that is not checked
+   */
   checked?: boolean | undefined;
 }
 
-/** Describes one item of a list: a single piece, or an array of pieces. */
+/**
+ * One item of a list: a single piece, or an array of pieces.
+ *
+ * A list among the pieces makes a nested list.
+ */
 export type ListEntry = InlineContent | MDBlock | MDListItem | readonly ListItemContent[];
 
-/** Describes a list: bulleted by default, or numbered with `ordered: true`. */
+/**
+ * The options of {@link list}:
+ * - `ordered: true` - a numbered list, which can also take `start`
+ * - `ordered: false` or left out - a bulleted list
+ */
 export type ListOptions = { ordered?: false | undefined } | ({ ordered: true } & OrderedListOptions);
 
-/** Describes a numbered list. */
+/** The options of {@link ol}, and of {@link list} with `ordered: true`. */
 export interface OrderedListOptions {
-  /** Holds the number of the first item, a whole number from 0 to 999999999. It's 1 by default. */
+  /**
+   * The number of the first item, a whole number from 0 to 999999999.
+   *
+   * @default 1
+   */
   start?: number | undefined;
 }
 
-/** Describes one entry of a definition list: a term and its definition. */
+/** One entry of a definition list: a term and its definition. */
 export type DefinitionEntry = readonly [term: InlineContent, definition: AnyContent];
 
-/** Names how a table column is aligned. */
+/** A table column's alignment, by name. */
 export type ColumnAlignName = 'left' | 'center' | 'right';
 
-/** Lists the table delimiters GitHub's docs use: `:---` left, `:---:` center, `---:` right, `---` none. */
+/**
+ * A table column's alignment, written as one of the delimiters GitHub's docs use:
+ * - `:---` - left-aligned
+ * - `:---:` - centered
+ * - `---:` - right-aligned
+ * - `---` - not aligned
+ */
 export type ColumnDelimiterExplicit = ':---' | ':---:' | '---:' | '---';
 
 /**
- * Describes how a table column is aligned, as its delimiter is written in a table: `:---` left, `:---:` center,
- * `---:` right, or `---` for none.
+ * A table column's alignment, written as a delimiter in a table:
+ * - a `:` at the start - left-aligned
+ * - a `:` at both ends - centered
+ * - a `:` at the end - right-aligned
+ * - no `:` - not aligned
  *
- * Any number of `-` works, one or more. It's a string with a pattern, so it maps to a JSON schema.
+ * It has one or more `-`.
  *
  * @pattern ^:?-+:?$
  * @example ':---:'
  */
 export type ColumnDelimiter = string;
 
-/** Describes how a table column is aligned: a name, a delimiter, or `undefined` for none. */
+/**
+ * The alignment of a table column:
+ * - `'left'` or `':---'` - left-aligned
+ * - `'center'` or `':---:'` - centered
+ * - `'right'` or `'---:'` - right-aligned
+ * - `'---'` or `undefined` - not aligned
+ */
 export type ColumnAlign = ColumnAlignName | ColumnDelimiter | ColumnDelimiterExplicit | undefined;
 
-/** Describes the options of {@link table} and {@link htmlTable}. */
+/** The options of {@link table} and {@link htmlTable}. */
 export interface TableOptions {
-  /** Holds each column's alignment, one entry per column. A column without one isn't aligned. */
+  /**
+   * The alignment of each column, one entry per column.
+   *
+   * A column without an entry isn't aligned.
+   */
   align?: readonly ColumnAlign[] | undefined;
 }
 
-/** Lists the characters that can mark a bulleted list item. */
+/** The characters that can mark a bulleted list item. */
 export type BulletMarker = '*' | '+' | '-';
-/** Lists the characters that can follow the number of a numbered list item. */
+/** The characters that can follow the number of a numbered list item. */
 export type OrderedBulletMarker = '.' | ')';
-/** Lists the characters that can mark italic or bold text. */
+/** The characters that can mark italic or bold text. */
 export type EmphasisMarker = '*' | '_';
-/** Lists the characters that can make a code fence. */
+/** The characters that can make a code fence. */
 export type FenceMarker = '`' | '~';
-/** Lists the characters that can make a line across the page. */
+/** The characters that can make a line across the page. */
 export type RuleMarker = '*' | '-' | '_';
 
-/**
- * Describes how Markdown is written.
- *
- * A field left out keeps the default.
- */
+/** Markdown style preferences. */
 export interface MarkdownStyle {
-  /** Holds the marker of a bulleted list item. */
+  /**
+   * The preferred marker of a bulleted list item.
+   *
+   * @default '-'
+   */
   bullet?: BulletMarker | undefined;
-  /** Holds the marker after the number of a numbered list item. */
+  /**
+   * The preferred marker after the number of a numbered list item.
+   *
+   * @default '.'
+   */
   bulletOrdered?: OrderedBulletMarker | undefined;
-  /** Holds the marker around italic text. */
+  /**
+   * The marker around italic text.
+   *
+   * @default '_'
+   */
   emphasis?: EmphasisMarker | undefined;
-  /** Holds the marker around bold text, written twice. */
+  /**
+   * The marker around bold text, written twice on each side.
+   *
+   * @default '*'
+   */
   strong?: EmphasisMarker | undefined;
-  /** Holds the character of a code fence. */
+  /**
+   * The character a code fence is made of.
+   *
+   * @default '`'
+   */
   fence?: FenceMarker | undefined;
-  /** Holds whether a code block is fenced, rather than indented. */
+  /**
+   * Sets the preferred form of a code block:
+   * - `true` - a code fence like ```` ``` ````
+   * - `false` - an indent, where the block can use one
+   *
+   * @default true
+   */
   fences?: boolean | undefined;
-  /** Holds whether numbered list numbers count up, rather than repeat. */
+  /**
+   * Controls how a numbered list's numbers are written:
+   * - `true` - the numbers count up: `1.`, `2.`, `3.`
+   * - `false` - every item repeats the first number: `1.`, `1.`, `1.`
+   *
+   * The page counts up either way.
+   *
+   * @default false
+   */
   incrementListMarker?: boolean | undefined;
-  /** Holds the character of a line across the page. */
+  /**
+   * The character a line across the page is made of.
+   *
+   * @default '-'
+   */
   rule?: RuleMarker | undefined;
 }

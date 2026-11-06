@@ -14,11 +14,11 @@ import {
 } from '../element/index.ts';
 import type { AnyContent, InlineContent, MDElement } from '../types.ts';
 
-/** Describes a value a template placeholder can take. */
+/** A value for a template placeholder. */
 export type TemplateValue = string | number | boolean | MDElement | readonly TemplateValue[];
 
 /**
- * Holds the values for a template, by placeholder name.
+ * The values for a template, by placeholder name.
  * - A top-level key may be a dotted name, such as `'engines.cspell'`.
  * - A nested object is walked one segment at a time.
  * - When several keys could supply a name, the later key wins.

@@ -4,12 +4,12 @@ import { renderNodes } from '../render.ts';
 import type { MarkdownStyle, MDElement, MDKind, MDListItem, MDText, MDType } from '../types.ts';
 
 /**
- * Holds the key an element's rendering is stored under. Having it is what makes a value a Markdown element.
+ * The key an element's rendering is stored under. Having it is what makes a value a Markdown element.
  * It comes from the global symbol registry, so another loaded copy of this module recognizes the element too.
  */
 const renderingKey: unique symbol = Symbol.for('@streetsidesoftware/markdown-toolkit.value');
 
-/** Describes the nodes an element renders as, and the style to render them in. */
+/** The nodes an element renders as, and the style to render them in. */
 interface Rendering {
   nodes: RootContent[];
   style: MarkdownStyle | undefined;
@@ -57,7 +57,7 @@ export function isKind(value: unknown, ...kinds: MDElement['kind'][]): value is 
   return renderingOf(value) !== undefined && kinds.includes((value as MDElement).kind);
 }
 
-/** Check whether a value is a list item made by `listItem`. */
+/** Check whether a value is a list item. */
 export function isListItem(value: unknown): value is MDListItem {
   return isKind(value, 'listItem');
 }

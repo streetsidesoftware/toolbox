@@ -1,7 +1,7 @@
 import type { Html, Literal, PhrasingContent, RootContent } from 'mdast';
 
 /**
- * Describes HTML inside a line, such as a comment or `<br/>`.
+ * HTML inside a line, such as a comment or `<br/>`.
  * It has a node type of its own, so rendering writes it as is.
  * An `html` node won't do: remark-stringify turns a line ending before one into a space.
  * Only this package's own code sees it in mdast's content types; the published types leave mdast unchanged.

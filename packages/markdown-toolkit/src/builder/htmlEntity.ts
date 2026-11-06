@@ -47,55 +47,59 @@ export function htmlEntity(value: string): MDHtmlEntity {
 }
 
 /**
- * Holds a no-break space, written `&nbsp;`. The words on either side of it stay on one line.
+ * A no-break space, written `&nbsp;`.
+ *
+ * The words on either side of it stay on one line.
  * @category text
  */
 export const nbsp: MDHtmlEntity = htmlEntity('nbsp');
 
 /**
- * Holds a space as wide as the letter n, written `&ensp;`.
+ * A space as wide as the letter n, written `&ensp;`.
  * @category text
  */
 export const ensp: MDHtmlEntity = htmlEntity('ensp');
 
 /**
- * Holds a space as wide as the letter m, written `&emsp;`.
+ * A space as wide as the letter m, written `&emsp;`.
  * @category text
  */
 export const emsp: MDHtmlEntity = htmlEntity('emsp');
 
 /**
- * Holds a thin space, written `&thinsp;`.
+ * A thin space, written `&thinsp;`.
  * @category text
  */
 export const thinsp: MDHtmlEntity = htmlEntity('thinsp');
 
 /**
- * Holds a soft hyphen, written `&shy;`. A long word may break there, and shows a hyphen only when it does.
+ * A soft hyphen, written `&shy;`.
+ *
+ * A long word may break there, and shows a hyphen only when it does.
  * @category text
  */
 export const shy: MDHtmlEntity = htmlEntity('shy');
 
 /**
- * Holds an em dash, written `&mdash;`.
+ * An em dash, written `&mdash;`.
  * @category text
  */
 export const mdash: MDHtmlEntity = htmlEntity('mdash');
 
 /**
- * Holds an en dash, written `&ndash;`.
+ * An en dash, written `&ndash;`.
  * @category text
  */
 export const ndash: MDHtmlEntity = htmlEntity('ndash');
 
 /**
- * Holds an ellipsis, written `&hellip;`.
+ * An ellipsis, written `&hellip;`.
  * @category text
  */
 export const hellip: MDHtmlEntity = htmlEntity('hellip');
 
 /**
- * Holds a copyright sign, written `&copy;`.
+ * A copyright sign, written `&copy;`.
  * @category text
  */
 export const copy: MDHtmlEntity = htmlEntity('copy');
@@ -111,7 +115,7 @@ function numberFor(character: string): string {
 
 let names: Map<string, string> | undefined;
 
-/** Holds familiar HTML 4 names for characters whose alphabetical tie picks an obscure one, such as `angst` for Å. */
+/** The names to use for characters whose alphabetical tie would pick an obscure one, such as `Aring` over `angst` for Å. */
 const familiarNames: Record<string, string> = { '\u00C5': 'Aring', '\u00A8': 'uml' };
 
 /**

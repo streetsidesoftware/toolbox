@@ -5,7 +5,7 @@ import { asInlineHtml, placeholderNodeAsWritten, trimBlanks } from '../mdast/ind
 import type { AnyContent, BlockContent, InlineContent, MDBlock, MDListItem } from '../types.ts';
 import { describe, isArray, isKind, isListItem, renderingOf } from './element.ts';
 
-/** Describes content on its own lines, where list items in a row form a list. */
+/** Content on its own lines, where list items in a row form a list. */
 type BlockLike = BlockContent | MDListItem | readonly (BlockContent | MDListItem)[];
 
 /**

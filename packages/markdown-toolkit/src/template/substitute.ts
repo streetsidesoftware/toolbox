@@ -157,22 +157,26 @@ function substituteInText(text: string, resolve: TemplateResolver): string | und
   return onlyText ? result : undefined;
 }
 
-/** Holds the blocks in place of a placeholder that is a whole line, until its paragraph is split around them. */
+/** The blocks that replace a placeholder on a line of its own, until its paragraph is split around them. */
 interface BlockSlot {
   readonly blocks: RootContent[];
 }
 
-/** Holds the place of a placeholder whose value shows nothing, until its paragraph is rebuilt. */
+/** Stands in for a placeholder whose value shows nothing, until its paragraph is rebuilt. */
 interface EmptySlot {
   readonly empty: true;
 }
 
 type Piece = RootContent | BlockSlot | EmptySlot;
 
-/** Describes a paragraph being substituted: one that can split around blocks, or one that has to stay whole. */
+/**
+ * What a paragraph does with a placeholder alone on a line, when its value is a block or empty:
+ * - `split`: the paragraph splits at that line, around any block.
+ * - `join`: the paragraph stays whole. A block is an error, and an empty line is removed.
+ */
 type ParagraphMode = 'split' | 'join';
 
-/** Lists the node types whose children may be blocks. */
+/** The node types whose children may be blocks. */
 const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'htmlBlockSlot', 'htmlGroup', 'list', 'listItem']);
 
 /**
@@ -322,10 +326,10 @@ function withoutEmptiedLines(pieces: readonly Piece[], mode: ParagraphMode): Pie
   return result;
 }
 
-/** Describes one line of a paragraph's pieces. */
+/** One line of a paragraph's pieces. */
 interface PieceLine {
   readonly pieces: Piece[];
-  /** Holds the text of the line ending after the line, if it isn't a line break. */
+  /** The line ending after the line, as text. It's empty after a line break or at the paragraph's end. */
   readonly ending: Piece[];
 }
 
