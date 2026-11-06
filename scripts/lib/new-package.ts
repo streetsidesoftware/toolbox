@@ -19,7 +19,7 @@ export interface NewPackageOptions {
   /**
    * The folder of template files.
    *
-   * @default {@link TEMPLATE_DIR}
+   * @default TEMPLATE_DIR
    */
   templateDir?: string | undefined;
 }
