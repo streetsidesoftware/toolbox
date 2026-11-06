@@ -277,11 +277,11 @@ export interface MDFrontmatter extends MDElement {
 /**
  * Paragraphs, lists and other blocks that go where paragraphs can.
  *
- * {@link blockText} and {@link blockTemplate} always make this. {@link parse} and {@link template} make it for anything
- * but one paragraph or blank text.
+ * {@link blockText} and {@link blockTemplate} always make this. {@link parse} and {@link template} make it unless the
+ * result is one paragraph or blank, when they make an {@link MDInlineFragment}.
  *
- * Rendered alone, parsed Markdown keeps its style, such as its bullet markers. Inside a document or another element, it
- * doesn't.
+ * Alone, it writes the markers of the text it was parsed from, such as `*` bullets. Inside a document or another
+ * element, it writes that element's markers.
  */
 export interface MDFragment extends MDElement {
   readonly kind: 'block';
@@ -304,7 +304,7 @@ export type HeadingDepth = 1 | 2 | 3 | 4 | 5 | 6;
 /**
  * An element that goes inside a line, such as text, a link or formatting.
  *
- * A comment from {@link comment} may go here or on its own lines, depending on its text.
+ * A comment from {@link comment} goes inside a line only when its text has no line ending.
  */
 export type MDInline =
   | MDText
@@ -445,7 +445,7 @@ export type ColumnDelimiterExplicit = ':---' | ':---:' | '---:' | '---';
  * - a `:` at the end - right-aligned
  * - no `:` - not aligned
  *
- * It has one or more `-`. It's a string with a pattern, so it maps to a JSON schema.
+ * It has one or more `-`.
  *
  * @pattern ^:?-+:?$
  * @example ':---:'
@@ -523,9 +523,11 @@ export interface MarkdownStyle {
    */
   fences?: boolean | undefined;
   /**
-   * Controls how a numbered list's numbers are written. The page counts up either way:
+   * Controls how a numbered list's numbers are written:
    * - `true` - the numbers count up: `1.`, `2.`, `3.`
    * - `false` - every item repeats the first number: `1.`, `1.`, `1.`
+   *
+   * The page counts up either way.
    *
    * @default false
    */

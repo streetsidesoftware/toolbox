@@ -169,7 +169,11 @@ interface EmptySlot {
 
 type Piece = RootContent | BlockSlot | EmptySlot;
 
-/** How a paragraph being substituted treats blocks: `split` splits it around them, and `join` keeps it whole. */
+/**
+ * What a paragraph does with a placeholder alone on a line, when its value is a block or empty:
+ * - `split`: the paragraph splits at that line, around any block.
+ * - `join`: the paragraph stays whole. A block is an error, and an empty line is removed.
+ */
 type ParagraphMode = 'split' | 'join';
 
 /** The node types whose children may be blocks. */
