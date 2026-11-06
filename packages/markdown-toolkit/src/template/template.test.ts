@@ -271,6 +271,10 @@ describe('template', () => {
     assert.equal(inlineTemplate('a **{@ x @}** b', { x: '' }).toString(), 'a&#x20;**&#x20;** b');
     assert.equal(templateDocument('a\n\n{@ x @}\n', { x: '' }).toString(), 'a\n');
   });
+
+  test('a formatted value from a builder', () => {
+    assert.equal(template('Hi {@x@}.', { x: emphasis('a') }).toString(), 'Hi _a_.');
+  });
 });
 
 describe('a value parsed from its own text', () => {
@@ -280,6 +284,7 @@ describe('a value parsed from its own text', () => {
     ${'Hi {@x@}.'}  | ${parse('**a**')}            | ${'Hi **a**.'}  | ${'strong from parse'}
     ${'Hi {@x@}.'}  | ${template('*a*', {})}       | ${'Hi _a_.'}    | ${'emphasis from template'}
     ${'{@x@}'}      | ${parse('- a')}              | ${'- a'}        | ${'a list from parse'}
+    ${'{@x@}'}      | ${parse('1. a')}             | ${'1. a'}       | ${'an ordered list from parse'}
     ${'{@x@}'}      | ${parse('---')}              | ${'---'}        | ${'a rule from parse'}
     ${'{@x@}'}      | ${parseDocument('*a*\n')}    | ${'_a_'}        | ${'emphasis from parseDocument'}
   `(
@@ -293,10 +298,10 @@ describe('a value parsed from its own text', () => {
   test('the other ways to substitute it', () => {
     assert.equal(templateDocument('Hi {@x@}.', { x: parse('*a*') }).toString(), 'Hi _a_.\n');
     assert.equal(inlineTemplate('Hi {@x@}.', { x: parse('*a*') }).toString(), 'Hi _a_.');
+    assert.equal(substitutePlaceholders(parse('Hi {@x@}.'), { x: parse('*a*') }).toString(), 'Hi _a_.');
   });
 
-  test('a value with no markers to read', () => {
-    assert.equal(template('Hi {@x@}.', { x: emphasis('a') }).toString(), 'Hi _a_.');
+  test('a value with no formatting', () => {
     assert.equal(template('Hi {@x@}.', { x: parse('plain') }).toString(), 'Hi plain.');
   });
 
@@ -305,8 +310,11 @@ describe('a value parsed from its own text', () => {
     ${template}      | ${'template'}
     ${blockTemplate} | ${'blockTemplate'}
   `('the style of $label comes from its own text', ({ create }: { create: typeof blockTemplate }) => {
-    const list = parse('- a\n\ntext\n\n- b');
-    assert.equal(create('* one\n\ntext\n\n{@x@}', { x: list }).toString(), '* one\n\ntext\n\n* a\n\ntext\n\n* b');
+    const listsAndText = parse('- a\n\ntext\n\n- b');
+    assert.equal(
+      create('* one\n\ntext\n\n{@x@}', { x: listsAndText }).toString(),
+      '* one\n\ntext\n\n* a\n\ntext\n\n* b',
+    );
     assert.equal(create('*t* {@x@}', { x: parse('_a_') }).toString(), '*t* *a*');
     // Two lists in a row need different bullets, or they would join into one.
     assert.equal(create('* one\n\n{@x@}', { x: parse('- a') }).toString(), '* one\n\n- a');

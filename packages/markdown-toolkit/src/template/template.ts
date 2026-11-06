@@ -30,6 +30,7 @@ import type { TemplateResolver, TemplateValues } from './values.ts';
  */
 export function template(markdown: string, values: TemplateValues | TemplateResolver): MDFragment | MDInlineFragment {
   const root = templateTree(markdown, false);
+  // A value keeps positions from its own text, so detect the style before any value goes in.
   const style = detectMarkdownStyle(root, markdown);
   substituteInTree(root, resolverOf(values), true);
   return fragmentOf(root, style);
@@ -56,6 +57,7 @@ export function template(markdown: string, values: TemplateValues | TemplateReso
  */
 export function blockTemplate(markdown: string, values: TemplateValues | TemplateResolver): MDFragment {
   const root = templateTree(markdown, false);
+  // A value keeps positions from its own text, so detect the style before any value goes in.
   const style = detectMarkdownStyle(root, markdown);
   substituteInTree(root, resolverOf(values), true);
   return new MarkdownElement('block', 'fragment', 'a Markdown fragment', root.children, style);
