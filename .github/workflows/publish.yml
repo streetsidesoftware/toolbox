@@ -51,4 +51,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # Prerelease versions, such as 3.2.0-alpha.0, go to the `alpha` dist-tag, so `latest` doesn't change.
-        run: pnpm lerna publish from-package --no-push --no-private --pre-dist-tag alpha --yes
+        # The sponsor step above rewrites Markdown files without committing them; `--allow-dirty` lets only those through.
+        run: pnpm lerna publish from-package --no-push --no-private --pre-dist-tag alpha --allow-dirty='**/*.md' --yes
