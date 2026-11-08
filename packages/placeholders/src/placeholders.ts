@@ -38,7 +38,6 @@ export type PlaceholderResolver = (name: string) => string | undefined;
  */
 export type PlaceholderValues = PlaceholderResolver | object;
 
-/** A placeholder found in a string. */
 export interface Placeholder {
   /** The placeholder's name, without its delimiters or any whitespace next to them. */
   name: string;
