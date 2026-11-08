@@ -157,7 +157,7 @@ function substituteInText(text: string, resolve: TemplateResolver): string | und
   return onlyText ? result : undefined;
 }
 
-/** The blocks that replace a placeholder on a line of its own, until its paragraph is split around them. */
+/** Where a paragraph splits: the blocks that replace a placeholder on a line of its own, or none where values left a line empty. */
 interface BlockSlot {
   readonly blocks: RootContent[];
 }
@@ -176,7 +176,7 @@ type Piece = RootContent | BlockSlot | EmptySlot;
  */
 type ParagraphMode = 'split' | 'join';
 
-/** The node types whose children may be blocks. */
+/** The node types inside which a placeholder alone on a line of a paragraph can take blocks, if every node above is one too. */
 const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'htmlBlockSlot', 'htmlGroup', 'list', 'listItem']);
 
 /**

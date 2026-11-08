@@ -2,7 +2,7 @@
 
 /**
  * Where an element may go:
- * - `inline`: inside a line.
+ * - `inline`: inside a line, or where a paragraph can go, as part of a paragraph.
  * - `block`: on its own lines.
  * - `listItem`: in a list, or anywhere a paragraph can go.
  * - `frontmatter`: only first in a document.
@@ -172,7 +172,7 @@ export interface MDComment extends MDElement {
   readonly type: 'comment';
 }
 
-/** An HTML comment on one line, which the page doesn't show, made by {@link inlineComment}. */
+/** An HTML comment that goes inside a line, which the page doesn't show, made by {@link inlineComment}. */
 export interface MDInlineComment extends MDElement {
   readonly kind: 'inline';
   readonly type: 'inlineComment';
@@ -190,7 +190,7 @@ export interface MDHeading extends MDElement {
   readonly type: 'heading';
 }
 
-/** A paragraph, made by {@link p}. */
+/** A paragraph, made by {@link p} or {@link toBlock}. */
 export interface MDParagraph extends MDElement {
   readonly kind: 'block';
   readonly type: 'paragraph';
