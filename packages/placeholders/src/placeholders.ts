@@ -31,12 +31,15 @@ export interface ReplacePlaceholdersOptions extends PlaceholderOptions {
 export type PlaceholderResolver = (name: string) => string | undefined;
 
 /**
- * The values for placeholders: a {@link PlaceholderResolver}, or an object.
+ * An object of substitution values, keyed by placeholder name.
  *
- * - A dotted name walks the object's own properties: `a.b` reads `values.a.b`.
- * - A string or number value is used. Anything else leaves the placeholder as written.
+ * - A dotted name, such as `user.name`, reads nested objects: `{ user: { name: 'Ada' } }`, not a `'user.name'` key.
+ * - Only string and number values are used.
+ * - Inherited properties are ignored.
  */
-export type PlaceholderValues = PlaceholderResolver | object;
+export type PlaceholderSubstitutionObject = object;
+
+export type PlaceholderValues = PlaceholderResolver | PlaceholderSubstitutionObject;
 
 export interface Placeholder {
   /** The placeholder's name, without its delimiters or any whitespace next to them. */
