@@ -326,7 +326,6 @@ function withoutEmptiedLines(pieces: readonly Piece[], mode: ParagraphMode): Pie
   return result;
 }
 
-/** One line of a paragraph's pieces. */
 interface PieceLine {
   readonly pieces: Piece[];
   /** The line ending after the line, as text. It's empty after a line break or at the paragraph's end. */

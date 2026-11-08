@@ -42,7 +42,6 @@ export type MDType =
   | 'fragment'
   | 'inlineFragment';
 
-/** A Markdown element, such as a paragraph or a link. */
 export interface MDElement {
   /** Where the element can go, such as inside a line or on its own lines. */
   readonly kind: MDKind;
@@ -99,7 +98,6 @@ export interface MDBlockPlaceholder extends MDElement {
   readonly name: string;
 }
 
-/** A link. */
 export interface MDLink extends MDElement {
   readonly kind: 'inline';
   readonly type: 'link';
@@ -184,13 +182,11 @@ export interface MDBlockComment extends MDElement {
   readonly type: 'blockComment';
 }
 
-/** A heading. */
 export interface MDHeading extends MDElement {
   readonly kind: 'block';
   readonly type: 'heading';
 }
 
-/** A paragraph. */
 export interface MDParagraph extends MDElement {
   readonly kind: 'block';
   readonly type: 'paragraph';
@@ -202,13 +198,11 @@ export interface MDHorizontalRule extends MDElement {
   readonly type: 'horizontalRule';
 }
 
-/** A block of code. */
 export interface MDCodeBlock extends MDElement {
   readonly kind: 'block';
   readonly type: 'codeBlock';
 }
 
-/** One list item. */
 export interface MDListItem extends MDElement {
   readonly kind: 'listItem';
   readonly type: 'listItem';
@@ -348,7 +342,6 @@ export type MDBlock =
  */
 export type InlineContent = string | MDInline | readonly InlineContent[];
 
-/** A paragraph, list, table or other block, or an array of them. */
 export type BlockContent = MDBlock | readonly BlockContent[];
 
 /**
@@ -359,7 +352,6 @@ export type BlockContent = MDBlock | readonly BlockContent[];
  */
 export type BlockOrInlineContent = InlineContent | BlockContent | MDListItem;
 
-/** Any content, including an array that mixes text, blocks and list items. */
 export type AnyContent = BlockOrInlineContent | readonly BlockOrInlineContent[];
 
 /**
@@ -421,10 +413,8 @@ export interface OrderedListOptions {
   start?: number | undefined;
 }
 
-/** One entry of a definition list: a term and its definition. */
 export type DefinitionEntry = readonly [term: InlineContent, definition: AnyContent];
 
-/** A table column's alignment, by name. */
 export type ColumnAlignName = 'left' | 'center' | 'right';
 
 /**
@@ -468,13 +458,11 @@ export interface TableOptions {
   align?: readonly ColumnAlign[] | undefined;
 }
 
-/** The characters that can mark a bulleted list item. */
 export type BulletMarker = '*' | '+' | '-';
 /** The characters that can follow the number of a numbered list item. */
 export type OrderedBulletMarker = '.' | ')';
 /** The characters that can mark italic or bold text. */
 export type EmphasisMarker = '*' | '_';
-/** The characters that can make a code fence. */
 export type FenceMarker = '`' | '~';
 /** The characters that can make a line across the page. */
 export type RuleMarker = '*' | '-' | '_';

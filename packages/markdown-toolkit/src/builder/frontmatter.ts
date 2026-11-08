@@ -6,7 +6,6 @@ import type { MDFrontmatter } from '../types.ts';
 /** Matches a first line of exactly `---`, up to the next line of exactly `---`. */
 const frontmatterPattern = /^---\r?\n(?:([\s\S]*?)\r?\n)??---(?:\r?\n|$)/;
 
-/** Frontmatter read from the start of a file. */
 export interface FrontmatterMatch {
   /** The YAML text between the `---` lines. */
   readonly yaml: string;
