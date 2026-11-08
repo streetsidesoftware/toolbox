@@ -21,7 +21,8 @@ export interface PlaceholderOptions {
 /** The options of {@link replacePlaceholders}. */
 export interface ReplacePlaceholdersOptions extends PlaceholderOptions {
   /**
-   * Gives each later line of a multi-line value the leading whitespace of its placeholder's line.
+   * Gives each later line of a multi-line value the leading whitespace of its placeholder's line. An empty line stays
+   * empty.
    *
    * @default true
    */
