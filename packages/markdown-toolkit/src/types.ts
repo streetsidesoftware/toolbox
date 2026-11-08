@@ -62,7 +62,7 @@ export interface MDElement {
 export type MDValue = MDElement;
 
 /**
- * Text whose Markdown and HTML show on the page as text, not as formatting, made by {@link text}.
+ * Text whose Markdown and HTML show on the page as text, not as formatting.
  *
  * A `{​@ name @​}` placeholder in it stays, so a later call can substitute it.
  */
@@ -74,7 +74,7 @@ export interface MDText extends MDElement {
 }
 
 /**
- * A `{​@ name @​}` placeholder that goes anywhere a string can, made by {@link placeholder}.
+ * A `{​@ name @​}` placeholder that goes anywhere a string can.
  *
  * What it takes depends on where it sits:
  * - Within a sentence, text, links, formatting or code.
@@ -88,7 +88,7 @@ export interface MDPlaceholder extends MDElement {
 }
 
 /**
- * A `{​@ name @​}` placeholder on lines of its own, made by {@link blockPlaceholder}.
+ * A `{​@ name @​}` placeholder on lines of its own.
  *
  * It takes any value, including a list, table or other block.
  */
@@ -99,61 +99,61 @@ export interface MDBlockPlaceholder extends MDElement {
   readonly name: string;
 }
 
-/** A link, made by {@link link}. */
+/** A link. */
 export interface MDLink extends MDElement {
   readonly kind: 'inline';
   readonly type: 'link';
 }
 
-/** Bold text, made by {@link strong}. */
+/** Bold text. */
 export interface MDStrong extends MDElement {
   readonly kind: 'inline';
   readonly type: 'strong';
 }
 
-/** Italic text, made by {@link emphasis}. */
+/** Italic text. */
 export interface MDEmphasis extends MDElement {
   readonly kind: 'inline';
   readonly type: 'emphasis';
 }
 
-/** Text with a line through it, made by {@link strikethrough}. */
+/** Text with a line through it. */
 export interface MDStrikethrough extends MDElement {
   readonly kind: 'inline';
   readonly type: 'strikethrough';
 }
 
-/** Superscript text, made by {@link sup}. */
+/** Superscript text. */
 export interface MDSup extends MDElement {
   readonly kind: 'inline';
   readonly type: 'sup';
 }
 
-/** Subscript text, made by {@link sub}. */
+/** Subscript text. */
 export interface MDSub extends MDElement {
   readonly kind: 'inline';
   readonly type: 'sub';
 }
 
-/** Code within a line of text, made by {@link inlineCode}. */
+/** Code within a line of text. */
 export interface MDInlineCode extends MDElement {
   readonly kind: 'inline';
   readonly type: 'inlineCode';
 }
 
-/** A new line that doesn't start a new paragraph, made by {@link lineBreak}. */
+/** A new line that doesn't start a new paragraph. */
 export interface MDLineBreak extends MDElement {
   readonly kind: 'inline';
   readonly type: 'lineBreak';
 }
 
-/** An HTML `<br/>` line break, made by {@link br}. */
+/** An HTML `<br/>` line break. */
 export interface MDBr extends MDElement {
   readonly kind: 'inline';
   readonly type: 'br';
 }
 
-/** A character written as an HTML reference, such as `&nbsp;`, made by {@link htmlEntity}. */
+/** A character written as an HTML reference, such as `&nbsp;`. */
 export interface MDHtmlEntity extends MDElement {
   readonly kind: 'inline';
   readonly type: 'htmlEntity';
@@ -162,7 +162,7 @@ export interface MDHtmlEntity extends MDElement {
 }
 
 /**
- * An HTML comment, which the page doesn't show, made by {@link comment}.
+ * An HTML comment, which the page doesn't show.
  *
  * - Text without a line ending goes on one line, and works anywhere a string can go.
  * - Text with a line ending gets its markers on lines of their own, and goes on its own lines.
@@ -172,80 +172,80 @@ export interface MDComment extends MDElement {
   readonly type: 'comment';
 }
 
-/** An HTML comment that goes inside a line, which the page doesn't show, made by {@link inlineComment}. */
+/** An HTML comment that goes inside a line, which the page doesn't show. */
 export interface MDInlineComment extends MDElement {
   readonly kind: 'inline';
   readonly type: 'inlineComment';
 }
 
-/** An HTML comment with its markers on lines of their own, which the page doesn't show, made by {@link blockComment}. */
+/** An HTML comment with its markers on lines of their own, which the page doesn't show. */
 export interface MDBlockComment extends MDElement {
   readonly kind: 'block';
   readonly type: 'blockComment';
 }
 
-/** A heading, made by {@link heading}. */
+/** A heading. */
 export interface MDHeading extends MDElement {
   readonly kind: 'block';
   readonly type: 'heading';
 }
 
-/** A paragraph, made by {@link p} or {@link toBlock}. */
+/** A paragraph. */
 export interface MDParagraph extends MDElement {
   readonly kind: 'block';
   readonly type: 'paragraph';
 }
 
-/** A line across the page between sections, made by {@link hr}. */
+/** A line across the page between sections. */
 export interface MDHorizontalRule extends MDElement {
   readonly kind: 'block';
   readonly type: 'horizontalRule';
 }
 
-/** A block of code, made by {@link codeBlock}. */
+/** A block of code. */
 export interface MDCodeBlock extends MDElement {
   readonly kind: 'block';
   readonly type: 'codeBlock';
 }
 
-/** One list item, made by {@link listItem} or {@link taskListItem}. */
+/** One list item. */
 export interface MDListItem extends MDElement {
   readonly kind: 'listItem';
   readonly type: 'listItem';
 }
 
-/** A bulleted or numbered list, made by {@link list}, {@link ul} or {@link ol}. */
+/** A bulleted or numbered list. */
 export interface MDList extends MDElement {
   readonly kind: 'block';
   readonly type: 'list';
 }
 
-/** A collapsible section, made by {@link details}. */
+/** A collapsible section. */
 export interface MDDetails extends MDElement {
   readonly kind: 'block';
   readonly type: 'details';
 }
 
-/** A list of terms and their definitions, made by {@link dl}. */
+/** A list of terms and their definitions. */
 export interface MDDefinitionList extends MDElement {
   readonly kind: 'block';
   readonly type: 'definitionList';
 }
 
-/** A table whose cells hold text, links, formatting or code, made by {@link table}. */
+/** A table whose cells hold text, links, formatting or code. */
 export interface MDTable extends MDElement {
   readonly kind: 'block';
   readonly type: 'table';
 }
 
-/** A table whose cells can hold anything, including lists and paragraphs, made by {@link htmlTable}. */
+/** A table whose cells can hold anything, including lists and paragraphs. */
 export interface MDHtmlTable extends MDElement {
   readonly kind: 'block';
   readonly type: 'htmlTable';
 }
 
 /**
- * A whole Markdown file, made by {@link document}, {@link parseDocument} or {@link templateDocument}.
+ * A whole Markdown file.
  *
  * Its Markdown ends with a newline.
  */
@@ -265,7 +265,7 @@ export interface MDDocument extends MDElement {
 }
 
 /**
- * YAML frontmatter between `---` lines, made by {@link frontmatter}.
+ * YAML frontmatter between `---` lines.
  *
  * It goes only first in a document.
  */
