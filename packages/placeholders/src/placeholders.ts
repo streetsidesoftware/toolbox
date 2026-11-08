@@ -1,4 +1,4 @@
-/** The delimiters that mark a placeholder. */
+/** The options of {@link listPlaceholders} and {@link hasPlaceholders}. */
 export interface PlaceholderOptions {
   /**
    * The text that starts a placeholder.
