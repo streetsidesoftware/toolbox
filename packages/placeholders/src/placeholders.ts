@@ -1,4 +1,3 @@
-/** The options of {@link listPlaceholders} and {@link hasPlaceholders}. */
 export interface PlaceholderOptions {
   /**
    * The text that starts a placeholder.
@@ -18,7 +17,6 @@ export interface PlaceholderOptions {
   close?: string | undefined;
 }
 
-/** The options of {@link replacePlaceholders}. */
 export interface ReplacePlaceholdersOptions extends PlaceholderOptions {
   /**
    * Gives each later line of a multi-line value the leading whitespace of its placeholder's line. An empty line stays
