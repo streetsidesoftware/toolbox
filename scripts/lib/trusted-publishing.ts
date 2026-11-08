@@ -10,7 +10,7 @@ export const WORKFLOW_FILE = 'publish.yml';
 
 /**
  * The path of the file that records each package's publication state, relative to the repo root. A package's entry is:
- * - `{ "trustedPublishing": false }` while it waits for publication.
+ * - `{ "trustedPublishing": false }` until it trusts {@link WORKFLOW_FILE}.
  * - `{ "trustedPublishing": true }` once it trusts {@link WORKFLOW_FILE}.
  * - `false` for a package never to publish.
  */

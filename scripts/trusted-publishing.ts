@@ -35,7 +35,7 @@ Options:
 `;
 
 const REGISTRY = 'https://registry.npmjs.org';
-// The pause between trust calls, to avoid rate limiting.
+// The pause after each `npm trust` or `npm access` call, to avoid rate limiting.
 const PAUSE_MS = 1000;
 
 interface PublishInfo {

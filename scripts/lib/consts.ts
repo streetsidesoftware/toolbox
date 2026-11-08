@@ -4,7 +4,7 @@ const __dirname = import.meta.dirname;
 
 export const REPO_ROOT_DIR = Path.resolve(__dirname, '../../');
 
-/** The path of the root `LICENSE`, which every package has a copy of. */
+/** The path of the root `LICENSE`, copied into each package under `packages/`. */
 export const ROOT_LICENSE_FILE: string = Path.join(REPO_ROOT_DIR, 'LICENSE');
 
 /** The folder of template files for a new package. */

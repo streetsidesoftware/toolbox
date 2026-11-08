@@ -8,7 +8,7 @@ import { compare } from './packages.ts';
 /** The path of the Release Please config, relative to the repo root. */
 export const CONFIG_FILE = 'release-please-config.json';
 
-/** The path of the Release Please manifest, which records released versions, relative to the repo root. */
+/** The path of the Release Please manifest, which maps each package folder to its version, relative to the repo root. */
 export const MANIFEST_FILE = '.release-please-manifest.json';
 
 /** A package's entry in the config's `packages`. */
