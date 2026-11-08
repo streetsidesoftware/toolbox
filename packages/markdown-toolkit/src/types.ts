@@ -388,7 +388,6 @@ export interface OptionTypeGuard {
   readonly type?: never;
 }
 
-/** The options of {@link listItem} and {@link taskListItem}. */
 export interface ListItemOptions extends OptionTypeGuard {
   /**
    * Controls the list item checkbox:
@@ -413,7 +412,6 @@ export type ListEntry = InlineContent | MDBlock | MDListItem | readonly ListItem
  */
 export type ListOptions = { ordered?: false | undefined } | ({ ordered: true } & OrderedListOptions);
 
-/** The options of {@link ol}, and of {@link list} with `ordered: true`. */
 export interface OrderedListOptions {
   /**
    * The number of the first item, a whole number from 0 to 999999999.
@@ -461,7 +459,6 @@ export type ColumnDelimiter = string;
  */
 export type ColumnAlign = ColumnAlignName | ColumnDelimiter | ColumnDelimiterExplicit | undefined;
 
-/** The options of {@link table} and {@link htmlTable}. */
 export interface TableOptions {
   /**
    * The alignment of each column, one entry per column.
