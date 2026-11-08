@@ -6,7 +6,6 @@ import { compare } from './packages.ts';
 /** The path of a package's reference config, relative to the package. */
 export const CONFIG_FILE = '.api-referencerc.json';
 
-/** A package's reference config, read from {@link CONFIG_FILE}. */
 export interface ApiReferenceConfig {
   /** The `###` sections, in the order the reference lists them. */
   groups: ApiGroupConfig[];
