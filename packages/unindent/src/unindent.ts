@@ -16,7 +16,7 @@ export interface Unindent {
   (template: TemplateStringsArray, ...values: unknown[]): string;
 }
 
-/** The options that decide which lines {@link createUnindent} drops. */
+/** Options for {@link createUnindent}. */
 export interface UnindentOptions {
   /**
    * Drops one leading newline.
