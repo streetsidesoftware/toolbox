@@ -246,6 +246,22 @@ export interface MDHtmlTable extends MDElement {
 export interface MDDocument extends MDElement {
   readonly kind: 'block';
   readonly type: 'document';
+  /** The YAML text of the document's frontmatter, without the `---` lines, or `undefined` if it has none. */
+  readonly frontmatter: string | undefined;
+  /**
+   * Return a copy of the document with the given frontmatter in place of any it had.
+   *
+   * Pass `undefined` to remove the frontmatter.
+   *
+   * @example
+   * md.parseDocument('---\ntitle: A\n---\n\n# A\n').withFrontmatter('title: B');
+   * // ---
+   * // title: B
+   * // ---
+   * //
+   * // # A
+   */
+  withFrontmatter(frontmatter: string | MDFrontmatter | undefined): MDDocument;
   /**
    * Return a copy of the document with the given style preferences.
    *

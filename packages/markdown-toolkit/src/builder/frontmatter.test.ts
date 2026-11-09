@@ -12,6 +12,7 @@ import {
   link,
   list,
   listItem,
+  p,
   parse,
   parseDocument,
   parseFragment,
@@ -20,7 +21,7 @@ import {
   templateDocument,
   templateFragment,
 } from '../index.ts';
-import type { MDElement } from '../index.ts';
+import type { MDDocument, MDElement } from '../index.ts';
 import { readFrontmatter } from './frontmatter.ts';
 
 const page = '---\n# AUTO-GENERATED\ntitle: CSpell\nid: cspell\n---\n\n# CSpell\n';
@@ -68,12 +69,6 @@ describe('frontmatter', () => {
     assert.equal(md.toString(), '---\na: 1\n---\n\n* x\n');
   });
 
-  test('anywhere but first in a document throws', () => {
-    assert.throws(() => document(heading(1, 'A'), frontmatter('a: 1') as unknown as MDElement as never), {
-      message: 'frontmatter must be the first content of a document',
-    });
-  });
-
   test('outside a document throws', () => {
     assert.throws(() => listItem(frontmatter('a: 1') as unknown as MDElement as never), TypeError);
   });
@@ -102,15 +97,16 @@ describe('parseDocument', () => {
   describe('its frontmatter shows only at the start of a file', () => {
     const file = parseDocument('---\nb: 2\n---\n# T\n');
     testEach`
-        placement                    | md                                                         | expected
-        ${'alone'}                   | ${document(file)}                                          | ${'---\nb: 2\n---\n\n# T\n'}
-        ${'after frontmatter'}       | ${document(frontmatter('a: 1'), file)}                     | ${'---\na: 1\n---\n\n# T\n'}
-        ${'after a heading'}         | ${document(heading(1, 'A'), file)}                         | ${'# A\n\n# T\n'}
-        ${'after a comment'}         | ${document(comment('c'), file)}                            | ${'<!-- c -->\n\n# T\n'}
-        ${'after nothing shown'}     | ${document('', file)}                                      | ${'---\nb: 2\n---\n\n# T\n'}
-        ${'after another document'}  | ${document(parseDocument('---\na: 1\n---\nA\n'), file)}    | ${'---\na: 1\n---\n\nA\n\n# T\n'}
-        ${'in a list item'}          | ${document(list([[file]]))}                                | ${'- # T\n'}
-        ${'in details'}              | ${document(details('More', file))}                         | ${'<details>\n<summary>More</summary>\n\n# T\n\n</details>\n'}
+        placement                       | md                                                         | expected
+        ${'alone'}                      | ${document(file)}                                          | ${'---\nb: 2\n---\n\n# T\n'}
+        ${'after frontmatter'}          | ${document(frontmatter('a: 1'), file)}                     | ${'---\na: 1\n---\n\n# T\n'}
+        ${'after a heading'}            | ${document(heading(1, 'A'), file)}                         | ${'# A\n\n# T\n'}
+        ${'after a comment'}            | ${document(comment('c'), file)}                            | ${'<!-- c -->\n\n# T\n'}
+        ${'after nothing shown'}        | ${document('', file)}                                      | ${'---\nb: 2\n---\n\n# T\n'}
+        ${'after an empty paragraph'}   | ${document(p(''), file)}                                   | ${'# T\n'}
+        ${'after another document'}     | ${document(parseDocument('---\na: 1\n---\nA\n'), file)}    | ${'---\na: 1\n---\n\nA\n\n# T\n'}
+        ${'in a list item'}             | ${document(list([[file]]))}                                | ${'- # T\n'}
+        ${'in details'}                 | ${document(details('More', file))}                         | ${'<details>\n<summary>More</summary>\n\n# T\n\n</details>\n'}
     `('$placement', ({ md, expected }: { md: MDElement; expected: string }) => {
       assert.equal(md.toString(), expected);
     });
@@ -129,6 +125,49 @@ interface SubstitutionRow {
   value: unknown;
   expected: string;
 }
+
+describe("a document's frontmatter", () => {
+  const file = parseDocument('---\nb: 2\n---\n\n* x\n');
+
+  testEach`
+        source                         | md                                                         | expected
+        ${'a parsed file'}             | ${file}                                                    | ${'b: 2'}
+        ${'a parsed file without'}     | ${parseDocument('# A\n')}                                  | ${undefined}
+        ${'frontmatter()'}             | ${document(frontmatter('a: 1\n'), 'Text')}                 | ${'a: 1'}
+        ${'empty frontmatter()'}       | ${document(frontmatter(''))}                               | ${''}
+        ${'a document without'}        | ${document('Text')}                                        | ${undefined}
+        ${'templateDocument'}          | ${templateDocument('---\nt: {@ v @}\n---\n', { v: 'x' })}  | ${'t: x'}
+        ${'a parsed file first'}       | ${document(file, 'Text')}                                  | ${'b: 2'}
+        ${'a parsed file later'}       | ${document(heading(1, 'A'), file)}                         | ${undefined}
+    `('from $source', ({ md, expected }: { md: MDDocument; expected: string | undefined }) => {
+    assert.equal(md.frontmatter, expected);
+  });
+
+  test('withFrontmatter replaces it, as text or frontmatter()', () => {
+    const expected = '---\na: 1\n---\n\n* x\n';
+    assert.equal(file.withFrontmatter('a: 1\n').toString(), expected);
+    assert.equal(file.withFrontmatter(frontmatter('a: 1')).toString(), expected);
+  });
+
+  test('withFrontmatter adds it to a document without', () => {
+    assert.equal(document('Text').withFrontmatter('a: 1').toString(), '---\na: 1\n---\n\nText\n');
+  });
+
+  test('withFrontmatter(undefined) removes it', () => {
+    assert.equal(file.withFrontmatter(undefined).toString(), '* x\n');
+    assert.equal(document('Text').withFrontmatter(undefined).toString(), 'Text\n');
+  });
+
+  test('withFrontmatter copies it from another document, or its absence', () => {
+    assert.equal(document('Text').withFrontmatter(file.frontmatter).toString(), '---\nb: 2\n---\n\nText\n');
+    assert.equal(file.withFrontmatter(document('Text').frontmatter).toString(), '* x\n');
+  });
+
+  test('withFrontmatter keeps the style, and withStyle keeps the frontmatter', () => {
+    assert.equal(file.withStyle({ bullet: '-' }).withFrontmatter('a: 1').toString(), '---\na: 1\n---\n\n- x\n');
+    assert.equal(file.withFrontmatter('a: 1').withStyle({ bullet: '-' }).frontmatter, 'a: 1');
+  });
+});
 
 describe('templateDocument', () => {
   test('substitutes into a page with frontmatter', () => {
