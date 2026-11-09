@@ -274,7 +274,7 @@ export interface MDFragment extends MDElement {
   readonly type: 'fragment';
 }
 
-/** Formatted text that goes anywhere a string can. */
+/** Contains inline Markdown elements. */
 export interface MDInlineFragment extends MDElement {
   readonly kind: 'inline';
   readonly type: 'inlineFragment';
