@@ -1,6 +1,6 @@
 ### Placeholders
 
-Each `{@ name @}` takes the value of the same name. A string goes in as text, and an element as Markdown. A
+Each `{@ name @}` takes the replacement of the same name. A string goes in as text, and an element as Markdown. A
 placeholder on a line of its own also takes blocks, such as a list or a table. A dotted name, such as
 `{@ pkg.name @}`, looks up a nested object, and a placeholder works inside code too.
 

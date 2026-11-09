@@ -122,7 +122,7 @@ describe('parseDocument', () => {
 
 interface SubstitutionRow {
   markdown: string;
-  value: unknown;
+  replacement: unknown;
   expected: string;
 }
 
@@ -182,7 +182,7 @@ describe('templateDocument', () => {
   });
 
   testEach`
-        kind                     | markdown                           | value                       | expected
+        kind                     | markdown                           | replacement           | expected
         ${'a string as written'} | ${'---\na: {@ v @}\n---\n'}        | ${'x: "y"'}                 | ${'---\na: x: "y"\n---\n'}
         ${'a number'}            | ${'---\na: {@ v @}\n---\n'}        | ${3}                        | ${'---\na: 3\n---\n'}
         ${'a link as rendered'}  | ${'---\na: {@ v @}\n---\n'}        | ${link('A', 'a.md')}        | ${'---\na: [A](a.md)\n---\n'}
@@ -191,11 +191,11 @@ describe('templateDocument', () => {
         ${'a CRLF empty line'}   | ${'---\na: |\n  {@ v @}\n---\n'}   | ${'one\r\n\r\ntwo'}         | ${'---\na: |\n  one\r\n\r\n  two\n---\n'}
         ${'a list'}              | ${'---\na: |\n    {@ v @}\n---\n'} | ${list(['x', 'y'])}         | ${'---\na: |\n    - x\n    - y\n---\n'}
         ${'a sequence'}          | ${'---\na: {@ v @}\n---\n'}        | ${['See ', link('A', 'a')]} | ${'---\na: See [A](a)\n---\n'}
-    `('$kind', ({ markdown, value, expected }: SubstitutionRow) => {
-    assert.equal(templateDocument(markdown, { v: value as never }).toString(), expected);
+    `('$kind', ({ markdown, replacement, expected }: SubstitutionRow) => {
+    assert.equal(templateDocument(markdown, { v: replacement as never }).toString(), expected);
   });
 
-  test('a placeholder with no value is kept', () => {
+  test('a placeholder with no replacement is kept', () => {
     assert.equal(templateDocument('---\na: {@ v @}\n---\n', {}).toString(), '---\na: {@ v @}\n---\n');
   });
 

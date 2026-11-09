@@ -55,13 +55,13 @@
 
 ### Templates
 
-- `template(markdown, values)` (also `templateFragment`): Create Markdown from a template by substituting values for its `{@ name @}` placeholders.
-- `inlineTemplate(markdown, values)`: Create a line of Markdown from a template by substituting values for its `{@ name @}` placeholders.
-- `blockTemplate(markdown, values)`: Create paragraphs and other blocks from a template by substituting values for its `{@ name @}` placeholders.
-- `templateDocument(markdown, values)`: Create a whole Markdown file from a template by substituting values for its `{@ name @}` placeholders.
-- `substitutePlaceholders(content, values)`: Substitute values for the `{@ name @}` placeholders in an existing element, such as a parsed file, or in plain text.
-- `placeholder(name)`: Create a `{@ name @}` placeholder for a value to be substituted later.
-- `blockPlaceholder(name)`: Create a `{@ name @}` placeholder on lines of its own, for a value to be substituted later.
+- `template(markdown, replacements)` (also `templateFragment`): Create Markdown from a template by replacing its `{@ name @}` placeholders.
+- `inlineTemplate(markdown, replacements)`: Create a line of Markdown from a template by replacing its `{@ name @}` placeholders.
+- `blockTemplate(markdown, replacements)`: Create paragraphs and other blocks from a template by replacing its `{@ name @}` placeholders.
+- `templateDocument(markdown, replacements)`: Create a whole Markdown file from a template by replacing its `{@ name @}` placeholders.
+- `substitutePlaceholders(content, replacements)`: Replace the `{@ name @}` placeholders in an existing element, such as a parsed file, or in plain text.
+- `placeholder(name)`: Create a `{@ name @}` placeholder to be replaced later.
+- `blockPlaceholder(name)`: Create a `{@ name @}` placeholder on lines of its own, to be replaced later.
 
 ### Documents
 

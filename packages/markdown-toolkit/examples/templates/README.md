@@ -7,7 +7,7 @@ places.
 
 ### Placeholders
 
-Each `{@ name @}` takes the value of the same name. A string goes in as text, and an element as Markdown. A
+Each `{@ name @}` takes the replacement of the same name. A string goes in as text, and an element as Markdown. A
 placeholder on a line of its own also takes blocks, such as a list or a table. A dotted name, such as
 `{@ pkg.name @}`, looks up a nested object, and a placeholder works inside code too.
 
@@ -159,7 +159,7 @@ split it, so the last placeholder has no replacement and is kept.
 import * as md from '@streetsidesoftware/markdown-toolkit';
 import { unindent as markdown } from '@streetsidesoftware/unindent';
 
-const values = {
+const replacements = {
   pkg: {
     name: '@cspell/dict-nl-nl',
     engines: { node: '>=20' },
@@ -183,7 +183,7 @@ const section = md.template(
     - [Issues]({@repo.links.issues@})
     - Lodash optional: {@ peerDependenciesMeta.lodash.optional @}
   `,
-  values,
+  replacements,
 );
 
 console.log(section.toString());
@@ -204,10 +204,10 @@ console.log(section.toString());
 
 <!--- @@inject: resolver/README.md --->
 
-### Values from a function
+### Replacements from a function
 
-In place of an object, pass a function that takes a placeholder name and returns its value. It gets the whole name,
-such as `dictionaries.custom`, not one part at a time. Values can then come from a `Map`, a config file or anywhere
+In place of an object, pass a function that takes a placeholder name and returns its replacement. It gets the whole name,
+such as `dictionaries.custom`, not one part at a time. Replacements can then come from a `Map`, a config file or anywhere
 else. When it returns
 `undefined`, the placeholder is kept for a later step.
 

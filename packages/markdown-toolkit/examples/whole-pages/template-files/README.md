@@ -1,7 +1,7 @@
 ### Template files
 
 A template for a whole page, such as `template.md`, can start with frontmatter. Read it with `templateDocument`, which
-keeps the frontmatter and substitutes the placeholders in both parts. A value in the frontmatter goes in as written,
+keeps the frontmatter and substitutes the placeholders in both parts. A replacement in the frontmatter goes in as written,
 since it's YAML.
 
 <details>

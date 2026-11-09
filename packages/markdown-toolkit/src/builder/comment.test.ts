@@ -79,11 +79,11 @@ describe('comment chooses its form from its text', () => {
     assert.throws(() => heading(1, comment('a\nb')), /multi-line comment/);
   });
 
-  test('a multi-line comment as a value throws in a sentence', () => {
+  test('a multi-line comment as a replacement throws in a sentence', () => {
     assert.throws(() => inlineTemplate('a {@ x @} b', { x: comment('c\nd') }), /multi-line comment/);
   });
 
-  test('the form comes from the text given, and a value goes in as given', () => {
+  test('the form comes from the text given, and a replacement goes in as given', () => {
     const substituted = substitutePlaceholders(paragraph('a ', comment('{@ x @}')), { x: 'y\nz' });
     assert.equal(substituted.toString(), 'a <!-- y\nz -->');
     assert.equal(substitutePlaceholders(comment('{@ x @}'), { x: 'y\nz' }).kind, 'inline');
@@ -95,11 +95,11 @@ describe('comment chooses its form from its text', () => {
     assert.equal(substituted.toString(), '<!--\na\ny\n-->');
   });
 
-  test('a multi-line comment as a value goes on its own lines', () => {
+  test('a multi-line comment as a replacement goes on its own lines', () => {
     assert.equal(template('x\n{@ v @}\ny', { v: comment('a\nb') }).toString(), 'x\n\n<!--\na\nb\n-->\n\ny');
   });
 
-  test('a value goes in a summary as given', () => {
+  test('a replacement goes in a summary as given', () => {
     const page = details(comment('{@ x @}'), 'b');
     assert.equal(
       substitutePlaceholders(page, { x: 'y\n\nz' }).toString(),
@@ -141,7 +141,7 @@ describe('inlineComment', () => {
     assert.equal(inlineComment('a --> b --!> c').toString(), '<!-- a -- > b -- !> c -->');
   });
 
-  test('a value goes in as given, even with a line ending', () => {
+  test('a replacement goes in as given, even with a line ending', () => {
     assert.equal(substitutePlaceholders(inlineComment('{@ x @}'), { x: 'y\nz' }).toString(), '<!-- y\nz -->');
   });
 
@@ -192,11 +192,11 @@ describe('blockComment', () => {
     );
   });
 
-  test('its placeholder takes a value with several lines', () => {
+  test('its placeholder takes a replacement with several lines', () => {
     assert.equal(substitutePlaceholders(blockComment('{@ x @}'), { x: 'y\nz' }).toString(), '<!--\ny\nz\n-->');
   });
 
-  test('it goes on its own line as a template value', () => {
+  test('it goes on its own line as a replacement', () => {
     assert.equal(blockTemplate('a\n\n{@ x @}\n\nb', { x: blockComment('c') }).toString(), 'a\n\n<!--\nc\n-->\n\nb');
   });
 
