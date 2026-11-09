@@ -16,7 +16,7 @@ import {
 import type { HtmlEntityNode, InlineHtmlNode, PlaceholderNode } from './mdast/index.ts';
 import type { MarkdownStyle } from './types.ts';
 
-/** Holds the style for constructs an element carries no style for. */
+/** The style used for anything an element's own style leaves out. */
 const defaultStyle: StyleOptions = {
   bullet: '-',
   emphasis: '_',
@@ -27,7 +27,7 @@ const defaultStyle: StyleOptions = {
   strong: '*',
 };
 
-/** Holds the handlers that write a placeholder, an HTML entity, HTML inside a line and frontmatter as is. */
+/** The handlers that write a placeholder, an HTML entity, HTML inside a line and frontmatter as is. */
 // remark-stringify's handler types list only mdast's own node types.
 const handlers = {
   placeholder: (node: PlaceholderNode) => node.value,
