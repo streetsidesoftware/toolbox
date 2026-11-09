@@ -24,7 +24,7 @@ export interface NewPackageOptions {
   templateDir?: string | undefined;
 }
 
-type TemplateValues = Record<'name' | 'fullName' | 'description', string>;
+type TemplateReplacements = Record<'name' | 'fullName' | 'description', string>;
 
 export interface CreatePackageOptions extends NewPackageOptions {
   rootDir?: string | undefined;
@@ -42,28 +42,28 @@ export function validatePackageName(name: string): void {
 
 /**
  * Return the files of a new private package, keyed by path relative to its folder.
- * They are the templates in `options.templateDir`, `static/templates/` by default, with values substituted for their
- * placeholders, and the root `LICENSE`.
+ * They are the templates in `options.templateDir`, `static/templates/` by default, with their placeholders replaced,
+ * and the root `LICENSE`.
  */
 export async function newPackageFiles(name: string, options: NewPackageOptions = {}): Promise<Record<string, string>> {
   validatePackageName(name);
-  const values: TemplateValues = {
+  const replacements: TemplateReplacements = {
     name,
     fullName: `${SCOPE}/${name}`,
     description: privateDescription(options.description),
   };
   const templateDir = options.templateDir ?? TEMPLATE_DIR;
   const templates = await readTemplates(templateDir);
-  assertKnownPlaceholders(templates, values, templateDir);
+  assertKnownPlaceholders(templates, replacements, templateDir);
   const rootPackageJson = await readPackageJson(ROOT_PACKAGE_JSON_FILE);
 
   const files: Record<string, string> = {};
   for (const [relPath, text] of Object.entries(templates)) {
-    const path = replacePlaceholders(relPath, values);
+    const path = replacePlaceholders(relPath, replacements);
     files[path] =
       path === 'package.json'
-        ? packageJsonText(name, text, values, rootPackageJson)
-        : replacePlaceholders(text, values);
+        ? packageJsonText(name, text, replacements, rootPackageJson)
+        : replacePlaceholders(text, replacements);
   }
   // A copy of the root one, which `fix-package-json` keeps in step.
   files['LICENSE'] = await fs.readFile(ROOT_LICENSE_FILE, 'utf-8');
@@ -107,10 +107,15 @@ export function privateDescription(description: string | undefined): string {
 }
 
 // Return the new package's `package.json` text.
-// Values go into each parsed string, not the raw JSON, so a value with a `"` can't break the JSON.
-function packageJsonText(name: string, template: string, values: TemplateValues, rootPackageJson: PackageJson): string {
+// Replacements go into each parsed string, not the raw JSON, so a replacement with a `"` can't break the JSON.
+function packageJsonText(
+  name: string,
+  template: string,
+  replacements: TemplateReplacements,
+  rootPackageJson: PackageJson,
+): string {
   const packageJson: PackageJson = JSON.parse(template, (_key, value: unknown) =>
-    typeof value === 'string' ? replacePlaceholders(value, values) : value,
+    typeof value === 'string' ? replacePlaceholders(value, replacements) : value,
   );
   // Add repository, publishConfig and engines the way `fix-package-json` does, so the new package already passes lint.
   fixUpPackageJson(packageJson, Path.join(REPO_ROOT_DIR, 'packages', name, 'package.json'), rootPackageJson);
@@ -128,12 +133,16 @@ async function readTemplates(dir: string): Promise<Record<string, string>> {
   return templates;
 }
 
-/** Throw if a template's path or text uses a placeholder that `values` has no value for. */
-function assertKnownPlaceholders(templates: Record<string, string>, values: TemplateValues, dir: string): void {
+/** Throw if a template's path or text uses a placeholder that `replacements` has no replacement for. */
+function assertKnownPlaceholders(
+  templates: Record<string, string>,
+  replacements: TemplateReplacements,
+  dir: string,
+): void {
   const unknown: string[] = [];
   for (const [relPath, text] of Object.entries(templates)) {
     for (const { name } of [...listPlaceholders(relPath), ...listPlaceholders(text)]) {
-      if (!Object.hasOwn(values, name)) unknown.push(`${relPath}: {@ ${name} @}`);
+      if (!Object.hasOwn(replacements, name)) unknown.push(`${relPath}: {@ ${name} @}`);
     }
   }
   if (unknown.length) {
