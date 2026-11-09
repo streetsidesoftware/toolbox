@@ -640,11 +640,11 @@ Adds **Dutch** words. See [cspell.org](https://cspell.org).
 
 </details>
 
-### Values in steps
+### Substitute placeholders in steps
 
-When the values come from different places, you can substitute them in steps. Start with `template` and the values you
-have. Then pass its result to `substitutePlaceholders` with more values, as many times as you need. A placeholder with
-no replacement is kept as written.
+When the replacements come from different places, substitute them in steps. Start with `template` and the replacements
+you have. Then pass its result to `substitutePlaceholders` with more replacements, as many times as you need. A
+placeholder with no replacement is kept as written.
 
 <details>
 <summary>Example</summary>
