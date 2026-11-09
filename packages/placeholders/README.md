@@ -1,6 +1,6 @@
 # @streetsidesoftware/placeholders
 
-Replace placeholders such as `{@ name @}` in a string with values, and find the ones that are left.
+Replace placeholders such as `{@ name @}` in a string, and find the ones that are left.
 
 ## Install
 
@@ -17,44 +17,44 @@ replacePlaceholders('{@ name @} v{@ pkg.version @}', { name: 'tool', pkg: { vers
 // "tool v1.2.3"
 ```
 
-A dotted name walks the object: `pkg.version` reads `values.pkg.version`. Only own properties are read, and a
-string or number value is used. The spaces just inside the delimiters are optional, so `{@name@}` works too.
+A dotted name walks the object: `pkg.version` reads `replacements.pkg.version`. Only own properties are read, and a
+string or number is used. The spaces just inside the delimiters are optional, so `{@name@}` works too.
 
 A name is one or more segments joined by `.`. A segment has letters, digits, `_` and `-`, and doesn't start with
 `-`.
 
 ### A resolver
 
-Pass a function instead of an object to look values up yourself. Return `undefined` to leave a placeholder as
+Pass a function instead of an object to look replacements up yourself. Return `undefined` to leave a placeholder as
 written:
 
 ```ts
 replacePlaceholders('Hello {@ USER @}', (name) => process.env[name]);
 ```
 
-### Multi-line values
+### Multi-line replacements
 
-Each line of a value after the first gets the leading whitespace of the placeholder's line, so a multi-line value
-stays where the template puts it:
+Each line of a replacement after the first gets the leading whitespace of the placeholder's line, so a multi-line
+replacement stays where the template puts it:
 
 ```ts
 replacePlaceholders('run: |\n  {@ script @}\n', { script: 'npm ci\nnpm test' });
 // "run: |\n  npm ci\n  npm test\n"
 ```
 
-The rest of the value is kept as given: its own indentation, a trailing newline and its line endings. An empty line
-stays empty. To indent a line further, put the extra whitespace in the value:
+The rest of the replacement is kept as given: its own indentation, a trailing newline and its line endings. An empty
+line stays empty. To indent a line further, put the extra whitespace in the replacement:
 
 ```ts
 replacePlaceholders('  - {@ item @}', { item: 'apple\n  red' });
 // "  - apple\n    red"
 ```
 
-Pass `{ autoIndent: false }` to insert values exactly as given.
+Pass `{ autoIndent: false }` to insert replacements exactly as given.
 
-### Placeholders without a value
+### Placeholders without a replacement
 
-A placeholder without a value is left as written. Use `listPlaceholders` or `hasPlaceholders` to find what is
+A placeholder without a replacement is left as written. Use `listPlaceholders` or `hasPlaceholders` to find what is
 left, for example to fail when a template uses a name you didn't pass:
 
 ```ts
@@ -65,7 +65,7 @@ const text = replacePlaceholders('{@ name @} {@ title @}', { name: 'tool' });
 // [{ name: 'title', start: 5, end: 16 }]
 ```
 
-The offsets point into the text; `end` is exclusive. A value that itself contains `{@ … @}` is listed too, so
+The offsets point into the text; `end` is exclusive. A replacement that itself contains `{@ … @}` is listed too, so
 to check a template rather than its result, list the template's placeholders before replacing them.
 
 ### Delimiters
@@ -81,8 +81,8 @@ Every function takes the same `{ open, close }` options. The defaults are `{@` a
 
 ## API
 
-- `replacePlaceholders(text, values, options?)`: replace each placeholder that has a value. Besides `open` and `close`,
-  `options` takes `autoIndent`.
+- `replacePlaceholders(text, replacements, options?)`: replace each placeholder that has a replacement. Besides `open`
+  and `close`, `options` takes `autoIndent`.
 - `listPlaceholders(text, options?)`: every placeholder in `text`, as `{ name, start, end }`, in order. It returns an
   iterable that finds them as it goes; spread it for an array.
 - `hasPlaceholders(text, options?)`: whether `text` has any placeholders.
