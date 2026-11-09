@@ -6,6 +6,9 @@ placeholder on a line of its own also takes blocks, such as a list or a table. A
 
 Use `inlineTemplate` for a template that goes inside a line, and `blockTemplate` for one that must be blocks.
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject: example.ts --->
 
 ```ts
@@ -44,3 +47,5 @@ Install with `npm i -D @cspell/dict-nl-nl`.
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>

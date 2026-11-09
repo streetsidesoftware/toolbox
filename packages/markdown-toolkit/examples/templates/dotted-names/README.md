@@ -2,7 +2,10 @@
 
 A dotted name, such as `pkg.engines.node`, can come from nested objects, from a top-level key with the dots in it, or
 from both at once. When two keys supply a name, the later one wins, so the license is MIT. Dots in a nested key don't
-split it, so the last placeholder below has no value and is kept.
+split it, so the last placeholder has no value and is kept.
+
+<details>
+<summary>Example</summary>
 
 <!--- @@inject: example.ts --->
 
@@ -54,3 +57,5 @@ console.log(section.toString());
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>

@@ -13,6 +13,9 @@ placeholder on a line of its own also takes blocks, such as a list or a table. A
 
 Use `inlineTemplate` for a template that goes inside a line, and `blockTemplate` for one that must be blocks.
 
+<details>
+<summary>Example</summary>
+
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
 import { unindent as markdown } from '@streetsidesoftware/unindent';
@@ -44,6 +47,8 @@ Dutch dictionary for cspell.
 Install with `npm i -D @cspell/dict-nl-nl`.
 ```
 
+</details>
+
 <!--- @@inject-end: placeholders/README.md --->
 
 <!--- @@inject: existing-markdown/README.md --->
@@ -53,6 +58,9 @@ Install with `npm i -D @cspell/dict-nl-nl`.
 A string is always text. For a string that is already Markdown, such as a description from another file, pass
 `parse(text)` instead. Like a template, it gives inline content or blocks, and `toBlock` makes either fit where
 only blocks can go.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -72,6 +80,8 @@ console.log(page.toString());
 Adds **Dutch** words. See [cspell.org](https://cspell.org).
 ```
 
+</details>
+
 <!--- @@inject-end: existing-markdown/README.md --->
 
 <!--- @@inject: in-steps/README.md --->
@@ -82,6 +92,9 @@ Several steps can each substitute what they know. Pass the result of one step to
 substitute more of its placeholders. A placeholder with no value yet is kept as written, so a later step, or a tool
 such as [inject-markdown](https://github.com/streetsidesoftware/inject-markdown), can substitute it. In code,
 `placeholder(name)` leaves the same gap inside a line, and `blockPlaceholder(name)` on lines of its own.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -128,6 +141,8 @@ Checked 2 files.
 Last run: {@ date @}
 ```
 
+</details>
+
 <!--- @@inject-end: in-steps/README.md --->
 
 <!--- @@inject: dotted-names/README.md --->
@@ -136,7 +151,10 @@ Last run: {@ date @}
 
 A dotted name, such as `pkg.engines.node`, can come from nested objects, from a top-level key with the dots in it, or
 from both at once. When two keys supply a name, the later one wins, so the license is MIT. Dots in a nested key don't
-split it, so the last placeholder below has no value and is kept.
+split it, so the last placeholder has no value and is kept.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -181,6 +199,8 @@ console.log(section.toString());
 - Lodash optional: {@ peerDependenciesMeta.lodash.optional @}
 ```
 
+</details>
+
 <!--- @@inject-end: dotted-names/README.md --->
 
 <!--- @@inject: resolver/README.md --->
@@ -191,6 +211,9 @@ In place of an object, pass a function that takes a placeholder name and returns
 such as `dictionaries.custom`, not one part at a time. Values can then come from a `Map`, a config file or anywhere
 else. When it returns
 `undefined`, the placeholder is kept for a later step.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -222,5 +245,7 @@ Custom dictionary: `project-words`
 
 Added on: {@ date @}
 ```
+
+</details>
 
 <!--- @@inject-end: resolver/README.md --->

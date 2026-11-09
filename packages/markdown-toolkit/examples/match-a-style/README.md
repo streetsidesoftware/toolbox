@@ -3,6 +3,9 @@
 Lists use `-` bullets and emphasis uses `_` by default. To add to a file that uses another style, detect its style
 and render in it.
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject: example.ts --->
 
 ```ts
@@ -28,3 +31,5 @@ console.log(section.toString());
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>

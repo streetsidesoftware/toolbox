@@ -5,6 +5,9 @@ such as `dictionaries.custom`, not one part at a time. Values can then come from
 else. When it returns
 `undefined`, the placeholder is kept for a later step.
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject: example.ts --->
 
 ```ts
@@ -43,3 +46,5 @@ Added on: {@ date @}
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>

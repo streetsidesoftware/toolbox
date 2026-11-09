@@ -8,6 +8,9 @@ A page for a site such as Docusaurus often starts with YAML frontmatter.
 
 Put `frontmatter` first in a document. Its text is YAML and goes in as written, between `---` lines.
 
+<details>
+<summary>Example</summary>
+
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
@@ -40,13 +43,20 @@ sidebar_position: 1
 Settings that control the behavior of the spell checker.
 ```
 
+</details>
+
 <!--- @@inject-end: frontmatter/README.md --->
 
 <!--- @@inject: template-files/README.md --->
 
 ### Template files
 
-A template for a whole page, such as `template.md`, can start with frontmatter:
+A template for a whole page, such as `template.md`, can start with frontmatter. Read it with `templateDocument`, which
+keeps the frontmatter and substitutes the placeholders in both parts. A value in the frontmatter goes in as written,
+since it's YAML.
+
+<details>
+<summary>Example</summary>
 
 ```markdown
 ---
@@ -59,9 +69,6 @@ description: >-
 
 {@ description @}
 ```
-
-Read it with `templateDocument`, which keeps the frontmatter and substitutes the placeholders in both parts. A value
-in the frontmatter goes in as written, since it's YAML.
 
 ```ts
 import fs from 'node:fs';
@@ -95,6 +102,8 @@ description: >-
 Settings for the cspell command line tool.\
 They apply to every file it checks.
 ```
+
+</details>
 
 To read a whole page without substituting anything, use `parseDocument`.
 

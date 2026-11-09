@@ -3,6 +3,9 @@
 When a cell needs more than one line, such as a list or a code block, use `htmlTable`. It takes the same header,
 rows and options as `table`, and a cell can hold any content. GitHub renders the HTML table it writes.
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject: example.ts --->
 
 ```ts
@@ -82,3 +85,5 @@ The languages to check:
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>

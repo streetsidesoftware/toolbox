@@ -3,6 +3,9 @@
 A newline in a string, or a `lineBreak()`, starts a new line in the same paragraph. For HTML or MDX, `br()` always writes `<br/>`. A
 `comment` is an HTML comment, which isn't displayed, such as a `cspell:ignore` line for a spell checker.
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject: example.ts --->
 
 ```ts
@@ -31,3 +34,5 @@ Street Side Software
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>
