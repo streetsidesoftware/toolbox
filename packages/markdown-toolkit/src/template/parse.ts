@@ -19,6 +19,8 @@ import type { TemplateResolver } from './values.ts';
  *
  * Placeholders such as `{​@ name @​}` and HTML entities such as `&nbsp;` are preserved.
  *
+ * One paragraph or blank text gives an {@link MDInlineFragment}, and anything else an {@link MDFragment}.
+ *
  * For a whole file with frontmatter, use {@link parseDocument}.
  *
  * @example

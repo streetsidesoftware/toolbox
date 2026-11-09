@@ -271,9 +271,6 @@ export interface MDFrontmatter extends MDElement {
 /**
  * Paragraphs, lists and other blocks that go where paragraphs can.
  *
- * {@link blockText} and {@link blockTemplate} always make this. {@link parse} and {@link template} make it unless the
- * result is one paragraph or blank, when they make an {@link MDInlineFragment}.
- *
  * Alone, it writes the markers of the text it was parsed from, such as `*` bullets. Inside a document or another
  * element, it writes that element's markers.
  */
@@ -282,11 +279,7 @@ export interface MDFragment extends MDElement {
   readonly type: 'fragment';
 }
 
-/**
- * Formatted text that goes anywhere a string can.
- *
- * {@link inlineTemplate} always makes this. {@link parse} and {@link template} make it for one paragraph or blank text.
- */
+/** Formatted text that goes anywhere a string can. */
 export interface MDInlineFragment extends MDElement {
   readonly kind: 'inline';
   readonly type: 'inlineFragment';
