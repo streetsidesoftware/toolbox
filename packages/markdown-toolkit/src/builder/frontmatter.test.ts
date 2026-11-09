@@ -12,6 +12,7 @@ import {
   link,
   list,
   listItem,
+  p,
   parse,
   parseDocument,
   parseFragment,
@@ -96,15 +97,16 @@ describe('parseDocument', () => {
   describe('its frontmatter shows only at the start of a file', () => {
     const file = parseDocument('---\nb: 2\n---\n# T\n');
     testEach`
-        placement                    | md                                                         | expected
-        ${'alone'}                   | ${document(file)}                                          | ${'---\nb: 2\n---\n\n# T\n'}
-        ${'after frontmatter'}       | ${document(frontmatter('a: 1'), file)}                     | ${'---\na: 1\n---\n\n# T\n'}
-        ${'after a heading'}         | ${document(heading(1, 'A'), file)}                         | ${'# A\n\n# T\n'}
-        ${'after a comment'}         | ${document(comment('c'), file)}                            | ${'<!-- c -->\n\n# T\n'}
-        ${'after nothing shown'}     | ${document('', file)}                                      | ${'---\nb: 2\n---\n\n# T\n'}
-        ${'after another document'}  | ${document(parseDocument('---\na: 1\n---\nA\n'), file)}    | ${'---\na: 1\n---\n\nA\n\n# T\n'}
-        ${'in a list item'}          | ${document(list([[file]]))}                                | ${'- # T\n'}
-        ${'in details'}              | ${document(details('More', file))}                         | ${'<details>\n<summary>More</summary>\n\n# T\n\n</details>\n'}
+        placement                       | md                                                         | expected
+        ${'alone'}                      | ${document(file)}                                          | ${'---\nb: 2\n---\n\n# T\n'}
+        ${'after frontmatter'}          | ${document(frontmatter('a: 1'), file)}                     | ${'---\na: 1\n---\n\n# T\n'}
+        ${'after a heading'}            | ${document(heading(1, 'A'), file)}                         | ${'# A\n\n# T\n'}
+        ${'after a comment'}            | ${document(comment('c'), file)}                            | ${'<!-- c -->\n\n# T\n'}
+        ${'after nothing shown'}        | ${document('', file)}                                      | ${'---\nb: 2\n---\n\n# T\n'}
+        ${'after an empty paragraph'}   | ${document(p(''), file)}                                   | ${'# T\n'}
+        ${'after another document'}     | ${document(parseDocument('---\na: 1\n---\nA\n'), file)}    | ${'---\na: 1\n---\n\nA\n\n# T\n'}
+        ${'in a list item'}             | ${document(list([[file]]))}                                | ${'- # T\n'}
+        ${'in details'}                 | ${document(details('More', file))}                         | ${'<details>\n<summary>More</summary>\n\n# T\n\n</details>\n'}
     `('$placement', ({ md, expected }: { md: MDElement; expected: string }) => {
       assert.equal(md.toString(), expected);
     });
