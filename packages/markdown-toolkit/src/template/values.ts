@@ -16,12 +16,7 @@ import type { AnyContent, InlineContent, MDElement } from '../types.ts';
 
 export type TemplateValue = string | number | boolean | MDElement | readonly TemplateValue[];
 
-/**
- * The values for a template, by placeholder name.
- * - A top-level key may be a dotted name, such as `'engines.cspell'`.
- * - A nested object is walked one segment at a time.
- * - When several keys could supply a name, the later key wins.
- */
+/** An object of substitution values, keyed by placeholder name. */
 export interface TemplateValues {
   readonly [name: string]: TemplateValue | TemplateValues | undefined;
 }
