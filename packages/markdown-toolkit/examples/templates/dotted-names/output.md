@@ -1,7 +1,6 @@
-Requires Node >=20
-Requires Node >=20
-Requires Node >=20
-Requires Node {@ pkg.engines.node @}
-Requires Node >=22
-Requires Node >=20
-{@ toString @}
+## @cspell/dict-nl-nl
+
+- Node: >=20
+- License: MIT
+- [Issues](https://github.com/streetsidesoftware/cspell/issues)
+- Lodash optional: {@ peerDependenciesMeta.lodash.optional @}
