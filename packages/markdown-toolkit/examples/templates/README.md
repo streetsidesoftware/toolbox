@@ -86,11 +86,11 @@ Adds **Dutch** words. See [cspell.org](https://cspell.org).
 
 <!--- @@inject: in-steps/README.md --->
 
-### Start before you have all the data
+### Chain `template` and `substitutePlaceholders`
 
-Often you know the layout before you have the data. Write the layout once with `template`, substituting what you
-already have. Then, as more data is ready, pass the result to `substitutePlaceholders` with the new replacements. A
-placeholder with no replacement is kept as written.
+The result of `template` is still a template. Pass it to `substitutePlaceholders` with more replacements, as many
+times as needed. Each replacement can be anything a template takes, such as a paragraph or a list. A placeholder with
+no replacement is kept as written.
 
 <details>
 <summary>Example</summary>
