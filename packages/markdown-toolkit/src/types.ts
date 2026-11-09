@@ -268,12 +268,7 @@ export interface MDFrontmatter extends MDElement {
   readonly type: 'frontmatter';
 }
 
-/**
- * Paragraphs, lists and other blocks that go where paragraphs can.
- *
- * Alone, it writes the markers of the text it was parsed from, such as `*` bullets. Inside a document or another
- * element, it writes that element's markers.
- */
+/** Paragraphs, lists and other blocks that go where paragraphs can. */
 export interface MDFragment extends MDElement {
   readonly kind: 'block';
   readonly type: 'fragment';
