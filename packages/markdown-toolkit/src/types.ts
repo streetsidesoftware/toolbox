@@ -370,7 +370,7 @@ export type ListItemContent = BlockOrInlineContent;
 export const OPTION_TYPE_GUARD_SYMBOL: unique symbol = Symbol('option_type_guard');
 
 /**
- * The type {@link ListItemOptions} extends, so that an element never passes for options.
+ * Keeps an element from passing for options.
  *
  * Every element has a `kind` and a `type`, and options never do.
  */
@@ -390,18 +390,8 @@ export interface ListItemOptions extends OptionTypeGuard {
   checked?: boolean | undefined;
 }
 
-/**
- * One item of a list: a single piece, or an array of pieces.
- *
- * A list among the pieces makes a nested list.
- */
 export type ListEntry = InlineContent | MDBlock | MDListItem | readonly ListItemContent[];
 
-/**
- * The options of {@link list}:
- * - `ordered: true` - a numbered list, which can also take `start`
- * - `ordered: false` or left out - a bulleted list
- */
 export type ListOptions = { ordered?: false | undefined } | ({ ordered: true } & OrderedListOptions);
 
 export interface OrderedListOptions {
