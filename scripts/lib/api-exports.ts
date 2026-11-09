@@ -9,7 +9,7 @@ import { parseSync } from 'oxc-parser';
 /** The maximum length of a summary, in characters. */
 export const SUMMARY_LIMIT = 140;
 
-/** A function or constant a package exports, with what its JSDoc says about it. */
+/** A function or constant a package exports. */
 export interface ApiFunction {
   /** The name it's declared with, or the first name it's exported as when that one isn't exported. */
   name: string;

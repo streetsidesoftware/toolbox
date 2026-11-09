@@ -19,9 +19,10 @@ export interface ApiGroupConfig {
   functions?: string[];
 }
 
-/** One `###` section of the reference, its functions in order. */
+/** One `###` section of the reference. */
 export interface ApiGroup {
   heading: string;
+  /** In the order the reference lists them. */
   functions: ApiFunction[];
 }
 
