@@ -3,6 +3,9 @@
 A page read with `parseDocument` holds its frontmatter's YAML text in `frontmatter`, or `undefined` when it has none.
 Its `withFrontmatter` returns a copy with new frontmatter.
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject-code: page.md --->
 
 ```markdown
@@ -51,5 +54,7 @@ Settings for the cspell command line tool.
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>
 
 It also takes an element made by `frontmatter`, and `undefined` removes the frontmatter.

@@ -277,7 +277,7 @@ export interface MDDocument extends MDElement {
 /**
  * YAML frontmatter between `---` lines.
  *
- * It goes first in a document, or to a document's {@link MDDocument.withFrontmatter}.
+ * It goes first in a document.
  */
 export interface MDFrontmatter extends MDElement {
   readonly kind: 'frontmatter';

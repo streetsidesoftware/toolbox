@@ -116,6 +116,9 @@ To read a whole page without substituting anything, use `parseDocument`.
 A page read with `parseDocument` holds its frontmatter's YAML text in `frontmatter`, or `undefined` when it has none.
 Its `withFrontmatter` returns a copy with new frontmatter.
 
+<details>
+<summary>Example</summary>
+
 ```markdown
 ---
 title: CSpell
@@ -152,6 +155,8 @@ sidebar_position: 1
 
 Settings for the cspell command line tool.
 ```
+
+</details>
 
 It also takes an element made by `frontmatter`, and `undefined` removes the frontmatter.
 
