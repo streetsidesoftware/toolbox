@@ -301,7 +301,7 @@ export type MDInline =
   | MDInlineComment
   | MDInlineFragment;
 
-/** An element that goes on its own lines, such as a paragraph, list or table. */
+/** An element that goes on its own lines. */
 export type MDBlock =
   | MDHeading
   | MDParagraph
