@@ -643,8 +643,8 @@ Adds **Dutch** words. See [cspell.org](https://cspell.org).
 ### Build a page in steps
 
 Several steps can each substitute what they know. Pass the result of one step to `substitutePlaceholders` to
-substitute more of its placeholders. A placeholder with no value yet is kept as written, so a later step, or a tool
-such as [inject-markdown](https://github.com/streetsidesoftware/inject-markdown), can substitute it. In code,
+substitute more of its placeholders. A placeholder with no replacement yet is kept as written, so a later step, or a
+tool such as [inject-markdown](https://github.com/streetsidesoftware/inject-markdown), can substitute it. In code,
 `placeholder(name)` leaves the same gap inside a line, and `blockPlaceholder(name)` on lines of its own.
 
 <details>
@@ -701,7 +701,7 @@ Last run: {@ date @}
 
 A dotted name, such as `pkg.engines.node`, can come from nested objects, from a top-level key with the dots in it, or
 from both at once. When two keys supply a name, the later one wins, so the license is MIT. Dots in a nested key don't
-split it, so the last placeholder has no value and is kept.
+split it, so the last placeholder has no replacement and is kept.
 
 <details>
 <summary>Example</summary>
