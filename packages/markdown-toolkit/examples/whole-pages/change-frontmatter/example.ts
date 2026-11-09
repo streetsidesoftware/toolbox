@@ -9,4 +9,6 @@ const yaml = page.frontmatter?.replace(
   'sidebar_position: 1',
 );
 
-console.log(page.withFrontmatter(yaml).toString());
+const updated = page.withFrontmatter(yaml);
+
+console.log(updated.toString());

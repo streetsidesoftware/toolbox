@@ -251,8 +251,12 @@ export interface MDDocument extends MDElement {
   /**
    * Return a copy of the document with the given frontmatter in place of any it had.
    *
-   * @param frontmatter - YAML text, which goes in as `md.frontmatter(yaml)` takes it, or an element that
-   * `md.frontmatter` made. `undefined` removes the frontmatter.
+   * The frontmatter can be:
+   * - YAML text, which goes in as given, without a check that it's valid. A line ending at its end is left out, since
+   *   the closing `---` goes on a line of its own.
+   * - An element made by {@link frontmatter}.
+   * - `undefined`, which removes the frontmatter.
+   *
    * @example
    * md.parseDocument('---\ntitle: A\n---\n\n# A\n').withFrontmatter('title: B');
    * // ---
@@ -277,7 +281,7 @@ export interface MDDocument extends MDElement {
 /**
  * YAML frontmatter between `---` lines.
  *
- * It goes first in a document.
+ * It goes only first in a document.
  */
 export interface MDFrontmatter extends MDElement {
   readonly kind: 'frontmatter';

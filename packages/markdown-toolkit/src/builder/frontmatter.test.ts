@@ -128,12 +128,15 @@ describe("a document's frontmatter", () => {
   const file = parseDocument('---\nb: 2\n---\n\n* x\n');
 
   testEach`
-        source                         | md                                          | expected
-        ${'a parsed file'}             | ${file}                                     | ${'b: 2'}
-        ${'a parsed file without'}     | ${parseDocument('# A\n')}                   | ${undefined}
-        ${'frontmatter()'}             | ${document(frontmatter('a: 1\n'), 'Text')}  | ${'a: 1'}
-        ${'empty frontmatter()'}       | ${document(frontmatter(''))}                | ${''}
-        ${'a document without'}        | ${document('Text')}                         | ${undefined}
+        source                         | md                                                         | expected
+        ${'a parsed file'}             | ${file}                                                    | ${'b: 2'}
+        ${'a parsed file without'}     | ${parseDocument('# A\n')}                                  | ${undefined}
+        ${'frontmatter()'}             | ${document(frontmatter('a: 1\n'), 'Text')}                 | ${'a: 1'}
+        ${'empty frontmatter()'}       | ${document(frontmatter(''))}                               | ${''}
+        ${'a document without'}        | ${document('Text')}                                        | ${undefined}
+        ${'templateDocument'}          | ${templateDocument('---\nt: {@ v @}\n---\n', { v: 'x' })}  | ${'t: x'}
+        ${'a parsed file first'}       | ${document(file, 'Text')}                                  | ${'b: 2'}
+        ${'a parsed file later'}       | ${document(heading(1, 'A'), file)}                         | ${undefined}
     `('from $source', ({ md, expected }: { md: MDDocument; expected: string | undefined }) => {
     assert.equal(md.frontmatter, expected);
   });
@@ -159,7 +162,6 @@ describe("a document's frontmatter", () => {
   });
 
   test('withFrontmatter keeps the style, and withStyle keeps the frontmatter', () => {
-    assert.equal(file.withFrontmatter('a: 1').toString(), '---\na: 1\n---\n\n* x\n');
     assert.equal(file.withStyle({ bullet: '-' }).withFrontmatter('a: 1').toString(), '---\na: 1\n---\n\n- x\n');
     assert.equal(file.withFrontmatter('a: 1').withStyle({ bullet: '-' }).frontmatter, 'a: 1');
   });

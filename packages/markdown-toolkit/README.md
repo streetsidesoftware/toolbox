@@ -931,7 +931,9 @@ const yaml = page.frontmatter?.replace(
   'sidebar_position: 1',
 );
 
-console.log(page.withFrontmatter(yaml).toString());
+const updated = page.withFrontmatter(yaml);
+
+console.log(updated.toString());
 ```
 
 ```markdown
@@ -947,7 +949,7 @@ Settings for the cspell command line tool.
 
 </details>
 
-It also takes an element made by `frontmatter`, and `undefined` removes the frontmatter.
+To remove the frontmatter, pass `undefined`.
 
 <!--- @@inject-end: examples/whole-pages/README.md --->
 
