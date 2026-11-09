@@ -2,7 +2,7 @@ import type { PackageJson } from './package-json-util.ts';
 import type { WorkspacePackage } from './packages.ts';
 import type { Published } from './trusted-publishing.ts';
 
-/** Holds the text appended to a private package's `description` until it's published. */
+/** The text at the end of a private package's `description`, which {@link makePublic} removes. */
 export const PRIVATE_SUFFIX = ' -- Private until verified';
 
 /** Return a copy of `pkg` without `private` and without the private suffix on `description`. */
@@ -15,7 +15,7 @@ export function makePublic(pkg: PackageJson): PackageJson {
 }
 
 export interface PublicationCandidate {
-  /** Holds the directory under `packages/`, such as `unindent`. */
+  /** The package's folder name under `packages/`, such as `unindent`. */
   dir: string;
   name: string;
 }
