@@ -7,7 +7,9 @@ import { isFrontmatter } from './frontmatter.ts';
 /**
  * Create a whole Markdown file from its parts, in order.
  *
- * Frontmatter, if any, goes first. Each other part goes on a line of its own:
+ * Frontmatter, if any, goes first. Frontmatter after other content, such as a parsed document's, is left out.
+ *
+ * Each other part goes on a line of its own:
  * - Text, links and other pieces in a row form one paragraph. The page shows a space between them.
  * - A part that shows nothing ends the paragraph.
  * - A paragraph, list or other block goes on its own lines.

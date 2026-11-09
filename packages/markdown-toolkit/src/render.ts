@@ -55,6 +55,12 @@ export function renderNodes(children: RootContent[], style: MarkdownStyle | unde
   });
   // After the trimming, which can leave a paragraph empty.
   root.children = withoutEmptyParagraphs(root.children);
+  // Frontmatter after other content, such as a parsed document's, would show as a rule and a heading.
+  visit(root, 'yaml', (_node, index, parent) => {
+    if (parent === undefined || index === undefined || (parent === root && index === 0)) return undefined;
+    parent.children.splice(index, 1);
+    return index;
+  });
   visit(root, (node) => {
     if (node.type === 'tableCell' || node.type === 'heading') visit(node, oneLine);
     if ('children' in node) {
