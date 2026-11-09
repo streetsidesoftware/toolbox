@@ -26,7 +26,7 @@ describe('renderApiReference', () => {
       },
       {
         heading: 'Templates',
-        functions: [fn({ name: 'template', params: ['markdown', 'values'], aliases: ['a', 'b'] })],
+        functions: [fn({ name: 'template', params: ['markdown', 'replacements'], aliases: ['a', 'b'] })],
       },
     ];
     assert.equal(
@@ -41,7 +41,7 @@ describe('renderApiReference', () => {
         '',
         '### Templates',
         '',
-        '- `template(markdown, values)` (also `a`, `b`): Summary.',
+        '- `template(markdown, replacements)` (also `a`, `b`): Summary.',
         '',
       ].join('\n'),
     );
