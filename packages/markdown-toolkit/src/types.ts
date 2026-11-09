@@ -337,22 +337,10 @@ export type InlineContent = string | MDInline | readonly InlineContent[];
 
 export type BlockContent = MDBlock | readonly BlockContent[];
 
-/**
- * One piece of content:
- * - text, links, formatting or code
- * - a paragraph, list, table or other block
- * - a list item, which forms a list with the list items next to it
- */
 export type BlockOrInlineContent = InlineContent | BlockContent | MDListItem;
 
 export type AnyContent = BlockOrInlineContent | readonly BlockOrInlineContent[];
 
-/**
- * A piece of a list item:
- * - text, links, formatting or code
- * - a paragraph, list, table or other block
- * - another list item, which forms a list with the list items next to it
- */
 export type ListItemContent = BlockOrInlineContent;
 
 /**
