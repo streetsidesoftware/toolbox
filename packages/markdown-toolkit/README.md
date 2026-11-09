@@ -640,11 +640,11 @@ Adds **Dutch** words. See [cspell.org](https://cspell.org).
 
 </details>
 
-### Build a page in steps
+### Values in steps
 
-Several steps can each substitute what they know. Pass the result of one step to `substitutePlaceholders` to
-substitute more of its placeholders. A placeholder with no replacement is kept as written. In code,
-`placeholder(name)` leaves the same gap inside a line, and `blockPlaceholder(name)` on lines of its own.
+When the values come from different places, you can substitute them in steps. Start with `template` and the values you
+have. Then pass its result to `substitutePlaceholders` with more values, as many times as you need. A placeholder with
+no replacement is kept as written.
 
 <details>
 <summary>Example</summary>
