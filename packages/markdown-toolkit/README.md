@@ -640,11 +640,11 @@ Adds **Dutch** words. See [cspell.org](https://cspell.org).
 
 </details>
 
-### Build a page in steps
+### Chain `template` and `substitutePlaceholders`
 
-Several steps can each substitute what they know. Pass the result of one step to `substitutePlaceholders` to
-substitute more of its placeholders. A placeholder with no replacement is kept as written. In code,
-`placeholder(name)` leaves the same gap inside a line, and `blockPlaceholder(name)` on lines of its own.
+The result of `template` is still a template. Pass it to `substitutePlaceholders` with more replacements, as many
+times as needed. Each replacement can be anything a template takes, such as a paragraph or a list. A placeholder with
+no replacement is kept as written.
 
 <details>
 <summary>Example</summary>
