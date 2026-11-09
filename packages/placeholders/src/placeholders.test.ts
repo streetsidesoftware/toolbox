@@ -8,13 +8,13 @@ import type { PlaceholderOptions } from './index.ts';
 
 interface ReplaceRow {
   text: string;
-  values: object;
+  replacements: object;
   expected: string;
 }
 
 describe('replacePlaceholders', () => {
   testEach`
-    text                             | values                                | expected
+    text                             | replacements                          | expected
     ${'v{@ version @}'}              | ${{ version: '1.2.3' }}               | ${'v1.2.3'}
     ${'v{@version@}'}                | ${{ version: '1.2.3' }}               | ${'v1.2.3'}
     ${'v{@  version\t@}'}            | ${{ version: '1.2.3' }}               | ${'v1.2.3'}
@@ -39,8 +39,8 @@ describe('replacePlaceholders', () => {
     ${'{@ constructor.name @}'}      | ${{}}                                 | ${'{@ constructor.name @}'}
     ${'{@ v @}'}                     | ${{ v: '{@ v @}' }}                   | ${'{@ v @}'}
     ${'{@ v @}'}                     | ${{ v: '$& $1' }}                     | ${'$& $1'}
-  `('replacePlaceholders($text, $values)', ({ text, values, expected }: ReplaceRow) => {
-    assert.equal(replacePlaceholders(text, values), expected);
+  `('replacePlaceholders($text, $replacements)', ({ text, replacements, expected }: ReplaceRow) => {
+    assert.equal(replacePlaceholders(text, replacements), expected);
   });
 
   test('takes a resolver', () => {
@@ -53,14 +53,14 @@ describe('replacePlaceholders', () => {
     assert.deepEqual(names, ['a', 'b.c', 'd']);
   });
 
-  test('does not replace inside a value', () => {
+  test('does not replace inside a replacement', () => {
     assert.equal(replacePlaceholders('{@ a @}{@ b @}', { a: '{@ b', b: ' @}' }), '{@ b @}');
   });
 });
 
-describe('multi-line values', () => {
+describe('multi-line replacements', () => {
   testEach`
-    text                          | value                        | expected
+    text                          | replacement                  | expected
     ${'  {@ v @}'}                | ${'a\nb'}                    | ${'  a\n  b'}
     ${'\t{@ v @}'}                | ${'a\nb'}                    | ${'\ta\n\tb'}
     ${'{@ v @}'}                  | ${'a\nb'}                    | ${'a\nb'}
@@ -73,22 +73,25 @@ describe('multi-line values', () => {
     ${'  {@ v @}\nnext'}          | ${'a\nb\n'}                  | ${'  a\n  b\n\nnext'}
     ${'  {@ v @}'}                | ${'a\r\nb'}                  | ${'  a\r\n  b'}
     ${'  {@ v @}'}                | ${'a\r\n\r\nb'}              | ${'  a\r\n\r\n  b'}
-  `('$text with $value', ({ text, value, expected }: { text: string; value: string; expected: string }) => {
-    assert.equal(replacePlaceholders(text, { v: value }), expected);
-  });
+  `(
+    '$text with $replacement',
+    ({ text, replacement, expected }: { text: string; replacement: string; expected: string }) => {
+      assert.equal(replacePlaceholders(text, { v: replacement }), expected);
+    },
+  );
 
-  test('takes the indent from the template, not from earlier values', () => {
+  test('takes the indent from the template, not from earlier replacements', () => {
     assert.equal(replacePlaceholders('{@ pad @}{@ v @}', { pad: '    ', v: 'a\nb' }), '    a\nb');
   });
 
-  test('indents a value from a resolver', () => {
+  test('indents a replacement from a resolver', () => {
     assert.equal(
       replacePlaceholders('  {@ v @}', () => 'a\nb'),
       '  a\n  b',
     );
   });
 
-  test('autoIndent: false inserts the value as given', () => {
+  test('autoIndent: false inserts the replacement as given', () => {
     assert.equal(replacePlaceholders('  {@ v @}', { v: 'a\nb' }, { autoIndent: false }), '  a\nb');
   });
 });
