@@ -283,11 +283,7 @@ export interface MDInlineFragment extends MDElement {
 /** A heading's depth: 1 for the page title, 2 for its sections, and so on down to 6. */
 export type HeadingDepth = 1 | 2 | 3 | 4 | 5 | 6;
 
-/**
- * An element that goes inside a line, such as text, a link or formatting.
- *
- * A comment from {@link comment} goes inside a line only when its text has no line ending.
- */
+/** An element that goes inside a line. */
 export type MDInline =
   | MDText
   | MDPlaceholder
