@@ -4,6 +4,9 @@ These go inside a line: `link`, `inlineCode`, `strong`, `emphasis`, `strikethrou
 except `inlineCode` takes inline content, so they nest, as in a link with strong text. For HTML or MDX, `sup` and
 `sub` write `<sup>` and `<sub>` tags around their content.
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject: example.ts --->
 
 ```ts
@@ -45,3 +48,5 @@ language<sup>_req_</sup>: the language to check.
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>

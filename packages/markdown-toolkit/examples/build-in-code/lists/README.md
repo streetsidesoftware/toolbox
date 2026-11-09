@@ -9,6 +9,9 @@ and the page counts up from it.
 For a checkbox, end a `listItem` (or `li`) with `{ checked: true }` or `{ checked: false }`. Or use `taskListItem`,
 whose box is empty unless its options hold `checked: true`.
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject: example.ts --->
 
 ```ts
@@ -54,3 +57,5 @@ To add one:
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>

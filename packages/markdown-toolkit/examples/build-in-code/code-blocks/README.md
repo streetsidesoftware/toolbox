@@ -2,6 +2,9 @@
 
 Give `codeBlock` the code and, optionally, its language. The code goes in as written.
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject: example.ts --->
 
 ```ts
@@ -28,3 +31,5 @@ npm install --save-dev cspell
 ````
 
 <!--- @@inject-end: output.md --->
+
+</details>

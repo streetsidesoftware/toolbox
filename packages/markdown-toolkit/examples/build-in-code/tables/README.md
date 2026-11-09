@@ -3,6 +3,9 @@
 Give `table` the header and one array of cells per row. A cell holds inline content, such as text, inline code and
 links. To align a column, pass `{ align: ['left', 'right'] }`, one entry per column.
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject: example.ts --->
 
 ```ts
@@ -41,3 +44,5 @@ console.log(page.toString());
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>

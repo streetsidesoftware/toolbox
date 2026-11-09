@@ -2,6 +2,9 @@
 
 Put `frontmatter` first in a document. Its text is YAML and goes in as written, between `---` lines.
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject: example.ts --->
 
 ```ts
@@ -41,3 +44,5 @@ Settings that control the behavior of the spell checker.
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>

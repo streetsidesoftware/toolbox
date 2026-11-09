@@ -3,6 +3,9 @@
 Give `heading` a depth from 1 to 6 and its text. The text can be several pieces, such as text and inline code. To
 separate sections with a line, use `horizontalRule()` (`hr()`).
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject: example.ts --->
 
 ```ts
@@ -33,3 +36,5 @@ Run it on every file in the project.
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>

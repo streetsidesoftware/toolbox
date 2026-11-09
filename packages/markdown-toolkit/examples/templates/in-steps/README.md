@@ -5,6 +5,9 @@ substitute more of its placeholders. A placeholder with no value yet is kept as 
 such as [inject-markdown](https://github.com/streetsidesoftware/inject-markdown), can substitute it. In code,
 `placeholder(name)` leaves the same gap inside a line, and `blockPlaceholder(name)` on lines of its own.
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject: example.ts --->
 
 ```ts
@@ -57,3 +60,5 @@ Last run: {@ date @}
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>

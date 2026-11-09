@@ -3,6 +3,9 @@
 These are HTML blocks, which GitHub renders. Give `details` a summary and the content it hides. Give
 `definitionList` (`dl`) one `[term, definition]` pair per entry.
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject: example.ts --->
 
 ```ts
@@ -56,3 +59,5 @@ Words to accept as correct.
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>

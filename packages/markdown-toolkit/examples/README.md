@@ -8,7 +8,9 @@ README, so every example in the README is code that runs and output it printed.
 - A folder with an `example.ts` is one example:
   - `example.ts` is the code.
   - `output.md` is what the code printed, written by `run-examples`. Don't edit it.
-  - `README.md` is the section's text, and injects `example.ts` and `output.md`.
+  - `README.md` is the section's text, and injects `example.ts` and `output.md`. It puts them, with any data file it
+    shows, inside `<details>` with the summary "Example", so a reader sees the text and opens the code when they want
+    it. The openers don't, since they're the first thing a reader sees.
   - Other files, such as `template.md`, are data the code reads.
 - A folder without an `example.ts` is a part of the README, such as "Build in code". Its `README.md` holds the
   part's heading and lead, and injects the `README.md` of each example in it, in the order the README shows them.

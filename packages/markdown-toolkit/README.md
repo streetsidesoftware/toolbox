@@ -121,6 +121,9 @@ document ends with a newline; other elements don't, so they can be joined. Strin
 Pass one or more pieces to `p` (`paragraph`) to make a paragraph. The pieces are joined as given, with no spaces
 added. To turn plain text into paragraphs, use `blockText`: each blank line starts a new paragraph.
 
+<details>
+<summary>Example</summary>
+
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
@@ -147,10 +150,15 @@ It checks comments, strings and Markdown.
 It runs in CI and in the editor.
 ```
 
+</details>
+
 ### Headings
 
 Give `heading` a depth from 1 to 6 and its text. The text can be several pieces, such as text and inline code. To
 separate sections with a line, use `horizontalRule()` (`hr()`).
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -175,11 +183,16 @@ A spell checker for code.
 Run it on every file in the project.
 ```
 
+</details>
+
 ### Links and inline formatting
 
 These go inside a line: `link`, `inlineCode`, `strong`, `emphasis`, `strikethrough`, `sup` and `sub`. Each one
 except `inlineCode` takes inline content, so they nest, as in a link with strong text. For HTML or MDX, `sup` and
 `sub` write `<sup>` and `<sub>` tags around their content.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -215,6 +228,8 @@ See [the docs](https://cspell.org) for options.
 language<sup>_req_</sup>: the language to check.
 ```
 
+</details>
+
 ### Lists
 
 Give `list` an array with one entry per item. An entry can be an array of pieces, and a `list` among them makes a
@@ -225,6 +240,9 @@ and the page counts up from it.
 
 For a checkbox, end a `listItem` (or `li`) with `{ checked: true }` or `{ checked: false }`. Or use `taskListItem`,
 whose box is empty unless its options hold `checked: true`.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -264,9 +282,14 @@ To add one:
 1. Add it to the config.
 ```
 
+</details>
+
 ### Code blocks
 
 Give `codeBlock` the code and, optionally, its language. The code goes in as written.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -287,10 +310,15 @@ npm install --save-dev cspell
 ```
 ````
 
+</details>
+
 ### Line breaks and comments
 
 A newline in a string, or a `lineBreak()`, starts a new line in the same paragraph. For HTML or MDX, `br()` always writes `<br/>`. A
 `comment` is an HTML comment, which isn't displayed, such as a `cspell:ignore` line for a spell checker.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -313,9 +341,14 @@ Maintained by\
 Street Side Software
 ```
 
+</details>
+
 ### Multi-line comments
 
 When the text of a `comment` has a line ending, its markers go on lines of their own. It can't go inside a line, so in a paragraph or a summary it throws. Nothing is trimmed, and blank lines stay.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -337,6 +370,8 @@ cspell:words StreetSideSoftware
 Maintained by Street Side Software.
 ```
 
+</details>
+
 For a fixed form, use one of these:
 
 - `blockComment` always puts its markers on lines of their own.
@@ -348,6 +383,9 @@ A placeholder's value goes in as given and doesn't change the form, so use `bloc
 
 Give `table` the header and one array of cells per row. A cell holds inline content, such as text, inline code and
 links. To align a column, pass `{ align: ['left', 'right'] }`, one entry per column.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -380,10 +418,15 @@ console.log(page.toString());
 | German   | `@cspell/dict-de-de` | de     |
 ```
 
+</details>
+
 ### HTML tables
 
 When a cell needs more than one line, such as a list or a code block, use `htmlTable`. It takes the same header,
 rows and options as `table`, and a cell can hold any content. GitHub renders the HTML table it writes.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -457,10 +500,15 @@ The languages to check:
 </table>
 ```
 
+</details>
+
 ### Details and definition lists
 
 These are HTML blocks, which GitHub renders. Give `details` a summary and the content it hides. Give
 `definitionList` (`dl`) one `[term, definition]` pair per entry.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -508,6 +556,8 @@ Words to accept as correct.
 </dl>
 ```
 
+</details>
+
 <!--- @@inject-end: examples/build-in-code/README.md --->
 
 <!--- @@inject: examples/templates/README.md --->
@@ -524,6 +574,9 @@ placeholder on a line of its own also takes blocks, such as a list or a table. A
 `{@ pkg.name @}`, looks up a nested object, and a placeholder works inside code too.
 
 Use `inlineTemplate` for a template that goes inside a line, and `blockTemplate` for one that must be blocks.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -556,11 +609,16 @@ Dutch dictionary for cspell.
 Install with `npm i -D @cspell/dict-nl-nl`.
 ```
 
+</details>
+
 ### Markdown from elsewhere
 
 A string is always text. For a string that is already Markdown, such as a description from another file, pass
 `parse(text)` instead. Like a template, it gives inline content or blocks, and `toBlock` makes either fit where
 only blocks can go.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -580,12 +638,17 @@ console.log(page.toString());
 Adds **Dutch** words. See [cspell.org](https://cspell.org).
 ```
 
+</details>
+
 ### Build a page in steps
 
 Several steps can each substitute what they know. Pass the result of one step to `substitutePlaceholders` to
 substitute more of its placeholders. A placeholder with no value yet is kept as written, so a later step, or a tool
 such as [inject-markdown](https://github.com/streetsidesoftware/inject-markdown), can substitute it. In code,
 `placeholder(name)` leaves the same gap inside a line, and `blockPlaceholder(name)` on lines of its own.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -632,11 +695,16 @@ Checked 2 files.
 Last run: {@ date @}
 ```
 
+</details>
+
 ### Dotted names
 
 A dotted name, such as `pkg.engines.node`, can come from nested objects, from a top-level key with the dots in it, or
 from both at once. When two keys supply a name, the later one wins, so the license is MIT. Dots in a nested key don't
-split it, so the last placeholder below has no value and is kept.
+split it, so the last placeholder has no value and is kept.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -681,12 +749,17 @@ console.log(section.toString());
 - Lodash optional: {@ peerDependenciesMeta.lodash.optional @}
 ```
 
+</details>
+
 ### Values from a function
 
 In place of an object, pass a function that takes a placeholder name and returns its value. It gets the whole name,
 such as `dictionaries.custom`, not one part at a time. Values can then come from a `Map`, a config file or anywhere
 else. When it returns
 `undefined`, the placeholder is kept for a later step.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -719,6 +792,8 @@ Custom dictionary: `project-words`
 Added on: {@ date @}
 ```
 
+</details>
+
 <!--- @@inject-end: examples/templates/README.md --->
 
 <!--- @@inject: examples/whole-pages/README.md --->
@@ -730,6 +805,9 @@ A page for a site such as Docusaurus often starts with YAML frontmatter.
 ### Frontmatter
 
 Put `frontmatter` first in a document. Its text is YAML and goes in as written, between `---` lines.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -763,9 +841,16 @@ sidebar_position: 1
 Settings that control the behavior of the spell checker.
 ```
 
+</details>
+
 ### Template files
 
-A template for a whole page, such as `template.md`, can start with frontmatter:
+A template for a whole page, such as `template.md`, can start with frontmatter. Read it with `templateDocument`, which
+keeps the frontmatter and substitutes the placeholders in both parts. A value in the frontmatter goes in as written,
+since it's YAML.
+
+<details>
+<summary>Example</summary>
 
 ```markdown
 ---
@@ -778,9 +863,6 @@ description: >-
 
 {@ description @}
 ```
-
-Read it with `templateDocument`, which keeps the frontmatter and substitutes the placeholders in both parts. A value
-in the frontmatter goes in as written, since it's YAML.
 
 ```ts
 import fs from 'node:fs';
@@ -815,6 +897,8 @@ Settings for the cspell command line tool.\
 They apply to every file it checks.
 ```
 
+</details>
+
 To read a whole page without substituting anything, use `parseDocument`.
 
 <!--- @@inject-end: examples/whole-pages/README.md --->
@@ -825,6 +909,9 @@ To read a whole page without substituting anything, use `parseDocument`.
 
 Lists use `-` bullets and emphasis uses `_` by default. To add to a file that uses another style, detect its style
 and render in it.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -843,6 +930,8 @@ console.log(section.toString());
 * German
 * Spanish
 ```
+
+</details>
 
 <!--- @@inject-end: examples/match-a-style/README.md --->
 

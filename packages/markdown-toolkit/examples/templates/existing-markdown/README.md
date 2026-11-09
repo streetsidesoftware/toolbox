@@ -4,6 +4,9 @@ A string is always text. For a string that is already Markdown, such as a descri
 `parse(text)` instead. Like a template, it gives inline content or blocks, and `toBlock` makes either fit where
 only blocks can go.
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject: example.ts --->
 
 ```ts
@@ -29,3 +32,5 @@ Adds **Dutch** words. See [cspell.org](https://cspell.org).
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>

@@ -3,6 +3,9 @@
 Pass one or more pieces to `p` (`paragraph`) to make a paragraph. The pieces are joined as given, with no spaces
 added. To turn plain text into paragraphs, use `blockText`: each blank line starts a new paragraph.
 
+<details>
+<summary>Example</summary>
+
 <!--- @@inject: example.ts --->
 
 ```ts
@@ -36,3 +39,5 @@ It runs in CI and in the editor.
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>
