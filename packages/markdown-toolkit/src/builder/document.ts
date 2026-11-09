@@ -2,7 +2,7 @@ import type { RootContent } from 'mdast';
 
 import { argumentNodes, MarkdownElement, renderingOf } from '../element/index.ts';
 import type { AnyContent, MarkdownStyle, MDDocument, MDFrontmatter } from '../types.ts';
-import { isFrontmatter } from './frontmatter.ts';
+import { frontmatter, isFrontmatter } from './frontmatter.ts';
 
 /**
  * Create a whole Markdown file from its parts, in order.
@@ -29,7 +29,6 @@ export function document(...content: AnyContent[]): MDDocument;
 
 export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument {
   const [first, ...rest] = content;
-  if (rest.some(isFrontmatter)) throw new TypeError('frontmatter must be the first content of a document');
   if (!isFrontmatter(first)) return new DocumentElement(argumentNodes(content as AnyContent[], 'document content'));
   return new DocumentElement([
     ...(renderingOf(first)?.nodes ?? []),
@@ -41,6 +40,19 @@ export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument
 export class DocumentElement extends MarkdownElement<'block', 'document'> implements MDDocument {
   constructor(nodes: RootContent[], style?: MarkdownStyle) {
     super('block', 'document', 'a document', nodes, style);
+  }
+
+  get frontmatter(): string | undefined {
+    const [first] = renderingOf(this)?.nodes ?? [];
+    return first?.type === 'yaml' ? first.value : undefined;
+  }
+
+  withFrontmatter(given: string | MDFrontmatter | undefined): MDDocument {
+    const { nodes, style } = renderingOf(this) ?? { nodes: [] };
+    const content = nodes[0]?.type === 'yaml' ? nodes.slice(1) : nodes;
+    if (given === undefined) return new DocumentElement(content, style);
+    const element = typeof given === 'string' ? frontmatter(given) : given;
+    return new DocumentElement([...(renderingOf(element)?.nodes ?? []), ...content], style);
   }
 
   withStyle(style: MarkdownStyle): MDDocument {

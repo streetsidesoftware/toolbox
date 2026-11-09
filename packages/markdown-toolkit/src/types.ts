@@ -246,6 +246,22 @@ export interface MDHtmlTable extends MDElement {
 export interface MDDocument extends MDElement {
   readonly kind: 'block';
   readonly type: 'document';
+  /** Holds the YAML text of the document's frontmatter, without the `---` lines, or `undefined` if it has none. */
+  readonly frontmatter: string | undefined;
+  /**
+   * Return a copy of the document with the given frontmatter in place of any it had.
+   *
+   * @param frontmatter - YAML text, which goes in as `md.frontmatter(yaml)` takes it, or an element that
+   * `md.frontmatter` made. `undefined` removes the frontmatter.
+   * @example
+   * md.parseDocument('---\ntitle: A\n---\n\n# A\n').withFrontmatter('title: B');
+   * // ---
+   * // title: B
+   * // ---
+   * //
+   * // # A
+   */
+  withFrontmatter(frontmatter: string | MDFrontmatter | undefined): MDDocument;
   /**
    * Return a copy of the document with the given style preferences.
    *
@@ -261,7 +277,7 @@ export interface MDDocument extends MDElement {
 /**
  * YAML frontmatter between `---` lines.
  *
- * It goes only first in a document.
+ * It goes first in a document, or to a document's {@link MDDocument.withFrontmatter}.
  */
 export interface MDFrontmatter extends MDElement {
   readonly kind: 'frontmatter';
