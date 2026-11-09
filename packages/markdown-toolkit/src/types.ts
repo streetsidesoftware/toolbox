@@ -246,7 +246,7 @@ export interface MDHtmlTable extends MDElement {
 export interface MDDocument extends MDElement {
   readonly kind: 'block';
   readonly type: 'document';
-  /** Holds the YAML text of the document's frontmatter, without the `---` lines, or `undefined` if it has none. */
+  /** The YAML text of the document's frontmatter, without the `---` lines, or `undefined` if it has none. */
   readonly frontmatter: string | undefined;
   /**
    * Return a copy of the document with the given frontmatter in place of any it had.
