@@ -10,22 +10,22 @@ import type { TemplateResolver, TemplateValues } from './values.ts';
 /**
  * Create Markdown from a template by substituting values for its `{​@ name @​}` placeholders.
  *
- * - A string value shows as text, not as formatting, with each newline as a line break.
- * - A placeholder within a sentence takes text, links, formatting or code.
- * - A placeholder on a line of its own can also take a list, table or other block.
- * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
- *   entity shows as its character in code, and as its reference in HTML.
- * - A placeholder in a link or image URL, a title or a reference definition takes only a string, which goes in as given.
- *   Markdown allows no spaces in a URL, so write `{​@name@​}` there, or wrap the URL in `<…>`.
- * - A placeholder without a value stays in place, so a later call can substitute it.
+ * Replacement values can be strings or other {@link MDElement}s.
  *
- * A result of one paragraph, or an empty one, can go anywhere a string can. A longer one goes where paragraphs can.
+ * Unresolved placeholders are not replaced.
  *
- * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
- *   `engines.cspell`, reaches into a nested object.
+ * ## Notes on string replacement values
+ *
+ * - Strings are treated like plain text, not Markdown.
+ * - To use strings with markdown, parse them first.
+ * - A newline in a string becomes a hard line break.
+ *
  * @example
- * md.template('Install {@name@} with npm.', { name: 'cspell' });
- * // Install cspell with npm.
+ * md.template('Install {@pkg.name@}:\n\n{@steps@}', { pkg: { name: 'cspell' }, steps: md.list(['Run npm', 'Add a config']) });
+ * // Install cspell:
+ * //
+ * // - Run npm
+ * // - Add a config
  * @category templates
  */
 export function template(markdown: string, values: TemplateValues | TemplateResolver): MDFragment | MDInlineFragment {
