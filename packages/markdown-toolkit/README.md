@@ -643,7 +643,7 @@ Adds **Dutch** words. See [cspell.org](https://cspell.org).
 ### Build a page in steps
 
 Several steps can each substitute what they know. Pass the result of one step to `substitutePlaceholders` to
-substitute more of its placeholders. A placeholder with no replacement yet is kept as written. In code,
+substitute more of its placeholders. A placeholder with no replacement is kept as written. In code,
 `placeholder(name)` leaves the same gap inside a line, and `blockPlaceholder(name)` on lines of its own.
 
 <details>
