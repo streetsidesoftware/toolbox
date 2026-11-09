@@ -128,14 +128,14 @@ describe('details', () => {
     ${inlineTemplate('![{@ name @}](b.png)', {})}   | ${'<img src="b.png" alt="{@ name @}"/>'}
     ${comment('{@ name @}')}                        | ${'<!-- {@ name @} -->'}
   `(
-    'a placeholder with no value is treated as text: $expected',
+    'a placeholder with no replacement is treated as text: $expected',
     ({ summary, expected }: { summary: InlineContent; expected: string }) => {
       assert.equal(details(summary, 'b').toString(), `<details>\n<summary>${expected}</summary>\n\nb\n\n</details>`);
     },
   );
 
   testEach`
-    summary                         | value                 | expected
+    summary                         | replacement           | expected
     ${placeholder('x')}             | ${'a'}                | ${'a'}
     ${placeholder('x')}             | ${'  a  '}            | ${'a'}
     ${placeholder('x')}             | ${'a < b & c'}        | ${'a &lt; b &amp; c'}
@@ -150,16 +150,16 @@ describe('details', () => {
     ${link('a', '{@ x @}')}         | ${'https://a.b/?c&d'} | ${'<a href="https://a.b/?c&amp;d">a</a>'}
     ${comment('{@ x @}')}           | ${'a'}                | ${'<!-- a -->'}
   `(
-    'a substituted summary is the same as one given the value: $expected',
-    ({ summary, value, expected }: { summary: InlineContent; value: never; expected: string }) => {
+    'a substituted summary is the same as one given the replacement: $expected',
+    ({ summary, replacement, expected }: { summary: InlineContent; replacement: never; expected: string }) => {
       assert.equal(
-        substitutePlaceholders(document(details(summary, 'b')), { x: value }).toString(),
+        substitutePlaceholders(document(details(summary, 'b')), { x: replacement }).toString(),
         `<details>\n<summary>${expected}</summary>\n\nb\n\n</details>\n`,
       );
     },
   );
 
-  test('a placeholder in a summary takes only inline values', () => {
+  test('a placeholder in a summary takes only inline replacements', () => {
     assert.throws(
       () => substitutePlaceholders(document(details(placeholder('x'), 'b')), { x: list(['a']) }),
       /\{@ x @\}/,
@@ -313,7 +313,7 @@ describe('definitionList', () => {
     );
   });
 
-  test('a term with a placeholder stays on one line, with or without a value', () => {
+  test('a term with a placeholder stays on one line, with or without a replacement', () => {
     const terms = dl([[strong(placeholder('x')), 'y']]);
     assert.equal(terms.toString(), '<dl>\n\n<dt><strong>{@ x @}</strong></dt>\n<dd>\n\ny\n\n</dd>\n\n</dl>');
     assert.equal(
@@ -527,21 +527,21 @@ describe('htmlTable', () => {
   });
 
   testEach`
-    value              | expected
+    replacement        | expected
     ${'a < b'}         | ${'<td>\n\na < b\n\n</td>'}
     ${strong('a')}     | ${'<td>\n\n**a**\n\n</td>'}
     ${list(['a'])}     | ${'<td>\n\n- a\n\n</td>'}
   `(
-    'a placeholder in a cell takes any value, before or after toString: $expected',
-    ({ value, expected }: { value: never; expected: string }) => {
+    'a placeholder in a cell takes any replacement, before or after toString: $expected',
+    ({ replacement, expected }: { replacement: never; expected: string }) => {
       const table = document(htmlTable([], [[placeholder('x')]]));
       const page = `<table>\n<tbody>\n<tr>\n${expected}\n</tr>\n</tbody>\n</table>`;
-      assert.equal(substitutePlaceholders(table, { x: value }).toString(), `${page}\n`);
-      assert.equal(blockTemplate(table.toString(), { x: value }).toString(), page);
+      assert.equal(substitutePlaceholders(table, { x: replacement }).toString(), `${page}\n`);
+      assert.equal(blockTemplate(table.toString(), { x: replacement }).toString(), page);
     },
   );
 
-  test('a placeholder in a cell with an empty value leaves the cell empty', () => {
+  test('a placeholder in a cell with an empty replacement leaves the cell empty', () => {
     assert.equal(
       substitutePlaceholders(document(htmlTable([], [[placeholder('x')]])), { x: '' }).toString(),
       '<table>\n<tbody>\n<tr>\n<td></td>\n</tr>\n</tbody>\n</table>\n',

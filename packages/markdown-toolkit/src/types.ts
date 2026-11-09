@@ -82,19 +82,19 @@ export interface MDText extends MDElement {
 export interface MDPlaceholder extends MDElement {
   readonly kind: 'inline';
   readonly type: 'placeholder';
-  /** The name the placeholder's value is looked up by. */
+  /** The name the placeholder's replacement is looked up by. */
   readonly name: string;
 }
 
 /**
  * A `{​@ name @​}` placeholder on lines of its own.
  *
- * It takes any value, including a list, table or other block.
+ * It takes any replacement, including a list, table or other block.
  */
 export interface MDBlockPlaceholder extends MDElement {
   readonly kind: 'block';
   readonly type: 'blockPlaceholder';
-  /** The name the placeholder's value is looked up by. */
+  /** The name the placeholder's replacement is looked up by. */
   readonly name: string;
 }
 
