@@ -1,7 +1,7 @@
-### Substitute placeholders in steps
+### Start before you have all the data
 
-When the replacements come from different places, substitute them in steps. Start with `template` and the replacements
-you have. Then pass its result to `substitutePlaceholders` with more replacements, as many times as you need. A
+Often you know the layout before you have the data. Write the layout once with `template`, substituting what you
+already have. Then, as more data is ready, pass the result to `substitutePlaceholders` with the new replacements. A
 placeholder with no replacement is kept as written.
 
 <details>
