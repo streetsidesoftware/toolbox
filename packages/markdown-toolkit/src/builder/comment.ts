@@ -6,8 +6,8 @@ import type { MDBlockComment, MDComment, MDInlineComment } from '../types.ts';
 /**
  * Create an HTML comment, which the page doesn't show, on one line or with its markers on lines of their own.
  *
- * Text without a line ending goes on one line, `<!-- text -->`. It works anywhere a string can go, or on its own line
- * between paragraphs.
+ * Text without a line ending goes on one line, `<!-- text -->`. It goes inside a line, or on its own line between
+ * paragraphs.
  *
  * Text with a line ending, even at the very start or end of the text, gets its markers on lines of their own. It goes
  * on its own lines, not inside a line, such as in a paragraph or a summary.
