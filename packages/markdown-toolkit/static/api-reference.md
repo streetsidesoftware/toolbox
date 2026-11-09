@@ -8,15 +8,15 @@
 - `parse(markdown)` (also `parseFragment`): Parse Markdown text so it can be added to a page with its formatting.
 - `lineBreak()`: Start a new line without starting a new paragraph.
 - `htmlEntity(value)`: Create a character written as an HTML reference, such as `&nbsp;` for a no-break space.
-- `nbsp`: Holds a no-break space, written `&nbsp;`. The words on either side of it stay on one line.
-- `ensp`: Holds a space as wide as the letter n, written `&ensp;`.
-- `emsp`: Holds a space as wide as the letter m, written `&emsp;`.
-- `thinsp`: Holds a thin space, written `&thinsp;`.
-- `shy`: Holds a soft hyphen, written `&shy;`. A long word may break there, and shows a hyphen only when it does.
-- `mdash`: Holds an em dash, written `&mdash;`.
-- `ndash`: Holds an en dash, written `&ndash;`.
-- `hellip`: Holds an ellipsis, written `&hellip;`.
-- `copy`: Holds a copyright sign, written `&copy;`.
+- `nbsp`: A no-break space, written `&nbsp;`.
+- `ensp`: A space as wide as the letter n, written `&ensp;`.
+- `emsp`: A space as wide as the letter m, written `&emsp;`.
+- `thinsp`: A thin space, written `&thinsp;`.
+- `shy`: A soft hyphen, written `&shy;`.
+- `mdash`: An em dash, written `&mdash;`.
+- `ndash`: An en dash, written `&ndash;`.
+- `hellip`: An ellipsis, written `&hellip;`.
+- `copy`: A copyright sign, written `&copy;`.
 - `blockComment(text)`: Create an HTML comment with its markers on lines of their own, which the page doesn't show.
 - `br()`: Start a new line with an HTML `<br/>` tag.
 - `comment(text)`: Create an HTML comment, which the page doesn't show, on one line or with its markers on lines of their own.
