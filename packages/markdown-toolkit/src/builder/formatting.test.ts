@@ -126,7 +126,7 @@ describe('sup, sub', () => {
     assert.equal(substitutePlaceholders(md, { marker: emphasis('req') }).toString(), 'name <sup>_req_</sup>');
   });
 
-  test('a template value', () => {
+  test('a replacement', () => {
     assert.equal(template('name {@x@}', { x: sup(emphasis('req')) }).toString(), 'name <sup>_req_</sup>');
   });
 

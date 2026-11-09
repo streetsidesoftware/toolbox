@@ -42,7 +42,7 @@ export function template(
 /**
  * Create paragraphs and other blocks from a template by replacing its `{​@ name @​}` placeholders.
  *
- * - A string replacement shows as text, not as formatting, with each newline as a line break.
+ * - A string shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
@@ -109,7 +109,7 @@ export function inlineTemplate(
  *
  * Placeholders in the frontmatter work too, and a replacement there goes in as given.
  *
- * - A string replacement shows as text, not as formatting, with each newline as a line break.
+ * - A string shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An

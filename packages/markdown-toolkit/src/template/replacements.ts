@@ -146,6 +146,6 @@ export function replacementAsFrontmatter(replacement: TemplateReplacement): stri
     'block',
     'fragment',
     'content',
-    groupedNodes(replacement as AnyContent, 'a frontmatter replacement'),
+    groupedNodes(replacement as AnyContent, 'frontmatter replacement'),
   ).toString();
 }

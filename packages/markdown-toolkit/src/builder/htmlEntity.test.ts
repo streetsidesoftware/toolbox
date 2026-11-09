@@ -136,7 +136,7 @@ describe('htmlEntity in content', () => {
   });
 });
 
-describe('htmlEntity as a placeholder value', () => {
+describe('htmlEntity as a placeholder replacement', () => {
   testEach`
     source                         | expected
     ${'a{@ x @}b'}                 | ${'a&nbsp;b'}

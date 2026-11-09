@@ -752,10 +752,9 @@ console.log(section.toString());
 
 ### Replacements from a function
 
-In place of an object, pass a function that takes a placeholder name and returns its replacement. It gets the whole name,
-such as `dictionaries.custom`, not one part at a time. Replacements can then come from a `Map`, a config file or anywhere
-else. When it returns
-`undefined`, the placeholder is kept for a later step.
+In place of an object, pass a function that takes a placeholder name and returns its replacement. It gets the whole
+name, such as `dictionaries.custom`, not one part at a time. Replacements can then come from a `Map`, a config file or
+anywhere else. When it returns `undefined`, the placeholder is kept for a later step.
 
 <details>
 <summary>Example</summary>
@@ -845,8 +844,8 @@ Settings that control the behavior of the spell checker.
 ### Template files
 
 A template for a whole page, such as `template.md`, can start with frontmatter. Read it with `templateDocument`, which
-keeps the frontmatter and substitutes the placeholders in both parts. A replacement in the frontmatter goes in as written,
-since it's YAML.
+keeps the frontmatter and substitutes the placeholders in both parts. A replacement in the frontmatter goes in as
+written, since it's YAML.
 
 <details>
 <summary>Example</summary>

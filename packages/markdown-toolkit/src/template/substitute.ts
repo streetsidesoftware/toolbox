@@ -31,7 +31,7 @@ import type { TemplateReplacements, TemplateResolver } from './replacements.ts';
  * When the first argument is a string, its Markdown and HTML show as text, not as formatting, and each newline is a
  * line break. For a string that's already Markdown, use {@link template}.
  *
- * - A string replacement shows as text, not as formatting, with each newline as a line break.
+ * - A string shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An

@@ -182,7 +182,7 @@ describe('templateDocument', () => {
   });
 
   testEach`
-        kind                     | markdown                           | replacement           | expected
+        kind                     | markdown                           | replacement                 | expected
         ${'a string as written'} | ${'---\na: {@ v @}\n---\n'}        | ${'x: "y"'}                 | ${'---\na: x: "y"\n---\n'}
         ${'a number'}            | ${'---\na: {@ v @}\n---\n'}        | ${3}                        | ${'---\na: 3\n---\n'}
         ${'a link as rendered'}  | ${'---\na: {@ v @}\n---\n'}        | ${link('A', 'a.md')}        | ${'---\na: [A](a.md)\n---\n'}
