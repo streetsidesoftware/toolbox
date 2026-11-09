@@ -8,6 +8,9 @@ How to write comments and JSDoc in this repo, in every package and in `scripts/`
 - [Exported functions and types](#exported-functions-and-types) covers the JSDoc users read on hover. Its
   [markdown-toolkit](#markdown-toolkit) section adds that package's own rules.
 
+The text of a package's examples, which make up most of its README, follows these rules too, since the same user reads
+it.
+
 Apply these rules to the comments you write or change. Bring existing comments in line in a PR of their own, one package
 at a time.
 
