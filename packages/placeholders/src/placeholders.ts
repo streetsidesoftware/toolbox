@@ -30,13 +30,7 @@ export interface ReplacePlaceholdersOptions extends PlaceholderOptions {
 /** Returns the value for a placeholder name, or `undefined` to leave the placeholder as written. */
 export type PlaceholderResolver = (name: string) => string | undefined;
 
-/**
- * An object of substitution values, keyed by placeholder name.
- *
- * - A dotted name, such as `user.name`, reads nested objects: `{ user: { name: 'Ada' } }`, not a `'user.name'` key.
- * - Only string and number values are used.
- * - Inherited properties are ignored.
- */
+/** An object of substitution values, keyed by placeholder name. */
 export type PlaceholderSubstitutionObject = object;
 
 export type PlaceholderValues = PlaceholderResolver | PlaceholderSubstitutionObject;
