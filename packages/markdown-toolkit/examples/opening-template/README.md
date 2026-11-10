@@ -1,6 +1,6 @@
 ## With a template
 
-Write the page as Markdown, mark each gap with a `{@ name @}` placeholder, and substitute values for them. A value
+Write the page as Markdown, mark each gap with a `{@ name @}` placeholder, and replace them. A replacement
 can be a string or an element, such as a link or a list.
 [`unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent) removes the template's indentation.
 Imported as `markdown`, it also gets editors to highlight the template as Markdown.

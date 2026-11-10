@@ -10,6 +10,9 @@ document ends with a newline; other elements don't, so they can be joined. Strin
 Pass one or more pieces to `p` (`paragraph`) to make a paragraph. The pieces are joined as given, with no spaces
 added. To turn plain text into paragraphs, use `blockText`: each blank line starts a new paragraph.
 
+<details>
+<summary>Example</summary>
+
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
 
@@ -36,6 +39,8 @@ It checks comments, strings and Markdown.
 It runs in CI and in the editor.
 ```
 
+</details>
+
 <!--- @@inject-end: text/README.md --->
 
 <!--- @@inject: headings/README.md --->
@@ -44,6 +49,9 @@ It runs in CI and in the editor.
 
 Give `heading` a depth from 1 to 6 and its text. The text can be several pieces, such as text and inline code. To
 separate sections with a line, use `horizontalRule()` (`hr()`).
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -68,6 +76,8 @@ A spell checker for code.
 Run it on every file in the project.
 ```
 
+</details>
+
 <!--- @@inject-end: headings/README.md --->
 
 <!--- @@inject: inline-formatting/README.md --->
@@ -77,6 +87,9 @@ Run it on every file in the project.
 These go inside a line: `link`, `inlineCode`, `strong`, `emphasis`, `strikethrough`, `sup` and `sub`. Each one
 except `inlineCode` takes inline content, so they nest, as in a link with strong text. For HTML or MDX, `sup` and
 `sub` write `<sup>` and `<sub>` tags around their content.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -112,6 +125,8 @@ See [the docs](https://cspell.org) for options.
 language<sup>_req_</sup>: the language to check.
 ```
 
+</details>
+
 <!--- @@inject-end: inline-formatting/README.md --->
 
 <!--- @@inject: lists/README.md --->
@@ -126,6 +141,9 @@ and the page counts up from it.
 
 For a checkbox, end a `listItem` (or `li`) with `{ checked: true }` or `{ checked: false }`. Or use `taskListItem`,
 whose box is empty unless its options hold `checked: true`.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -165,6 +183,8 @@ To add one:
 1. Add it to the config.
 ```
 
+</details>
+
 <!--- @@inject-end: lists/README.md --->
 
 <!--- @@inject: code-blocks/README.md --->
@@ -172,6 +192,9 @@ To add one:
 ### Code blocks
 
 Give `codeBlock` the code and, optionally, its language. The code goes in as written.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -192,6 +215,8 @@ npm install --save-dev cspell
 ```
 ````
 
+</details>
+
 <!--- @@inject-end: code-blocks/README.md --->
 
 <!--- @@inject: line-breaks-and-comments/README.md --->
@@ -200,6 +225,9 @@ npm install --save-dev cspell
 
 A newline in a string, or a `lineBreak()`, starts a new line in the same paragraph. For HTML or MDX, `br()` always writes `<br/>`. A
 `comment` is an HTML comment, which isn't displayed, such as a `cspell:ignore` line for a spell checker.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -222,6 +250,8 @@ Maintained by\
 Street Side Software
 ```
 
+</details>
+
 <!--- @@inject-end: line-breaks-and-comments/README.md --->
 
 <!--- @@inject: multi-line-comments/README.md --->
@@ -229,6 +259,9 @@ Street Side Software
 ### Multi-line comments
 
 When the text of a `comment` has a line ending, its markers go on lines of their own. It can't go inside a line, so in a paragraph or a summary it throws. Nothing is trimmed, and blank lines stay.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -250,12 +283,14 @@ cspell:words StreetSideSoftware
 Maintained by Street Side Software.
 ```
 
+</details>
+
 For a fixed form, use one of these:
 
 - `blockComment` always puts its markers on lines of their own.
 - `inlineComment` stays on one line, and its text can't have a line ending.
 
-A placeholder's value goes in as given and doesn't change the form, so use `blockComment` for a value with several lines.
+A placeholder's replacement goes in as given and doesn't change the form, so use `blockComment` for a replacement with several lines.
 
 <!--- @@inject-end: multi-line-comments/README.md --->
 
@@ -265,6 +300,9 @@ A placeholder's value goes in as given and doesn't change the form, so use `bloc
 
 Give `table` the header and one array of cells per row. A cell holds inline content, such as text, inline code and
 links. To align a column, pass `{ align: ['left', 'right'] }`, one entry per column.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -297,6 +335,8 @@ console.log(page.toString());
 | German   | `@cspell/dict-de-de` | de     |
 ```
 
+</details>
+
 <!--- @@inject-end: tables/README.md --->
 
 <!--- @@inject: html-tables/README.md --->
@@ -305,6 +345,9 @@ console.log(page.toString());
 
 When a cell needs more than one line, such as a list or a code block, use `htmlTable`. It takes the same header,
 rows and options as `table`, and a cell can hold any content. GitHub renders the HTML table it writes.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -378,6 +421,8 @@ The languages to check:
 </table>
 ```
 
+</details>
+
 <!--- @@inject-end: html-tables/README.md --->
 
 <!--- @@inject: details-and-definition-lists/README.md --->
@@ -386,6 +431,9 @@ The languages to check:
 
 These are HTML blocks, which GitHub renders. Give `details` a summary and the content it hides. Give
 `definitionList` (`dl`) one `[term, definition]` pair per entry.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -432,5 +480,7 @@ Words to accept as correct.
 
 </dl>
 ```
+
+</details>
 
 <!--- @@inject-end: details-and-definition-lists/README.md --->

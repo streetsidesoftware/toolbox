@@ -1,9 +1,11 @@
-### Values from a function
+### Replacements from a function
 
-In place of an object, pass a function that takes a placeholder name and returns its value. It gets the whole name,
-such as `dictionaries.custom`, not one part at a time. Values can then come from a `Map`, a config file or anywhere
-else. When it returns
-`undefined`, the placeholder is kept for a later step.
+In place of an object, pass a function that takes a placeholder name and returns its replacement. It gets the whole
+name, such as `dictionaries.custom`, not one part at a time. Replacements can then come from a `Map`, a config file or
+anywhere else. When it returns `undefined`, the placeholder is kept for a later step.
+
+<details>
+<summary>Example</summary>
 
 <!--- @@inject: example.ts --->
 
@@ -43,3 +45,5 @@ Added on: {@ date @}
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>

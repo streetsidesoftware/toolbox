@@ -8,17 +8,20 @@ How to write comments and JSDoc in this repo, in every package and in `scripts/`
 - [Exported functions and types](#exported-functions-and-types) covers the JSDoc users read on hover. Its
   [markdown-toolkit](#markdown-toolkit) section adds that package's own rules.
 
+The text of a package's examples, which make up most of its README, follows these rules too, since the same user reads
+it.
+
 Apply these rules to the comments you write or change. Bring existing comments in line in a PR of their own, one package
 at a time.
 
 ## Voice
 
-| Comment on                                                             | Voice                                       | Example                                     |
-| ---------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
-| A function or method                                                   | Imperative                                  | "Create bold text."                         |
-| A property that holds a function                                       | Imperative                                  | "Return the text for a placeholder."        |
-| A function type                                                        | Third person, present tense                 | "Returns the value for a placeholder name." |
-| Any other class, interface, type or property, a constant or a variable | Noun phrase, or third person, present tense | "The marker around italic text."            |
+| Comment on                                                             | Voice                                       | Example                                           |
+| ---------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------- |
+| A function or method                                                   | Imperative                                  | "Create bold text."                               |
+| A property that holds a function                                       | Imperative                                  | "Return the text for a placeholder."              |
+| A function type                                                        | Third person, present tense                 | "Returns the replacement for a placeholder name." |
+| Any other class, interface, type or property, a constant or a variable | Noun phrase, or third person, present tense | "The marker around italic text."                  |
 
 ## Every comment
 
@@ -121,9 +124,10 @@ separately.
 ### What gets this treatment
 
 - Every function a package exports gets a full comment: summary, details where needed, and an `@example`.
-- An exported class, interface, type, method or property gets a summary, and details where needed. An `@example` is
-  optional: add one when the summary and details aren't enough. A class or interface needs one more often than a
-  property does.
+- An exported class, interface or type gets a summary only when it says something its name and members can't: what
+  it's for when the name doesn't say, what its values mean, or a rule its users must follow. Never summarize its
+  members or name the functions that use it, since both change. An exported method or property always gets a
+  summary. Add an `@example` when the summary and details aren't enough.
 - A `const` alias gets one line: `/** The same as {@link p}. */`. A renamed re-export, such as markdown-toolkit's
   `parseFragment`, gets none: the hover shows the original's comment.
 
@@ -210,7 +214,7 @@ above.
   `// The page shows "Show more"; clicking it reveals "Hidden text."`.
 - Write a placeholder in an example as `{@name@}`, with no spaces, so the hover renders it and copied code works. In
   prose, write it with zero-width spaces, as [Every comment](#every-comment) says.
-- A rule about placeholder values is repeated in `template`, `blockTemplate`, `templateDocument`,
+- A rule about replacements is repeated in `template`, `blockTemplate`, `templateDocument`,
   `substitutePlaceholders`, `inlineTemplate`, `placeholder` and `blockPlaceholder`. Change it in each.
   Where the rule is the same, use the same words.
 - The README ends with a function reference, generated from each function's parameter names and summary.
@@ -224,13 +228,14 @@ above.
 
 Words to avoid:
 
-| Avoid                                    | Why                                                         | Write instead                                                 |
-| ---------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------- |
-| escape, escaped                          | Not worrying about escaping is the whole point              | shows as text, not as formatting                              |
-| inline content, block content, node, run | Internal terms the reader doesn't use                       | text, links, formatting or code; a list, table or other block |
-| as written, written elsewhere            | Vague: the reader can't tell what they'll see               | Say what the page shows                                       |
-| Values go in as in {@link template}.     | The reader leaves the hover to guess which rules carry over | Repeat the rules that apply                                   |
-| fill (a placeholder)                     | Not the library's word                                      | substitute                                                    |
+| Avoid                                      | Why                                                         | Write instead                                                 |
+| ------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------- |
+| escape, escaped                            | Not worrying about escaping is the whole point              | shows as text, not as formatting                              |
+| inline content, block content, node, run   | Internal terms the reader doesn't use                       | text, links, formatting or code; a list, table or other block |
+| as written, written elsewhere              | Vague: the reader can't tell what they'll see               | Say what the page shows                                       |
+| Replacements go in as in {@link template}. | The reader leaves the hover to guess which rules carry over | Repeat the rules that apply                                   |
+| fill (a placeholder)                       | Not the library's word                                      | substitute                                                    |
+| value (what goes in a placeholder)         | Says nothing about its role                                 | replacement                                                   |
 
 ### Examples
 
@@ -312,21 +317,22 @@ Before: escaping, internal terms ("inline values", "blocks", "kind") and an `@th
  */
 ```
 
-After: one list for the value rules, one paragraph for where the result goes, and the nested-name rule in `@param`.
+After: one list for the replacement rules, one paragraph for where the result goes, and the nested-name rule in
+`@param`.
 
 ```ts
 /**
- * Create Markdown from a template by substituting values for its `{@ name @}` placeholders.
+ * Create Markdown from a template by replacing its `{@ name @}` placeholders.
  *
- * - A string value shows as text, not as formatting, with each newline as a line break.
+ * - A string shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string, which goes in as given.
- * - A placeholder without a value stays in place, so a later call can substitute it.
+ * - A placeholder without a replacement stays in place, so a later call can substitute it.
  *
  * A result of one paragraph can go anywhere a string can. A longer one goes where paragraphs can.
  *
- * @param values - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
+ * @param replacements - by placeholder name. A dotted name, such as `engines.cspell`, reaches into a nested object.
  * @example
  * md.template('Install {@name@} with npm.', { name: 'cspell' });
  * // Install cspell with npm.
@@ -337,18 +343,19 @@ After: one list for the value rules, one paragraph for where the result goes, an
 
 These come from the fixes that followed the rewrite. Each new fact was added to whatever sentence was nearest.
 
-When `substitutePlaceholders` learned to take a string, a fact about that input went into a paragraph about values:
+When `substitutePlaceholders` learned to take a string, a fact about that input went into a paragraph about
+replacements:
 
 ```ts
 /**
- * Placeholders without a value stay in place, so you can substitute values in steps. A string is text, as given to
- * {@link text}, so Markdown in it shows exactly as written.
+ * Placeholders without a replacement stay in place, so you can replace them in steps. A string is text, as given
+ * to {@link text}, so Markdown in it shows exactly as written.
  */
 ```
 
-The two sentences have different subjects, and the hover shows them as one paragraph. Next to the list of value rules,
-the second reads like a rule for string values. The fact is about the input, so it gets a paragraph of its own, away
-from the value rules.
+The two sentences have different subjects, and the hover shows them as one paragraph. Next to the list of replacement
+rules, the second reads like a rule for string replacements. The fact is about the input, so it gets a paragraph of its
+own, away from the replacement rules.
 
 When a newline in a string started to show as a line break, `blockText` got a sentence about its own newlines, added to
 the one about Markdown:
@@ -367,7 +374,7 @@ The string fix also gave `substitutePlaceholders` a new summary, by adding "text
 
 ```ts
 /**
- * Substitutes values for the `{@ name @}` placeholders in text or an element you've already built, such as a parsed file.
+ * Replaces the `{@ name @}` placeholders in text or an element you've already built, such as a parsed file.
  */
 ```
 

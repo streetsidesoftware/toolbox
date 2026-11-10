@@ -1,41 +1,55 @@
-/** Describes the delimiters that mark a placeholder. */
 export interface PlaceholderOptions {
-  /** Holds the opening delimiter, which can't be empty. Default: `{@`. */
+  /**
+   * The text that starts a placeholder.
+   *
+   * It can't be empty.
+   *
+   * @default '{@'
+   */
   open?: string | undefined;
-  /** Holds the closing delimiter, which can't be empty. Default: `@}`. */
+  /**
+   * The text that ends a placeholder.
+   *
+   * It can't be empty.
+   *
+   * @default '@}'
+   */
   close?: string | undefined;
 }
 
-/** Describes the delimiters, and whether {@link replacePlaceholders} indents a multi-line value. */
 export interface ReplacePlaceholdersOptions extends PlaceholderOptions {
-  /** Gives each later line of a multi-line value the leading whitespace of its placeholder's line. Default: `true`. */
+  /**
+   * Gives each later line of a multi-line replacement the leading whitespace of its placeholder's line. An empty line
+   * stays empty.
+   *
+   * @default true
+   */
   autoIndent?: boolean | undefined;
 }
 
-/** Returns the value for a placeholder name, or `undefined` to leave the placeholder as written. */
+/** Returns the replacement for a placeholder name, or `undefined` to leave the placeholder as written. */
 export type PlaceholderResolver = (name: string) => string | undefined;
 
-/**
- * Supplies the values for placeholders: a {@link PlaceholderResolver}, or an object.
- *
- * - A dotted name walks the object's own properties: `a.b` reads `values.a.b`.
- * - A string or number value is used. Anything else leaves the placeholder as written.
- */
-export type PlaceholderValues = PlaceholderResolver | object;
+/** An object of replacements, keyed by placeholder name. */
+export type PlaceholderReplacementObject = object;
 
-/** Describes a placeholder found in a string. */
+export type PlaceholderReplacements = PlaceholderResolver | PlaceholderReplacementObject;
+
+/** @deprecated Use {@link PlaceholderReplacements}. */
+export type PlaceholderValues = PlaceholderReplacements;
+
 export interface Placeholder {
-  /** Holds the name, without the delimiters or the whitespace inside them. */
+  /** The placeholder's name, without its delimiters or any whitespace next to them. */
   name: string;
-  /** Holds the offset of the opening delimiter. */
+  /** The offset in the string where the placeholder starts. */
   start: number;
-  /** Holds the offset just past the closing delimiter. */
+  /** The offset in the string just past the placeholder's end. */
   end: number;
 }
 
-/** Holds the opening delimiter that {@link PlaceholderOptions} uses by default. */
+/** The text that starts a placeholder, unless {@link PlaceholderOptions} sets another. */
 export const DEFAULT_OPEN = '{@';
-/** Holds the closing delimiter that {@link PlaceholderOptions} uses by default. */
+/** The text that ends a placeholder, unless {@link PlaceholderOptions} sets another. */
 export const DEFAULT_CLOSE = '@}';
 
 // Matches one segment of a name. It's non-greedy, so a name ends at the first close delimiter even when the delimiter
@@ -44,7 +58,7 @@ const segment = '[A-Za-z0-9_][A-Za-z0-9_-]*?';
 const namePattern = `${segment}(?:\\.${segment})*?`;
 const validName = new RegExp(`^${namePattern}$`);
 
-// Holds the regex for the last delimiter pair used, so repeated calls with the same pair don't recompile it.
+// The regex for the last delimiter pair used, so repeated calls with the same pair don't compile it again.
 let cached: { open: string; close: string; regExp: RegExp } | undefined;
 
 /**
@@ -64,16 +78,16 @@ export function isValidPlaceholderName(name: string): boolean {
 }
 
 /**
- * Replace the placeholders in `text`, such as `{​@ name @​}`, with their values.
+ * Replace the placeholders in `text`, such as `{​@ name @​}`, with their replacements.
  *
  * - Only a name that {@link isValidPlaceholderName} accepts makes a placeholder.
  * - Whitespace just inside the delimiters is optional.
- * - `values` is an object or a {@link PlaceholderResolver}. In an object, a dotted name such as `user.name` reads a
- *   nested own property.
- * - A string or number value replaces its placeholder.
- * - A placeholder without a value stays as written. To find what's left, use {@link listPlaceholders} or
+ * - `replacements` is an object or a {@link PlaceholderResolver}. In an object, a dotted name such as `user.name`
+ *   reads a nested own property.
+ * - A string or number replaces its placeholder.
+ * - A placeholder without a replacement stays as written. To find what's left, use {@link listPlaceholders} or
  *   {@link hasPlaceholders}.
- * - Each later line of a multi-line value gets the leading whitespace of the placeholder's line, except an empty
+ * - Each later line of a multi-line replacement gets the leading whitespace of the placeholder's line, except an empty
  *   line.
  *
  * @example
@@ -82,15 +96,16 @@ export function isValidPlaceholderName(name: string): boolean {
  */
 export function replacePlaceholders(
   text: string,
-  values: PlaceholderValues,
+  replacements: PlaceholderReplacements,
   options?: ReplacePlaceholdersOptions,
 ): string {
-  const resolve = typeof values === 'function' ? (values as PlaceholderResolver) : objectResolver(values);
+  const resolve =
+    typeof replacements === 'function' ? (replacements as PlaceholderResolver) : objectResolver(replacements);
   const autoIndent = options?.autoIndent ?? true;
   return text.replaceAll(placeholderRegExp(options), (match, name: string, offset: number) => {
-    const value = resolve(name);
-    if (value === undefined) return match;
-    return autoIndent ? indentLines(value, lineIndent(text, offset)) : value;
+    const replacement = resolve(name);
+    if (replacement === undefined) return match;
+    return autoIndent ? indentLines(replacement, lineIndent(text, offset)) : replacement;
   });
 }
 
@@ -138,9 +153,9 @@ function* placeholdersOf(matches: Iterable<RegExpExecArray>): Generator<Placehol
   }
 }
 
-function objectResolver(values: object): PlaceholderResolver {
+function objectResolver(replacements: object): PlaceholderResolver {
   return (name) => {
-    let value: unknown = values;
+    let value: unknown = replacements;
     for (const key of name.split('.')) {
       // Own properties only, so a name never reads `Object.prototype` and the like.
       if (typeof value !== 'object' || value === null || !Object.hasOwn(value, key)) return undefined;
@@ -159,9 +174,9 @@ function lineIndent(text: string, offset: number): string {
 }
 
 /** Add `indent` to each line after the first, except an empty one. */
-function indentLines(value: string, indent: string): string {
-  if (!indent || !value.includes('\n')) return value;
-  return value
+function indentLines(replacement: string, indent: string): string {
+  if (!indent || !replacement.includes('\n')) return replacement;
+  return replacement
     .split('\n')
     .map((line, i) => (i && line !== '' && line !== '\r' ? indent + line : line))
     .join('\n');

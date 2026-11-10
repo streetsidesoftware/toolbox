@@ -7,11 +7,14 @@ places.
 
 ### Placeholders
 
-Each `{@ name @}` takes the value of the same name. A string goes in as text, and an element as Markdown. A
+Each `{@ name @}` takes the replacement of the same name. A string goes in as text, and an element as Markdown. A
 placeholder on a line of its own also takes blocks, such as a list or a table. A dotted name, such as
 `{@ pkg.name @}`, looks up a nested object, and a placeholder works inside code too.
 
 Use `inlineTemplate` for a template that goes inside a line, and `blockTemplate` for one that must be blocks.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -44,6 +47,8 @@ Dutch dictionary for cspell.
 Install with `npm i -D @cspell/dict-nl-nl`.
 ```
 
+</details>
+
 <!--- @@inject-end: placeholders/README.md --->
 
 <!--- @@inject: existing-markdown/README.md --->
@@ -53,6 +58,9 @@ Install with `npm i -D @cspell/dict-nl-nl`.
 A string is always text. For a string that is already Markdown, such as a description from another file, pass
 `parse(text)` instead. Like a template, it gives inline content or blocks, and `toBlock` makes either fit where
 only blocks can go.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -72,16 +80,20 @@ console.log(page.toString());
 Adds **Dutch** words. See [cspell.org](https://cspell.org).
 ```
 
+</details>
+
 <!--- @@inject-end: existing-markdown/README.md --->
 
 <!--- @@inject: in-steps/README.md --->
 
-### Build a page in steps
+### Chain `template` and `substitutePlaceholders`
 
-Several steps can each substitute what they know. Pass the result of one step to `substitutePlaceholders` to
-substitute more of its placeholders. A placeholder with no value yet is kept as written, so a later step, or a tool
-such as [inject-markdown](https://github.com/streetsidesoftware/inject-markdown), can substitute it. In code,
-`placeholder(name)` leaves the same gap inside a line, and `blockPlaceholder(name)` on lines of its own.
+The result of `template` is still a template. Pass it to `substitutePlaceholders` with more replacements, as many
+times as needed. Each replacement can be anything a template takes, such as a paragraph or a list. A placeholder with
+no replacement is kept as written.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -128,16 +140,78 @@ Checked 2 files.
 Last run: {@ date @}
 ```
 
+</details>
+
 <!--- @@inject-end: in-steps/README.md --->
+
+<!--- @@inject: dotted-names/README.md --->
+
+### Dotted names
+
+A dotted name, such as `pkg.engines.node`, can come from nested objects, from a top-level key with the dots in it, or
+from both at once. When two keys supply a name, the later one wins, so the license is MIT. Dots in a nested key don't
+split it, so the last placeholder has no replacement and is kept.
+
+<details>
+<summary>Example</summary>
+
+```ts
+import * as md from '@streetsidesoftware/markdown-toolkit';
+import { unindent as markdown } from '@streetsidesoftware/unindent';
+
+const replacements = {
+  pkg: {
+    name: '@cspell/dict-nl-nl',
+    engines: { node: '>=20' },
+    license: 'GPL',
+  },
+  'pkg.license': 'MIT',
+  'repo.links': {
+    issues: 'https://github.com/streetsidesoftware/cspell/issues',
+  },
+  peerDependenciesMeta: {
+    'lodash.optional': 'true', // not found
+  },
+};
+
+const section = md.template(
+  markdown`
+    ## {@ pkg.name @}
+
+    - Node: {@ pkg.engines.node @}
+    - License: {@ pkg.license @}
+    - [Issues]({@repo.links.issues@})
+    - Lodash optional: {@ peerDependenciesMeta.lodash.optional @}
+  `,
+  replacements,
+);
+
+console.log(section.toString());
+```
+
+```markdown
+## @cspell/dict-nl-nl
+
+- Node: >=20
+- License: MIT
+- [Issues](https://github.com/streetsidesoftware/cspell/issues)
+- Lodash optional: {@ peerDependenciesMeta.lodash.optional @}
+```
+
+</details>
+
+<!--- @@inject-end: dotted-names/README.md --->
 
 <!--- @@inject: resolver/README.md --->
 
-### Values from a function
+### Replacements from a function
 
-In place of an object, pass a function that takes a placeholder name and returns its value. It gets the whole name,
-such as `dictionaries.custom`, not one part at a time. Values can then come from a `Map`, a config file or anywhere
-else. When it returns
-`undefined`, the placeholder is kept for a later step.
+In place of an object, pass a function that takes a placeholder name and returns its replacement. It gets the whole
+name, such as `dictionaries.custom`, not one part at a time. Replacements can then come from a `Map`, a config file or
+anywhere else. When it returns `undefined`, the placeholder is kept for a later step.
+
+<details>
+<summary>Example</summary>
 
 ```ts
 import * as md from '@streetsidesoftware/markdown-toolkit';
@@ -169,5 +243,7 @@ Custom dictionary: `project-words`
 
 Added on: {@ date @}
 ```
+
+</details>
 
 <!--- @@inject-end: resolver/README.md --->

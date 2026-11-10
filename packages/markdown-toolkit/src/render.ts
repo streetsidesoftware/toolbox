@@ -16,7 +16,7 @@ import {
 import type { HtmlEntityNode, InlineHtmlNode, PlaceholderNode } from './mdast/index.ts';
 import type { MarkdownStyle } from './types.ts';
 
-/** Holds the style for constructs an element carries no style for. */
+/** The style used for anything an element's own style leaves out. */
 const defaultStyle: StyleOptions = {
   bullet: '-',
   emphasis: '_',
@@ -27,7 +27,7 @@ const defaultStyle: StyleOptions = {
   strong: '*',
 };
 
-/** Holds the handlers that write a placeholder, an HTML entity, HTML inside a line and frontmatter as is. */
+/** The handlers that write a placeholder, an HTML entity, HTML inside a line and frontmatter as is. */
 // remark-stringify's handler types list only mdast's own node types.
 const handlers = {
   placeholder: (node: PlaceholderNode) => node.value,
@@ -52,6 +52,12 @@ export function renderNodes(children: RootContent[], style: MarkdownStyle | unde
     if (node.type === 'paragraph' || node.type === 'heading' || node.type === 'tableCell') {
       node.children = trimLineEdges(node.children);
     }
+  });
+  // Frontmatter after other content, such as a parsed document's, would show as a rule and a heading.
+  visit(root, 'yaml', (_node, index, parent) => {
+    if (parent === undefined || index === undefined || (parent === root && index === 0)) return undefined;
+    parent.children.splice(index, 1);
+    return index;
   });
   // After the trimming, which can leave a paragraph empty.
   root.children = withoutEmptyParagraphs(root.children);

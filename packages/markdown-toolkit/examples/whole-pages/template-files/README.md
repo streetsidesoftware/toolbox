@@ -1,6 +1,11 @@
 ### Template files
 
-A template for a whole page, such as `template.md`, can start with frontmatter:
+A template for a whole page, such as `template.md`, can start with frontmatter. Read it with `templateDocument`, which
+keeps the frontmatter and substitutes the placeholders in both parts. A replacement in the frontmatter goes in as
+written, since it's YAML.
+
+<details>
+<summary>Example</summary>
 
 <!--- @@inject-code: template.md --->
 
@@ -17,9 +22,6 @@ description: >-
 ```
 
 <!--- @@inject-end: template.md --->
-
-Read it with `templateDocument`, which keeps the frontmatter and substitutes the placeholders in both parts. A value
-in the frontmatter goes in as written, since it's YAML.
 
 <!--- @@inject: example.ts --->
 
@@ -61,5 +63,7 @@ They apply to every file it checks.
 ```
 
 <!--- @@inject-end: output.md --->
+
+</details>
 
 To read a whole page without substituting anything, use `parseDocument`.

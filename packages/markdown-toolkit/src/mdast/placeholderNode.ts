@@ -1,8 +1,8 @@
 import type { Literal, PhrasingContent } from 'mdast';
 
 /**
- * Describes a placeholder kept as written. It has a node type of its own, so rendering writes it as is.
- * As HTML, a line ending before it would render as a space.
+ * A placeholder kept as written. It has a node type of its own, so rendering writes it as is.
+ * It isn't an `html` node because remark-stringify turns a line ending before one into a space.
  * Only this package's own code sees it in mdast's content types; the published types leave mdast unchanged.
  */
 export interface PlaceholderNode extends Literal {

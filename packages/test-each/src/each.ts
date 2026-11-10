@@ -2,7 +2,7 @@ import { describe, test } from 'node:test';
 import type { SuiteContext, TestContext } from 'node:test';
 import { inspect } from 'node:util';
 
-/** Holds one row of a table, by column name. */
+/** One row of a table, by column name. */
 export type Row = Record<string, unknown>;
 
 /** Registers one `node:test` test per row. */

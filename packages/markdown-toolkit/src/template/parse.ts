@@ -11,17 +11,17 @@ import { textNodes } from '../element/index.ts';
 import { htmlEntityFromMarkdown, placeholderNodeAsWritten } from '../mdast/index.ts';
 import type { MDDocument, MDFragment, MDInlineFragment } from '../types.ts';
 import { fragment } from './fragment.ts';
+import type { TemplateResolver } from './replacements.ts';
 import { substituteInTree } from './substitute.ts';
-import type { TemplateResolver } from './values.ts';
 
 /**
  * Parse Markdown text so it can be added to a page with its formatting.
  *
- * Text of one paragraph, or blank text, can go anywhere a string can, even in a heading.
- * Longer text goes where paragraphs can, such as in a document or a list item.
+ * Placeholders such as `{​@ name @​}` and HTML entities such as `&nbsp;` are preserved.
  *
- * An HTML entity in the text, such as `&nbsp;`, stays an entity in the Markdown, so a character that's hard to see
- * stays visible in the file.
+ * One paragraph or blank text gives an {@link MDInlineFragment}, and anything else an {@link MDFragment}.
+ *
+ * For a whole file with frontmatter, use {@link parseDocument}.
  *
  * @example
  * md.parse('Some **bold** text.');
@@ -55,7 +55,7 @@ export function parseDocument(markdown: string): MDDocument {
   });
 }
 
-/** Read a whole file as a document, its body by `read`, with values substituted when there are any. */
+/** Read a whole file as a document, its body by `read`, with replacements substituted when there are any. */
 export function documentOf(markdown: string, read: (body: string) => Root, resolve?: TemplateResolver): MDDocument {
   const front = readFrontmatter(markdown);
   const body = front ? markdown.slice(front.end) : markdown;
@@ -104,7 +104,7 @@ function placeholderPieces(text: string): PhrasingContent[] {
 }
 
 /**
- * Lists the block constructs turned off when parsing an inline template.
+ * The block constructs turned off when parsing an inline template.
  * The names are micromark's construct names.
  */
 const blockConstructs = [

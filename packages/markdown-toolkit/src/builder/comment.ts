@@ -6,14 +6,14 @@ import type { MDBlockComment, MDComment, MDInlineComment } from '../types.ts';
 /**
  * Create an HTML comment, which the page doesn't show, on one line or with its markers on lines of their own.
  *
- * Text without a line ending goes on one line, `<!-- text -->`. It works anywhere a string can go, or on its own line
- * between paragraphs.
+ * Text without a line ending goes on one line, `<!-- text -->`. It goes inside a line, or on its own line between
+ * paragraphs.
  *
  * Text with a line ending, even at the very start or end of the text, gets its markers on lines of their own. It goes
  * on its own lines, not inside a line, such as in a paragraph or a summary.
  *
- * The form comes from the text given here. A value substituted for a placeholder goes in as given and doesn't change
- * the form, so for a value with several lines, use {@link blockComment}.
+ * The form comes from the text given here. A placeholder's replacement goes in as given and doesn't change the form,
+ * so for a replacement with several lines, use {@link blockComment}.
  *
  * @example <caption>One line</caption>
  * md.comment('cspell:ignore gezellig');
@@ -38,7 +38,7 @@ export function comment(text: string): MDComment {
  * It works anywhere a string can go, or on its own line between paragraphs. Its text can't have a line ending. For
  * text with several lines, use {@link blockComment}.
  *
- * A value substituted for a placeholder goes in as given, even with a line ending.
+ * A placeholder's replacement goes in as given, even with a line ending.
  *
  * @example
  * md.inlineComment('cspell:ignore gezellig');

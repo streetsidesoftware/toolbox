@@ -8,15 +8,15 @@
 - `parse(markdown)` (also `parseFragment`): Parse Markdown text so it can be added to a page with its formatting.
 - `lineBreak()`: Start a new line without starting a new paragraph.
 - `htmlEntity(value)`: Create a character written as an HTML reference, such as `&nbsp;` for a no-break space.
-- `nbsp`: Holds a no-break space, written `&nbsp;`. The words on either side of it stay on one line.
-- `ensp`: Holds a space as wide as the letter n, written `&ensp;`.
-- `emsp`: Holds a space as wide as the letter m, written `&emsp;`.
-- `thinsp`: Holds a thin space, written `&thinsp;`.
-- `shy`: Holds a soft hyphen, written `&shy;`. A long word may break there, and shows a hyphen only when it does.
-- `mdash`: Holds an em dash, written `&mdash;`.
-- `ndash`: Holds an en dash, written `&ndash;`.
-- `hellip`: Holds an ellipsis, written `&hellip;`.
-- `copy`: Holds a copyright sign, written `&copy;`.
+- `nbsp`: A no-break space, written `&nbsp;`.
+- `ensp`: A space as wide as the letter n, written `&ensp;`.
+- `emsp`: A space as wide as the letter m, written `&emsp;`.
+- `thinsp`: A thin space, written `&thinsp;`.
+- `shy`: A soft hyphen, written `&shy;`.
+- `mdash`: An em dash, written `&mdash;`.
+- `ndash`: An en dash, written `&ndash;`.
+- `hellip`: An ellipsis, written `&hellip;`.
+- `copy`: A copyright sign, written `&copy;`.
 - `blockComment(text)`: Create an HTML comment with its markers on lines of their own, which the page doesn't show.
 - `br()`: Start a new line with an HTML `<br/>` tag.
 - `comment(text)`: Create an HTML comment, which the page doesn't show, on one line or with its markers on lines of their own.
@@ -55,13 +55,13 @@
 
 ### Templates
 
-- `template(markdown, values)` (also `templateFragment`): Create Markdown from a template by substituting values for its `{@ name @}` placeholders.
-- `inlineTemplate(markdown, values)`: Create a line of Markdown from a template by substituting values for its `{@ name @}` placeholders.
-- `blockTemplate(markdown, values)`: Create paragraphs and other blocks from a template by substituting values for its `{@ name @}` placeholders.
-- `templateDocument(markdown, values)`: Create a whole Markdown file from a template by substituting values for its `{@ name @}` placeholders.
-- `substitutePlaceholders(content, values)`: Substitute values for the `{@ name @}` placeholders in an existing element, such as a parsed file, or in plain text.
-- `placeholder(name)`: Create a `{@ name @}` placeholder for a value to be substituted later.
-- `blockPlaceholder(name)`: Create a `{@ name @}` placeholder on lines of its own, for a value to be substituted later.
+- `template(markdown, replacements)` (also `templateFragment`): Create Markdown from a template by replacing its `{@ name @}` placeholders.
+- `inlineTemplate(markdown, replacements)`: Create a line of Markdown from a template by replacing its `{@ name @}` placeholders.
+- `blockTemplate(markdown, replacements)`: Create paragraphs and other blocks from a template by replacing its `{@ name @}` placeholders.
+- `templateDocument(markdown, replacements)`: Create a whole Markdown file from a template by replacing its `{@ name @}` placeholders.
+- `substitutePlaceholders(content, replacements)`: Replace the `{@ name @}` placeholders in an existing element, such as a parsed file, or in plain text.
+- `placeholder(name)`: Create a `{@ name @}` placeholder to be replaced later.
+- `blockPlaceholder(name)`: Create a `{@ name @}` placeholder on lines of its own, to be replaced later.
 
 ### Documents
 

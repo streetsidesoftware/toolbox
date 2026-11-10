@@ -4,12 +4,15 @@ import { describe, test } from 'node:test';
 import { testEach } from '@streetsidesoftware/test-each';
 
 import {
+  comment,
+  details,
   document,
   frontmatter,
   heading,
   link,
   list,
   listItem,
+  p,
   parse,
   parseDocument,
   parseFragment,
@@ -18,7 +21,7 @@ import {
   templateDocument,
   templateFragment,
 } from '../index.ts';
-import type { MDElement } from '../index.ts';
+import type { MDDocument, MDElement } from '../index.ts';
 import { readFrontmatter } from './frontmatter.ts';
 
 const page = '---\n# AUTO-GENERATED\ntitle: CSpell\nid: cspell\n---\n\n# CSpell\n';
@@ -66,12 +69,6 @@ describe('frontmatter', () => {
     assert.equal(md.toString(), '---\na: 1\n---\n\n* x\n');
   });
 
-  test('anywhere but first in a document throws', () => {
-    assert.throws(() => document(heading(1, 'A'), frontmatter('a: 1') as unknown as MDElement as never), {
-      message: 'frontmatter must be the first content of a document',
-    });
-  });
-
   test('outside a document throws', () => {
     assert.throws(() => listItem(frontmatter('a: 1') as unknown as MDElement as never), TypeError);
   });
@@ -97,6 +94,24 @@ describe('parseDocument', () => {
     assert.equal(templateFragment, template);
   });
 
+  describe('its frontmatter shows only at the start of a file', () => {
+    const file = parseDocument('---\nb: 2\n---\n# T\n');
+    testEach`
+        placement                       | md                                                         | expected
+        ${'alone'}                      | ${document(file)}                                          | ${'---\nb: 2\n---\n\n# T\n'}
+        ${'after frontmatter'}          | ${document(frontmatter('a: 1'), file)}                     | ${'---\na: 1\n---\n\n# T\n'}
+        ${'after a heading'}            | ${document(heading(1, 'A'), file)}                         | ${'# A\n\n# T\n'}
+        ${'after a comment'}            | ${document(comment('c'), file)}                            | ${'<!-- c -->\n\n# T\n'}
+        ${'after nothing shown'}        | ${document('', file)}                                      | ${'---\nb: 2\n---\n\n# T\n'}
+        ${'after an empty paragraph'}   | ${document(p(''), file)}                                   | ${'# T\n'}
+        ${'after another document'}     | ${document(parseDocument('---\na: 1\n---\nA\n'), file)}    | ${'---\na: 1\n---\n\nA\n\n# T\n'}
+        ${'in a list item'}             | ${document(list([[file]]))}                                | ${'- # T\n'}
+        ${'in details'}                 | ${document(details('More', file))}                         | ${'<details>\n<summary>More</summary>\n\n# T\n\n</details>\n'}
+    `('$placement', ({ md, expected }: { md: MDElement; expected: string }) => {
+      assert.equal(md.toString(), expected);
+    });
+  });
+
   test('substitutePlaceholders substitutes into its frontmatter', () => {
     const md = substitutePlaceholders(parseDocument('---\ntitle: {@ title @}\n---\n\n# {@ title @}\n'), {
       title: 'A *b*',
@@ -107,9 +122,52 @@ describe('parseDocument', () => {
 
 interface SubstitutionRow {
   markdown: string;
-  value: unknown;
+  replacement: unknown;
   expected: string;
 }
+
+describe("a document's frontmatter", () => {
+  const file = parseDocument('---\nb: 2\n---\n\n* x\n');
+
+  testEach`
+        source                         | md                                                         | expected
+        ${'a parsed file'}             | ${file}                                                    | ${'b: 2'}
+        ${'a parsed file without'}     | ${parseDocument('# A\n')}                                  | ${undefined}
+        ${'frontmatter()'}             | ${document(frontmatter('a: 1\n'), 'Text')}                 | ${'a: 1'}
+        ${'empty frontmatter()'}       | ${document(frontmatter(''))}                               | ${''}
+        ${'a document without'}        | ${document('Text')}                                        | ${undefined}
+        ${'templateDocument'}          | ${templateDocument('---\nt: {@ v @}\n---\n', { v: 'x' })}  | ${'t: x'}
+        ${'a parsed file first'}       | ${document(file, 'Text')}                                  | ${'b: 2'}
+        ${'a parsed file later'}       | ${document(heading(1, 'A'), file)}                         | ${undefined}
+    `('from $source', ({ md, expected }: { md: MDDocument; expected: string | undefined }) => {
+    assert.equal(md.frontmatter, expected);
+  });
+
+  test('withFrontmatter replaces it, as text or frontmatter()', () => {
+    const expected = '---\na: 1\n---\n\n* x\n';
+    assert.equal(file.withFrontmatter('a: 1\n').toString(), expected);
+    assert.equal(file.withFrontmatter(frontmatter('a: 1')).toString(), expected);
+  });
+
+  test('withFrontmatter adds it to a document without', () => {
+    assert.equal(document('Text').withFrontmatter('a: 1').toString(), '---\na: 1\n---\n\nText\n');
+  });
+
+  test('withFrontmatter(undefined) removes it', () => {
+    assert.equal(file.withFrontmatter(undefined).toString(), '* x\n');
+    assert.equal(document('Text').withFrontmatter(undefined).toString(), 'Text\n');
+  });
+
+  test('withFrontmatter copies it from another document, or its absence', () => {
+    assert.equal(document('Text').withFrontmatter(file.frontmatter).toString(), '---\nb: 2\n---\n\nText\n');
+    assert.equal(file.withFrontmatter(document('Text').frontmatter).toString(), '* x\n');
+  });
+
+  test('withFrontmatter keeps the style, and withStyle keeps the frontmatter', () => {
+    assert.equal(file.withStyle({ bullet: '-' }).withFrontmatter('a: 1').toString(), '---\na: 1\n---\n\n- x\n');
+    assert.equal(file.withFrontmatter('a: 1').withStyle({ bullet: '-' }).frontmatter, 'a: 1');
+  });
+});
 
 describe('templateDocument', () => {
   test('substitutes into a page with frontmatter', () => {
@@ -124,7 +182,7 @@ describe('templateDocument', () => {
   });
 
   testEach`
-        kind                     | markdown                           | value                       | expected
+        kind                     | markdown                           | replacement                 | expected
         ${'a string as written'} | ${'---\na: {@ v @}\n---\n'}        | ${'x: "y"'}                 | ${'---\na: x: "y"\n---\n'}
         ${'a number'}            | ${'---\na: {@ v @}\n---\n'}        | ${3}                        | ${'---\na: 3\n---\n'}
         ${'a link as rendered'}  | ${'---\na: {@ v @}\n---\n'}        | ${link('A', 'a.md')}        | ${'---\na: [A](a.md)\n---\n'}
@@ -133,11 +191,11 @@ describe('templateDocument', () => {
         ${'a CRLF empty line'}   | ${'---\na: |\n  {@ v @}\n---\n'}   | ${'one\r\n\r\ntwo'}         | ${'---\na: |\n  one\r\n\r\n  two\n---\n'}
         ${'a list'}              | ${'---\na: |\n    {@ v @}\n---\n'} | ${list(['x', 'y'])}         | ${'---\na: |\n    - x\n    - y\n---\n'}
         ${'a sequence'}          | ${'---\na: {@ v @}\n---\n'}        | ${['See ', link('A', 'a')]} | ${'---\na: See [A](a)\n---\n'}
-    `('$kind', ({ markdown, value, expected }: SubstitutionRow) => {
-    assert.equal(templateDocument(markdown, { v: value as never }).toString(), expected);
+    `('$kind', ({ markdown, replacement, expected }: SubstitutionRow) => {
+    assert.equal(templateDocument(markdown, { v: replacement as never }).toString(), expected);
   });
 
-  test('a placeholder with no value is kept', () => {
+  test('a placeholder with no replacement is kept', () => {
     assert.equal(templateDocument('---\na: {@ v @}\n---\n', {}).toString(), '---\na: {@ v @}\n---\n');
   });
 

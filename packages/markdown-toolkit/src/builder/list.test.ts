@@ -118,6 +118,12 @@ describe('li', () => {
     // @ts-expect-error options never hold kind or type
     assert.equal(listItem('a', notAnElement).toString(), '- [x] a');
     assert.equal(listItem('a', text('b')).toString(), '- a\n  b');
+    assert.equal(listItem('a', link('docs', 'u')).toString(), '- a\n  [docs](u)');
+  });
+
+  test('options take only their own keys', () => {
+    // @ts-expect-error not an option
+    assert.equal(listItem('a', { size: 1 }).toString(), '- a');
   });
 
   test('options can be undefined', () => {

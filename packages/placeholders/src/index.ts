@@ -2,6 +2,8 @@ export type {
   Placeholder,
   PlaceholderOptions,
   PlaceholderResolver,
+  PlaceholderReplacementObject,
+  PlaceholderReplacements,
   PlaceholderValues,
   ReplacePlaceholdersOptions,
 } from './placeholders.ts';

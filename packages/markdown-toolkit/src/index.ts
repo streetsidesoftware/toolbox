@@ -49,7 +49,13 @@ export {
 } from './builder/index.ts';
 export { isMarkdown } from './element/index.ts';
 export { detectStyle } from './detectStyle.ts';
-export type { TemplateResolver, TemplateValue, TemplateValues } from './template/index.ts';
+export type {
+  TemplateReplacement,
+  TemplateReplacements,
+  TemplateResolver,
+  TemplateValue,
+  TemplateValues,
+} from './template/index.ts';
 export {
   blockTemplate,
   inlineTemplate,

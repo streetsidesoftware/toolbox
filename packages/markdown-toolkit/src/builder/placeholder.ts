@@ -25,7 +25,7 @@ class BlockPlaceholderElement extends MarkdownElement<'block', 'blockPlaceholder
 }
 
 /**
- * Create a `{​@ name @​}` placeholder for a value to be substituted later.
+ * Create a `{​@ name @​}` placeholder to be replaced later.
  *
  * - Within a sentence, it takes text, links, formatting or code.
  * - On a line of its own, it can also take a list, table or other block.
@@ -42,9 +42,9 @@ export function placeholder(name: string): MDPlaceholder {
 }
 
 /**
- * Create a `{​@ name @​}` placeholder on lines of its own, for a value to be substituted later.
+ * Create a `{​@ name @​}` placeholder on lines of its own, to be replaced later.
  *
- * It takes any value, including a list, table or other block.
+ * It takes any replacement, including a list, table or other block.
  *
  * @example
  * md.substitutePlaceholders(md.blockPlaceholder('languages'), { languages: md.list(['Dutch', 'French']) });
