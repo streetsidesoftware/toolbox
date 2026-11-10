@@ -1,4 +1,4 @@
-export { MarkdownElement, describe, isArray, isKind, isListItem, isMarkdown, isText, renderingOf } from './element.ts';
+export { MarkdownElement, describe, isArray, isKind, isListItem, isMDElement, isText, renderingOf } from './element.ts';
 export {
   argumentNodes,
   blockNodes,
