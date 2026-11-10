@@ -93,7 +93,7 @@ The contract, including the `undefined` case a caller must handle (rewritten in 
 /** Return how a Markdown element renders, or `undefined` for anything else. */
 ```
 
-What it does, then why it doesn't escape, so nobody adds escaping (`render.ts`):
+What it does, then why it doesn't escape, so nobody adds escaping:
 
 ```ts
 /**
@@ -102,7 +102,7 @@ What it does, then why it doesn't escape, so nobody adds escaping (`render.ts`):
  */
 ```
 
-A contract with several cases, as a list (`template.ts`):
+A contract with several cases, as a list:
 
 ```ts
 /**
