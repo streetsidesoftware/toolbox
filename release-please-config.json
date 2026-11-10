@@ -66,6 +66,9 @@
     ".": {
       "component": "toolbox"
     },
+    "packages/github-action-toolkit": {
+      "component": "@streetsidesoftware/github-action-toolkit"
+    },
     "packages/markdown-toolkit": {
       "component": "@streetsidesoftware/markdown-toolkit"
     },
