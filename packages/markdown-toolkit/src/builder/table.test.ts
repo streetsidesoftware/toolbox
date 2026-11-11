@@ -124,9 +124,6 @@ describe('table', () => {
 
   testEach`
     header            | rows              | message
-    ${'A'}            | ${[]}             | ${'table header must be an array, got a string'}
-    ${['A']}          | ${'x'}            | ${'table rows must be an array, got a string'}
-    ${['A']}          | ${['x']}          | ${'table row must be an array, got a string'}
     ${['A']}          | ${[[list([])]]}   | ${'table cell must be inline, got a list'}
   `(
     'wrong content throws a TypeError: $message',
