@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { assertCondition, assertIsArray, assertIsMDElement, MarkdownElement } from './element.ts';
+import { assertCondition, assertIsArray, assertIsMDElement, assertUnhandledCase, MarkdownElement } from './element.ts';
 
 describe('assertCondition', () => {
   test('a condition that holds passes', () => {
@@ -44,6 +44,15 @@ describe('assertIsMDElement', () => {
     assert.throws(
       () => assertIsMDElement(lookAlike, 'a Markdown element'),
       new TypeError('expected a Markdown element'),
+    );
+  });
+});
+
+describe('assertUnhandledCase', () => {
+  test('it throws a TypeError with the message', () => {
+    assert.throws(
+      () => assertUnhandledCase('document content must be blocks'),
+      new TypeError('document content must be blocks'),
     );
   });
 });

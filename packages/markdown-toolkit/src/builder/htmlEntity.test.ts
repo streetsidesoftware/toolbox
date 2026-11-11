@@ -89,11 +89,11 @@ describe('htmlEntity', () => {
   test('an unknown name throws', () => {
     assert.throws(
       () => htmlEntity('nope'),
-      new Error("an HTML entity must be a character, a name HTML defines, or a reference such as '&nbsp;'"),
+      new TypeError("an HTML entity must be a character, a name HTML defines, or a reference such as '&nbsp;'"),
     );
     assert.throws(
       () => htmlEntity('&nope;'),
-      new Error("an HTML entity must be a character, a name HTML defines, or a reference such as '&nbsp;'"),
+      new TypeError("an HTML entity must be a character, a name HTML defines, or a reference such as '&nbsp;'"),
     );
   });
 

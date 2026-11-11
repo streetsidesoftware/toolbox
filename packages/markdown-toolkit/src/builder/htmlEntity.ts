@@ -1,6 +1,6 @@
 import { characterEntities } from 'character-entities';
 
-import { isKind, MarkdownElement } from '../element/index.ts';
+import { assertUnhandledCase, isKind, MarkdownElement } from '../element/index.ts';
 import { htmlEntityNode } from '../mdast/index.ts';
 import type { MDHtmlEntity } from '../types.ts';
 
@@ -43,7 +43,7 @@ export function htmlEntity(value: string): MDHtmlEntity {
   const name = nameOf(value);
   if (name) return new HtmlEntityElement(`&${name};`, value);
   if ([...value].length === 1) return new HtmlEntityElement(numberFor(value), value);
-  throw new Error("an HTML entity must be a character, a name HTML defines, or a reference such as '&nbsp;'");
+  assertUnhandledCase("an HTML entity must be a character, a name HTML defines, or a reference such as '&nbsp;'");
 }
 
 /**

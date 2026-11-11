@@ -3,7 +3,7 @@ import type { List, BlockContent as MdastBlockContent, PhrasingContent, RootCont
 
 import { asInlineHtml, placeholderNodeAsWritten, trimBlanks } from '../mdast/index.ts';
 import type { AnyContent, BlockContent, InlineContent, MDBlock, MDListItem } from '../types.ts';
-import { isArray, isKind, isListItem, markdownInternalsOf } from './element.ts';
+import { assertCondition, assertUnhandledCase, isArray, isKind, isListItem, markdownInternalsOf } from './element.ts';
 
 /** Content on its own lines, where list items in a row form a list. */
 type BlockLike = BlockContent | MDListItem | readonly (BlockContent | MDListItem)[];
@@ -40,8 +40,8 @@ export function inlineNodes(content: InlineContent, where: string): PhrasingCont
   if (isArray(content)) return content.flatMap((c) => inlineNodes(c, where));
   // Inside a line, HTML such as a comment or `<br/>` is written as is, so a line ending before it stays.
   if (isKind(content, 'inline')) return markdownInternalsOf(content).nodes.map(asInlineHtml);
-  if (isListItem(content)) throw new TypeError(`${where} can't hold a list item; a list item goes in a list`);
-  throw new TypeError(`${where} must be inline`);
+  assertCondition(!isListItem(content), `${where} can't hold a list item; a list item goes in a list`);
+  assertUnhandledCase(`${where} must be inline`);
 }
 
 /**
@@ -51,7 +51,7 @@ export function inlineNodes(content: InlineContent, where: string): PhrasingCont
 export function blockNodes(content: BlockLike, where: string): RootContent[] {
   if (isArray(content)) return content.flatMap((c) => blockNodes(c, where));
   if (isKind(content, 'block', 'listItem')) return markdownInternalsOf(content).nodes;
-  throw new TypeError(`${where} must be blocks`);
+  assertUnhandledCase(`${where} must be blocks`);
 }
 
 /** Check whether content is blocks: a block element, or a non-empty array of them. */
