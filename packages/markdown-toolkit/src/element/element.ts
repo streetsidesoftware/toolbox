@@ -1,6 +1,6 @@
 import type { ListItem, PhrasingContent, RootContent } from 'mdast';
 
-import { renderNodes } from '../render.ts';
+import { renderNodes } from '../core/index.ts';
 import type { MarkdownStyle, MDElement, MDKind, MDListItem, MDText, MDType } from '../types.ts';
 
 /**

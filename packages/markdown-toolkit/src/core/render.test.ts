@@ -25,8 +25,8 @@ import {
   table,
   template,
   text,
-} from './index.ts';
-import type { MDElement } from './index.ts';
+} from '../index.ts';
+import type { MDElement } from '../index.ts';
 
 describe('escaping', () => {
   testEach`

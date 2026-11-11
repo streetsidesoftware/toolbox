@@ -5,16 +5,13 @@ import type { Options as StyleOptions } from 'remark-stringify';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 
-import {
-  htmlEntityNode,
-  isFormatting,
-  trimAroundLineEndings,
-  trimBlanksAroundBreaks,
-  trimLineEdges,
-  writeHtmlGroups,
-} from './core/index.ts';
-import type { HtmlEntityNode, InlineHtmlNode, PlaceholderNode } from './core/index.ts';
-import type { MarkdownStyle } from './types.ts';
+import type { MarkdownStyle } from '../types.ts';
+import { isFormatting, trimAroundLineEndings, trimBlanksAroundBreaks, trimLineEdges } from './blanks.ts';
+import { htmlEntityNode } from './htmlEntityNode.ts';
+import type { HtmlEntityNode } from './htmlEntityNode.ts';
+import { writeHtmlGroups } from './htmlGroupNode.ts';
+import type { InlineHtmlNode } from './inlineHtmlNode.ts';
+import type { PlaceholderNode } from './placeholderNode.ts';
 
 /** The style used for anything an element's own style leaves out. */
 const defaultStyle: StyleOptions = {
