@@ -3,8 +3,8 @@ import type { Paragraph, PhrasingContent, Root, RootContent, Text } from 'mdast'
 
 import { DocumentElement, isHtmlEntity, text } from '../builder/index.ts';
 import {
+  assertIsMDElement,
   blockNodes,
-  describe,
   inLists,
   isBlockLike,
   isText,
@@ -100,8 +100,8 @@ export function substitutePlaceholders(
 ): MDElement {
   if (typeof content === 'string') return substitutePlaceholders(text(content), replacements);
   const resolve = resolverOf(replacements);
+  assertIsMDElement(content, 'a string or a Markdown element');
   const markdownInternals = markdownInternalsOf(content);
-  if (!markdownInternals) throw new TypeError(`expected a string or a Markdown element, got ${describe(content)}`);
   // An HTML entity has no placeholder in it, and keeps its character.
   if (isHtmlEntity(content)) return content;
   const substituted = isText(content) ? substituteInText(content.text, resolve) : undefined;

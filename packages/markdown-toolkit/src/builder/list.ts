@@ -137,7 +137,7 @@ export function list(entries: readonly ListEntry[], options?: ListOptions): MDLi
     throw new TypeError(`a list start must be a whole number from 0 to 999999999, got ${given}`);
   }
   const items = entries.map((entry) =>
-    isListItem(entry) ? (markdownInternalsOf(entry)?.nodes[0] as ListItem) : listItemNode([entry]),
+    isListItem(entry) ? (markdownInternalsOf(entry).nodes[0] as ListItem) : listItemNode([entry]),
   );
   return new MarkdownElement('block', 'list', 'a list', [
     { type: 'list', ordered, start: ordered ? (start ?? 1) : null, spread: false, children: items },
