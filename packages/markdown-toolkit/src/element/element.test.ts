@@ -1,7 +1,20 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { assertIsMDElement, MarkdownElement } from './element.ts';
+import { assertIsArray, assertIsMDElement, MarkdownElement } from './element.ts';
+
+describe('assertIsArray', () => {
+  test('an array passes', () => {
+    assert.doesNotThrow(() => assertIsArray(['A'], 'table header'));
+  });
+
+  test('anything else throws a TypeError naming the value and what was given', () => {
+    assert.throws(
+      () => assertIsArray('A', 'table header'),
+      new TypeError('table header must be an array, got a string'),
+    );
+  });
+});
 
 describe('assertIsMDElement', () => {
   test('an element passes', () => {

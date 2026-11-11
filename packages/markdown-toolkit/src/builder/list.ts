@@ -2,6 +2,7 @@ import type { ListItem } from 'mdast';
 
 import {
   argumentNodes,
+  assertIsArray,
   describe,
   isListItem,
   isMDElement,
@@ -9,6 +10,7 @@ import {
   markdownInternalsOf,
 } from '../element/index.ts';
 import type {
+  AnyContent,
   ListEntry,
   ListItemContent,
   ListItemOptions,
@@ -129,7 +131,7 @@ function piecesAndOptions(
  * @category lists
  */
 export function list(entries: readonly ListEntry[], options?: ListOptions): MDList {
-  if (!Array.isArray(entries)) throw new TypeError(`list entries must be an array, got ${describe(entries)}`);
+  assertIsArray(entries, 'list entries');
   // The type allows `start` only with `ordered: true`; JavaScript callers can still pass it alone.
   const { ordered = false, start } = (options ?? {}) as { ordered?: boolean; start?: number };
   if (start !== undefined && !(Number.isInteger(start) && start >= 0 && start <= 999_999_999)) {
@@ -180,6 +182,6 @@ export function ul(entries: readonly ListEntry[]): MDList {
 }
 
 /** Build a list item from its arguments, grouped as in {@link argumentNodes}. */
-function listItemNode(content: readonly ListItemContent[]): ListItem {
+function listItemNode(content: readonly AnyContent[]): ListItem {
   return { type: 'listItem', spread: false, children: argumentNodes(content, 'list item content') };
 }

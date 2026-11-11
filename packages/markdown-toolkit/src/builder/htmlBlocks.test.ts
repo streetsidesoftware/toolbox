@@ -554,15 +554,6 @@ describe('htmlTable', () => {
       'Intro\n\n<table>\n<tbody>\n<tr>\n<td>\n\na\n\n</td>\n</tr>\n</tbody>\n</table>\n',
     );
   });
-
-  testEach`
-    header            | rows              | message
-    ${'A'}            | ${[]}             | ${'table header must be an array, got a string'}
-    ${['A']}          | ${'a'}            | ${'table rows must be an array, got a string'}
-    ${['A']}          | ${['a']}          | ${'table row must be an array, got a string'}
-  `('bad input throws: $message', ({ header, rows, message }: { header: never; rows: never; message: string }) => {
-    assert.throws(() => htmlTable(header, rows), new TypeError(message));
-  });
 });
 
 /** Render a one-cell table with no header, and return its cell. */

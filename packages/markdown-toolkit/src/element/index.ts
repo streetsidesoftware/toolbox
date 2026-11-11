@@ -1,5 +1,6 @@
 export {
   MarkdownElement,
+  assertIsArray,
   assertIsMDElement,
   describe,
   isArray,
