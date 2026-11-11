@@ -38,9 +38,8 @@ export function stringNodes(text: string): PhrasingContent[] {
 export function inlineNodes(content: InlineContent, where: string): PhrasingContent[] {
   if (typeof content === 'string') return stringNodes(content);
   if (isArray(content)) return content.flatMap((c) => inlineNodes(c, where));
-  const markdownInternals = markdownInternalsOf(content);
   // Inside a line, HTML such as a comment or `<br/>` is written as is, so a line ending before it stays.
-  if (markdownInternals && isKind(content, 'inline')) return markdownInternals.nodes.map(asInlineHtml);
+  if (isKind(content, 'inline')) return markdownInternalsOf(content).nodes.map(asInlineHtml);
   if (isListItem(content)) throw new TypeError(`${where} can't hold a list item; a list item goes in a list`);
   throw new TypeError(`${where} must be inline, got ${describe(content)}`);
 }
@@ -51,8 +50,7 @@ export function inlineNodes(content: InlineContent, where: string): PhrasingCont
  */
 export function blockNodes(content: BlockLike, where: string): RootContent[] {
   if (isArray(content)) return content.flatMap((c) => blockNodes(c, where));
-  const markdownInternals = markdownInternalsOf(content);
-  if (markdownInternals && isKind(content, 'block', 'listItem')) return markdownInternals.nodes;
+  if (isKind(content, 'block', 'listItem')) return markdownInternalsOf(content).nodes;
   throw new TypeError(`${where} must be blocks, got ${describe(content)}`);
 }
 

@@ -45,13 +45,18 @@ export class MarkdownElement<K extends MDKind = MDKind, T extends MDType = MDTyp
   }
 }
 
-/** Return a Markdown element's internals, or `undefined` for anything else. */
-export function markdownInternalsOf(element: MDElement): MarkdownInternals;
-export function markdownInternalsOf(value: unknown): MarkdownInternals | undefined;
-export function markdownInternalsOf(value: unknown): MarkdownInternals | undefined {
-  return typeof value === 'object' && value !== null
-    ? (value as Partial<Record<typeof markdownInternalsKey, MarkdownInternals>>)[markdownInternalsKey]
-    : undefined;
+/**
+ * Return an element's internals.
+ * Check a value from a caller with {@link assertIsMDElement} or {@link isMDElement} first:
+ * an object that only looks like an element has none.
+ */
+export function markdownInternalsOf(element: MDElement): MarkdownInternals {
+  return (element as unknown as Record<typeof markdownInternalsKey, MarkdownInternals>)[markdownInternalsKey];
+}
+
+/** Throw a `TypeError` unless the value is a Markdown element. `expected` names what the caller may pass. */
+export function assertIsMDElement(value: unknown, expected: string): asserts value is MDElement {
+  if (!isMDElement(value)) throw new TypeError(`expected ${expected}, got ${describe(value)}`);
 }
 
 /** Check whether a value is a Markdown element, and of one of the given kinds. */

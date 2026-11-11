@@ -87,10 +87,10 @@ When a function changes:
 
 Examples from `packages/markdown-toolkit/src`:
 
-The contract, including the `undefined` case a caller must handle (rewritten in the imperative):
+The contract, including the `undefined` case a caller must handle:
 
 ```ts
-/** Return a Markdown element's internals, or `undefined` for anything else. */
+/** Read the frontmatter at the very start of a whole file, or return `undefined` if it has none. */
 ```
 
 What it does, then why it doesn't escape, so nobody adds escaping:
