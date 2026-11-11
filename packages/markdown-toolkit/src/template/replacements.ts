@@ -7,9 +7,9 @@ import {
   inlineNodes,
   isArray,
   isKind,
+  isMDElement,
   isText,
   MarkdownElement,
-  renderingOf,
   textNodes,
 } from '../element/index.ts';
 import type { AnyContent, InlineContent, MDElement } from '../types.ts';
@@ -81,14 +81,12 @@ function walk(value: unknown, name: string): unknown {
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value) && !renderingOf(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value) && !isMDElement(value);
 }
 
 function isTemplateReplacement(value: unknown): value is TemplateReplacement {
   const t = typeof value;
-  return (
-    t === 'string' || t === 'number' || t === 'boolean' || renderingOf(value) !== undefined || Array.isArray(value)
-  );
+  return t === 'string' || t === 'number' || t === 'boolean' || isMDElement(value) || Array.isArray(value);
 }
 
 export function replacementAsInline(replacement: TemplateReplacement, name: string): PhrasingContent[] {
