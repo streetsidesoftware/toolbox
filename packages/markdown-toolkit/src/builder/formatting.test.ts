@@ -48,12 +48,6 @@ describe('strong, emphasis, strikethrough', () => {
     assert.equal(paragraph('a', strong(''), 'b').toString(), '&#x61;**&#x20;**&#x62;');
   });
 
-  test('an empty link stays', () => {
-    assert.equal(paragraph('a', link('', 'u'), 'b').toString(), 'a[](u)b');
-    assert.equal(paragraph(link('', '')).toString(), '[]()');
-    assert.equal(paragraph(link(strong(''), '')).toString(), '[**&#x20;**]()');
-  });
-
   test('whitespace stays as given', () => {
     assert.equal(paragraph('a', strong('  '), 'b').toString(), '&#x61;**&#x20;&#x20;**&#x62;');
   });

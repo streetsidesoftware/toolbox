@@ -1,6 +1,7 @@
 export { blockText, inlineText, text } from './text.ts';
 export { blockPlaceholder, placeholder } from './placeholder.ts';
-export { emphasis, link, strikethrough, strong, sub, sup } from './formatting.ts';
+export { link } from './link.ts';
+export { emphasis, strikethrough, strong, sub, sup } from './formatting.ts';
 export { codeBlock, inlineCode } from './code.ts';
 export { br, lineBreak } from './lineBreak.ts';
 export { blockComment, comment, inlineComment } from './comment.ts';
