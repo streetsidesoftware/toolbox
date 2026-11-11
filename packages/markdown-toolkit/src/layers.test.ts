@@ -19,7 +19,6 @@ const notMovedYet = [
   'detectStyle.ts',
   'element/content.ts',
   'element/element.ts',
-  'render.ts',
   'template/fragment.ts',
   'template/parse.ts',
   'template/replacements.ts',
