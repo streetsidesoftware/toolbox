@@ -1,7 +1,7 @@
 # @streetsidesoftware/markdown-toolkit
 
 A toolkit for generating GitHub Flavored Markdown. Build a page from elements in code, or write it as a template and
-substitute values for its placeholders. Either way, render it with `toString()`.
+replace its placeholders. Either way, render it with `toString()`.
 
 ## Install
 
@@ -13,7 +13,7 @@ npm install @streetsidesoftware/markdown-toolkit
 
 ## With a template
 
-Write the page as Markdown, mark each gap with a `{@ name @}` placeholder, and substitute values for them. A value
+Write the page as Markdown, mark each gap with a `{@ name @}` placeholder, and replace them. A replacement
 can be a string or an element, such as a link or a list.
 [`unindent`](https://www.npmjs.com/package/@streetsidesoftware/unindent) removes the template's indentation.
 Imported as `markdown`, it also gets editors to highlight the template as Markdown.
@@ -377,7 +377,7 @@ For a fixed form, use one of these:
 - `blockComment` always puts its markers on lines of their own.
 - `inlineComment` stays on one line, and its text can't have a line ending.
 
-A placeholder's value goes in as given and doesn't change the form, so use `blockComment` for a value with several lines.
+A placeholder's replacement goes in as given and doesn't change the form, so use `blockComment` for a replacement with several lines.
 
 ### Tables
 
@@ -569,7 +569,7 @@ places.
 
 ### Placeholders
 
-Each `{@ name @}` takes the value of the same name. A string goes in as text, and an element as Markdown. A
+Each `{@ name @}` takes the replacement of the same name. A string goes in as text, and an element as Markdown. A
 placeholder on a line of its own also takes blocks, such as a list or a table. A dotted name, such as
 `{@ pkg.name @}`, looks up a nested object, and a placeholder works inside code too.
 
@@ -709,7 +709,7 @@ split it, so the last placeholder has no replacement and is kept.
 import * as md from '@streetsidesoftware/markdown-toolkit';
 import { unindent as markdown } from '@streetsidesoftware/unindent';
 
-const values = {
+const replacements = {
   pkg: {
     name: '@cspell/dict-nl-nl',
     engines: { node: '>=20' },
@@ -733,7 +733,7 @@ const section = md.template(
     - [Issues]({@repo.links.issues@})
     - Lodash optional: {@ peerDependenciesMeta.lodash.optional @}
   `,
-  values,
+  replacements,
 );
 
 console.log(section.toString());
@@ -750,12 +750,11 @@ console.log(section.toString());
 
 </details>
 
-### Values from a function
+### Replacements from a function
 
-In place of an object, pass a function that takes a placeholder name and returns its value. It gets the whole name,
-such as `dictionaries.custom`, not one part at a time. Values can then come from a `Map`, a config file or anywhere
-else. When it returns
-`undefined`, the placeholder is kept for a later step.
+In place of an object, pass a function that takes a placeholder name and returns its replacement. It gets the whole
+name, such as `dictionaries.custom`, not one part at a time. Replacements can then come from a `Map`, a config file or
+anywhere else. When it returns `undefined`, the placeholder is kept for a later step.
 
 <details>
 <summary>Example</summary>
@@ -845,8 +844,8 @@ Settings that control the behavior of the spell checker.
 ### Template files
 
 A template for a whole page, such as `template.md`, can start with frontmatter. Read it with `templateDocument`, which
-keeps the frontmatter and substitutes the placeholders in both parts. A value in the frontmatter goes in as written,
-since it's YAML.
+keeps the frontmatter and substitutes the placeholders in both parts. A replacement in the frontmatter goes in as
+written, since it's YAML.
 
 <details>
 <summary>Example</summary>
@@ -1044,13 +1043,13 @@ console.log(section.toString());
 
 ### Templates
 
-- `template(markdown, values)` (also `templateFragment`): Create Markdown from a template by substituting values for its `{@ name @}` placeholders.
-- `inlineTemplate(markdown, values)`: Create a line of Markdown from a template by substituting values for its `{@ name @}` placeholders.
-- `blockTemplate(markdown, values)`: Create paragraphs and other blocks from a template by substituting values for its `{@ name @}` placeholders.
-- `templateDocument(markdown, values)`: Create a whole Markdown file from a template by substituting values for its `{@ name @}` placeholders.
-- `substitutePlaceholders(content, values)`: Substitute values for the `{@ name @}` placeholders in an existing element, such as a parsed file, or in plain text.
-- `placeholder(name)`: Create a `{@ name @}` placeholder for a value to be substituted later.
-- `blockPlaceholder(name)`: Create a `{@ name @}` placeholder on lines of its own, for a value to be substituted later.
+- `template(markdown, replacements)` (also `templateFragment`): Create Markdown from a template by replacing its `{@ name @}` placeholders.
+- `inlineTemplate(markdown, replacements)`: Create a line of Markdown from a template by replacing its `{@ name @}` placeholders.
+- `blockTemplate(markdown, replacements)`: Create paragraphs and other blocks from a template by replacing its `{@ name @}` placeholders.
+- `templateDocument(markdown, replacements)`: Create a whole Markdown file from a template by replacing its `{@ name @}` placeholders.
+- `substitutePlaceholders(content, replacements)`: Replace the `{@ name @}` placeholders in an existing element, such as a parsed file, or in plain text.
+- `placeholder(name)`: Create a `{@ name @}` placeholder to be replaced later.
+- `blockPlaceholder(name)`: Create a `{@ name @}` placeholder on lines of its own, to be replaced later.
 
 ### Documents
 
@@ -1061,7 +1060,7 @@ console.log(section.toString());
 
 ### Elements
 
-- `isMarkdown(value)`: Check whether a value is an element made by this library, such as a paragraph or a link.
+- `isMDElement(value)` (also `isMarkdown`): Check whether a value is an element made by this library, such as a paragraph or a link.
 - `toBlock(content)`: Put text, links and other pieces in a paragraph of their own.
 
 <!--- @@inject-end: static/api-reference.md --->

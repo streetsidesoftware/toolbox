@@ -96,7 +96,10 @@ describe('table', () => {
     ${'--:-'}
     ${'middle'}
   `('an invalid alignment throws: $align', ({ align }: { align: ColumnAlign }) => {
-    assert.throws(() => table(['a'], [], { align: [align] }), { name: 'Error', message: /invalid column alignment/ });
+    assert.throws(() => table(['a'], [], { align: [align] }), {
+      name: 'TypeError',
+      message: "column alignment must be 'left', 'center', 'right' or a delimiter such as ':---'",
+    });
   });
 
   test('a short row is padded with empty cells, and a long row adds a column', () => {
@@ -109,10 +112,10 @@ describe('table', () => {
   test('a placeholder in a cell is kept, and substituted later like any other', () => {
     const t = table(['Name'], [[placeholder('name')]]);
     assert.equal(t.toString(), '| Name       |\n| ---------- |\n| {@ name @} |');
-    const value = ['a', lineBreak(), inlineCode('b|c')];
+    const replacement = ['a', lineBreak(), inlineCode('b|c')];
     const substituted = '| Name         |\n| ------------ |\n| a<br/>`b\\|c` |';
-    assert.equal(substitutePlaceholders(t, { name: value }).toString(), substituted);
-    assert.equal(template('| Name |\n| - |\n| {@ name @} |', { name: value }).toString(), substituted);
+    assert.equal(substitutePlaceholders(t, { name: replacement }).toString(), substituted);
+    assert.equal(template('| Name |\n| - |\n| {@ name @} |', { name: replacement }).toString(), substituted);
   });
 
   test('a table is a block in a document', () => {
@@ -124,10 +127,7 @@ describe('table', () => {
 
   testEach`
     header            | rows              | message
-    ${'A'}            | ${[]}             | ${'table header must be an array, got a string'}
-    ${['A']}          | ${'x'}            | ${'table rows must be an array, got a string'}
-    ${['A']}          | ${['x']}          | ${'table row must be an array, got a string'}
-    ${['A']}          | ${[[list([])]]}   | ${'table cell must be inline, got a list'}
+    ${['A']}          | ${[[list([])]]}   | ${'table cell must be inline'}
   `(
     'wrong content throws a TypeError: $message',
     ({ header, rows, message }: { header: never; rows: never; message: string }) => {

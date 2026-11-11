@@ -10,8 +10,8 @@ import { textNodes } from '../element/index.ts';
 import { htmlEntityFromMarkdown } from '../mdast/index.ts';
 import type { MDDocument, MDFragment, MDInlineFragment } from '../types.ts';
 import { fragment } from './fragment.ts';
+import type { TemplateResolver } from './replacements.ts';
 import { substituteInTree } from './substitute.ts';
-import type { TemplateResolver } from './values.ts';
 
 /**
  * Parse Markdown text so it can be added to a page with its formatting.
@@ -54,7 +54,7 @@ export function parseDocument(markdown: string): MDDocument {
   });
 }
 
-/** Read a whole file as a document, its body by `read`, with values substituted when there are any. */
+/** Read a whole file as a document, its body by `read`, with replacements substituted when there are any. */
 export function documentOf(markdown: string, read: (body: string) => Root, resolve?: TemplateResolver): MDDocument {
   const front = readFrontmatter(markdown);
   const body = front ? markdown.slice(front.end) : markdown;

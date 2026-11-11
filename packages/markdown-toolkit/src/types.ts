@@ -47,7 +47,7 @@ export interface MDElement {
   readonly kind: MDKind;
   /** A name unique to the element's interface, such as `'link'` for {@link MDLink}. */
   readonly type: MDType;
-  /** A short name for the element in error messages, such as `a list`. */
+  /** A short name for the element, such as `a list`. */
   readonly description: string;
   /** Return the element's Markdown. */
   toString(): string;
@@ -82,19 +82,19 @@ export interface MDText extends MDElement {
 export interface MDPlaceholder extends MDElement {
   readonly kind: 'inline';
   readonly type: 'placeholder';
-  /** The name the placeholder's value is looked up by. */
+  /** The name the placeholder's replacement is looked up by. */
   readonly name: string;
 }
 
 /**
  * A `{​@ name @​}` placeholder on lines of its own.
  *
- * It takes any value, including a list, table or other block.
+ * It takes any replacement, including a list, table or other block.
  */
 export interface MDBlockPlaceholder extends MDElement {
   readonly kind: 'block';
   readonly type: 'blockPlaceholder';
-  /** The name the placeholder's value is looked up by. */
+  /** The name the placeholder's replacement is looked up by. */
   readonly name: string;
 }
 
@@ -351,19 +351,11 @@ export type AnyContent = BlockOrInlineContent | readonly BlockOrInlineContent[];
 export type ListItemContent = BlockOrInlineContent;
 
 /**
- * The key that marks a type as options.
- *
- * No object sets it.
- */
-export const OPTION_TYPE_GUARD_SYMBOL: unique symbol = Symbol('option_type_guard');
-
-/**
  * Keeps an element from passing for options.
  *
  * Every element has a `kind` and a `type`, and options never do.
  */
 export interface OptionTypeGuard {
-  readonly [OPTION_TYPE_GUARD_SYMBOL]?: true;
   readonly kind?: never;
   readonly type?: never;
 }

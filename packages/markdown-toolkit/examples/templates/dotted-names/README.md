@@ -13,7 +13,7 @@ split it, so the last placeholder has no replacement and is kept.
 import * as md from '@streetsidesoftware/markdown-toolkit';
 import { unindent as markdown } from '@streetsidesoftware/unindent';
 
-const values = {
+const replacements = {
   pkg: {
     name: '@cspell/dict-nl-nl',
     engines: { node: '>=20' },
@@ -37,7 +37,7 @@ const section = md.template(
     - [Issues]({@repo.links.issues@})
     - Lodash optional: {@ peerDependenciesMeta.lodash.optional @}
   `,
-  values,
+  replacements,
 );
 
 console.log(section.toString());

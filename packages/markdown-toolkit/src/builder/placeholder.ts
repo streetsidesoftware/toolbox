@@ -1,6 +1,6 @@
 import { isValidPlaceholderName } from '@streetsidesoftware/placeholders';
 
-import { MarkdownElement } from '../element/index.ts';
+import { assertCondition, MarkdownElement } from '../element/index.ts';
 import { placeholderNode } from '../mdast/index.ts';
 import type { MDBlockPlaceholder, MDPlaceholder } from '../types.ts';
 
@@ -25,7 +25,7 @@ class BlockPlaceholderElement extends MarkdownElement<'block', 'blockPlaceholder
 }
 
 /**
- * Create a `{​@ name @​}` placeholder for a value to be substituted later.
+ * Create a `{​@ name @​}` placeholder to be replaced later.
  *
  * - Within a sentence, it takes text, links, formatting or code.
  * - On a line of its own, it can also take a list, table or other block.
@@ -37,14 +37,14 @@ class BlockPlaceholderElement extends MarkdownElement<'block', 'blockPlaceholder
  * @category placeholders
  */
 export function placeholder(name: string): MDPlaceholder {
-  checkPlaceholderName(name);
+  assertIsPlaceholderName(name);
   return new PlaceholderElement(name);
 }
 
 /**
- * Create a `{​@ name @​}` placeholder on lines of its own, for a value to be substituted later.
+ * Create a `{​@ name @​}` placeholder on lines of its own, to be replaced later.
  *
- * It takes any value, including a list, table or other block.
+ * It takes any replacement, including a list, table or other block.
  *
  * @example
  * md.substitutePlaceholders(md.blockPlaceholder('languages'), { languages: md.list(['Dutch', 'French']) });
@@ -53,10 +53,13 @@ export function placeholder(name: string): MDPlaceholder {
  * @category placeholders
  */
 export function blockPlaceholder(name: string): MDBlockPlaceholder {
-  checkPlaceholderName(name);
+  assertIsPlaceholderName(name);
   return new BlockPlaceholderElement(name);
 }
 
-function checkPlaceholderName(name: string): void {
-  if (!isValidPlaceholderName(name)) throw new Error(`invalid placeholder name: "${name}"`);
+function assertIsPlaceholderName(name: string): void {
+  assertCondition(
+    isValidPlaceholderName(name),
+    "a placeholder name must be parts joined by '.', each of ASCII letters, digits, '_' and '-', and not starting with '-'",
+  );
 }

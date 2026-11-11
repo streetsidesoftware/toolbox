@@ -25,7 +25,7 @@ import type { MDElement, MDParagraph } from '../index.ts';
 describe('heading', () => {
   test('a heading depth outside 1 to 6', () => {
     // @ts-expect-error 7 is not a heading depth
-    assert.throws(() => heading(7, 'x'), /heading depth must be 1 to 6, got 7/);
+    assert.throws(() => heading(7, 'x'), new TypeError('heading depth must be a number from 1 to 6'));
   });
 });
 
@@ -121,6 +121,6 @@ describe('horizontalRule', () => {
 
   test('it cannot go inside a line', () => {
     // @ts-expect-error a horizontal rule is a block
-    assert.throws(() => paragraph(hr()), new TypeError('paragraph content must be inline, got a horizontal rule'));
+    assert.throws(() => paragraph(hr()), new TypeError('paragraph content must be inline'));
   });
 });

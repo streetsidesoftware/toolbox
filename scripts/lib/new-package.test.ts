@@ -131,7 +131,7 @@ describe('newPackageFiles', async () => {
     });
   });
 
-  test('throws on a placeholder without a value, naming each one', async () => {
+  test('throws on a placeholder without a replacement, naming each one', async () => {
     await withTempRoot(async (templateDir) => {
       await fs.mkdir(Path.join(templateDir, 'src'));
       await fs.writeFile(Path.join(templateDir, 'src', '{@ title @}.ts'), '{@ name @} {@ author @} {@ author @}');
@@ -189,7 +189,7 @@ function fileText(files: Record<string, string>, path: string): string {
   return text;
 }
 
-/** Substitute values into a one-file template and return the result. */
+/** Replace the placeholders in a one-file template and return the result. */
 async function substituteOne(text: string, name: string, options: NewPackageOptions = {}): Promise<string> {
   return withTempRoot(async (templateDir) => {
     await fs.writeFile(Path.join(templateDir, 'file.txt'), text);
@@ -197,7 +197,7 @@ async function substituteOne(text: string, name: string, options: NewPackageOpti
   });
 }
 
-/** Substitute values into a template that is only a `package.json`, and return the parsed result. */
+/** Replace the placeholders in a template that is only a `package.json`, and return the parsed result. */
 async function substitutePackageJson(
   template: PackageJson,
   name: string,

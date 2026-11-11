@@ -2,7 +2,15 @@ import { listPlaceholders, replacePlaceholders } from '@streetsidesoftware/place
 import type { Paragraph, PhrasingContent, Root, RootContent, Text } from 'mdast';
 
 import { DocumentElement, isHtmlEntity, text } from '../builder/index.ts';
-import { blockNodes, describe, inLists, isBlockLike, isText, MarkdownElement, renderingOf } from '../element/index.ts';
+import {
+  assertIsMDElement,
+  blockNodes,
+  inLists,
+  isBlockLike,
+  isText,
+  MarkdownElement,
+  markdownInternalsOf,
+} from '../element/index.ts';
 import { trimBlanks } from '../mdast/index.ts';
 import type { PlaceholderNode } from '../mdast/index.ts';
 import type {
@@ -16,25 +24,31 @@ import type {
   MDText,
 } from '../types.ts';
 import { fragmentOf } from './fragment.ts';
-import { resolverOf, valueAsCode, valueAsFrontmatter, valueAsInline, valueInLink } from './values.ts';
-import type { TemplateResolver, TemplateValues } from './values.ts';
+import {
+  replacementAsCode,
+  replacementAsFrontmatter,
+  replacementAsInline,
+  replacementInLink,
+  resolverOf,
+} from './replacements.ts';
+import type { TemplateReplacements, TemplateResolver } from './replacements.ts';
 
 /**
- * Substitute values for the `{​@ name @​}` placeholders in an existing element, such as a parsed file, or in plain text.
+ * Replace the `{​@ name @​}` placeholders in an existing element, such as a parsed file, or in plain text.
  *
  * When the first argument is a string, its Markdown and HTML show as text, not as formatting, and each newline is a
  * line break. For a string that's already Markdown, use {@link template}.
  *
- * - A string value shows as text, not as formatting, with each newline as a line break.
+ * - A string shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
  * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
  *   entity shows as its character in code, and as its reference in HTML.
  * - A placeholder in a link or image URL, a title or a reference definition takes only a string, which goes in as given.
  *   Markdown allows no spaces in a URL, so write `{​@name@​}` there, or wrap the URL in `<…>`.
- * - A placeholder without a value stays in place, so a later call can substitute it.
+ * - A placeholder without a replacement stays in place, so a later call can substitute it.
  *
- * @param values - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
+ * @param replacements - by placeholder name, or a {@link TemplateResolver}. In an object, a dotted name, such as
  *   `engines.cspell`, reaches into a nested object.
  * @example
  * const page = md.p('Hello ', md.placeholder('name'), '.');
@@ -47,50 +61,53 @@ import type { TemplateResolver, TemplateValues } from './values.ts';
  */
 export function substitutePlaceholders(
   content: string | MDText,
-  values: TemplateValues | TemplateResolver,
+  replacements: TemplateReplacements | TemplateResolver,
 ): MDText | MDInlineFragment | MDFragment;
 
 export function substitutePlaceholders(
   content: MDInlineFragment,
-  values: TemplateValues | TemplateResolver,
+  replacements: TemplateReplacements | TemplateResolver,
 ): MDInlineFragment | MDFragment;
 
 export function substitutePlaceholders(
   content: MDParagraph,
-  values: TemplateValues | TemplateResolver,
+  replacements: TemplateReplacements | TemplateResolver,
 ): MDParagraph | MDFragment;
 
 export function substitutePlaceholders(
   content: MDPlaceholder,
-  values: TemplateValues | TemplateResolver,
+  replacements: TemplateReplacements | TemplateResolver,
 ): MDPlaceholder | MDInlineFragment | MDFragment;
 
 export function substitutePlaceholders(
   content: MDBlockPlaceholder,
-  values: TemplateValues | TemplateResolver,
+  replacements: TemplateReplacements | TemplateResolver,
 ): MDBlockPlaceholder | MDFragment;
 
 export function substitutePlaceholders(
   content: MDInline,
-  values: TemplateValues | TemplateResolver,
+  replacements: TemplateReplacements | TemplateResolver,
 ): MDInline | MDFragment;
 
-export function substitutePlaceholders<T extends MDElement>(content: T, values: TemplateValues | TemplateResolver): T;
+export function substitutePlaceholders<T extends MDElement>(
+  content: T,
+  replacements: TemplateReplacements | TemplateResolver,
+): T;
 
 export function substitutePlaceholders(
   content: MDElement | string,
-  values: TemplateValues | TemplateResolver,
+  replacements: TemplateReplacements | TemplateResolver,
 ): MDElement {
-  if (typeof content === 'string') return substitutePlaceholders(text(content), values);
-  const resolve = resolverOf(values);
-  const rendering = renderingOf(content);
-  if (!rendering) throw new TypeError(`expected a string or a Markdown element, got ${describe(content)}`);
+  if (typeof content === 'string') return substitutePlaceholders(text(content), replacements);
+  const resolve = resolverOf(replacements);
+  assertIsMDElement(content, 'a string or a Markdown element');
+  const markdownInternals = markdownInternalsOf(content);
   // An HTML entity has no placeholder in it, and keeps its character.
   if (isHtmlEntity(content)) return content;
   const substituted = isText(content) ? substituteInText(content.text, resolve) : undefined;
   if (substituted !== undefined) return text(substituted);
-  const { style } = rendering;
-  const nodes = structuredClone(rendering.nodes);
+  const { style } = markdownInternals;
+  const nodes = structuredClone(markdownInternals.nodes);
   switch (content.type) {
     case 'text':
     case 'inlineFragment':
@@ -133,7 +150,7 @@ export function substitutePlaceholders(
   }
 }
 
-/** Return a tree of the nodes, with the placeholders that have values replaced. */
+/** Return a tree of the nodes, with each placeholder that has a replacement replaced by it. */
 function substitutedTree(nodes: RootContent[], resolve: TemplateResolver, allowBlocks: boolean): Root {
   const root: Root = { type: 'root', children: nodes };
   substituteInTree(root, resolve, allowBlocks);
@@ -141,28 +158,30 @@ function substitutedTree(nodes: RootContent[], resolve: TemplateResolver, allowB
 }
 
 /**
- * Return the text with its placeholders substituted, or `undefined` if a value isn't a string or text.
- * A placeholder with no value is kept as written.
+ * Return the text with its placeholders substituted, or `undefined` if a replacement isn't a string or text.
+ * A placeholder with no replacement is kept as written.
  */
 function substituteInText(text: string, resolve: TemplateResolver): string | undefined {
   let onlyText = true;
   const result = replacePlaceholders(text, (name: string) => {
-    const value = resolve(name);
-    if (value === undefined) return undefined;
-    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
-    if (isText(value)) return value.text;
+    const replacement = resolve(name);
+    if (replacement === undefined) return undefined;
+    if (typeof replacement === 'string' || typeof replacement === 'number' || typeof replacement === 'boolean') {
+      return String(replacement);
+    }
+    if (isText(replacement)) return replacement.text;
     onlyText = false;
     return undefined;
   });
   return onlyText ? result : undefined;
 }
 
-/** Where a paragraph splits: the blocks that replace a placeholder on a line of its own, or none where values left a line empty. */
+/** Where a paragraph splits: the blocks that replace a placeholder on a line of its own, or none where replacements left a line empty. */
 interface BlockSlot {
   readonly blocks: RootContent[];
 }
 
-/** Stands in for a placeholder whose value shows nothing, until its paragraph is rebuilt. */
+/** Stands in for a placeholder whose replacement shows nothing, until its paragraph is rebuilt. */
 interface EmptySlot {
   readonly empty: true;
 }
@@ -170,7 +189,7 @@ interface EmptySlot {
 type Piece = RootContent | BlockSlot | EmptySlot;
 
 /**
- * What a paragraph does with a placeholder alone on a line, when its value is a block or empty:
+ * What a paragraph does with a placeholder alone on a line, when its replacement is a block or empty:
  * - `split`: the paragraph splits at that line, around any block.
  * - `join`: the paragraph stays whole. A block is an error, and an empty line is removed.
  */
@@ -180,7 +199,7 @@ type ParagraphMode = 'split' | 'join';
 const blockContainers = new Set(['blockquote', 'footnoteDefinition', 'htmlBlockSlot', 'htmlGroup', 'list', 'listItem']);
 
 /**
- * Replace the placeholders that have values, in place.
+ * Replace the placeholders that have replacements, in place.
  * - A placeholder is a node of its own. In code and HTML, it's part of the text.
  * - Where blocks can go, a placeholder that is a whole line of a paragraph may take blocks.
  *   The paragraph splits around them.
@@ -207,14 +226,14 @@ function substituteInNodes(
     }
     if (node.type === 'placeholder') {
       const name = placeholderName(node);
-      const value = resolve(name);
-      if (value === undefined) return [node];
+      const replacement = resolve(name);
+      if (replacement === undefined) return [node];
       const wholeLine = paragraph !== undefined && isWholeLine(nodes, i);
-      if (paragraph === 'split' && wholeLine && isBlockLike(value)) {
-        return [{ blocks: blockNodes(value, `{@ ${name} @}`) }];
+      if (paragraph === 'split' && wholeLine && isBlockLike(replacement)) {
+        return [{ blocks: blockNodes(replacement, `{@ ${name} @}`) }];
       }
-      const inline = valueAsInline(value, name);
-      // On a line of its own, a value is trimmed as an argument is.
+      const inline = replacementAsInline(replacement, name);
+      // On a line of its own, a replacement is trimmed as an argument is.
       const shown = wholeLine ? trimBlanks(inline) : inline;
       return shown.length || !paragraph ? shown : [{ empty: true }];
     }
@@ -229,8 +248,8 @@ function substituteInNodes(
       }
       case 'yaml':
         node.value = replacePlaceholders(node.value, (name: string) => {
-          const value = resolve(name);
-          return value === undefined ? undefined : valueAsFrontmatter(value);
+          const replacement = resolve(name);
+          return replacement === undefined ? undefined : replacementAsFrontmatter(replacement);
         });
         return [node];
       case 'html':
@@ -244,7 +263,7 @@ function substituteInNodes(
         if ('children' in node) {
           const blockChildren = blocks && blockContainers.has(node.type);
           const children = substituteInNodes(node.children, resolve, undefined, blockChildren);
-          // A list's children are its items already; any other block container may get list items from values.
+          // A list's children are its items already; any other block container may get list items from replacements.
           const grouped = blockChildren && node.type !== 'list' ? inLists(children as RootContent[]) : children;
           node.children = grouped as typeof node.children;
         }
@@ -255,15 +274,15 @@ function substituteInNodes(
 
 function substituteInCode(code: string, resolve: TemplateResolver, inside: 'code' | 'HTML'): string {
   return replacePlaceholders(code, (name: string) => {
-    const value = resolve(name);
-    return value === undefined ? undefined : valueAsCode(value, name, inside);
+    const replacement = resolve(name);
+    return replacement === undefined ? undefined : replacementAsCode(replacement, name, inside);
   });
 }
 
 function substituteInLink(urlOrTitle: string, resolve: TemplateResolver, inside: 'a URL' | 'a title'): string {
   return replacePlaceholders(urlOrTitle, (name: string) => {
-    const value = resolve(name);
-    return value === undefined ? undefined : valueInLink(value, name, inside);
+    const replacement = resolve(name);
+    return replacement === undefined ? undefined : replacementInLink(replacement, name, inside);
   });
 }
 
@@ -298,8 +317,9 @@ function isBlockSlot(piece: Piece): piece is BlockSlot {
 }
 
 /**
- * Return a paragraph's pieces without the lines that values showing nothing left empty, as passing the values
- * directly would: where the paragraph can split, such a line ends it; otherwise the line goes, with its line ending.
+ * Return a paragraph's pieces without the lines that replacements showing nothing left empty, as passing the
+ * replacements directly would: where the paragraph can split, such a line ends it; otherwise the line goes, with its
+ * line ending.
  */
 function withoutEmptiedLines(pieces: readonly Piece[], mode: ParagraphMode): Piece[] {
   if (!pieces.some(isEmptySlot)) return [...pieces];
@@ -358,7 +378,7 @@ function piecesByLine(pieces: readonly Piece[]): PieceLine[] {
   return lines;
 }
 
-/** Check whether a line holds a value that shows nothing, and nothing else but spaces and tabs. */
+/** Check whether a line holds a replacement that shows nothing, and nothing else but spaces and tabs. */
 function isEmptiedLine(pieces: readonly Piece[]): boolean {
   return pieces.some(isEmptySlot) && pieces.every((piece) => isEmptySlot(piece) || isBlankText(piece));
 }

@@ -87,8 +87,14 @@ describe('htmlEntity', () => {
   );
 
   test('an unknown name throws', () => {
-    assert.throws(() => htmlEntity('nope'), new Error('unknown HTML entity name: "nope"'));
-    assert.throws(() => htmlEntity('&nope;'), new Error('unknown HTML entity name: "nope"'));
+    assert.throws(
+      () => htmlEntity('nope'),
+      new TypeError("an HTML entity must be a character, a name HTML defines, or a reference such as '&nbsp;'"),
+    );
+    assert.throws(
+      () => htmlEntity('&nope;'),
+      new TypeError("an HTML entity must be a character, a name HTML defines, or a reference such as '&nbsp;'"),
+    );
   });
 
   testEach`
@@ -136,7 +142,7 @@ describe('htmlEntity in content', () => {
   });
 });
 
-describe('htmlEntity as a placeholder value', () => {
+describe('htmlEntity as a placeholder replacement', () => {
   testEach`
     source                         | expected
     ${'a{@ x @}b'}                 | ${'a&nbsp;b'}

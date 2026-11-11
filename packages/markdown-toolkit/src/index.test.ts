@@ -23,6 +23,7 @@ import {
   inlineCode,
   inlineComment,
   isMarkdown,
+  isMDElement,
   lineBreak,
   link,
   list,
@@ -121,17 +122,21 @@ describe('composing', () => {
     assert.equal(`See ${link('docs', 'https://example.com')}.`, 'See [docs](https://example.com).');
   });
 
-  test('isMarkdown', () => {
-    assert.equal(isMarkdown(text('x')), true);
-    assert.equal(isMarkdown('x'), false);
-    assert.equal(isMarkdown({ kind: 'inline', type: 'text', description: 'text', text: 'x' }), false);
+  test('isMDElement', () => {
+    assert.equal(isMDElement(text('x')), true);
+    assert.equal(isMDElement('x'), false);
+    assert.equal(isMDElement({ kind: 'inline', type: 'text', description: 'text', text: 'x' }), false);
+  });
+
+  test('isMarkdown is the same as isMDElement', () => {
+    assert.equal(isMarkdown, isMDElement);
   });
 
   test('a value from another loaded copy is recognized', async () => {
     const other = await importCopy();
     assert.notEqual(other.link, link);
     const item = other.listItem(other.link('docs', 'https://example.com'));
-    assert.equal(isMarkdown(item), true);
+    assert.equal(isMDElement(item), true);
     assert.equal(list([item, strong('x')]).toString(), '- [docs](https://example.com)\n- **x**');
   });
 });
@@ -147,7 +152,7 @@ describe('errors', () => {
 
   test('a block where only inline content can go', () => {
     // @ts-expect-error a list is not inline
-    assert.throws(() => heading(2, list(['a'])), new TypeError('heading content must be inline, got a list'));
+    assert.throws(() => heading(2, list(['a'])), new TypeError('heading content must be inline'));
   });
 
   test('an array that mixes inline and blocks', () => {
