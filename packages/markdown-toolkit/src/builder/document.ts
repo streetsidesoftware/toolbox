@@ -1,6 +1,6 @@
 import type { RootContent } from 'mdast';
 
-import { argumentNodes, MarkdownElement, renderingOf } from '../element/index.ts';
+import { argumentNodes, MarkdownElement, markdownInternalsOf } from '../element/index.ts';
 import type { AnyContent, MarkdownStyle, MDDocument, MDFrontmatter } from '../types.ts';
 import { frontmatter, isFrontmatter } from './frontmatter.ts';
 
@@ -31,7 +31,7 @@ export function document(...content: (MDFrontmatter | AnyContent)[]): MDDocument
   const [first, ...rest] = content;
   if (!isFrontmatter(first)) return new DocumentElement(argumentNodes(content as AnyContent[], 'document content'));
   return new DocumentElement([
-    ...(renderingOf(first)?.nodes ?? []),
+    ...(markdownInternalsOf(first)?.nodes ?? []),
     ...argumentNodes(rest as AnyContent[], 'document content'),
   ]);
 }
@@ -43,20 +43,20 @@ export class DocumentElement extends MarkdownElement<'block', 'document'> implem
   }
 
   get frontmatter(): string | undefined {
-    const [first] = renderingOf(this)?.nodes ?? [];
+    const [first] = markdownInternalsOf(this)?.nodes ?? [];
     return first?.type === 'yaml' ? first.value : undefined;
   }
 
   withFrontmatter(given: string | MDFrontmatter | undefined): MDDocument {
-    const { nodes, style } = renderingOf(this) ?? { nodes: [] };
+    const { nodes, style } = markdownInternalsOf(this) ?? { nodes: [] };
     const content = nodes[0]?.type === 'yaml' ? nodes.slice(1) : nodes;
     if (given === undefined) return new DocumentElement(content, style);
     const element = typeof given === 'string' ? frontmatter(given) : given;
-    return new DocumentElement([...(renderingOf(element)?.nodes ?? []), ...content], style);
+    return new DocumentElement([...(markdownInternalsOf(element)?.nodes ?? []), ...content], style);
   }
 
   withStyle(style: MarkdownStyle): MDDocument {
-    return new DocumentElement(renderingOf(this)?.nodes ?? [], style);
+    return new DocumentElement(markdownInternalsOf(this)?.nodes ?? [], style);
   }
 
   override toString(): string {

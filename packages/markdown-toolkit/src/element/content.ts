@@ -3,7 +3,7 @@ import type { List, BlockContent as MdastBlockContent, PhrasingContent, RootCont
 
 import { asInlineHtml, placeholderNodeAsWritten, trimBlanks } from '../mdast/index.ts';
 import type { AnyContent, BlockContent, InlineContent, MDBlock, MDListItem } from '../types.ts';
-import { describe, isArray, isKind, isListItem, renderingOf } from './element.ts';
+import { describe, isArray, isKind, isListItem, markdownInternalsOf } from './element.ts';
 
 /** Content on its own lines, where list items in a row form a list. */
 type BlockLike = BlockContent | MDListItem | readonly (BlockContent | MDListItem)[];
@@ -38,9 +38,9 @@ export function stringNodes(text: string): PhrasingContent[] {
 export function inlineNodes(content: InlineContent, where: string): PhrasingContent[] {
   if (typeof content === 'string') return stringNodes(content);
   if (isArray(content)) return content.flatMap((c) => inlineNodes(c, where));
-  const rendering = renderingOf(content);
+  const markdownInternals = markdownInternalsOf(content);
   // Inside a line, HTML such as a comment or `<br/>` is written as is, so a line ending before it stays.
-  if (rendering && isKind(content, 'inline')) return rendering.nodes.map(asInlineHtml);
+  if (markdownInternals && isKind(content, 'inline')) return markdownInternals.nodes.map(asInlineHtml);
   if (isListItem(content)) throw new TypeError(`${where} can't hold a list item; a list item goes in a list`);
   throw new TypeError(`${where} must be inline, got ${describe(content)}`);
 }
@@ -51,8 +51,8 @@ export function inlineNodes(content: InlineContent, where: string): PhrasingCont
  */
 export function blockNodes(content: BlockLike, where: string): RootContent[] {
   if (isArray(content)) return content.flatMap((c) => blockNodes(c, where));
-  const rendering = renderingOf(content);
-  if (rendering && isKind(content, 'block', 'listItem')) return rendering.nodes;
+  const markdownInternals = markdownInternalsOf(content);
+  if (markdownInternals && isKind(content, 'block', 'listItem')) return markdownInternals.nodes;
   throw new TypeError(`${where} must be blocks, got ${describe(content)}`);
 }
 

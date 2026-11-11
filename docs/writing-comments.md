@@ -90,7 +90,7 @@ Examples from `packages/markdown-toolkit/src`:
 The contract, including the `undefined` case a caller must handle (rewritten in the imperative):
 
 ```ts
-/** Return how a Markdown element renders, or `undefined` for anything else. */
+/** Return a Markdown element's internals, or `undefined` for anything else. */
 ```
 
 What it does, then why it doesn't escape, so nobody adds escaping:
