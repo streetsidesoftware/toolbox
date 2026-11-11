@@ -34,7 +34,7 @@ export class MarkdownElement<K extends MDKind = MDKind, T extends MDType = MDTyp
 
   // Takes no options: a template literal passes no arguments.
   toString(): string {
-    const { nodes, style } = markdownInternalsOf(this) ?? { nodes: [] };
+    const { nodes, style } = markdownInternalsOf(this);
     if (this.kind === 'inline') {
       return renderNodes([{ type: 'paragraph', children: nodes as PhrasingContent[] }], style);
     }
@@ -46,6 +46,8 @@ export class MarkdownElement<K extends MDKind = MDKind, T extends MDType = MDTyp
 }
 
 /** Return a Markdown element's internals, or `undefined` for anything else. */
+export function markdownInternalsOf(element: MDElement): MarkdownInternals;
+export function markdownInternalsOf(value: unknown): MarkdownInternals | undefined;
 export function markdownInternalsOf(value: unknown): MarkdownInternals | undefined {
   return typeof value === 'object' && value !== null
     ? (value as Partial<Record<typeof markdownInternalsKey, MarkdownInternals>>)[markdownInternalsKey]
