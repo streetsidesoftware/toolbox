@@ -1060,7 +1060,7 @@ console.log(section.toString());
 
 ### Elements
 
-- `isMarkdown(value)`: Check whether a value is an element made by this library, such as a paragraph or a link.
+- `isMDElement(value)` (also `isMarkdown`): Check whether a value is an element made by this library, such as a paragraph or a link.
 - `toBlock(content)`: Put text, links and other pieces in a paragraph of their own.
 
 <!--- @@inject-end: static/api-reference.md --->

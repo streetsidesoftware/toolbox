@@ -83,12 +83,12 @@ export function describe(value: unknown): string {
  * Check whether a value is an element made by this library, such as a paragraph or a link.
  *
  * @example
- * md.isMarkdown(md.p('Hi'));
+ * md.isMDElement(md.p('Hi'));
  * // true
- * md.isMarkdown('Hi');
+ * md.isMDElement('Hi');
  * // false
  * @category elements
  */
-export function isMarkdown(value: unknown): value is MDElement {
+export function isMDElement(value: unknown): value is MDElement {
   return renderingOf(value) !== undefined;
 }

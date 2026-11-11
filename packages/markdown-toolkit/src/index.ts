@@ -47,7 +47,7 @@ export {
   toBlock,
   ul,
 } from './builder/index.ts';
-export { isMarkdown } from './element/index.ts';
+export { isMDElement, isMDElement as isMarkdown } from './element/index.ts';
 export { detectStyle } from './detectStyle.ts';
 export type {
   TemplateReplacement,

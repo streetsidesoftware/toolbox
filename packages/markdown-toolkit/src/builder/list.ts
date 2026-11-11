@@ -1,6 +1,6 @@
 import type { ListItem } from 'mdast';
 
-import { argumentNodes, describe, isListItem, isMarkdown, MarkdownElement, renderingOf } from '../element/index.ts';
+import { argumentNodes, describe, isListItem, isMDElement, MarkdownElement, renderingOf } from '../element/index.ts';
 import type {
   ListEntry,
   ListItemContent,
@@ -50,7 +50,7 @@ export function listItem(
 export const li: typeof listItem = listItem;
 
 function isListItemOptions(value: ListItemOptions | ListItemContent | undefined): value is ListItemOptions {
-  return typeof value === 'object' && value !== null && !Array.isArray(value) && !isMarkdown(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value) && !isMDElement(value);
 }
 
 function buildListItem(content: readonly ListItemContent[], options?: ListItemOptions): MDListItem {
