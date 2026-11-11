@@ -1,5 +1,7 @@
 import type { Html, RootContent } from 'mdast';
 
+import { trimBlanks } from '../core/index.ts';
+import type { HtmlGroupNode, HtmlSlotNode } from '../core/index.ts';
 import {
   argumentNodes,
   assertCondition,
@@ -12,8 +14,6 @@ import {
   mapParagraphsAndBlocks,
   MarkdownElement,
 } from '../element/index.ts';
-import { trimBlanks } from '../mdast/index.ts';
-import type { HtmlGroupNode, HtmlSlotNode } from '../mdast/index.ts';
 import type {
   AnyContent,
   DefinitionEntry,

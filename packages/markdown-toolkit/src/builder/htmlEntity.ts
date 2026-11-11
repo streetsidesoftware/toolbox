@@ -1,7 +1,7 @@
 import { characterEntities } from 'character-entities';
 
+import { htmlEntityNode } from '../core/index.ts';
 import { assertUnhandledCase, isKind, MarkdownElement } from '../element/index.ts';
-import { htmlEntityNode } from '../mdast/index.ts';
 import type { MDHtmlEntity } from '../types.ts';
 
 class HtmlEntityElement extends MarkdownElement<'inline', 'htmlEntity'> implements MDHtmlEntity {
