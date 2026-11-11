@@ -1,4 +1,5 @@
 import { inlineNodes, MarkdownElement } from '../element/index.ts';
+import { linkNode } from '../mdast/index.ts';
 import type { InlineContent, MDLink } from '../types.ts';
 
 /**
@@ -11,7 +12,5 @@ import type { InlineContent, MDLink } from '../types.ts';
  */
 export function link(content: InlineContent, url: string | URL): MDLink {
   const href = typeof url === 'string' ? url : url.href;
-  return new MarkdownElement('inline', 'link', 'a link', [
-    { type: 'link', url: href, children: inlineNodes(content, 'link content') },
-  ]);
+  return new MarkdownElement('inline', 'link', 'a link', [linkNode(href, inlineNodes(content, 'link content'))]);
 }

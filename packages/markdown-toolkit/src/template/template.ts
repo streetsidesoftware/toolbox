@@ -1,5 +1,6 @@
 import { detectMarkdownStyle } from '../detectStyle.ts';
-import { assertCondition, MarkdownElement, textNodes } from '../element/index.ts';
+import { assertCondition, MarkdownElement } from '../element/index.ts';
+import { paragraphContent, textNodes } from '../mdast/index.ts';
 import type { MDDocument, MDFragment, MDInlineFragment } from '../types.ts';
 import { fragmentOf } from './fragment.ts';
 import { documentOf, templateTree } from './parse.ts';
@@ -92,15 +93,11 @@ export function inlineTemplate(
   const body = start.trimEnd();
   const tail = start.slice(body.length);
   const root = templateTree(body, true);
-  assertCondition(
-    root.children.length <= 1 && (!root.children[0] || root.children[0].type === 'paragraph'),
-    'inline template text must be one paragraph',
-  );
+  assertCondition(paragraphContent(root.children), 'inline template text must be one paragraph');
   substituteInTree(root, resolverOf(replacements), false);
-  const children = root.children[0]?.type === 'paragraph' ? root.children[0].children : [];
   return new MarkdownElement('inline', 'inlineFragment', 'an inline Markdown fragment', [
     ...textNodes(lead),
-    ...children,
+    ...(paragraphContent(root.children) ?? []),
     ...textNodes(tail),
   ]);
 }

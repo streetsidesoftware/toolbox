@@ -1,6 +1,6 @@
-import type { AlignType, TableRow } from 'mdast';
-
 import { assertCondition, assertIsArray, inlineNodes, MarkdownElement } from '../element/index.ts';
+import { tableNode } from '../mdast/index.ts';
+import type { AlignType, PhrasingContent } from '../mdast/index.ts';
 import type { ColumnAlign, InlineContent, MDTable, TableOptions } from '../types.ts';
 
 /**
@@ -25,20 +25,13 @@ export function table(
   assertIsArray(header, 'table header');
   assertIsArray(rows, 'table rows');
   return new MarkdownElement('block', 'table', 'a table', [
-    {
-      type: 'table',
-      align: (options?.align ?? []).map(alignOf),
-      children: [header, ...rows].map(rowNode),
-    },
+    tableNode((options?.align ?? []).map(alignOf), [header, ...rows].map(rowCells)),
   ]);
 }
 
-function rowNode(cells: readonly InlineContent[]): TableRow {
+function rowCells(cells: readonly InlineContent[]): PhrasingContent[][] {
   assertIsArray(cells, 'table row');
-  return {
-    type: 'tableRow',
-    children: cells.map((cell) => ({ type: 'tableCell', children: inlineNodes(cell, 'table cell') })),
-  };
+  return cells.map((cell) => inlineNodes(cell, 'table cell'));
 }
 
 /** Return the alignment of a column, or `null` for none. */

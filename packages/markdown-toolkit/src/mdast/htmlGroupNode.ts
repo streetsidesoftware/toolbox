@@ -5,7 +5,7 @@ import { trimBlanksAroundBreaks, trimLineEdges } from './blanks.ts';
 /**
  * HTML tags and the content between them, such as a summary or the cells of a table.
  * It stays in the tree through substitution, so rendering writes it knowing the replacements.
- * Only this package's own code sees it in mdast's content types; the published types leave mdast unchanged.
+ * `customNodes.ts` adds it to mdast's content types, for this package's own code only.
  */
 export interface HtmlGroupNode extends Parent {
   type: 'htmlGroup';
@@ -25,13 +25,17 @@ export interface HtmlSlotNode extends Parent {
   children: RootContent[];
 }
 
-// mdast builds `RootContent` from its own map, so the nodes go in it.
-declare module 'mdast' {
-  interface RootContentMap {
-    htmlGroup: HtmlGroupNode;
-    htmlInlineSlot: HtmlSlotNode;
-    htmlBlockSlot: HtmlSlotNode;
-  }
+export function htmlGroupNode(children: HtmlGroupNode['children']): HtmlGroupNode {
+  return { type: 'htmlGroup', children };
+}
+
+/** Return an inline slot that holds `content` as its one paragraph. */
+export function htmlInlineSlotNode(open: string, close: string, content: PhrasingContent[]): HtmlSlotNode {
+  return { type: 'htmlInlineSlot', open, close, children: [{ type: 'paragraph', children: content }] };
+}
+
+export function htmlBlockSlotNode(open: string, close: string, children: RootContent[]): HtmlSlotNode {
+  return { type: 'htmlBlockSlot', open, close, children };
 }
 
 /**

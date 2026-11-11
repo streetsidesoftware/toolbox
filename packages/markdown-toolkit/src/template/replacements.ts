@@ -10,8 +10,8 @@ import {
   isMDElement,
   isText,
   MarkdownElement,
-  textNodes,
 } from '../element/index.ts';
+import { textNodes } from '../mdast/index.ts';
 import type { AnyContent, InlineContent, MDElement } from '../types.ts';
 
 export type TemplateReplacement = string | number | boolean | MDElement | readonly TemplateReplacement[];

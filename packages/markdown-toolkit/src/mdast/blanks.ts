@@ -1,4 +1,6 @@
-import type { Delete, Emphasis, Nodes, PhrasingContent, Strong } from 'mdast';
+import type { Delete, Emphasis, PhrasingContent, Strong } from 'mdast';
+
+import { isFormatting } from './nodes.ts';
 
 /**
  * Return the inline nodes without the spaces, tabs and line endings at their start and end.
@@ -130,10 +132,6 @@ function trimmedInside<T extends Delete | Emphasis | Strong>(
 
 function hasSpaceOrTab(node: PhrasingContent): boolean {
   return node.type === 'text' && (node.value.includes(' ') || node.value.includes('\t'));
-}
-
-export function isFormatting(node: Nodes): node is Delete | Emphasis | Strong {
-  return node.type === 'strong' || node.type === 'emphasis' || node.type === 'delete';
 }
 
 function trimStart(text: string): string {

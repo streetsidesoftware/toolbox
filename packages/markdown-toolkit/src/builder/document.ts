@@ -1,6 +1,6 @@
-import type { RootContent } from 'mdast';
-
 import { argumentNodes, MarkdownElement, markdownInternalsOf } from '../element/index.ts';
+import { frontmatterOf, withoutFrontmatter } from '../mdast/index.ts';
+import type { RootContent } from '../mdast/index.ts';
 import type { AnyContent, MarkdownStyle, MDDocument, MDFrontmatter } from '../types.ts';
 import { frontmatter, isFrontmatter } from './frontmatter.ts';
 
@@ -43,13 +43,12 @@ export class DocumentElement extends MarkdownElement<'block', 'document'> implem
   }
 
   get frontmatter(): string | undefined {
-    const [first] = markdownInternalsOf(this).nodes;
-    return first?.type === 'yaml' ? first.value : undefined;
+    return frontmatterOf(markdownInternalsOf(this).nodes);
   }
 
   withFrontmatter(given: string | MDFrontmatter | undefined): MDDocument {
     const { nodes, style } = markdownInternalsOf(this);
-    const content = nodes[0]?.type === 'yaml' ? nodes.slice(1) : nodes;
+    const content = withoutFrontmatter(nodes);
     if (given === undefined) return new DocumentElement(content, style);
     const element = typeof given === 'string' ? frontmatter(given) : given;
     return new DocumentElement([...markdownInternalsOf(element).nodes, ...content], style);

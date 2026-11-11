@@ -1,35 +1,10 @@
-import { listPlaceholders } from '@streetsidesoftware/placeholders';
-import type { List, BlockContent as MdastBlockContent, PhrasingContent, RootContent } from 'mdast';
-
-import { asInlineHtml, placeholderNodeAsWritten, trimBlanks } from '../mdast/index.ts';
+import { asInlineHtml, inLists, joinLines, paragraphNode, stringNodes, trimBlanks } from '../mdast/index.ts';
+import type { BlockContent as MdastBlockContent, PhrasingContent, RootContent } from '../mdast/index.ts';
 import type { AnyContent, BlockContent, InlineContent, MDBlock, MDListItem } from '../types.ts';
 import { assertCondition, assertUnhandledCase, isArray, isKind, isListItem, markdownInternalsOf } from './element.ts';
 
 /** Content on its own lines, where list items in a row form a list. */
 type BlockLike = BlockContent | MDListItem | readonly (BlockContent | MDListItem)[];
-
-/**
- * Return the text nodes for a string.
- * A placeholder is kept as written, so escaping never touches `{​@ name @​}`.
- */
-export function textNodes(text: string): PhrasingContent[] {
-  const nodes: PhrasingContent[] = [];
-  let last = 0;
-  for (const { start, end } of listPlaceholders(text)) {
-    if (start > last) nodes.push({ type: 'text', value: text.slice(last, start) });
-    nodes.push(placeholderNodeAsWritten(text.slice(start, end)));
-    last = end;
-  }
-  if (last < text.length) nodes.push({ type: 'text', value: text.slice(last) });
-  return nodes;
-}
-
-/** Return the text nodes for a string, with each line ending as a line break. */
-export function stringNodes(text: string): PhrasingContent[] {
-  return text
-    .split(/\r\n?|\n/)
-    .flatMap((line, i): PhrasingContent[] => [...(i ? [{ type: 'break' } as const] : []), ...textNodes(line)]);
-}
 
 /**
  * Return the nodes for inline content.
@@ -104,9 +79,9 @@ export function mapParagraphsAndBlocks<T>(
  * @param where - what the content is for, for error messages.
  */
 export function groupedNodes(content: AnyContent | readonly AnyContent[], where: string): MdastBlockContent[] {
-  const nodes = mapParagraphsAndBlocks(
+  const nodes = mapParagraphsAndBlocks<RootContent>(
     content,
-    (inline): RootContent => ({ type: 'paragraph', children: inlineNodes(inline, where) }),
+    (inline) => paragraphNode(inlineNodes(inline, where)),
     (block) => blockNodes(block, where),
   );
   return inLists(nodes) as MdastBlockContent[];
@@ -125,7 +100,7 @@ export function argumentNodes(args: readonly AnyContent[], where: string): Mdast
   const nodes: RootContent[] = [];
   let lines: PhrasingContent[][] = [];
   function endParagraph(): void {
-    if (lines.length) nodes.push({ type: 'paragraph', children: joinLines(lines) });
+    if (lines.length) nodes.push(paragraphNode(joinLines(lines)));
     lines = [];
   }
   for (const arg of args) {
@@ -148,47 +123,4 @@ export function argumentNodes(args: readonly AnyContent[], where: string): Mdast
   }
   endParagraph();
   return inLists(nodes) as MdastBlockContent[];
-}
-
-/** Join lines with a line ending, except next to a line break, which already ends the line. */
-function joinLines(lines: readonly PhrasingContent[][]): PhrasingContent[] {
-  const result: PhrasingContent[] = [];
-  for (const line of lines) {
-    const before = result.at(-1);
-    if (before && before.type !== 'break' && line[0].type !== 'break') result.push({ type: 'text', value: '\n' });
-    for (const node of line) result.push(node);
-  }
-  return result;
-}
-
-/**
- * Put each run of list items in a bullet list. A run joins a list right before or after it, so a list item next to a
- * list is one more item of it, and the list keeps its numbering. Two lists in a row stay two lists.
- */
-export function inLists(nodes: readonly RootContent[]): RootContent[] {
-  const result: RootContent[] = [];
-  let joined: List | undefined;
-  let joinedBefore = false;
-  for (const node of nodes) {
-    if (node.type === 'listItem') {
-      if (!joined) {
-        const before = result.at(-1)?.type === 'list' ? (result.pop() as List) : undefined;
-        joined = { type: 'list', ordered: false, spread: false, ...before, children: [...(before?.children ?? [])] };
-        joinedBefore = before !== undefined;
-        result.push(joined);
-      }
-      joined.children.push(node);
-      continue;
-    }
-    if (joined && node.type === 'list') {
-      // With no list before them, the list items join this one as its first items, so it keeps its own settings.
-      if (!joinedBefore) Object.assign(joined, { ...node, children: joined.children });
-      for (const item of node.children) joined.children.push(item);
-      joined = undefined;
-      continue;
-    }
-    joined = undefined;
-    result.push(node);
-  }
-  return result;
 }

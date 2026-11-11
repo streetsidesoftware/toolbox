@@ -1,6 +1,6 @@
-import type { Html } from 'mdast';
-
 import { assertCondition, MarkdownElement } from '../element/index.ts';
+import { htmlNode } from '../mdast/index.ts';
+import type { RootContent } from '../mdast/index.ts';
 import type { MDBlockComment, MDComment, MDInlineComment } from '../types.ts';
 
 /**
@@ -68,12 +68,12 @@ export function blockComment(text: string): MDBlockComment {
   return new MarkdownElement('block', 'blockComment', 'a block comment', [blockCommentNode(text)]);
 }
 
-function inlineCommentNode(text: string): Html {
-  return { type: 'html', value: `<!-- ${commentSafe(text)} -->` };
+function inlineCommentNode(text: string): RootContent {
+  return htmlNode(`<!-- ${commentSafe(text)} -->`);
 }
 
-function blockCommentNode(text: string): Html {
-  return { type: 'html', value: `<!--\n${commentSafe(text)}\n-->` };
+function blockCommentNode(text: string): RootContent {
+  return htmlNode(`<!--\n${commentSafe(text)}\n-->`);
 }
 
 function hasLineEnding(text: string): boolean {

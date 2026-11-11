@@ -3,20 +3,10 @@ import type { Literal, PhrasingContent } from 'mdast';
 /**
  * A placeholder kept as written. It has a node type of its own, so rendering writes it as is.
  * It isn't an `html` node because remark-stringify turns a line ending before one into a space.
- * Only this package's own code sees it in mdast's content types; the published types leave mdast unchanged.
+ * `customNodes.ts` adds it to mdast's content types, for this package's own code only.
  */
 export interface PlaceholderNode extends Literal {
   type: 'placeholder';
-}
-
-// mdast builds `RootContent` from its own map, so the node goes in both.
-declare module 'mdast' {
-  interface PhrasingContentMap {
-    placeholder: PlaceholderNode;
-  }
-  interface RootContentMap {
-    placeholder: PlaceholderNode;
-  }
 }
 
 /** Return the node for the placeholder `name`. */

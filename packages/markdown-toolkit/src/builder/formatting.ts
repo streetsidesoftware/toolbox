@@ -1,7 +1,6 @@
-import type { PhrasingContent } from 'mdast';
-
 import { inlineNodes, MarkdownElement } from '../element/index.ts';
-import { inlineHtmlNode } from '../mdast/index.ts';
+import { deleteNode, emphasisNode, inlineHtmlNode, strongNode } from '../mdast/index.ts';
+import type { PhrasingContent } from '../mdast/index.ts';
 import type { InlineContent, MDEmphasis, MDStrikethrough, MDStrong, MDSub, MDSup } from '../types.ts';
 
 /**
@@ -15,9 +14,7 @@ import type { InlineContent, MDEmphasis, MDStrikethrough, MDStrong, MDSub, MDSup
  * @category formatting
  */
 export function strong(content: InlineContent): MDStrong {
-  return new MarkdownElement('inline', 'strong', 'strong text', [
-    { type: 'strong', children: inlineNodes(content, 'strong content') },
-  ]);
+  return new MarkdownElement('inline', 'strong', 'strong text', [strongNode(inlineNodes(content, 'strong content'))]);
 }
 
 /**
@@ -32,7 +29,7 @@ export function strong(content: InlineContent): MDStrong {
  */
 export function emphasis(content: InlineContent): MDEmphasis {
   return new MarkdownElement('inline', 'emphasis', 'emphasized text', [
-    { type: 'emphasis', children: inlineNodes(content, 'emphasis content') },
+    emphasisNode(inlineNodes(content, 'emphasis content')),
   ]);
 }
 
@@ -48,7 +45,7 @@ export function emphasis(content: InlineContent): MDEmphasis {
  */
 export function strikethrough(content: InlineContent): MDStrikethrough {
   return new MarkdownElement('inline', 'strikethrough', 'struck-through text', [
-    { type: 'delete', children: inlineNodes(content, 'strikethrough content') },
+    deleteNode(inlineNodes(content, 'strikethrough content')),
   ]);
 }
 

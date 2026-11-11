@@ -1,5 +1,5 @@
-import type { ListItem, PhrasingContent, RootContent } from 'mdast';
-
+import { listNode, paragraphNode } from '../mdast/index.ts';
+import type { ListItem, PhrasingContent, RootContent } from '../mdast/index.ts';
 import { renderNodes } from '../render.ts';
 import type { MarkdownStyle, MDElement, MDKind, MDListItem, MDText, MDType } from '../types.ts';
 
@@ -36,10 +36,10 @@ export class MarkdownElement<K extends MDKind = MDKind, T extends MDType = MDTyp
   toString(): string {
     const { nodes, style } = markdownInternalsOf(this);
     if (this.kind === 'inline') {
-      return renderNodes([{ type: 'paragraph', children: nodes as PhrasingContent[] }], style);
+      return renderNodes([paragraphNode(nodes as PhrasingContent[])], style);
     }
     if (this.kind === 'listItem') {
-      return renderNodes([{ type: 'list', ordered: false, spread: false, children: nodes as ListItem[] }], style);
+      return renderNodes([listNode(nodes as ListItem[])], style);
     }
     return renderNodes(nodes, style);
   }

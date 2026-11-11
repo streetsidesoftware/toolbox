@@ -1,6 +1,6 @@
-import type { Paragraph } from 'mdast';
-
-import { MarkdownElement, stringNodes, textNodes } from '../element/index.ts';
+import { MarkdownElement } from '../element/index.ts';
+import { paragraphNode, stringNodes, textNodes } from '../mdast/index.ts';
+import type { RootContent } from '../mdast/index.ts';
 import type { MDFragment, MDText } from '../types.ts';
 
 class TextElement extends MarkdownElement<'inline', 'text'> implements MDText {
@@ -43,7 +43,7 @@ export const inlineText: typeof text = text;
  * @category text
  */
 export function blockText(value: string): MDFragment {
-  const paragraphs: Paragraph[] = [];
+  const paragraphs: RootContent[] = [];
   let lines: string[] = [];
   for (const line of value.split(/\r\n?|\n/)) {
     if (/^[ \t]*$/.test(line)) {
@@ -56,7 +56,7 @@ export function blockText(value: string): MDFragment {
   return new MarkdownElement('block', 'fragment', 'a Markdown fragment', paragraphs);
 
   function endParagraph(): void {
-    if (lines.length) paragraphs.push({ type: 'paragraph', children: textNodes(lines.join('\n')) });
+    if (lines.length) paragraphs.push(paragraphNode(textNodes(lines.join('\n'))));
     lines = [];
   }
 }

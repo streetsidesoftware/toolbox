@@ -5,13 +5,12 @@ import { DocumentElement, isHtmlEntity, text } from '../builder/index.ts';
 import {
   assertIsMDElement,
   blockNodes,
-  inLists,
   isBlockLike,
   isText,
   MarkdownElement,
   markdownInternalsOf,
 } from '../element/index.ts';
-import { trimBlanks } from '../mdast/index.ts';
+import { inLists, trimBlanks } from '../mdast/index.ts';
 import type { PlaceholderNode } from '../mdast/index.ts';
 import type {
   MDBlockPlaceholder,
