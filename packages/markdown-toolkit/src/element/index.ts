@@ -3,7 +3,6 @@ export {
   assertCondition,
   assertIsArray,
   assertIsMDElement,
-  describe,
   isArray,
   isKind,
   isListItem,

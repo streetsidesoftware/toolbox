@@ -2,7 +2,6 @@ import type { PhrasingContent } from 'mdast';
 
 import { isHtmlEntity } from '../builder/index.ts';
 import {
-  describe,
   groupedNodes,
   inlineNodes,
   isArray,
@@ -105,7 +104,7 @@ export function replacementAsCode(replacement: TemplateReplacement, name: string
   if (plain !== undefined) return plain;
   if (isHtmlEntity(replacement)) return inside === 'HTML' ? replacement.toString() : replacement.character;
   throw new TypeError(
-    `{@ ${name} @} is inside ${inside} and takes only a string, text, a placeholder or an HTML entity, got ${describe(replacement)}`,
+    `{@ ${name} @} is inside ${inside} and takes only a string, text, a placeholder or an HTML entity`,
   );
 }
 
@@ -113,9 +112,7 @@ export function replacementAsCode(replacement: TemplateReplacement, name: string
 export function replacementInLink(replacement: TemplateReplacement, name: string, inside: 'a URL' | 'a title'): string {
   const plain = replacementAsPlainText(replacement);
   if (plain !== undefined) return plain;
-  throw new TypeError(
-    `{@ ${name} @} is inside ${inside} and takes only a string, text or a placeholder, got ${describe(replacement)}`,
-  );
+  throw new TypeError(`{@ ${name} @} is inside ${inside} and takes only a string, text or a placeholder`);
 }
 
 /** Return `undefined` for a replacement that isn't plain text, such as a link or an HTML entity. */

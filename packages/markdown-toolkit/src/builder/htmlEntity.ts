@@ -43,7 +43,7 @@ export function htmlEntity(value: string): MDHtmlEntity {
   const name = nameOf(value);
   if (name) return new HtmlEntityElement(`&${name};`, value);
   if ([...value].length === 1) return new HtmlEntityElement(numberFor(value), value);
-  throw new Error(`unknown HTML entity name: "${given}"`);
+  throw new Error("an HTML entity must be a character, a name HTML defines, or a reference such as '&nbsp;'");
 }
 
 /**

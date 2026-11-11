@@ -5,13 +5,13 @@ import { assertCondition, assertIsArray, assertIsMDElement, MarkdownElement } fr
 
 describe('assertCondition', () => {
   test('a condition that holds passes', () => {
-    assert.doesNotThrow(() => assertCondition(true, 'heading depth must be 1 to 6, got 3'));
+    assert.doesNotThrow(() => assertCondition(true, 'heading depth must be a number from 1 to 6'));
   });
 
   test('a condition that fails throws a TypeError with the message', () => {
     assert.throws(
-      () => assertCondition(false, 'heading depth must be 1 to 6, got 7'),
-      new TypeError('heading depth must be 1 to 6, got 7'),
+      () => assertCondition(false, 'heading depth must be a number from 1 to 6'),
+      new TypeError('heading depth must be a number from 1 to 6'),
     );
   });
 });
@@ -22,10 +22,7 @@ describe('assertIsArray', () => {
   });
 
   test('anything else throws a TypeError naming the value and what was given', () => {
-    assert.throws(
-      () => assertIsArray('A', 'table header'),
-      new TypeError('table header must be an array, got a string'),
-    );
+    assert.throws(() => assertIsArray('A', 'table header'), new TypeError('table header must be an array'));
   });
 });
 
@@ -38,7 +35,7 @@ describe('assertIsMDElement', () => {
   test('anything else throws a TypeError naming what was expected and what was given', () => {
     assert.throws(
       () => assertIsMDElement(42, 'a string or a Markdown element'),
-      new TypeError('expected a string or a Markdown element, got a number'),
+      new TypeError('expected a string or a Markdown element'),
     );
   });
 
@@ -46,7 +43,7 @@ describe('assertIsMDElement', () => {
     const lookAlike = { kind: 'block', type: 'paragraph', description: 'a paragraph' };
     assert.throws(
       () => assertIsMDElement(lookAlike, 'a Markdown element'),
-      new TypeError('expected a Markdown element, got an object'),
+      new TypeError('expected a Markdown element'),
     );
   });
 });

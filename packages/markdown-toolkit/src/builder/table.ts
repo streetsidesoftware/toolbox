@@ -45,7 +45,7 @@ function rowNode(cells: readonly InlineContent[]): TableRow {
 export function alignOf(align: ColumnAlign): AlignType {
   if (align === undefined || align === 'left' || align === 'center' || align === 'right') return align ?? null;
   const delimiter = /^(:?)-+(:?)$/.exec(align);
-  assertCondition(delimiter, `invalid column alignment: "${String(align)}"`);
+  assertCondition(delimiter, "column alignment must be 'left', 'center', 'right' or a delimiter such as ':---'");
   const [, left, right] = delimiter;
   return left && right ? 'center' : left ? 'left' : right ? 'right' : null;
 }

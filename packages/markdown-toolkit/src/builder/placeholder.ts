@@ -58,5 +58,8 @@ export function blockPlaceholder(name: string): MDBlockPlaceholder {
 }
 
 function assertIsPlaceholderName(name: string): void {
-  assertCondition(isValidPlaceholderName(name), `invalid placeholder name: "${name}"`);
+  assertCondition(
+    isValidPlaceholderName(name),
+    "a placeholder name must be parts joined by '.', each of ASCII letters, digits, '_' and '-', and not starting with '-'",
+  );
 }

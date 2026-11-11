@@ -98,7 +98,7 @@ describe('table', () => {
   `('an invalid alignment throws: $align', ({ align }: { align: ColumnAlign }) => {
     assert.throws(() => table(['a'], [], { align: [align] }), {
       name: 'TypeError',
-      message: /invalid column alignment/,
+      message: "column alignment must be 'left', 'center', 'right' or a delimiter such as ':---'",
     });
   });
 
@@ -127,7 +127,7 @@ describe('table', () => {
 
   testEach`
     header            | rows              | message
-    ${['A']}          | ${[[list([])]]}   | ${'table cell must be inline, got a list'}
+    ${['A']}          | ${[[list([])]]}   | ${'table cell must be inline'}
   `(
     'wrong content throws a TypeError: $message',
     ({ header, rows, message }: { header: never; rows: never; message: string }) => {

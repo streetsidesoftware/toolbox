@@ -17,7 +17,12 @@ describe('placeholders', () => {
   });
 
   test('an invalid name throws', () => {
-    assert.throws(() => placeholder('-bad'), /invalid placeholder name/);
+    assert.throws(
+      () => placeholder('-bad'),
+      new TypeError(
+        "a placeholder name must be parts joined by '.', each of ASCII letters, digits, '_' and '-', and not starting with '-'",
+      ),
+    );
   });
 
   test('a name such as constructor is a name like any other', () => {
@@ -37,11 +42,16 @@ describe('placeholders', () => {
     assert.throws(
       // @ts-expect-error a block placeholder is a block
       () => heading(2, blockPlaceholder('x')),
-      new TypeError('heading content must be inline, got a block placeholder'),
+      new TypeError('heading content must be inline'),
     );
   });
 
   test('an invalid name throws', () => {
-    assert.throws(() => blockPlaceholder('a..b'), new TypeError('invalid placeholder name: "a..b"'));
+    assert.throws(
+      () => blockPlaceholder('a..b'),
+      new TypeError(
+        "a placeholder name must be parts joined by '.', each of ASCII letters, digits, '_' and '-', and not starting with '-'",
+      ),
+    );
   });
 });
