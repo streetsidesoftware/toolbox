@@ -96,7 +96,10 @@ describe('table', () => {
     ${'--:-'}
     ${'middle'}
   `('an invalid alignment throws: $align', ({ align }: { align: ColumnAlign }) => {
-    assert.throws(() => table(['a'], [], { align: [align] }), { name: 'Error', message: /invalid column alignment/ });
+    assert.throws(() => table(['a'], [], { align: [align] }), {
+      name: 'TypeError',
+      message: /invalid column alignment/,
+    });
   });
 
   test('a short row is padded with empty cells, and a long row adds a column', () => {

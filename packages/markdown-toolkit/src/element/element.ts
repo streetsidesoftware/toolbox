@@ -74,6 +74,11 @@ export function isText(value: unknown): value is MDText {
   return isKind(value, 'inline') && value.type === 'text';
 }
 
+/** Throw a `TypeError` unless the condition holds. `message` says what was expected and what was given. */
+export function assertCondition(condition: unknown, message: string): asserts condition {
+  if (!condition) throw new TypeError(message);
+}
+
 /** Throw a `TypeError` unless the value is an array. `what` names the value, such as `table header`. */
 export function assertIsArray<T>(value: T | readonly T[], what: string): asserts value is readonly T[] {
   if (!isArray(value)) throw new TypeError(`${what} must be an array, got ${describe(value)}`);

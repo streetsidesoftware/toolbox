@@ -42,6 +42,6 @@ describe('placeholders', () => {
   });
 
   test('an invalid name throws', () => {
-    assert.throws(() => blockPlaceholder('a..b'), new Error('invalid placeholder name: "a..b"'));
+    assert.throws(() => blockPlaceholder('a..b'), new TypeError('invalid placeholder name: "a..b"'));
   });
 });

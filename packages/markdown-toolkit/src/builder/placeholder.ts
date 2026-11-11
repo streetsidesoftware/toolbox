@@ -1,6 +1,6 @@
 import { isValidPlaceholderName } from '@streetsidesoftware/placeholders';
 
-import { MarkdownElement } from '../element/index.ts';
+import { assertCondition, MarkdownElement } from '../element/index.ts';
 import { placeholderNode } from '../mdast/index.ts';
 import type { MDBlockPlaceholder, MDPlaceholder } from '../types.ts';
 
@@ -37,7 +37,7 @@ class BlockPlaceholderElement extends MarkdownElement<'block', 'blockPlaceholder
  * @category placeholders
  */
 export function placeholder(name: string): MDPlaceholder {
-  checkPlaceholderName(name);
+  assertIsPlaceholderName(name);
   return new PlaceholderElement(name);
 }
 
@@ -53,10 +53,10 @@ export function placeholder(name: string): MDPlaceholder {
  * @category placeholders
  */
 export function blockPlaceholder(name: string): MDBlockPlaceholder {
-  checkPlaceholderName(name);
+  assertIsPlaceholderName(name);
   return new BlockPlaceholderElement(name);
 }
 
-function checkPlaceholderName(name: string): void {
-  if (!isValidPlaceholderName(name)) throw new Error(`invalid placeholder name: "${name}"`);
+function assertIsPlaceholderName(name: string): void {
+  assertCondition(isValidPlaceholderName(name), `invalid placeholder name: "${name}"`);
 }

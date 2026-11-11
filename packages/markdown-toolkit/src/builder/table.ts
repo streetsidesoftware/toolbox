@@ -1,6 +1,6 @@
 import type { AlignType, TableRow } from 'mdast';
 
-import { assertIsArray, inlineNodes, MarkdownElement } from '../element/index.ts';
+import { assertCondition, assertIsArray, inlineNodes, MarkdownElement } from '../element/index.ts';
 import type { ColumnAlign, InlineContent, MDTable, TableOptions } from '../types.ts';
 
 /**
@@ -45,7 +45,7 @@ function rowNode(cells: readonly InlineContent[]): TableRow {
 export function alignOf(align: ColumnAlign): AlignType {
   if (align === undefined || align === 'left' || align === 'center' || align === 'right') return align ?? null;
   const delimiter = /^(:?)-+(:?)$/.exec(align);
-  if (!delimiter) throw new Error(`invalid column alignment: "${String(align)}"`);
+  assertCondition(delimiter, `invalid column alignment: "${String(align)}"`);
   const [, left, right] = delimiter;
   return left && right ? 'center' : left ? 'left' : right ? 'right' : null;
 }

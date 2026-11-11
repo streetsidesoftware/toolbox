@@ -1,7 +1,20 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { assertIsArray, assertIsMDElement, MarkdownElement } from './element.ts';
+import { assertCondition, assertIsArray, assertIsMDElement, MarkdownElement } from './element.ts';
+
+describe('assertCondition', () => {
+  test('a condition that holds passes', () => {
+    assert.doesNotThrow(() => assertCondition(true, 'heading depth must be 1 to 6, got 3'));
+  });
+
+  test('a condition that fails throws a TypeError with the message', () => {
+    assert.throws(
+      () => assertCondition(false, 'heading depth must be 1 to 6, got 7'),
+      new TypeError('heading depth must be 1 to 6, got 7'),
+    );
+  });
+});
 
 describe('assertIsArray', () => {
   test('an array passes', () => {

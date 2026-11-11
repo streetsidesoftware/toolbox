@@ -523,7 +523,7 @@ describe('htmlTable', () => {
   });
 
   test('an invalid alignment throws', () => {
-    assert.throws(() => htmlTable(['A'], [], { align: ['up'] }), new Error('invalid column alignment: "up"'));
+    assert.throws(() => htmlTable(['A'], [], { align: ['up'] }), new TypeError('invalid column alignment: "up"'));
   });
 
   testEach`

@@ -1,4 +1,5 @@
 import {
+  assertCondition,
   groupedNodes,
   inlineNodes,
   isBlockContent,
@@ -27,9 +28,10 @@ import type {
  * @category headings
  */
 export function heading(depth: HeadingDepth, content: InlineContent): MDHeading {
-  if (!Number.isInteger(depth) || depth < 1 || depth > 6) {
-    throw new Error(`heading depth must be 1 to 6, got ${String(depth)}`);
-  }
+  assertCondition(
+    Number.isInteger(depth) && depth >= 1 && depth <= 6,
+    `heading depth must be 1 to 6, got ${String(depth)}`,
+  );
   return new MarkdownElement('block', 'heading', 'a heading', [
     { type: 'heading', depth, children: inlineNodes(content, 'heading content') },
   ]);
