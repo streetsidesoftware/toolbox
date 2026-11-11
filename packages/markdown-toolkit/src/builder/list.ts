@@ -1,6 +1,13 @@
 import type { ListItem } from 'mdast';
 
-import { argumentNodes, describe, isListItem, isMDElement, MarkdownElement, renderingOf } from '../element/index.ts';
+import {
+  argumentNodes,
+  describe,
+  isListItem,
+  isMDElement,
+  MarkdownElement,
+  markdownInternalsOf,
+} from '../element/index.ts';
 import type {
   ListEntry,
   ListItemContent,
@@ -130,7 +137,7 @@ export function list(entries: readonly ListEntry[], options?: ListOptions): MDLi
     throw new TypeError(`a list start must be a whole number from 0 to 999999999, got ${given}`);
   }
   const items = entries.map((entry) =>
-    isListItem(entry) ? (renderingOf(entry)?.nodes[0] as ListItem) : listItemNode([entry]),
+    isListItem(entry) ? (markdownInternalsOf(entry)?.nodes[0] as ListItem) : listItemNode([entry]),
   );
   return new MarkdownElement('block', 'list', 'a list', [
     { type: 'list', ordered, start: ordered ? (start ?? 1) : null, spread: false, children: items },

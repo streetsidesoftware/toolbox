@@ -2,7 +2,15 @@ import { listPlaceholders, replacePlaceholders } from '@streetsidesoftware/place
 import type { Paragraph, PhrasingContent, Root, RootContent, Text } from 'mdast';
 
 import { DocumentElement, isHtmlEntity, text } from '../builder/index.ts';
-import { blockNodes, describe, inLists, isBlockLike, isText, MarkdownElement, renderingOf } from '../element/index.ts';
+import {
+  blockNodes,
+  describe,
+  inLists,
+  isBlockLike,
+  isText,
+  MarkdownElement,
+  markdownInternalsOf,
+} from '../element/index.ts';
 import { trimBlanks } from '../mdast/index.ts';
 import type { PlaceholderNode } from '../mdast/index.ts';
 import type {
@@ -92,14 +100,14 @@ export function substitutePlaceholders(
 ): MDElement {
   if (typeof content === 'string') return substitutePlaceholders(text(content), replacements);
   const resolve = resolverOf(replacements);
-  const rendering = renderingOf(content);
-  if (!rendering) throw new TypeError(`expected a string or a Markdown element, got ${describe(content)}`);
+  const markdownInternals = markdownInternalsOf(content);
+  if (!markdownInternals) throw new TypeError(`expected a string or a Markdown element, got ${describe(content)}`);
   // An HTML entity has no placeholder in it, and keeps its character.
   if (isHtmlEntity(content)) return content;
   const substituted = isText(content) ? substituteInText(content.text, resolve) : undefined;
   if (substituted !== undefined) return text(substituted);
-  const { style } = rendering;
-  const nodes = structuredClone(rendering.nodes);
+  const { style } = markdownInternals;
+  const nodes = structuredClone(markdownInternals.nodes);
   switch (content.type) {
     case 'text':
     case 'inlineFragment':

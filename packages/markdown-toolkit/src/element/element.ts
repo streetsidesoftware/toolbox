@@ -4,12 +4,13 @@ import { renderNodes } from '../render.ts';
 import type { MarkdownStyle, MDElement, MDKind, MDListItem, MDText, MDType } from '../types.ts';
 
 /**
- * The key an element's rendering is stored under. Having it is what makes a value a Markdown element.
+ * The key an element's internals are stored under. Having it is what makes a value a Markdown element.
  * It comes from the global symbol registry, so another loaded copy of this module recognizes the element too.
  */
-const renderingKey: unique symbol = Symbol.for('@streetsidesoftware/markdown-toolkit.value');
+const markdownInternalsKey: unique symbol = Symbol.for('@streetsidesoftware/markdown-toolkit.value');
 
-interface Rendering {
+/** The non-public side of a Markdown element. */
+interface MarkdownInternals {
   nodes: RootContent[];
   style: MarkdownStyle | undefined;
 }
@@ -28,12 +29,12 @@ export class MarkdownElement<K extends MDKind = MDKind, T extends MDType = MDTyp
     this.type = type;
     this.description = description;
     // Set rather than declared: isolatedDeclarations rejects a computed key on a class.
-    Object.assign(this, { [renderingKey]: { nodes, style } });
+    Object.assign(this, { [markdownInternalsKey]: { nodes, style } });
   }
 
   // Takes no options: a template literal passes no arguments.
   toString(): string {
-    const { nodes, style } = renderingOf(this) ?? { nodes: [] };
+    const { nodes, style } = markdownInternalsOf(this) ?? { nodes: [] };
     if (this.kind === 'inline') {
       return renderNodes([{ type: 'paragraph', children: nodes as PhrasingContent[] }], style);
     }
@@ -44,10 +45,10 @@ export class MarkdownElement<K extends MDKind = MDKind, T extends MDType = MDTyp
   }
 }
 
-/** Return how a Markdown element renders, or `undefined` for anything else. */
-export function renderingOf(value: unknown): Rendering | undefined {
+/** Return a Markdown element's internals, or `undefined` for anything else. */
+export function markdownInternalsOf(value: unknown): MarkdownInternals | undefined {
   return typeof value === 'object' && value !== null
-    ? (value as Partial<Record<typeof renderingKey, Rendering>>)[renderingKey]
+    ? (value as Partial<Record<typeof markdownInternalsKey, MarkdownInternals>>)[markdownInternalsKey]
     : undefined;
 }
 
@@ -90,5 +91,5 @@ export function describe(value: unknown): string {
  * @category elements
  */
 export function isMDElement(value: unknown): value is MDElement {
-  return typeof value === 'object' && value !== null && renderingKey in value;
+  return typeof value === 'object' && value !== null && markdownInternalsKey in value;
 }
