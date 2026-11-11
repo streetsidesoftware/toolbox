@@ -1,7 +1,7 @@
 import { isValidPlaceholderName } from '@streetsidesoftware/placeholders';
 
+import { placeholderNode } from '../core/index.ts';
 import { assertCondition, MarkdownElement } from '../element/index.ts';
-import { placeholderNode } from '../mdast/index.ts';
 import type { MDBlockPlaceholder, MDPlaceholder } from '../types.ts';
 
 class PlaceholderElement extends MarkdownElement<'inline', 'placeholder'> implements MDPlaceholder {

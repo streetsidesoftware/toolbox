@@ -12,8 +12,8 @@ import {
   trimBlanksAroundBreaks,
   trimLineEdges,
   writeHtmlGroups,
-} from './mdast/index.ts';
-import type { HtmlEntityNode, InlineHtmlNode, PlaceholderNode } from './mdast/index.ts';
+} from './core/index.ts';
+import type { HtmlEntityNode, InlineHtmlNode, PlaceholderNode } from './core/index.ts';
 import type { MarkdownStyle } from './types.ts';
 
 /** The style used for anything an element's own style leaves out. */

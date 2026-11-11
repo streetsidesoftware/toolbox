@@ -1,7 +1,7 @@
 import type { PhrasingContent } from 'mdast';
 
+import { inlineHtmlNode } from '../core/index.ts';
 import { inlineNodes, MarkdownElement } from '../element/index.ts';
-import { inlineHtmlNode } from '../mdast/index.ts';
 import type { InlineContent, MDEmphasis, MDStrikethrough, MDStrong, MDSub, MDSup } from '../types.ts';
 
 /**

@@ -1,7 +1,7 @@
 import { listPlaceholders } from '@streetsidesoftware/placeholders';
 import type { List, BlockContent as MdastBlockContent, PhrasingContent, RootContent } from 'mdast';
 
-import { asInlineHtml, placeholderNodeAsWritten, trimBlanks } from '../mdast/index.ts';
+import { asInlineHtml, placeholderNodeAsWritten, trimBlanks } from '../core/index.ts';
 import type { AnyContent, BlockContent, InlineContent, MDBlock, MDListItem } from '../types.ts';
 import { assertCondition, assertUnhandledCase, isArray, isKind, isListItem, markdownInternalsOf } from './element.ts';
 

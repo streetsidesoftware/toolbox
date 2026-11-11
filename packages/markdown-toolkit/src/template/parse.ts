@@ -5,9 +5,9 @@ import { unified } from 'unified';
 import type { Processor } from 'unified';
 
 import { DocumentElement, readFrontmatter, yamlNode } from '../builder/index.ts';
+import { htmlEntityFromMarkdown } from '../core/index.ts';
 import { detectMarkdownStyle } from '../detectStyle.ts';
 import { textNodes } from '../element/index.ts';
-import { htmlEntityFromMarkdown } from '../mdast/index.ts';
 import type { MDDocument, MDFragment, MDInlineFragment } from '../types.ts';
 import { fragment } from './fragment.ts';
 import type { TemplateResolver } from './replacements.ts';

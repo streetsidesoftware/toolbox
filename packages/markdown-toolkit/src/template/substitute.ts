@@ -2,6 +2,8 @@ import { listPlaceholders, replacePlaceholders } from '@streetsidesoftware/place
 import type { Paragraph, PhrasingContent, Root, RootContent, Text } from 'mdast';
 
 import { DocumentElement, isHtmlEntity, text } from '../builder/index.ts';
+import { trimBlanks } from '../core/index.ts';
+import type { PlaceholderNode } from '../core/index.ts';
 import {
   assertIsMDElement,
   blockNodes,
@@ -11,8 +13,6 @@ import {
   MarkdownElement,
   markdownInternalsOf,
 } from '../element/index.ts';
-import { trimBlanks } from '../mdast/index.ts';
-import type { PlaceholderNode } from '../mdast/index.ts';
 import type {
   MDBlockPlaceholder,
   MDElement,
