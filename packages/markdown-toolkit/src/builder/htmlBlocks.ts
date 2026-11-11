@@ -2,8 +2,9 @@ import type { Html, RootContent } from 'mdast';
 
 import {
   argumentNodes,
+  assertCondition,
+  assertIsArray,
   blockNodes,
-  describe,
   groupedNodes,
   inlineNodes,
   inLists,
@@ -59,13 +60,9 @@ export function details(summary: InlineContent, ...content: AnyContent[]): MDDet
  * @category lists
  */
 export function dl(entries: readonly DefinitionEntry[]): MDDefinitionList {
-  if (!Array.isArray(entries)) {
-    throw new TypeError(`definition list entries must be an array, got ${describe(entries)}`);
-  }
+  assertIsArray(entries, 'definition list entries');
   const nodes = entries.flatMap((entry): RootContent[] => {
-    if (!isArray(entry) || entry.length !== 2) {
-      throw new TypeError(`definition list entry must be a [term, definition] pair, got ${describe(entry)}`);
-    }
+    assertCondition(isArray(entry) && entry.length === 2, 'definition list entry must be a [term, definition] pair');
     const [term, definition] = entry;
     return [
       { type: 'htmlGroup', children: [inlineSlot('dt', term, 'definition term'), html('<dd>')] },
@@ -95,10 +92,10 @@ export function htmlTable(
   rows: readonly (readonly AnyContent[])[],
   options?: TableOptions,
 ): MDHtmlTable {
-  if (!isArray(header)) throw new TypeError(`table header must be an array, got ${describe(header)}`);
-  if (!isArray(rows)) throw new TypeError(`table rows must be an array, got ${describe(rows)}`);
+  assertIsArray(header, 'table header');
+  assertIsArray(rows, 'table rows');
   for (const row of rows) {
-    if (!isArray(row)) throw new TypeError(`table row must be an array, got ${describe(row)}`);
+    assertIsArray(row, 'table row');
   }
   const columns = rows.reduce((n, row) => Math.max(n, row.length), header.length);
   const align = (options?.align ?? []).map(alignOf);

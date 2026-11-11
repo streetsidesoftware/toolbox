@@ -4,7 +4,7 @@ import { trimBlanksAroundBreaks, trimLineEdges } from './blanks.ts';
 
 /**
  * HTML tags and the content between them, such as a summary or the cells of a table.
- * It stays in the tree through substitution, so rendering writes it knowing the values.
+ * It stays in the tree through substitution, so rendering writes it knowing the replacements.
  * Only this package's own code sees it in mdast's content types; the published types leave mdast unchanged.
  */
 export interface HtmlGroupNode extends Parent {
@@ -15,7 +15,7 @@ export interface HtmlGroupNode extends Parent {
 /**
  * The content between two tags.
  * - `htmlInlineSlot`: one paragraph, such as a summary. It goes on one line, and a placeholder in it takes only inline
- *   values.
+ *   replacements.
  * - `htmlBlockSlot`: anything a document can hold, such as a table cell. It gets blank lines, unless it's empty.
  */
 export interface HtmlSlotNode extends Parent {

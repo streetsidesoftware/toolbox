@@ -4,12 +4,13 @@ import { renderNodes } from '../render.ts';
 import type { MarkdownStyle, MDElement, MDKind, MDListItem, MDText, MDType } from '../types.ts';
 
 /**
- * The key an element's rendering is stored under. Having it is what makes a value a Markdown element.
+ * The key an element's internals are stored under. Having it is what makes a value a Markdown element.
  * It comes from the global symbol registry, so another loaded copy of this module recognizes the element too.
  */
-const renderingKey: unique symbol = Symbol.for('@streetsidesoftware/markdown-toolkit.value');
+const markdownInternalsKey: unique symbol = Symbol.for('@streetsidesoftware/markdown-toolkit.value');
 
-interface Rendering {
+/** The non-public side of a Markdown element. */
+interface MarkdownInternals {
   nodes: RootContent[];
   style: MarkdownStyle | undefined;
 }
@@ -28,12 +29,12 @@ export class MarkdownElement<K extends MDKind = MDKind, T extends MDType = MDTyp
     this.type = type;
     this.description = description;
     // Set rather than declared: isolatedDeclarations rejects a computed key on a class.
-    Object.assign(this, { [renderingKey]: { nodes, style } });
+    Object.assign(this, { [markdownInternalsKey]: { nodes, style } });
   }
 
   // Takes no options: a template literal passes no arguments.
   toString(): string {
-    const { nodes, style } = renderingOf(this) ?? { nodes: [] };
+    const { nodes, style } = markdownInternalsOf(this);
     if (this.kind === 'inline') {
       return renderNodes([{ type: 'paragraph', children: nodes as PhrasingContent[] }], style);
     }
@@ -44,16 +45,23 @@ export class MarkdownElement<K extends MDKind = MDKind, T extends MDType = MDTyp
   }
 }
 
-/** Return how a Markdown element renders, or `undefined` for anything else. */
-export function renderingOf(value: unknown): Rendering | undefined {
-  return typeof value === 'object' && value !== null
-    ? (value as Partial<Record<typeof renderingKey, Rendering>>)[renderingKey]
-    : undefined;
+/**
+ * Return an element's internals.
+ * Check a value from a caller with {@link assertIsMDElement} or {@link isMDElement} first:
+ * an object that only looks like an element has none.
+ */
+export function markdownInternalsOf(element: MDElement): MarkdownInternals {
+  return (element as unknown as Record<typeof markdownInternalsKey, MarkdownInternals>)[markdownInternalsKey];
+}
+
+/** Throw a `TypeError` unless the value is a Markdown element. `expected` names what the caller may pass. */
+export function assertIsMDElement(value: unknown, expected: string): asserts value is MDElement {
+  if (!isMDElement(value)) throw new TypeError(`expected ${expected}`);
 }
 
 /** Check whether a value is a Markdown element, and of one of the given kinds. */
 export function isKind(value: unknown, ...kinds: MDElement['kind'][]): value is MDElement {
-  return renderingOf(value) !== undefined && kinds.includes((value as MDElement).kind);
+  return isMDElement(value) && kinds.includes(value.kind);
 }
 
 /** Check whether a value is a list item. */
@@ -66,29 +74,36 @@ export function isText(value: unknown): value is MDText {
   return isKind(value, 'inline') && value.type === 'text';
 }
 
+/** Throw a `TypeError` unless the condition holds. `message` says what was expected and what was given. */
+export function assertCondition(condition: unknown, message: string): asserts condition {
+  if (!condition) throw new TypeError(message);
+}
+
+/** Throw a `TypeError` for a value that no case accepted. `message` states what is expected. */
+export function assertUnhandledCase(message: string): never {
+  throw new TypeError(message);
+}
+
+/** Throw a `TypeError` unless the value is an array. `what` names the value, such as `table header`. */
+export function assertIsArray<T>(value: T | readonly T[], what: string): asserts value is readonly T[] {
+  if (!isArray(value)) throw new TypeError(`${what} must be an array`);
+}
+
 /** Check whether a value is an array, as `Array.isArray` does, but narrowing readonly arrays too. */
 export function isArray<T>(value: T | readonly T[]): value is readonly T[] {
   return Array.isArray(value);
-}
-
-/** Describe what a value is, for error messages. */
-export function describe(value: unknown): string {
-  if (renderingOf(value)) return (value as MDElement).description;
-  if (Array.isArray(value)) return 'an array';
-  if (value === null || value === undefined) return String(value);
-  return typeof value === 'object' ? 'an object' : `a ${typeof value}`;
 }
 
 /**
  * Check whether a value is an element made by this library, such as a paragraph or a link.
  *
  * @example
- * md.isMarkdown(md.p('Hi'));
+ * md.isMDElement(md.p('Hi'));
  * // true
- * md.isMarkdown('Hi');
+ * md.isMDElement('Hi');
  * // false
  * @category elements
  */
-export function isMarkdown(value: unknown): value is MDElement {
-  return renderingOf(value) !== undefined;
+export function isMDElement(value: unknown): value is MDElement {
+  return typeof value === 'object' && value !== null && markdownInternalsKey in value;
 }

@@ -40,4 +40,4 @@ For a fixed form, use one of these:
 - `blockComment` always puts its markers on lines of their own.
 - `inlineComment` stays on one line, and its text can't have a line ending.
 
-A placeholder's value goes in as given and doesn't change the form, so use `blockComment` for a value with several lines.
+A placeholder's replacement goes in as given and doesn't change the form, so use `blockComment` for a replacement with several lines.

@@ -1,6 +1,6 @@
 import type { Yaml } from 'mdast';
 
-import { MarkdownElement, renderingOf } from '../element/index.ts';
+import { isMDElement, MarkdownElement } from '../element/index.ts';
 import type { MDFrontmatter } from '../types.ts';
 
 /** Matches a first line of exactly `---`, up to the next line of exactly `---`. */
@@ -41,5 +41,5 @@ export function yamlNode(yaml: string): Yaml {
 }
 
 export function isFrontmatter(value: unknown): value is MDFrontmatter {
-  return renderingOf(value) !== undefined && (value as MDFrontmatter).kind === 'frontmatter';
+  return isMDElement(value) && value.kind === 'frontmatter';
 }

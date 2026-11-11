@@ -1,4 +1,16 @@
-export { MarkdownElement, describe, isArray, isKind, isListItem, isMarkdown, isText, renderingOf } from './element.ts';
+export {
+  MarkdownElement,
+  assertCondition,
+  assertIsArray,
+  assertIsMDElement,
+  assertUnhandledCase,
+  isArray,
+  isKind,
+  isListItem,
+  isMDElement,
+  isText,
+  markdownInternalsOf,
+} from './element.ts';
 export {
   argumentNodes,
   blockNodes,

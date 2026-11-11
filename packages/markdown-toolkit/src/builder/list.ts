@@ -1,7 +1,16 @@
 import type { ListItem } from 'mdast';
 
-import { argumentNodes, describe, isListItem, isMarkdown, MarkdownElement, renderingOf } from '../element/index.ts';
+import {
+  argumentNodes,
+  assertCondition,
+  assertIsArray,
+  isListItem,
+  isMDElement,
+  MarkdownElement,
+  markdownInternalsOf,
+} from '../element/index.ts';
 import type {
+  AnyContent,
   ListEntry,
   ListItemContent,
   ListItemOptions,
@@ -50,7 +59,7 @@ export function listItem(
 export const li: typeof listItem = listItem;
 
 function isListItemOptions(value: ListItemOptions | ListItemContent | undefined): value is ListItemOptions {
-  return typeof value === 'object' && value !== null && !Array.isArray(value) && !isMarkdown(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value) && !isMDElement(value);
 }
 
 function buildListItem(content: readonly ListItemContent[], options?: ListItemOptions): MDListItem {
@@ -122,15 +131,15 @@ function piecesAndOptions(
  * @category lists
  */
 export function list(entries: readonly ListEntry[], options?: ListOptions): MDList {
-  if (!Array.isArray(entries)) throw new TypeError(`list entries must be an array, got ${describe(entries)}`);
+  assertIsArray(entries, 'list entries');
   // The type allows `start` only with `ordered: true`; JavaScript callers can still pass it alone.
   const { ordered = false, start } = (options ?? {}) as { ordered?: boolean; start?: number };
-  if (start !== undefined && !(Number.isInteger(start) && start >= 0 && start <= 999_999_999)) {
-    const given = typeof start === 'number' ? String(start) : describe(start);
-    throw new TypeError(`a list start must be a whole number from 0 to 999999999, got ${given}`);
-  }
+  assertCondition(
+    start === undefined || (Number.isInteger(start) && start >= 0 && start <= 999_999_999),
+    'a list start must be a whole number from 0 to 999999999',
+  );
   const items = entries.map((entry) =>
-    isListItem(entry) ? (renderingOf(entry)?.nodes[0] as ListItem) : listItemNode([entry]),
+    isListItem(entry) ? (markdownInternalsOf(entry).nodes[0] as ListItem) : listItemNode([entry]),
   );
   return new MarkdownElement('block', 'list', 'a list', [
     { type: 'list', ordered, start: ordered ? (start ?? 1) : null, spread: false, children: items },
@@ -173,6 +182,6 @@ export function ul(entries: readonly ListEntry[]): MDList {
 }
 
 /** Build a list item from its arguments, grouped as in {@link argumentNodes}. */
-function listItemNode(content: readonly ListItemContent[]): ListItem {
+function listItemNode(content: readonly AnyContent[]): ListItem {
   return { type: 'listItem', spread: false, children: argumentNodes(content, 'list item content') };
 }

@@ -70,7 +70,7 @@ describe('strong, emphasis, strikethrough', () => {
 
   test('block content throws', () => {
     // @ts-expect-error a list is not inline
-    assert.throws(() => strong(list(['a'])), new TypeError('strong content must be inline, got a list'));
+    assert.throws(() => strong(list(['a'])), new TypeError('strong content must be inline'));
   });
 });
 
@@ -126,7 +126,7 @@ describe('sup, sub', () => {
     assert.equal(substitutePlaceholders(md, { marker: emphasis('req') }).toString(), 'name <sup>_req_</sup>');
   });
 
-  test('a template value', () => {
+  test('a replacement', () => {
     assert.equal(template('name {@x@}', { x: sup(emphasis('req')) }).toString(), 'name <sup>_req_</sup>');
   });
 
@@ -143,7 +143,7 @@ describe('sup, sub', () => {
     `('$name: a block is refused', ({ build, name }: { build: typeof sup; name: string }) => {
     assert.throws(() => build(paragraph('a') as unknown as MDInline), {
       name: 'TypeError',
-      message: `${name} content must be inline, got a paragraph`,
+      message: `${name} content must be inline`,
     });
   });
 });

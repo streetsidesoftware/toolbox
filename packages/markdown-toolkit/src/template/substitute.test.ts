@@ -19,10 +19,10 @@ import {
   template,
   text,
 } from '../index.ts';
-import type { AnyContent, MDFragment, MDInline, MDInlineFragment, MDText, TemplateValue } from '../index.ts';
+import type { AnyContent, MDFragment, MDInline, MDInlineFragment, MDText, TemplateReplacement } from '../index.ts';
 
 describe('substitutePlaceholders', () => {
-  test('a placeholder with no value is kept, so content can be built in steps', () => {
+  test('a placeholder with no replacement is kept, so content can be built in steps', () => {
     const md = paragraph(placeholder('a'), ' and ', placeholder('_b_'));
     const step = substitutePlaceholders(md, { a: '*x*' });
     assert.equal(step.toString(), '\\*x\\* and {@ _b_ @}');
@@ -32,7 +32,7 @@ describe('substitutePlaceholders', () => {
   test('anything but a string or an element throws', () => {
     assert.throws(
       () => substitutePlaceholders(42 as never, {}),
-      new TypeError('expected a string or a Markdown element, got a number'),
+      new TypeError('expected a string or a Markdown element'),
     );
   });
 
@@ -77,13 +77,13 @@ describe('substitutePlaceholders', () => {
     assert.equal(template('Fruit:\n{@ fruit @}\nMore\n', { fruit }).toString(), expected);
   });
 
-  test('with an inline value, a whole-line placeholder stays in its line', () => {
+  test('with an inline replacement, a whole-line placeholder stays in its line', () => {
     const md = substitutePlaceholders(parse('Fruit:\n{@ fruit @}\n'), { fruit: 'apple' });
     assert.equal(md.kind, 'inline');
     assert.equal(md.toString(), 'Fruit:\napple');
   });
 
-  test('a value that is only a placeholder becomes the blocks', () => {
+  test('a replacement that is only a placeholder becomes the blocks', () => {
     const items = list(['a']);
     assert.equal(substitutePlaceholders(parse('{@ items @}'), { items }).kind, 'block');
     assert.equal(substitutePlaceholders(text('{@ items @}'), { items }).toString(), '- a');
@@ -99,47 +99,50 @@ describe('substitutePlaceholders', () => {
     assert.equal(kept.type, 'paragraph');
   });
 
-  test('a placeholder inside a line takes only inline values', () => {
+  test('a placeholder inside a line takes only inline replacements', () => {
     const items = list(['a']);
     assert.throws(
       () => substitutePlaceholders(parse('See {@ items @}'), { items }),
-      new TypeError('{@ items @} must be inline, got a list'),
+      new TypeError('{@ items @} must be inline'),
     );
     assert.throws(
       () => substitutePlaceholders(heading(2, placeholder('x')), { x: items }),
-      new TypeError('{@ x @} must be inline, got a list'),
+      new TypeError('{@ x @} must be inline'),
     );
   });
 
   testEach`
-    value          | label
+    replacement    | label
     ${''}          | ${"''"}
     ${[]}          | ${'[]'}
     ${text('')}    | ${"text('')"}
     ${' \t'}       | ${"' \\t'"}
   `(
-    'an empty value alone on its line ends the paragraph, as passing it directly does: $label',
-    ({ value }: { value: TemplateValue }) => {
-      assert.equal(substitutePlaceholders(document('a', placeholder('x'), 'b'), { x: value }).toString(), 'a\n\nb\n');
-      assert.equal(document('a', value as AnyContent, 'b').toString(), 'a\n\nb\n');
-      assert.equal(template('a\n{@ x @}\nb', { x: value }).toString(), 'a\n\nb');
+    'an empty replacement alone on its line ends the paragraph, as passing it directly does: $label',
+    ({ replacement }: { replacement: TemplateReplacement }) => {
+      assert.equal(
+        substitutePlaceholders(document('a', placeholder('x'), 'b'), { x: replacement }).toString(),
+        'a\n\nb\n',
+      );
+      assert.equal(document('a', replacement as AnyContent, 'b').toString(), 'a\n\nb\n');
+      assert.equal(template('a\n{@ x @}\nb', { x: replacement }).toString(), 'a\n\nb');
     },
   );
 
   testEach`
-    value      | expected
-    ${' c '}   | ${'a\nc\nb'}
-    ${'c\n'}   | ${'a\nc\\\nb'}
-    ${'\nc'}   | ${'a\\\nc\nb'}
+    replacement | expected
+    ${' c '}    | ${'a\nc\nb'}
+    ${'c\n'}    | ${'a\nc\\\nb'}
+    ${'\nc'}    | ${'a\\\nc\nb'}
   `(
-    'a value alone on its line gives what passing it directly gives: $expected',
-    ({ value, expected }: { value: string; expected: string }) => {
-      assert.equal(document('a', value, 'b').toString(), `${expected}\n`);
+    'a replacement alone on its line gives what passing it directly gives: $expected',
+    ({ replacement, expected }: { replacement: string; expected: string }) => {
+      assert.equal(document('a', replacement, 'b').toString(), `${expected}\n`);
       assert.equal(
-        substitutePlaceholders(document('a', placeholder('x'), 'b'), { x: value }).toString(),
+        substitutePlaceholders(document('a', placeholder('x'), 'b'), { x: replacement }).toString(),
         `${expected}\n`,
       );
-      assert.equal(template('a\n{@ x @}\nb', { x: value }).toString(), expected);
+      assert.equal(template('a\n{@ x @}\nb', { x: replacement }).toString(), expected);
     },
   );
 
@@ -158,7 +161,7 @@ describe('substitutePlaceholders', () => {
     );
     assert.throws(
       () => substitutePlaceholders(document(paragraph('Fruit: ', placeholder('fruit'))), { fruit }),
-      new TypeError('{@ fruit @} must be inline, got a list'),
+      new TypeError('{@ fruit @} must be inline'),
     );
     assert.equal(substitutePlaceholders(placeholder('fruit'), { fruit }).type, 'fragment');
     const inline = substitutePlaceholders(placeholder('x'), { x: link('a', 'u') });
@@ -173,7 +176,7 @@ describe('substitutePlaceholders', () => {
     );
   });
 
-  test('blockPlaceholder() takes blocks or inline values', () => {
+  test('blockPlaceholder() takes blocks or inline replacements', () => {
     const md = document('Fruit:', blockPlaceholder('fruit'));
     assert.equal(md.toString(), 'Fruit:\n\n{@ fruit @}\n');
     assert.equal(substitutePlaceholders(md, { fruit: list(['apple']) }).toString(), 'Fruit:\n\n- apple\n');
@@ -188,9 +191,7 @@ describe('substitutePlaceholders', () => {
     assert.equal(substitutePlaceholders(md, { pkg: '*a*' }).toString(), '```\nnpm i *a*\n```\n\n`*a*`\n');
     assert.throws(
       () => substitutePlaceholders(codeBlock('{@ x @}'), { x: link('a', 'u') }),
-      new TypeError(
-        '{@ x @} is inside code and takes only a string, text, a placeholder or an HTML entity, got a link',
-      ),
+      new TypeError('{@ x @} is inside code and takes only a string, text, a placeholder or an HTML entity'),
     );
   });
 
@@ -200,13 +201,13 @@ describe('substitutePlaceholders', () => {
     assert.equal(substitutePlaceholders(parseDocument('[x]({@a@})'), { a: 'u' }).toString(), '[x](u)\n');
   });
 
-  test('text stays text when every value is a string or text', () => {
+  test('text stays text when every replacement is a string or text', () => {
     const md = substitutePlaceholders(text('v{@ v @} {@ w @}'), { v: '1.0' });
     if (!('text' in md)) throw new Error('expected text');
     assert.equal(md.text, 'v1.0 {@ w @}');
   });
 
-  test('text with another inline value becomes an inline fragment', () => {
+  test('text with another inline replacement becomes an inline fragment', () => {
     const md = substitutePlaceholders(text('Version {@ v @}, *{@ w @}*'), { v: link('1.0', 'u') });
     assert.equal(md.kind, 'inline');
     assert.equal(md.description, 'an inline Markdown fragment');

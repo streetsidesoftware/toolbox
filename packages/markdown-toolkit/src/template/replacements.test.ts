@@ -14,21 +14,21 @@ import {
   template,
   templateDocument,
 } from '../index.ts';
-import type { TemplateResolver, TemplateValue, TemplateValues } from '../index.ts';
-import { resolveValue } from './values.ts';
+import type { TemplateReplacement, TemplateReplacements, TemplateResolver } from '../index.ts';
+import { resolveReplacement } from './replacements.ts';
 
 interface ResolveRow {
-  values: TemplateValues;
+  replacements: TemplateReplacements;
   name: string;
-  expected: TemplateValue | undefined;
+  expected: TemplateReplacement | undefined;
 }
 
-describe('resolveValue', () => {
+describe('resolveReplacement', () => {
   const laterNested = { 'a.b': { c: 1, e: 5 }, a: { b: { c: 0, d: 1 } } };
   const laterDotted = { a: { b: { c: 0, d: 1 } }, 'a.b': { c: 1 } };
 
   testEach`
-        values         | name       | expected
+        replacements   | name       | expected
         ${laterNested} | ${'a.b.c'} | ${0}
         ${laterNested} | ${'a.b.d'} | ${1}
         ${laterNested} | ${'a.b.e'} | ${5}
@@ -36,24 +36,24 @@ describe('resolveValue', () => {
         ${laterDotted} | ${'a.b.d'} | ${1}
         ${laterDotted} | ${'a.b.e'} | ${undefined}
         ${laterDotted} | ${'a.b'}   | ${undefined}
-    `('$name in $values is $expected', ({ values, name, expected }: ResolveRow) => {
-    assert.equal(resolveValue(values, name), expected);
+    `('$name in $replacements is $expected', ({ replacements, name, expected }: ResolveRow) => {
+    assert.equal(resolveReplacement(replacements, name), expected);
   });
 
   test('a nested key with a dot never matches', () => {
-    assert.equal(resolveValue({ a: { 'b.c': 1 } }, 'a.b.c'), undefined);
+    assert.equal(resolveReplacement({ a: { 'b.c': 1 } }, 'a.b.c'), undefined);
   });
 
   test('only own properties count', () => {
-    assert.equal(resolveValue({}, 'toString'), undefined);
-    assert.equal(resolveValue({ a: {} }, 'a.constructor'), undefined);
+    assert.equal(resolveReplacement({}, 'toString'), undefined);
+    assert.equal(resolveReplacement({ a: {} }, 'a.constructor'), undefined);
   });
 });
 
 describe('a resolver', () => {
   const versions: TemplateResolver = (name) => (name.startsWith('v.') ? name.slice(2) : undefined);
 
-  test('substitutes the value it returns', () => {
+  test('substitutes the replacement it returns', () => {
     assert.equal(template('Version {@ v.1 @}', versions).toString(), 'Version 1');
   });
 
@@ -70,7 +70,7 @@ describe('a resolver', () => {
     assert.equal(template('{@ v.1 @} and {@ other @}', versions).toString(), '1 and {@ other @}');
   });
 
-  test('a result that is not a template value counts as no value', () => {
+  test('a result that is not a replacement counts as no replacement', () => {
     const resolve = (() => ({ a: 1 })) as unknown as TemplateResolver;
     assert.equal(template('Hi {@ x @}', resolve).toString(), 'Hi {@ x @}');
     assert.equal(template('`{@ x @}`', resolve).toString(), '`{@ x @}`');

@@ -1,6 +1,6 @@
 import type { AlignType, TableRow } from 'mdast';
 
-import { describe, inlineNodes, isArray, MarkdownElement } from '../element/index.ts';
+import { assertCondition, assertIsArray, inlineNodes, MarkdownElement } from '../element/index.ts';
 import type { ColumnAlign, InlineContent, MDTable, TableOptions } from '../types.ts';
 
 /**
@@ -22,8 +22,8 @@ export function table(
   rows: readonly (readonly InlineContent[])[],
   options?: TableOptions,
 ): MDTable {
-  if (!isArray(header)) throw new TypeError(`table header must be an array, got ${describe(header)}`);
-  if (!isArray(rows)) throw new TypeError(`table rows must be an array, got ${describe(rows)}`);
+  assertIsArray(header, 'table header');
+  assertIsArray(rows, 'table rows');
   return new MarkdownElement('block', 'table', 'a table', [
     {
       type: 'table',
@@ -34,7 +34,7 @@ export function table(
 }
 
 function rowNode(cells: readonly InlineContent[]): TableRow {
-  if (!isArray(cells)) throw new TypeError(`table row must be an array, got ${describe(cells)}`);
+  assertIsArray(cells, 'table row');
   return {
     type: 'tableRow',
     children: cells.map((cell) => ({ type: 'tableCell', children: inlineNodes(cell, 'table cell') })),
@@ -45,7 +45,7 @@ function rowNode(cells: readonly InlineContent[]): TableRow {
 export function alignOf(align: ColumnAlign): AlignType {
   if (align === undefined || align === 'left' || align === 'center' || align === 'right') return align ?? null;
   const delimiter = /^(:?)-+(:?)$/.exec(align);
-  if (!delimiter) throw new Error(`invalid column alignment: "${String(align)}"`);
+  assertCondition(delimiter, "column alignment must be 'left', 'center', 'right' or a delimiter such as ':---'");
   const [, left, right] = delimiter;
   return left && right ? 'center' : left ? 'left' : right ? 'right' : null;
 }
