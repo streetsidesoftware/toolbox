@@ -167,10 +167,7 @@ describe('details', () => {
   });
 
   test('a summary with a multi-line comment throws', () => {
-    assert.throws(
-      () => details(comment('a\nb'), 'c'),
-      new TypeError('details summary must be inline, got a multi-line comment'),
-    );
+    assert.throws(() => details(comment('a\nb'), 'c'), new TypeError('details summary must be inline'));
   });
 
   test('it goes in a list item', () => {
@@ -224,7 +221,7 @@ describe('details', () => {
   });
 
   test('a block summary throws', () => {
-    assert.throws(() => details(list(['a']) as never), new TypeError('details summary must be inline, got a list'));
+    assert.throws(() => details(list(['a']) as never), new TypeError('details summary must be inline'));
   });
 });
 
@@ -347,13 +344,13 @@ describe('definitionList', () => {
   });
 
   test('a block term throws', () => {
-    assert.throws(() => dl([[list(['a']) as never, 'b']]), new TypeError('definition term must be inline, got a list'));
+    assert.throws(() => dl([[list(['a']) as never, 'b']]), new TypeError('definition term must be inline'));
   });
 
   test('an entry that is not a pair throws', () => {
     assert.throws(
       () => dl(['Name' as never]),
-      new TypeError('definition list entry must be a [term, definition] pair, got a string'),
+      new TypeError('definition list entry must be a [term, definition] pair'),
     );
   });
 });
@@ -523,7 +520,10 @@ describe('htmlTable', () => {
   });
 
   test('an invalid alignment throws', () => {
-    assert.throws(() => htmlTable(['A'], [], { align: ['up'] }), new Error('invalid column alignment: "up"'));
+    assert.throws(
+      () => htmlTable(['A'], [], { align: ['up'] }),
+      new TypeError("column alignment must be 'left', 'center', 'right' or a delimiter such as ':---'"),
+    );
   });
 
   testEach`

@@ -32,7 +32,7 @@ describe('substitutePlaceholders', () => {
   test('anything but a string or an element throws', () => {
     assert.throws(
       () => substitutePlaceholders(42 as never, {}),
-      new TypeError('expected a string or a Markdown element, got a number'),
+      new TypeError('expected a string or a Markdown element'),
     );
   });
 
@@ -103,11 +103,11 @@ describe('substitutePlaceholders', () => {
     const items = list(['a']);
     assert.throws(
       () => substitutePlaceholders(parse('See {@ items @}'), { items }),
-      new TypeError('{@ items @} must be inline, got a list'),
+      new TypeError('{@ items @} must be inline'),
     );
     assert.throws(
       () => substitutePlaceholders(heading(2, placeholder('x')), { x: items }),
-      new TypeError('{@ x @} must be inline, got a list'),
+      new TypeError('{@ x @} must be inline'),
     );
   });
 
@@ -161,7 +161,7 @@ describe('substitutePlaceholders', () => {
     );
     assert.throws(
       () => substitutePlaceholders(document(paragraph('Fruit: ', placeholder('fruit'))), { fruit }),
-      new TypeError('{@ fruit @} must be inline, got a list'),
+      new TypeError('{@ fruit @} must be inline'),
     );
     assert.equal(substitutePlaceholders(placeholder('fruit'), { fruit }).type, 'fragment');
     const inline = substitutePlaceholders(placeholder('x'), { x: link('a', 'u') });
@@ -191,9 +191,7 @@ describe('substitutePlaceholders', () => {
     assert.equal(substitutePlaceholders(md, { pkg: '*a*' }).toString(), '```\nnpm i *a*\n```\n\n`*a*`\n');
     assert.throws(
       () => substitutePlaceholders(codeBlock('{@ x @}'), { x: link('a', 'u') }),
-      new TypeError(
-        '{@ x @} is inside code and takes only a string, text, a placeholder or an HTML entity, got a link',
-      ),
+      new TypeError('{@ x @} is inside code and takes only a string, text, a placeholder or an HTML entity'),
     );
   });
 

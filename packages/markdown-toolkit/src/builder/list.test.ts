@@ -44,20 +44,14 @@ describe('numbered lists', () => {
   });
 
   testEach`
-    start      | given
-    ${-1}      | ${'-1'}
-    ${1.5}     | ${'1.5'}
-    ${1e9}     | ${'1000000000'}
-    ${'3'}     | ${'a string'}
-  `(
-    'a start that is not a whole number from 0 to 999999999: $start',
-    ({ start, given }: { start: number; given: string }) => {
-      assert.throws(
-        () => ol(['a'], { start }),
-        new TypeError(`a list start must be a whole number from 0 to 999999999, got ${given}`),
-      );
-    },
-  );
+    start
+    ${-1}
+    ${1.5}
+    ${1e9}
+    ${'3'}
+  `('a start that is not a whole number from 0 to 999999999: $start', ({ start }: { start: number }) => {
+    assert.throws(() => ol(['a'], { start }), new TypeError('a list start must be a whole number from 0 to 999999999'));
+  });
 });
 
 describe('li', () => {
@@ -99,7 +93,7 @@ describe('li', () => {
   });
 
   test('options come once, after the pieces', () => {
-    const error = new TypeError('list item content must be inline, got an object');
+    const error = new TypeError('list item content must be inline');
     // @ts-expect-error options go after the pieces
     assert.throws(() => listItem({ checked: true }, 'a'), error);
     // @ts-expect-error one options object at most

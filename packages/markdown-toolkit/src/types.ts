@@ -47,7 +47,7 @@ export interface MDElement {
   readonly kind: MDKind;
   /** A name unique to the element's interface, such as `'link'` for {@link MDLink}. */
   readonly type: MDType;
-  /** A short name for the element in error messages, such as `a list`. */
+  /** A short name for the element, such as `a list`. */
   readonly description: string;
   /** Return the element's Markdown. */
   toString(): string;

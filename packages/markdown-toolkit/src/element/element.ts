@@ -56,7 +56,7 @@ export function markdownInternalsOf(element: MDElement): MarkdownInternals {
 
 /** Throw a `TypeError` unless the value is a Markdown element. `expected` names what the caller may pass. */
 export function assertIsMDElement(value: unknown, expected: string): asserts value is MDElement {
-  if (!isMDElement(value)) throw new TypeError(`expected ${expected}, got ${describe(value)}`);
+  if (!isMDElement(value)) throw new TypeError(`expected ${expected}`);
 }
 
 /** Check whether a value is a Markdown element, and of one of the given kinds. */
@@ -74,22 +74,24 @@ export function isText(value: unknown): value is MDText {
   return isKind(value, 'inline') && value.type === 'text';
 }
 
+/** Throw a `TypeError` unless the condition holds. `message` says what was expected and what was given. */
+export function assertCondition(condition: unknown, message: string): asserts condition {
+  if (!condition) throw new TypeError(message);
+}
+
+/** Throw a `TypeError` for a value that no case accepted. `message` states what is expected. */
+export function assertUnhandledCase(message: string): never {
+  throw new TypeError(message);
+}
+
 /** Throw a `TypeError` unless the value is an array. `what` names the value, such as `table header`. */
 export function assertIsArray<T>(value: T | readonly T[], what: string): asserts value is readonly T[] {
-  if (!isArray(value)) throw new TypeError(`${what} must be an array, got ${describe(value)}`);
+  if (!isArray(value)) throw new TypeError(`${what} must be an array`);
 }
 
 /** Check whether a value is an array, as `Array.isArray` does, but narrowing readonly arrays too. */
 export function isArray<T>(value: T | readonly T[]): value is readonly T[] {
   return Array.isArray(value);
-}
-
-/** Describe what a value is, for error messages. */
-export function describe(value: unknown): string {
-  if (isMDElement(value)) return value.description;
-  if (Array.isArray(value)) return 'an array';
-  if (value === null || value === undefined) return String(value);
-  return typeof value === 'object' ? 'an object' : `a ${typeof value}`;
 }
 
 /**

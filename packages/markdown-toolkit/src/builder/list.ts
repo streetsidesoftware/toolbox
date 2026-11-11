@@ -2,8 +2,8 @@ import type { ListItem } from 'mdast';
 
 import {
   argumentNodes,
+  assertCondition,
   assertIsArray,
-  describe,
   isListItem,
   isMDElement,
   MarkdownElement,
@@ -134,10 +134,10 @@ export function list(entries: readonly ListEntry[], options?: ListOptions): MDLi
   assertIsArray(entries, 'list entries');
   // The type allows `start` only with `ordered: true`; JavaScript callers can still pass it alone.
   const { ordered = false, start } = (options ?? {}) as { ordered?: boolean; start?: number };
-  if (start !== undefined && !(Number.isInteger(start) && start >= 0 && start <= 999_999_999)) {
-    const given = typeof start === 'number' ? String(start) : describe(start);
-    throw new TypeError(`a list start must be a whole number from 0 to 999999999, got ${given}`);
-  }
+  assertCondition(
+    start === undefined || (Number.isInteger(start) && start >= 0 && start <= 999_999_999),
+    'a list start must be a whole number from 0 to 999999999',
+  );
   const items = entries.map((entry) =>
     isListItem(entry) ? (markdownInternalsOf(entry).nodes[0] as ListItem) : listItemNode([entry]),
   );

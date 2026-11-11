@@ -1,8 +1,9 @@
 export {
   MarkdownElement,
+  assertCondition,
   assertIsArray,
   assertIsMDElement,
-  describe,
+  assertUnhandledCase,
   isArray,
   isKind,
   isListItem,

@@ -85,7 +85,7 @@ describe('template', () => {
   test('a block inside a line throws', () => {
     assert.throws(
       () => template('See {@ list @}.', { list: list(['en']) }),
-      new TypeError('{@ list @} must be inline, got a list'),
+      new TypeError('{@ list @} must be inline'),
     );
   });
 
@@ -109,9 +109,7 @@ describe('template', () => {
     `('a link inside $inside throws: $tpl', ({ tpl, inside }: { tpl: string; inside: string }) => {
     assert.throws(
       () => template(tpl, { x: link('a', 'b') }),
-      new TypeError(
-        `{@ x @} is inside ${inside} and takes only a string, text, a placeholder or an HTML entity, got a link`,
-      ),
+      new TypeError(`{@ x @} is inside ${inside} and takes only a string, text, a placeholder or an HTML entity`),
     );
   });
 
@@ -154,9 +152,7 @@ describe('template', () => {
     ({ tpl, replacement, inside }: { tpl: string; replacement: MDInline; inside: string }) => {
       assert.throws(
         () => template(tpl, { x: replacement }),
-        new TypeError(
-          `{@ x @} is inside ${inside} and takes only a string, text or a placeholder, got ${replacement.description}`,
-        ),
+        new TypeError(`{@ x @} is inside ${inside} and takes only a string, text or a placeholder`),
       );
     },
   );

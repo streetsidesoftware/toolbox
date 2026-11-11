@@ -1,6 +1,6 @@
 import type { Html } from 'mdast';
 
-import { MarkdownElement } from '../element/index.ts';
+import { assertCondition, MarkdownElement } from '../element/index.ts';
 import type { MDBlockComment, MDComment, MDInlineComment } from '../types.ts';
 
 /**
@@ -46,7 +46,7 @@ export function comment(text: string): MDComment {
  * @category comments
  */
 export function inlineComment(text: string): MDInlineComment {
-  if (hasLineEnding(text)) throw new TypeError("inlineComment text can't have a line ending; use blockComment");
+  assertCondition(!hasLineEnding(text), "inlineComment text can't have a line ending; use blockComment");
   return new MarkdownElement('inline', 'inlineComment', 'an inline comment', [inlineCommentNode(text)]);
 }
 

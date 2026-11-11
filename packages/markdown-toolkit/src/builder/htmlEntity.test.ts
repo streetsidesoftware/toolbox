@@ -87,8 +87,14 @@ describe('htmlEntity', () => {
   );
 
   test('an unknown name throws', () => {
-    assert.throws(() => htmlEntity('nope'), new Error('unknown HTML entity name: "nope"'));
-    assert.throws(() => htmlEntity('&nope;'), new Error('unknown HTML entity name: "nope"'));
+    assert.throws(
+      () => htmlEntity('nope'),
+      new TypeError("an HTML entity must be a character, a name HTML defines, or a reference such as '&nbsp;'"),
+    );
+    assert.throws(
+      () => htmlEntity('&nope;'),
+      new TypeError("an HTML entity must be a character, a name HTML defines, or a reference such as '&nbsp;'"),
+    );
   });
 
   testEach`

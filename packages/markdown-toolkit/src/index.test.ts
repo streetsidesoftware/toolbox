@@ -152,7 +152,7 @@ describe('errors', () => {
 
   test('a block where only inline content can go', () => {
     // @ts-expect-error a list is not inline
-    assert.throws(() => heading(2, list(['a'])), new TypeError('heading content must be inline, got a list'));
+    assert.throws(() => heading(2, list(['a'])), new TypeError('heading content must be inline'));
   });
 
   test('an array that mixes inline and blocks', () => {

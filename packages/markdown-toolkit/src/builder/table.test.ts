@@ -96,7 +96,10 @@ describe('table', () => {
     ${'--:-'}
     ${'middle'}
   `('an invalid alignment throws: $align', ({ align }: { align: ColumnAlign }) => {
-    assert.throws(() => table(['a'], [], { align: [align] }), { name: 'Error', message: /invalid column alignment/ });
+    assert.throws(() => table(['a'], [], { align: [align] }), {
+      name: 'TypeError',
+      message: "column alignment must be 'left', 'center', 'right' or a delimiter such as ':---'",
+    });
   });
 
   test('a short row is padded with empty cells, and a long row adds a column', () => {
@@ -124,7 +127,7 @@ describe('table', () => {
 
   testEach`
     header            | rows              | message
-    ${['A']}          | ${[[list([])]]}   | ${'table cell must be inline, got a list'}
+    ${['A']}          | ${[[list([])]]}   | ${'table cell must be inline'}
   `(
     'wrong content throws a TypeError: $message',
     ({ header, rows, message }: { header: never; rows: never; message: string }) => {

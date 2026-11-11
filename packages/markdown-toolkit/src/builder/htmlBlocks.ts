@@ -2,9 +2,9 @@ import type { Html, RootContent } from 'mdast';
 
 import {
   argumentNodes,
+  assertCondition,
   assertIsArray,
   blockNodes,
-  describe,
   groupedNodes,
   inlineNodes,
   inLists,
@@ -62,9 +62,7 @@ export function details(summary: InlineContent, ...content: AnyContent[]): MDDet
 export function dl(entries: readonly DefinitionEntry[]): MDDefinitionList {
   assertIsArray(entries, 'definition list entries');
   const nodes = entries.flatMap((entry): RootContent[] => {
-    if (!isArray(entry) || entry.length !== 2) {
-      throw new TypeError(`definition list entry must be a [term, definition] pair, got ${describe(entry)}`);
-    }
+    assertCondition(isArray(entry) && entry.length === 2, 'definition list entry must be a [term, definition] pair');
     const [term, definition] = entry;
     return [
       { type: 'htmlGroup', children: [inlineSlot('dt', term, 'definition term'), html('<dd>')] },
