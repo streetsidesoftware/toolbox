@@ -53,7 +53,7 @@ export function renderingOf(value: unknown): Rendering | undefined {
 
 /** Check whether a value is a Markdown element, and of one of the given kinds. */
 export function isKind(value: unknown, ...kinds: MDElement['kind'][]): value is MDElement {
-  return renderingOf(value) !== undefined && kinds.includes((value as MDElement).kind);
+  return isMDElement(value) && kinds.includes(value.kind);
 }
 
 /** Check whether a value is a list item. */
@@ -73,7 +73,7 @@ export function isArray<T>(value: T | readonly T[]): value is readonly T[] {
 
 /** Describe what a value is, for error messages. */
 export function describe(value: unknown): string {
-  if (renderingOf(value)) return (value as MDElement).description;
+  if (isMDElement(value)) return value.description;
   if (Array.isArray(value)) return 'an array';
   if (value === null || value === undefined) return String(value);
   return typeof value === 'object' ? 'an object' : `a ${typeof value}`;
@@ -90,5 +90,5 @@ export function describe(value: unknown): string {
  * @category elements
  */
 export function isMDElement(value: unknown): value is MDElement {
-  return renderingOf(value) !== undefined;
+  return typeof value === 'object' && value !== null && renderingKey in value;
 }
