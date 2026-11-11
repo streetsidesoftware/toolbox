@@ -1,28 +1,11 @@
-import { listPlaceholders } from '@streetsidesoftware/placeholders';
 import type { List, BlockContent as MdastBlockContent, PhrasingContent, RootContent } from 'mdast';
 
-import { asInlineHtml, placeholderNodeAsWritten, trimBlanks } from '../core/index.ts';
+import { asInlineHtml, textNodes, trimBlanks } from '../core/index.ts';
 import type { AnyContent, BlockContent, InlineContent, MDBlock, MDListItem } from '../types.ts';
 import { assertCondition, assertUnhandledCase, isArray, isKind, isListItem, markdownInternalsOf } from './element.ts';
 
 /** Content on its own lines, where list items in a row form a list. */
 type BlockLike = BlockContent | MDListItem | readonly (BlockContent | MDListItem)[];
-
-/**
- * Return the text nodes for a string.
- * A placeholder is kept as written, so escaping never touches `{​@ name @​}`.
- */
-export function textNodes(text: string): PhrasingContent[] {
-  const nodes: PhrasingContent[] = [];
-  let last = 0;
-  for (const { start, end } of listPlaceholders(text)) {
-    if (start > last) nodes.push({ type: 'text', value: text.slice(last, start) });
-    nodes.push(placeholderNodeAsWritten(text.slice(start, end)));
-    last = end;
-  }
-  if (last < text.length) nodes.push({ type: 'text', value: text.slice(last) });
-  return nodes;
-}
 
 /** Return the text nodes for a string, with each line ending as a line break. */
 export function stringNodes(text: string): PhrasingContent[] {

@@ -21,5 +21,4 @@ export {
   isBlockLike,
   mapParagraphsAndBlocks,
   stringNodes,
-  textNodes,
 } from './content.ts';
