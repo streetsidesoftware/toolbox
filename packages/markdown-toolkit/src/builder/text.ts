@@ -1,6 +1,7 @@
 import type { Paragraph } from 'mdast';
 
-import { MarkdownElement, stringNodes, textNodes } from '../element/index.ts';
+import { textNodes } from '../core/index.ts';
+import { MarkdownElement, stringNodes } from '../element/index.ts';
 import type { MDFragment, MDText } from '../types.ts';
 
 class TextElement extends MarkdownElement<'inline', 'text'> implements MDText {

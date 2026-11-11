@@ -1,8 +1,8 @@
-import { detectMarkdownStyle } from '../detectStyle.ts';
-import { assertCondition, MarkdownElement, textNodes } from '../element/index.ts';
+import { detectMarkdownStyle, parseTree, textNodes } from '../core/index.ts';
+import { assertCondition, MarkdownElement } from '../element/index.ts';
 import type { MDDocument, MDFragment, MDInlineFragment } from '../types.ts';
 import { fragmentOf } from './fragment.ts';
-import { documentOf, templateTree } from './parse.ts';
+import { documentOf } from './parse.ts';
 import { resolverOf } from './replacements.ts';
 import type { TemplateReplacements, TemplateResolver } from './replacements.ts';
 import { substituteInTree } from './substitute.ts';
@@ -32,7 +32,7 @@ export function template(
   markdown: string,
   replacements: TemplateReplacements | TemplateResolver,
 ): MDFragment | MDInlineFragment {
-  const root = templateTree(markdown, false);
+  const root = parseTree(markdown, false);
   // A replacement keeps positions from its own text, so detect the style before any replacement goes in.
   const style = detectMarkdownStyle(root, markdown);
   substituteInTree(root, resolverOf(replacements), true);
@@ -59,7 +59,7 @@ export function template(
  * @category templates
  */
 export function blockTemplate(markdown: string, replacements: TemplateReplacements | TemplateResolver): MDFragment {
-  const root = templateTree(markdown, false);
+  const root = parseTree(markdown, false);
   // A replacement keeps positions from its own text, so detect the style before any replacement goes in.
   const style = detectMarkdownStyle(root, markdown);
   substituteInTree(root, resolverOf(replacements), true);
@@ -91,7 +91,7 @@ export function inlineTemplate(
   const lead = markdown.slice(0, markdown.length - start.length);
   const body = start.trimEnd();
   const tail = start.slice(body.length);
-  const root = templateTree(body, true);
+  const root = parseTree(body, true);
   assertCondition(
     root.children.length <= 1 && (!root.children[0] || root.children[0].type === 'paragraph'),
     'inline template text must be one paragraph',
@@ -129,5 +129,5 @@ export function inlineTemplate(
  * @category templates
  */
 export function templateDocument(markdown: string, replacements: TemplateReplacements | TemplateResolver): MDDocument {
-  return documentOf(markdown, (body) => templateTree(body, false), resolverOf(replacements));
+  return documentOf(markdown, resolverOf(replacements));
 }

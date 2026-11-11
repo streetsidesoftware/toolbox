@@ -1,6 +1,6 @@
 import type { Root } from 'mdast';
 
-import { detectMarkdownStyle } from '../detectStyle.ts';
+import { detectMarkdownStyle } from '../core/index.ts';
 import { MarkdownElement } from '../element/index.ts';
 import type { MarkdownStyle, MDFragment, MDInlineFragment } from '../types.ts';
 

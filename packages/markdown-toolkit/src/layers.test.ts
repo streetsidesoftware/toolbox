@@ -16,11 +16,9 @@ const notMovedYet = [
   'builder/list.ts',
   'builder/table.ts',
   'builder/text.ts',
-  'detectStyle.ts',
   'element/content.ts',
   'element/element.ts',
   'template/fragment.ts',
-  'template/parse.ts',
   'template/replacements.ts',
   'template/substitute.ts',
 ];
