@@ -1,7 +1,15 @@
 # @streetsidesoftware/github-action-toolkit
 
-Read inputs, set outputs, add to the job summary and fail the step from the code of a GitHub Action. The package has
-no dependencies, so it adds little to an action's bundle.
+A small replacement for [`@actions/core`](https://github.com/actions/toolkit/tree/main/packages/core) in the code of
+a GitHub Action, with no dependencies.
+
+An action ships with its dependencies bundled in. With `@actions/core`, that means an HTTP client and a command runner
+too, about 700 kB, or 400 kB minified, whether the action uses them or not.
+
+This package talks to the runner directly, so an action's bundle holds little more than its own code. It covers the
+basics, such as reading inputs, setting outputs, adding to the job summary and failing the step.
+
+For what it doesn't cover, use `@actions/core`.
 
 ## Install
 
