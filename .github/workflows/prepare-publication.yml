@@ -78,6 +78,10 @@ jobs:
 
       - uses: ./.github/actions/setup
 
+      # The README build imports the packages, which resolve to their builds.
+      - name: Build
+        run: pnpm run build
+
       - name: Prepare for publication
         run: |
           pnpm run prepare-publication "$PACKAGE_NAME"
