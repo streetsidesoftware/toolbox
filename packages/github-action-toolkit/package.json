@@ -1,8 +1,7 @@
 {
   "name": "@streetsidesoftware/github-action-toolkit",
   "version": "0.0.1-alpha.0",
-  "private": true,
-  "description": "Read inputs, set outputs, add to the job summary and fail the step from a GitHub Action, with no dependencies. -- Private until verified",
+  "description": "Read inputs, set outputs, add to the job summary and fail the step from a GitHub Action, with no dependencies.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/streetsidesoftware/toolbox.git",
