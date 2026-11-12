@@ -1,5 +1,5 @@
 {
-  "@streetsidesoftware/github-action-toolkit": { "trustedPublishing": false },
+  "@streetsidesoftware/github-action-toolkit": { "trustedPublishing": true },
   "@streetsidesoftware/markdown-toolkit": { "trustedPublishing": true },
   "@streetsidesoftware/placeholders": { "trustedPublishing": true },
   "@streetsidesoftware/test-each": { "trustedPublishing": true },
