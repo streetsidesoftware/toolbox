@@ -1,14 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import remarkGfm from 'remark-gfm';
-import remarkParse from 'remark-parse';
-import { unified } from 'unified';
-
-import { detectMarkdownStyle, firstNonSpace, orderedMarkerAt } from './style.ts';
+import { parseTree } from './parse.ts';
+import { detectMarkdownStyle } from './style.ts';
 
 function parse(content: string) {
-  return unified().use(remarkParse).use(remarkGfm).parse(content);
+  return parseTree(content, false);
 }
 
 describe('detectMarkdownStyle', () => {
@@ -50,8 +47,14 @@ const a = 1;
   });
 
   test('detects the ordered list marker', () => {
-    const content = '1) one\n2) two\n';
+    const content = '10) one\n11) two\n';
     assert.equal(detectMarkdownStyle(parse(content), content).bulletOrdered, ')');
+  });
+
+  test('reads the markers of an indented list and rule', () => {
+    const content = '   * one\n\n  ***\n\n   1) two\n';
+    const { bullet, bulletOrdered, rule } = detectMarkdownStyle(parse(content), content);
+    assert.deepEqual({ bullet, bulletOrdered, rule }, { bullet: '*', bulletOrdered: ')', rule: '*' });
   });
 
   test('picks the majority marker when a document mixes styles', () => {
@@ -73,27 +76,5 @@ text
 * four
 `;
     assert.equal(detectMarkdownStyle(parse(content), content).bullet, '-');
-  });
-});
-
-// Not reachable via detectMarkdownStyle (see the helpers' doc comments) —
-// tested directly against synthetic offsets instead.
-describe('firstNonSpace', () => {
-  test('skips spaces and tabs to find the marker', () => {
-    assert.equal(firstNonSpace(' \t- item', 0), '-');
-  });
-
-  test('returns the character at offset when there is no leading whitespace', () => {
-    assert.equal(firstNonSpace('- item', 0), '-');
-  });
-});
-
-describe('orderedMarkerAt', () => {
-  test('skips spaces and tabs, then digits, to find the delimiter', () => {
-    assert.equal(orderedMarkerAt(' \t12. item', 0), '.');
-  });
-
-  test('returns the delimiter when there is no leading whitespace', () => {
-    assert.equal(orderedMarkerAt('1) item', 0), ')');
   });
 });
