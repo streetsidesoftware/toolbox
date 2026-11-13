@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/placeholders@1.1.0...@streetsidesoftware/placeholders@1.1.1) (2026-11-13)
+
+
+### Updates and Bug Fixes
+
+* **placeholders:** rename PlaceholderValues to PlaceholderReplacements ([#181](https://github.com/streetsidesoftware/toolbox/issues/181)) ([588054e](https://github.com/streetsidesoftware/toolbox/commit/588054e662dae03be3493d36309574dd418797ee))
+
 ## [1.1.0](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/placeholders@1.0.1...@streetsidesoftware/placeholders@1.1.0) (2026-10-28)
 
 
