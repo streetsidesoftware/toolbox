@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.2.0](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/markdown-toolkit@2.1.0...@streetsidesoftware/markdown-toolkit@2.2.0) (2026-11-13)
+
+
+### Features
+
+* **markdown-toolkit:** read and replace a document's frontmatter ([#174](https://github.com/streetsidesoftware/toolbox/issues/174)) ([bd5b5e7](https://github.com/streetsidesoftware/toolbox/commit/bd5b5e7aa856e629d6383180fce576acff4597ad))
+
+
+### Updates and Bug Fixes
+
+* **markdown-toolkit:** accept parsed values with formatting in template and blockTemplate ([#163](https://github.com/streetsidesoftware/toolbox/issues/163)) ([f8e590a](https://github.com/streetsidesoftware/toolbox/commit/f8e590a5edb2291219c96e8066f9f239e4db932e))
+* **markdown-toolkit:** leave out frontmatter after other content ([#173](https://github.com/streetsidesoftware/toolbox/issues/173)) ([f9242d2](https://github.com/streetsidesoftware/toolbox/commit/f9242d2491d76f36b4bf82710199bf4271244186))
+* **markdown-toolkit:** rename isMarkdown to isMDElement ([#194](https://github.com/streetsidesoftware/toolbox/issues/194)) ([5da40a6](https://github.com/streetsidesoftware/toolbox/commit/5da40a658ca2cdfd54f1f65883c6a18a3bbb2397))
+* **markdown-toolkit:** rename TemplateValues to TemplateReplacements ([#185](https://github.com/streetsidesoftware/toolbox/issues/185)) ([34b31ce](https://github.com/streetsidesoftware/toolbox/commit/34b31cede8fdd8b2a521e48fa3ad63b64a295cd2))
+* **markdown-toolkit:** state the rule in errors for wrong input, and throw TypeError ([#199](https://github.com/streetsidesoftware/toolbox/issues/199)) ([2056b50](https://github.com/streetsidesoftware/toolbox/commit/2056b50522272b4cc7c1b305366c9d2a9e157681))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @streetsidesoftware/placeholders bumped to 1.1.1
+
 ## [2.1.0](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/markdown-toolkit@2.0.1...@streetsidesoftware/markdown-toolkit@2.1.0) (2026-11-04)
 
 

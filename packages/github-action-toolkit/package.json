@@ -1,6 +1,6 @@
 {
   "name": "@streetsidesoftware/github-action-toolkit",
-  "version": "0.0.1-alpha.0",
+  "version": "1.0.0",
   "description": "A small replacement for @actions/core in the code of a GitHub Action, with no dependencies.",
   "repository": {
     "type": "git",
