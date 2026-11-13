@@ -67,8 +67,7 @@
       "component": "toolbox"
     },
     "packages/github-action-toolkit": {
-      "component": "@streetsidesoftware/github-action-toolkit",
-      "release-as": "1.0.0"
+      "component": "@streetsidesoftware/github-action-toolkit"
     },
     "packages/markdown-toolkit": {
       "component": "@streetsidesoftware/markdown-toolkit"
