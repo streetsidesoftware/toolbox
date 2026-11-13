@@ -1,7 +1,6 @@
-import type { PhrasingContent } from 'mdast';
-
 import { isHtmlEntity } from '../builder/index.ts';
 import { textNodes } from '../core/index.ts';
+import type { PhrasingContent } from '../core/index.ts';
 import {
   assertUnhandledCase,
   groupedNodes,

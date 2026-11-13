@@ -2,12 +2,11 @@ import { listPlaceholders, replacePlaceholders } from '@streetsidesoftware/place
 import type { Paragraph, PhrasingContent, Root, RootContent, Text } from 'mdast';
 
 import { DocumentElement, isHtmlEntity, text } from '../builder/index.ts';
-import { trimBlanks } from '../core/index.ts';
+import { inLists, trimBlanks } from '../core/index.ts';
 import type { PlaceholderNode } from '../core/index.ts';
 import {
   assertIsMDElement,
   blockNodes,
-  inLists,
   isBlockLike,
   isText,
   MarkdownElement,

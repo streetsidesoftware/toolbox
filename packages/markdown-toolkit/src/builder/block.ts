@@ -1,3 +1,4 @@
+import { headingNode, paragraphNode, thematicBreakNode } from '../core/index.ts';
 import {
   assertCondition,
   groupedNodes,
@@ -30,7 +31,7 @@ import type {
 export function heading(depth: HeadingDepth, content: InlineContent): MDHeading {
   assertCondition(Number.isInteger(depth) && depth >= 1 && depth <= 6, 'heading depth must be a number from 1 to 6');
   return new MarkdownElement('block', 'heading', 'a heading', [
-    { type: 'heading', depth, children: inlineNodes(content, 'heading content') },
+    headingNode(depth, inlineNodes(content, 'heading content')),
   ]);
 }
 
@@ -57,9 +58,7 @@ export function p(...content: InlineContent[]): MDParagraph {
 export const paragraph: typeof p = p;
 
 function paragraphOf(content: readonly InlineContent[], where: string): MDParagraph {
-  return new MarkdownElement('block', 'paragraph', 'a paragraph', [
-    { type: 'paragraph', children: inlineNodes(content, where) },
-  ]);
+  return new MarkdownElement('block', 'paragraph', 'a paragraph', [paragraphNode(inlineNodes(content, where))]);
 }
 
 /**
@@ -94,7 +93,7 @@ export function toBlock(content: AnyContent): BlockContent {
  * @category sections
  */
 export function hr(): MDHorizontalRule {
-  return new MarkdownElement('block', 'horizontalRule', 'a horizontal rule', [{ type: 'thematicBreak' }]);
+  return new MarkdownElement('block', 'horizontalRule', 'a horizontal rule', [thematicBreakNode()]);
 }
 
 /** The same as {@link hr}. */

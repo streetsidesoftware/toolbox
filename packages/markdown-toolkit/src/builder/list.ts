@@ -1,5 +1,5 @@
-import type { ListItem } from 'mdast';
-
+import { listItemNode, listNode } from '../core/index.ts';
+import type { ListItem } from '../core/index.ts';
 import {
   argumentNodes,
   assertCondition,
@@ -63,9 +63,9 @@ function isListItemOptions(value: ListItemOptions | ListItemContent | undefined)
 }
 
 function buildListItem(content: readonly ListItemContent[], options?: ListItemOptions): MDListItem {
-  const item = listItemNode(content);
-  if (options?.checked !== undefined) item.checked = options.checked;
-  return new MarkdownElement('listItem', 'listItem', 'a list item', [item]);
+  return new MarkdownElement('listItem', 'listItem', 'a list item', [
+    listItemNode(itemBlocks(content), options?.checked),
+  ]);
 }
 
 /**
@@ -139,11 +139,9 @@ export function list(entries: readonly ListEntry[], options?: ListOptions): MDLi
     'a list start must be a whole number from 0 to 999999999',
   );
   const items = entries.map((entry) =>
-    isListItem(entry) ? (markdownInternalsOf(entry).nodes[0] as ListItem) : listItemNode([entry]),
+    isListItem(entry) ? (markdownInternalsOf(entry).nodes[0] as ListItem) : listItemNode(itemBlocks([entry])),
   );
-  return new MarkdownElement('block', 'list', 'a list', [
-    { type: 'list', ordered, start: ordered ? (start ?? 1) : null, spread: false, children: items },
-  ]);
+  return new MarkdownElement('block', 'list', 'a list', [listNode(items, ordered ? (start ?? 1) : undefined)]);
 }
 
 /**
@@ -181,7 +179,7 @@ export function ul(entries: readonly ListEntry[]): MDList {
   return list(entries);
 }
 
-/** Build a list item from its arguments, grouped as in {@link argumentNodes}. */
-function listItemNode(content: readonly AnyContent[]): ListItem {
-  return { type: 'listItem', spread: false, children: argumentNodes(content, 'list item content') };
+/** Return the blocks of a list item from its arguments, grouped as in {@link argumentNodes}. */
+function itemBlocks(content: readonly AnyContent[]): ListItem['children'] {
+  return argumentNodes(content, 'list item content');
 }

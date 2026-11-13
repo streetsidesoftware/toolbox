@@ -1,7 +1,13 @@
-import type { Html, RootContent } from 'mdast';
-
-import { trimBlanks } from '../core/index.ts';
-import type { HtmlGroupNode, HtmlSlotNode } from '../core/index.ts';
+import {
+  htmlBlockSlotNode,
+  htmlGroupNode,
+  htmlInlineSlotNode,
+  htmlNode,
+  inLists,
+  paragraphNode,
+  trimBlanks,
+} from '../core/index.ts';
+import type { HtmlGroupNode, HtmlSlotNode, RootContent } from '../core/index.ts';
 import {
   argumentNodes,
   assertCondition,
@@ -9,7 +15,6 @@ import {
   blockNodes,
   groupedNodes,
   inlineNodes,
-  inLists,
   isArray,
   mapParagraphsAndBlocks,
   MarkdownElement,
@@ -43,9 +48,9 @@ import { alignOf } from './table.ts';
  */
 export function details(summary: InlineContent, ...content: AnyContent[]): MDDetails {
   return new MarkdownElement('block', 'details', 'a details block', [
-    { type: 'htmlGroup', children: [html('<details>'), inlineSlot('summary', summary, 'details summary')] },
+    htmlGroupNode([htmlNode('<details>'), inlineSlot('summary', summary, 'details summary')]),
     ...argumentNodes(content, 'details content'),
-    html('</details>'),
+    htmlNode('</details>'),
   ]);
 }
 
@@ -65,12 +70,16 @@ export function dl(entries: readonly DefinitionEntry[]): MDDefinitionList {
     assertCondition(isArray(entry) && entry.length === 2, 'definition list entry must be a [term, definition] pair');
     const [term, definition] = entry;
     return [
-      { type: 'htmlGroup', children: [inlineSlot('dt', term, 'definition term'), html('<dd>')] },
+      htmlGroupNode([inlineSlot('dt', term, 'definition term'), htmlNode('<dd>')]),
       ...groupedNodes([definition], 'definition'),
-      html('</dd>'),
+      htmlNode('</dd>'),
     ];
   });
-  return new MarkdownElement('block', 'definitionList', 'a definition list', [html('<dl>'), ...nodes, html('</dl>')]);
+  return new MarkdownElement('block', 'definitionList', 'a definition list', [
+    htmlNode('<dl>'),
+    ...nodes,
+    htmlNode('</dl>'),
+  ]);
 }
 
 /** The same as {@link dl}. */
@@ -99,53 +108,40 @@ export function htmlTable(
   }
   const columns = rows.reduce((n, row) => Math.max(n, row.length), header.length);
   const align = (options?.align ?? []).map(alignOf);
-  const parts: HtmlGroupNode['children'] = [html('<table>')];
+  const parts: HtmlGroupNode['children'] = [htmlNode('<table>')];
 
   function addRow(tag: 'th' | 'td', cells: readonly AnyContent[]): void {
-    parts.push(html('<tr>'));
+    parts.push(htmlNode('<tr>'));
     for (let i = 0; i < columns; ++i) {
-      parts.push({
-        type: 'htmlBlockSlot',
-        // GitHub keeps the `align` attribute and strips `style`.
-        open: align[i] ? `<${tag} align="${align[i]}">` : `<${tag}>`,
-        close: `</${tag}>`,
-        children: cellNodes(cells[i] ?? []),
-      });
+      // GitHub keeps the `align` attribute and strips `style`.
+      const open = align[i] ? `<${tag} align="${align[i]}">` : `<${tag}>`;
+      parts.push(htmlBlockSlotNode(open, `</${tag}>`, cellNodes(cells[i] ?? [])));
     }
-    parts.push(html('</tr>'));
+    parts.push(htmlNode('</tr>'));
   }
 
   if (header.length) {
-    parts.push(html('<thead>'));
+    parts.push(htmlNode('<thead>'));
     addRow('th', header);
-    parts.push(html('</thead>'));
+    parts.push(htmlNode('</thead>'));
   }
-  parts.push(html('<tbody>'));
+  parts.push(htmlNode('<tbody>'));
   rows.forEach((row) => addRow('td', row));
-  parts.push(html('</tbody>'), html('</table>'));
-  return new MarkdownElement('block', 'htmlTable', 'an HTML table', [{ type: 'htmlGroup', children: parts }]);
+  parts.push(htmlNode('</tbody>'), htmlNode('</table>'));
+  return new MarkdownElement('block', 'htmlTable', 'an HTML table', [htmlGroupNode(parts)]);
 }
 
 /** Return a slot for inline content between a tag's start and end. */
 function inlineSlot(tag: string, content: InlineContent, where: string): HtmlSlotNode {
-  return {
-    type: 'htmlInlineSlot',
-    open: `<${tag}>`,
-    close: `</${tag}>`,
-    children: [{ type: 'paragraph', children: trimBlanks(inlineNodes(content, where)) }],
-  };
+  return htmlInlineSlotNode(`<${tag}>`, `</${tag}>`, trimBlanks(inlineNodes(content, where)));
 }
 
 /** Return the blocks of a table cell, grouped as in a document. */
 function cellNodes(content: AnyContent): RootContent[] {
   const nodes = mapParagraphsAndBlocks(
     content,
-    (inline): RootContent => ({ type: 'paragraph', children: trimBlanks(inlineNodes(inline, 'table cell')) }),
+    (inline): RootContent => paragraphNode(trimBlanks(inlineNodes(inline, 'table cell'))),
     (block) => blockNodes(block, 'table cell'),
   );
   return inLists(nodes);
-}
-
-function html(value: string): Html {
-  return { type: 'html', value };
 }

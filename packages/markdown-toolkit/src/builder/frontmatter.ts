@@ -1,5 +1,4 @@
-import type { Yaml } from 'mdast';
-
+import { yamlNode } from '../core/index.ts';
 import { isMDElement, MarkdownElement } from '../element/index.ts';
 import type { MDFrontmatter } from '../types.ts';
 
@@ -34,10 +33,6 @@ export function readFrontmatter(markdown: string): FrontmatterMatch | undefined 
 export function frontmatter(yaml: string): MDFrontmatter {
   // The closing `---` starts its own line, so a line ending at the end of the text is that line's.
   return new MarkdownElement('frontmatter', 'frontmatter', 'frontmatter', [yamlNode(yaml.replace(/\r?\n$/, ''))]);
-}
-
-export function yamlNode(yaml: string): Yaml {
-  return { type: 'yaml', value: yaml };
 }
 
 export function isFrontmatter(value: unknown): value is MDFrontmatter {
