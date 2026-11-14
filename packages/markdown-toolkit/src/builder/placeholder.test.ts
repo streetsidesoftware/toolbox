@@ -46,7 +46,7 @@ describe('placeholders', () => {
     );
   });
 
-  test('an invalid name throws', () => {
+  test('an invalid block placeholder name throws', () => {
     assert.throws(
       () => blockPlaceholder('a..b'),
       new TypeError(
