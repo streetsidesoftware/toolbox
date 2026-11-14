@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.2.0](https://github.com/streetsidesoftware/toolbox/compare/toolbox@2.1.0...toolbox@2.2.0) (2026-11-13)
+
+
+### Features
+
+* **github-action-toolkit:** add the github-action-toolkit package ([#187](https://github.com/streetsidesoftware/toolbox/issues/187)) ([d2ac9a6](https://github.com/streetsidesoftware/toolbox/commit/d2ac9a6eeb28345e6ff89d75b36c60a52b5c7321))
+* **github-action-toolkit:** publish to npm ([#208](https://github.com/streetsidesoftware/toolbox/issues/208)) ([e19f8f8](https://github.com/streetsidesoftware/toolbox/commit/e19f8f89419f45f79ddbaa20d2627b0d90fcd273))
+* **markdown-toolkit:** read and replace a document's frontmatter ([#174](https://github.com/streetsidesoftware/toolbox/issues/174)) ([bd5b5e7](https://github.com/streetsidesoftware/toolbox/commit/bd5b5e7aa856e629d6383180fce576acff4597ad))
+
+
+### Updates and Bug Fixes
+
+* **markdown-toolkit:** accept parsed values with formatting in template and blockTemplate ([#163](https://github.com/streetsidesoftware/toolbox/issues/163)) ([f8e590a](https://github.com/streetsidesoftware/toolbox/commit/f8e590a5edb2291219c96e8066f9f239e4db932e))
+* **markdown-toolkit:** leave out frontmatter after other content ([#173](https://github.com/streetsidesoftware/toolbox/issues/173)) ([f9242d2](https://github.com/streetsidesoftware/toolbox/commit/f9242d2491d76f36b4bf82710199bf4271244186))
+* **markdown-toolkit:** rename isMarkdown to isMDElement ([#194](https://github.com/streetsidesoftware/toolbox/issues/194)) ([5da40a6](https://github.com/streetsidesoftware/toolbox/commit/5da40a658ca2cdfd54f1f65883c6a18a3bbb2397))
+* **markdown-toolkit:** rename TemplateValues to TemplateReplacements ([#185](https://github.com/streetsidesoftware/toolbox/issues/185)) ([34b31ce](https://github.com/streetsidesoftware/toolbox/commit/34b31cede8fdd8b2a521e48fa3ad63b64a295cd2))
+* **markdown-toolkit:** state the rule in errors for wrong input, and throw TypeError ([#199](https://github.com/streetsidesoftware/toolbox/issues/199)) ([2056b50](https://github.com/streetsidesoftware/toolbox/commit/2056b50522272b4cc7c1b305366c9d2a9e157681))
+* **placeholders:** rename PlaceholderValues to PlaceholderReplacements ([#181](https://github.com/streetsidesoftware/toolbox/issues/181)) ([588054e](https://github.com/streetsidesoftware/toolbox/commit/588054e662dae03be3493d36309574dd418797ee))
+
 ## [2.1.0](https://github.com/streetsidesoftware/toolbox/compare/toolbox@2.0.1...toolbox@2.1.0) (2026-11-04)
 
 
