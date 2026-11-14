@@ -26,7 +26,10 @@ export function stringNodes(text: string): PhrasingContent[] {
     .flatMap((line, i): PhrasingContent[] => [...(i ? [{ type: 'break' } as const] : []), ...textNodes(line)]);
 }
 
-/** Join lines with a line ending, except next to a line break, which already ends the line. */
+/**
+ * Join lines with a line ending, except next to a line break, which already ends the line.
+ * Each line holds at least one node.
+ */
 export function joinLines(lines: readonly PhrasingContent[][]): PhrasingContent[] {
   const result: PhrasingContent[] = [];
   for (const line of lines) {

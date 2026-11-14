@@ -1,4 +1,5 @@
 // This package's own nodes, added to mdast's content types for this package's own code.
+// The tsconfig includes every file under `src/`, so type-checking applies these additions without an import.
 // Nothing may import this file: the published types would then carry these additions, and change mdast's types for
 // anyone who uses this package.
 import type { HtmlEntityNode } from './htmlEntityNode.ts';

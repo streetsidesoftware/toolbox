@@ -1,5 +1,5 @@
 import { paragraphNode, stringNodes, textNodes } from '../core/index.ts';
-import type { RootContent } from '../core/index.ts';
+import type { Paragraph } from '../core/index.ts';
 import { MarkdownElement } from '../element/index.ts';
 import type { MDFragment, MDText } from '../types.ts';
 
@@ -43,7 +43,7 @@ export const inlineText: typeof text = text;
  * @category text
  */
 export function blockText(value: string): MDFragment {
-  const paragraphs: RootContent[] = [];
+  const paragraphs: Paragraph[] = [];
   let lines: string[] = [];
   for (const line of value.split(/\r\n?|\n/)) {
     if (/^[ \t]*$/.test(line)) {
