@@ -58,10 +58,6 @@ export function listItem(
 /** The same as {@link listItem}. */
 export const li: typeof listItem = listItem;
 
-function isListItemOptions(value: ListItemOptions | ListItemContent | undefined): value is ListItemOptions {
-  return typeof value === 'object' && value !== null && !Array.isArray(value) && !isMDElement(value);
-}
-
 function buildListItem(content: readonly ListItemContent[], options?: ListItemOptions): MDListItem {
   return new MarkdownElement('listItem', 'listItem', 'a list item', [
     listItemNode(itemBlocks(content), options?.checked),
@@ -106,6 +102,10 @@ function piecesAndOptions(
   const last = content.at(-1);
   if (last !== undefined && !isListItemOptions(last)) return [content as ListItemContent[], undefined];
   return [content.slice(0, -1) as ListItemContent[], last];
+}
+
+function isListItemOptions(value: ListItemOptions | ListItemContent | undefined): value is ListItemOptions {
+  return typeof value === 'object' && value !== null && !Array.isArray(value) && !isMDElement(value);
 }
 
 /**
