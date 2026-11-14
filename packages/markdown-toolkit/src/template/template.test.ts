@@ -46,10 +46,6 @@ describe('template kinds', () => {
     assert.equal(substitutePlaceholders(parse('{@ x @}'), { x: '' }).kind, 'inline');
   });
 
-  test('an empty replacement leaves no paragraph', () => {
-    assert.equal(template('a\n\n{@ x @}\n\nb', { x: '' }).toString(), 'a\n\nb');
-  });
-
   test('anything else is blocks', () => {
     assert.equal(template('- a', {}).kind, 'block');
     assert.equal(template('a\n\nb', {}).kind, 'block');

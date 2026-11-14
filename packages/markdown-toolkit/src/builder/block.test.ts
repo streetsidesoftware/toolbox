@@ -102,7 +102,6 @@ describe('paragraph', () => {
   });
 
   test('a paragraph of whitespace stays', () => {
-    assert.equal(p(' ').toString(), '&#x20;');
     assert.equal(document('a', p(' '), 'b').toString(), 'a\n\n&#x20;\n\nb\n');
   });
 

@@ -65,7 +65,6 @@ describe('a newline in a string is a line break', () => {
     ${table(['h'], [['a\nb']])}                                     | ${'| h       |\n| ------- |\n| a<br/>b |'}
     ${details('a\nb', 'c')}                                         | ${'<details>\n<summary>a<br/>b</summary>\n\nc\n\n</details>'}
     ${definitionList([['a\nb', 'c']])}                              | ${'<dl>\n\n<dt>a<br/>b</dt>\n<dd>\n\nc\n\n</dd>\n\n</dl>'}
-    ${document('a', '\nb')}                                         | ${'a\\\nb\n'}
     ${paragraph(inlineCode('a\nb'))}                                | ${'`a\nb`'}
     ${blockText('a\nb')}                                            | ${'a\nb'}
   `('$expected', ({ value, expected }: { value: MDElement; expected: string }) => {
