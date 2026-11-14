@@ -20,7 +20,7 @@ import type {
 } from 'mdast';
 
 // Code outside `core/` names node types from here, never from mdast itself.
-export type { AlignType, BlockContent, Html, ListItem, PhrasingContent, Root, RootContent } from 'mdast';
+export type { AlignType, BlockContent, Html, ListItem, PhrasingContent, RootContent } from 'mdast';
 
 export function paragraphNode(children: PhrasingContent[]): Paragraph {
   return { type: 'paragraph', children };

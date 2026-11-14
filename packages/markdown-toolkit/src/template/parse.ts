@@ -1,9 +1,9 @@
 import { DocumentElement, readFrontmatter } from '../builder/index.ts';
-import { detectMarkdownStyle, parseTree, yamlNode } from '../core/index.ts';
+import { detectMarkdownStyle, parseNodes, substituteNodes, yamlNode } from '../core/index.ts';
 import type { MDDocument, MDFragment, MDInlineFragment } from '../types.ts';
 import { fragment } from './fragment.ts';
+import { placeholderReplacements } from './replacements.ts';
 import type { TemplateResolver } from './replacements.ts';
-import { substituteInTree } from './substitute.ts';
 
 /**
  * Parse Markdown text so it can be added to a page with its formatting.
@@ -20,7 +20,7 @@ import { substituteInTree } from './substitute.ts';
  * @category text
  */
 export function parse(markdown: string): MDFragment | MDInlineFragment {
-  return fragment(parseTree(markdown, false), markdown);
+  return fragment(parseNodes(markdown, false), markdown);
 }
 
 /**
@@ -44,9 +44,8 @@ export function parseDocument(markdown: string): MDDocument {
 export function documentOf(markdown: string, resolve?: TemplateResolver): MDDocument {
   const front = readFrontmatter(markdown);
   const body = front ? markdown.slice(front.end) : markdown;
-  const root = parseTree(body, false);
-  const style = detectMarkdownStyle(root, body);
-  if (front) root.children.unshift(yamlNode(front.yaml));
-  if (resolve) substituteInTree(root, resolve, true);
-  return new DocumentElement(root.children, style);
+  const parsed = parseNodes(body, false);
+  const style = detectMarkdownStyle(parsed, body);
+  const nodes = front ? [yamlNode(front.yaml), ...parsed] : parsed;
+  return new DocumentElement(resolve ? substituteNodes(nodes, placeholderReplacements(resolve), true) : nodes, style);
 }

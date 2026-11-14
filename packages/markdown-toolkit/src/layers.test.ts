@@ -6,9 +6,6 @@ import { test } from 'node:test';
 /** The packages that parse, write or walk Markdown trees. */
 const treePackage = /^(?:mdast|mdast-util-.+|micromark.*|remark|remark-.+|unified|unist|unist-util-.+)$/;
 
-/** The files outside `core/` that still import a tree package. Each one leaves the list when its tree code moves into `core/`. */
-const notMovedYet = ['template/substitute.ts'];
-
 test('only core/ imports the Markdown tree packages', async () => {
   const src = new URL('./', import.meta.url);
   const files = (await readdir(src, { recursive: true }))
@@ -21,5 +18,5 @@ test('only core/ imports the Markdown tree packages', async () => {
     const specifiers = [...source.matchAll(/\bfrom\s+['"]([^'"]+)['"]|\bimport\s*\(?['"]([^'"]+)['"]/g)];
     if (specifiers.some(([, from, imported]) => treePackage.test(from ?? imported))) importing.push(file);
   }
-  assert.deepEqual(importing, notMovedYet);
+  assert.deepEqual(importing, []);
 });
