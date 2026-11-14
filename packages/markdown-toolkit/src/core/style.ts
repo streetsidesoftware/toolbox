@@ -21,7 +21,7 @@ export function detectMarkdownStyle(tree: Root, content: string): MarkdownStyle 
 
     switch (node.type) {
       case 'thematicBreak':
-        rule.add(charAt(firstNonSpace(content, offset)));
+        rule.add(charAt(content[offset]));
         break;
       case 'list': {
         const first = node.children[0];
@@ -30,7 +30,7 @@ export function detectMarkdownStyle(tree: Root, content: string): MarkdownStyle 
         if (node.ordered) {
           bulletOrdered.add(charAt(orderedMarkerAt(content, firstOffset)));
         } else {
-          bullet.add(charAt(firstNonSpace(content, firstOffset)));
+          bullet.add(charAt(content[firstOffset]));
         }
         break;
       }
@@ -64,21 +64,9 @@ export function detectMarkdownStyle(tree: Root, content: string): MarkdownStyle 
   return options;
 }
 
-/**
- * Return the first character at or after `offset` that isn't a space or tab.
- * It's exported to test the skipping directly. The parser puts a node's offset at its marker, not before its
- * indentation, so {@link detectMarkdownStyle} never skips anything.
- */
-export function firstNonSpace(content: string, offset: number): string | undefined {
+/** Return the character after the number of the ordered list marker at `offset`, such as `.` or `)`. */
+function orderedMarkerAt(content: string, offset: number): string | undefined {
   let i = offset;
-  while (i < content.length && (content[i] === ' ' || content[i] === '\t')) ++i;
-  return content[i];
-}
-
-/** Return the character after the number of an ordered list marker, skipping spaces and tabs as {@link firstNonSpace} does. */
-export function orderedMarkerAt(content: string, offset: number): string | undefined {
-  let i = offset;
-  while (i < content.length && (content[i] === ' ' || content[i] === '\t')) ++i;
   while (i < content.length && /[0-9]/.test(content[i])) ++i;
   return content[i];
 }
