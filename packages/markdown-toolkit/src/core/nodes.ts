@@ -19,8 +19,8 @@ import type {
   Yaml,
 } from 'mdast';
 
-// Code outside `core/` names node types from here, never from mdast itself.
-export type { AlignType, BlockContent, Html, ListItem, PhrasingContent, RootContent } from 'mdast';
+// Code outside `core/` names node types through `core/index.ts`, never from mdast itself.
+export type { AlignType, BlockContent, Html, ListItem, Paragraph, PhrasingContent, RootContent } from 'mdast';
 
 export function paragraphNode(children: PhrasingContent[]): Paragraph {
   return { type: 'paragraph', children };
@@ -105,7 +105,12 @@ export function withoutFrontmatter(nodes: RootContent[]): RootContent[] {
   return nodes[0]?.type === 'yaml' ? nodes.slice(1) : nodes;
 }
 
-/** Return the content of nodes that form one paragraph or nothing, or `undefined` when they hold anything else. */
+/**
+ * Return the content of nodes that hold at most one paragraph:
+ * - one paragraph: its children.
+ * - no nodes: an empty array.
+ * - anything else: `undefined`.
+ */
 export function paragraphContent(nodes: readonly RootContent[]): PhrasingContent[] | undefined {
   const [only, ...rest] = nodes;
   if (!only) return [];

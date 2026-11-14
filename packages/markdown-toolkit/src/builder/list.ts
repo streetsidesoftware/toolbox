@@ -179,7 +179,6 @@ export function ul(entries: readonly ListEntry[]): MDList {
   return list(entries);
 }
 
-/** Return the blocks of a list item from its arguments, grouped as in {@link argumentNodes}. */
 function itemBlocks(content: readonly AnyContent[]): ListItem['children'] {
   return argumentNodes(content, 'list item content');
 }

@@ -19,7 +19,7 @@ export {
   withoutFrontmatter,
   yamlNode,
 } from './nodes.ts';
-export type { AlignType, BlockContent, Html, ListItem, PhrasingContent, RootContent } from './nodes.ts';
+export type { AlignType, BlockContent, Html, ListItem, Paragraph, PhrasingContent, RootContent } from './nodes.ts';
 export { inLists } from './lists.ts';
 export { placeholderNode } from './placeholderNode.ts';
 export { htmlBlockSlotNode, htmlGroupNode, htmlInlineSlotNode } from './htmlGroupNode.ts';
