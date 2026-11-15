@@ -1,6 +1,6 @@
 import { isValidPlaceholderName } from '@streetsidesoftware/placeholders';
 
-import { placeholderNode } from '../core/index.ts';
+import { paragraphNode, placeholderNode } from '../core/index.ts';
 import { assertCondition, MarkdownElement } from '../element/index.ts';
 import type { MDBlockPlaceholder, MDPlaceholder } from '../types.ts';
 
@@ -17,9 +17,7 @@ class BlockPlaceholderElement extends MarkdownElement<'block', 'blockPlaceholder
   readonly name: string;
 
   constructor(name: string) {
-    super('block', 'blockPlaceholder', 'a block placeholder', [
-      { type: 'paragraph', children: [placeholderNode(name)] },
-    ]);
+    super('block', 'blockPlaceholder', 'a block placeholder', [paragraphNode([placeholderNode(name)])]);
     this.name = name;
   }
 }

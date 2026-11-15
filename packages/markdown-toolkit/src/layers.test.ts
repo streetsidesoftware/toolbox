@@ -7,21 +7,7 @@ import { test } from 'node:test';
 const treePackage = /^(?:mdast|mdast-util-.+|micromark.*|remark|remark-.+|unified|unist|unist-util-.+)$/;
 
 /** The files outside `core/` that still import a tree package. Each one leaves the list when its tree code moves into `core/`. */
-const notMovedYet = [
-  'builder/comment.ts',
-  'builder/document.ts',
-  'builder/formatting.ts',
-  'builder/frontmatter.ts',
-  'builder/htmlBlocks.ts',
-  'builder/list.ts',
-  'builder/table.ts',
-  'builder/text.ts',
-  'element/content.ts',
-  'element/element.ts',
-  'template/fragment.ts',
-  'template/replacements.ts',
-  'template/substitute.ts',
-];
+const notMovedYet = ['template/substitute.ts'];
 
 test('only core/ imports the Markdown tree packages', async () => {
   const src = new URL('./', import.meta.url);

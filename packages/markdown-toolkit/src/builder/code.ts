@@ -1,3 +1,4 @@
+import { codeNode, inlineCodeNode } from '../core/index.ts';
 import { MarkdownElement } from '../element/index.ts';
 import type { MDCodeBlock, MDInlineCode } from '../types.ts';
 
@@ -12,7 +13,7 @@ import type { MDCodeBlock, MDInlineCode } from '../types.ts';
  * @category code
  */
 export function inlineCode(code: string): MDInlineCode {
-  return new MarkdownElement('inline', 'inlineCode', 'inline code', [{ type: 'inlineCode', value: code }]);
+  return new MarkdownElement('inline', 'inlineCode', 'inline code', [inlineCodeNode(code)]);
 }
 
 /**
@@ -27,5 +28,5 @@ export function inlineCode(code: string): MDInlineCode {
  * @category code
  */
 export function codeBlock(code: string, lang?: string): MDCodeBlock {
-  return new MarkdownElement('block', 'codeBlock', 'a code block', [{ type: 'code', lang: lang || null, value: code }]);
+  return new MarkdownElement('block', 'codeBlock', 'a code block', [codeNode(code, lang || null)]);
 }

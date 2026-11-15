@@ -15,10 +15,8 @@ export {
   argumentNodes,
   blockNodes,
   groupedNodes,
-  inLists,
   inlineNodes,
   isBlockContent,
   isBlockLike,
   mapParagraphsAndBlocks,
-  stringNodes,
 } from './content.ts';

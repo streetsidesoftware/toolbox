@@ -1,3 +1,4 @@
+import { breakNode, htmlNode } from '../core/index.ts';
 import { MarkdownElement } from '../element/index.ts';
 import type { MDBr, MDLineBreak } from '../types.ts';
 
@@ -12,7 +13,7 @@ import type { MDBr, MDLineBreak } from '../types.ts';
  * @category line-breaks
  */
 export function lineBreak(): MDLineBreak {
-  return new MarkdownElement('inline', 'lineBreak', 'a line break', [{ type: 'break' }]);
+  return new MarkdownElement('inline', 'lineBreak', 'a line break', [breakNode()]);
 }
 
 /**
@@ -27,5 +28,5 @@ export function lineBreak(): MDLineBreak {
  */
 export function br(): MDBr {
   // Never `<br>`: MDX reads HTML as JSX, where an unclosed tag is a syntax error.
-  return new MarkdownElement('inline', 'br', 'a <br/>', [{ type: 'html', value: '<br/>' }]);
+  return new MarkdownElement('inline', 'br', 'a <br/>', [htmlNode('<br/>')]);
 }

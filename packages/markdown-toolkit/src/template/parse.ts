@@ -1,5 +1,5 @@
-import { DocumentElement, readFrontmatter, yamlNode } from '../builder/index.ts';
-import { detectMarkdownStyle, parseTree } from '../core/index.ts';
+import { DocumentElement, readFrontmatter } from '../builder/index.ts';
+import { detectMarkdownStyle, parseTree, yamlNode } from '../core/index.ts';
 import type { MDDocument, MDFragment, MDInlineFragment } from '../types.ts';
 import { fragment } from './fragment.ts';
 import type { TemplateResolver } from './replacements.ts';
