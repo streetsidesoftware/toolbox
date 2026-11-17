@@ -93,13 +93,14 @@ export function substitutePlaceholders(
   if (substituted !== undefined) return text(substituted);
   const { style } = markdownInternals;
   const nodes = structuredClone(markdownInternals.nodes);
-  const forPlaceholders = placeholderReplacements(resolve);
+  const replacementsByPlace = placeholderReplacements(resolve);
   switch (content.type) {
     case 'text':
     case 'inlineFragment':
-      return fragmentOf(substituteNodes([paragraphNode(nodes as PhrasingContent[])], forPlaceholders, true), style);
+      return fragmentOf(substituteNodes([paragraphNode(nodes as PhrasingContent[])], replacementsByPlace, true), style);
     case 'paragraph': {
-      const substitutedNodes = substituteNodes(nodes, forPlaceholders, true);
+      const substitutedNodes = substituteNodes(nodes, replacementsByPlace, true);
+      // An emptied paragraph leaves no nodes, which `paragraphContent` also accepts. It becomes a fragment.
       if (substitutedNodes.length === 1 && paragraphContent(substitutedNodes)) {
         return new MarkdownElement('block', 'paragraph', 'a paragraph', substitutedNodes, style);
       }
@@ -107,24 +108,24 @@ export function substitutePlaceholders(
     }
     case 'placeholder':
       if (resolve((content as MDPlaceholder).name) === undefined) return content;
-      return fragmentOf(substituteNodes([paragraphNode(nodes as PhrasingContent[])], forPlaceholders, true), style);
+      return fragmentOf(substituteNodes([paragraphNode(nodes as PhrasingContent[])], replacementsByPlace, true), style);
     case 'blockPlaceholder':
       if (resolve((content as MDBlockPlaceholder).name) === undefined) return content;
       return new MarkdownElement(
         'block',
         'fragment',
         'a Markdown fragment',
-        substituteNodes(nodes, forPlaceholders, true),
+        substituteNodes(nodes, replacementsByPlace, true),
         style,
       );
     case 'document':
-      return new DocumentElement(substituteNodes(nodes, forPlaceholders, true), style);
+      return new DocumentElement(substituteNodes(nodes, replacementsByPlace, true), style);
     default:
       return new MarkdownElement(
         content.kind,
         content.type,
         content.description,
-        substituteNodes(nodes, forPlaceholders, content.kind !== 'inline'),
+        substituteNodes(nodes, replacementsByPlace, content.kind !== 'inline'),
         style,
       );
   }

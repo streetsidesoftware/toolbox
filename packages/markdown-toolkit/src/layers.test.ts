@@ -15,8 +15,8 @@ test('only core/ imports the Markdown tree packages', async () => {
   assert.deepEqual(importing, []);
 });
 
-test('only core/ writes Markdown nodes', async () => {
-  // A node written by hand needs no import, since the parameter it's passed to gives it its type.
+test('only core/ writes node literals', async () => {
+  // A node literal needs no import, since the parameter it's passed to gives it its type.
   // The `type` fields in `types.ts` name this package's own element types, not nodes.
   const writing = (await sourcesOutsideCore())
     .filter(([file, source]) => file !== 'types.ts' && /\btype:\s*['"]/.test(source))

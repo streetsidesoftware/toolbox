@@ -99,6 +99,12 @@ describe('substitutePlaceholders', () => {
     assert.equal(kept.type, 'paragraph');
   });
 
+  test('a paragraph that a replacement empties becomes an empty fragment', () => {
+    const md = substitutePlaceholders(paragraph(placeholder('a')), { a: '' });
+    assert.equal(md.type, 'fragment');
+    assert.equal(md.toString(), '');
+  });
+
   test('a placeholder inside a line takes only inline replacements', () => {
     const items = list(['a']);
     assert.throws(

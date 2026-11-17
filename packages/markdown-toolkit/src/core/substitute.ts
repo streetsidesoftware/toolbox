@@ -15,11 +15,11 @@ export interface PlaceholderReplacements {
   line(name: string): { readonly blocks: RootContent[] } | PhrasingContent[] | undefined;
   /** Return the nodes for a placeholder elsewhere inside a line, or `undefined` to keep the placeholder. */
   inline(name: string): PhrasingContent[] | undefined;
-  /** Return the string for a placeholder inside code, HTML, a URL, a title or frontmatter, or `undefined` to keep it. */
+  /** Return the string for a placeholder in a place that takes only a string, or `undefined` to keep it. */
   string(name: string, inside: StringPlace): string | undefined;
 }
 
-/** A place where a replacement goes in as a string, as named in error messages. */
+/** A place that takes only a string. Most names read as a phrase, such as `a URL`, for error messages. */
 type StringPlace = 'code' | 'HTML' | 'a URL' | 'a title' | 'frontmatter';
 
 /** Where a paragraph splits: the blocks that replace a placeholder on a line of its own, or none where replacements left a line empty. */
