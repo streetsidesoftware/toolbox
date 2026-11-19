@@ -29,7 +29,10 @@ describe('run', () => {
     assert.equal(code, 0);
     assert.equal(await readFile(path.join(cwd, 'static/sponsor.md'), 'utf8'), 'Sponsor us.\n');
     assert.equal(await readFile(path.join(cwd, 'static/footer.md'), 'utf8'), 'Footer.\n');
-    assert.deepEqual(context.logged, ['Added static/sponsor.md', 'Added static/footer.md']);
+    assert.deepEqual(context.logged, [
+      `Added ${localPath('static/sponsor.md')}`,
+      `Added ${localPath('static/footer.md')}`,
+    ]);
   });
 
   test('writes the files below the --output folder', async () => {
@@ -38,7 +41,7 @@ describe('run', () => {
 
     assert.equal(code, 0);
     assert.equal(await readFile(path.join(cwd, 'docs/static/sponsor.md'), 'utf8'), 'Sponsor us.\n');
-    assert.deepEqual(context.logged, [`Added ${path.join('docs', 'static', 'sponsor.md')}`]);
+    assert.deepEqual(context.logged, [`Added ${localPath('docs/static/sponsor.md')}`]);
   });
 
   test('reads from the --ref', async () => {
@@ -72,7 +75,10 @@ describe('run', () => {
     await run(['owner/repo', 'static/sponsor.md', 'static/footer.md'], context);
 
     assert.equal(await readFile(path.join(cwd, 'static/sponsor.md'), 'utf8'), 'Sponsor us.\n');
-    assert.deepEqual(context.logged, ['Updated static/sponsor.md', 'Added static/footer.md']);
+    assert.deepEqual(context.logged, [
+      `Updated ${localPath('static/sponsor.md')}`,
+      `Added ${localPath('static/footer.md')}`,
+    ]);
   });
 
   test('reads a path named twice once', async () => {
@@ -151,6 +157,11 @@ describe('run', () => {
     }
   });
 });
+
+/** The path as the command prints it, with the platform's separator. */
+function localPath(filePath: string): string {
+  return path.join(...filePath.split('/'));
+}
 
 async function writeLocal(filePath: string, content: string): Promise<void> {
   await mkdir(path.dirname(path.join(cwd, filePath)), { recursive: true });
