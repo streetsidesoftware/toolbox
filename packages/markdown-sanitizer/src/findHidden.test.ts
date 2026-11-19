@@ -155,7 +155,7 @@ describe('invisible characters', () => {
     ${'in fenced code'}       | ${'```\n&zwj;\n```'}
     ${'that is escaped'}      | ${'\\&#x200B;'}
     ${'for a visible char'}   | ${'&amp; &#65; &nbsp;'}
-    ${'that is no entity'}    | ${'&notanentity;'}
+    ${'that is no entity'}    | ${'&bogus;'}
   `('ignores a reference $name', ({ markdown }: { markdown: string }) => {
     assert.deepEqual(texts(markdown, 'invisible'), []);
   });
