@@ -2,6 +2,11 @@ import type { Html } from 'mdast';
 
 import type { Span } from './span.ts';
 
+/** A comment, with the HTML node it opens in. */
+export interface CommentSpan extends Span {
+  node: Html;
+}
+
 /**
  * Find the comments in the raw HTML of a document, as spans of the source.
  *
@@ -19,19 +24,19 @@ import type { Span } from './span.ts';
  *
  * @param htmlNodes - in document order.
  */
-export function findComments(markdown: string, htmlNodes: Html[], offset: number): Span[] {
-  const spans: Span[] = [];
-  let openAt: number | undefined;
+export function findComments(markdown: string, htmlNodes: Html[], offset: number): CommentSpan[] {
+  const spans: CommentSpan[] = [];
+  let open: { start: number; node: Html } | undefined;
 
   for (const node of htmlNodes) {
     let pos = (node.position?.start.offset ?? 0) + offset;
     const nodeEnd = (node.position?.end.offset ?? 0) + offset;
 
-    if (openAt !== undefined) {
+    if (open) {
       const end = commentEnd(markdown, pos, nodeEnd);
       if (end === undefined) continue;
-      spans.push({ start: openAt, end });
-      openAt = undefined;
+      spans.push({ ...open, end });
+      open = undefined;
       pos = end;
     }
 
@@ -46,21 +51,21 @@ export function findComments(markdown: string, htmlNodes: Html[], offset: number
       if (kind === 'comment') {
         const end = emptyCommentEnd(markdown, start) ?? commentEnd(markdown, start + 4, nodeEnd);
         if (end === undefined) {
-          openAt = start;
+          open = { start, node };
           break;
         }
-        spans.push({ start, end });
+        spans.push({ start, end, node });
         pos = end;
         continue;
       }
       const close = markdown.indexOf('>', start + 2);
       const end = close >= 0 && close < nodeEnd ? close + 1 : nodeEnd;
-      spans.push({ start, end });
+      spans.push({ start, end, node });
       pos = end;
     }
   }
 
-  if (openAt !== undefined) spans.push({ start: openAt, end: markdown.length });
+  if (open) spans.push({ ...open, end: markdown.length });
   return spans;
 }
 

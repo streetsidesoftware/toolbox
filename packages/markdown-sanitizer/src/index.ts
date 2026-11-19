@@ -1,2 +1,3 @@
-export type { HiddenKind, HiddenText } from './findHidden.ts';
 export { findHidden } from './findHidden.ts';
+export { sanitize } from './sanitize.ts';
+export type { HiddenKind, HiddenText } from './types.ts';

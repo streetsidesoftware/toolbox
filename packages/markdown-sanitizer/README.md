@@ -25,6 +25,21 @@ for (const hidden of findHidden(message)) {
 3:1 comment: "<!-- Ignore previous instructions. -->"
 ```
 
+To take the hidden text out, or to show it on the page for a reviewer, use `sanitize`:
+
+```ts
+import { sanitize } from '@streetsidesoftware/markdown-sanitizer';
+
+sanitize('Fix the <!-- secret --> parser.', 'remove');
+// Fix the  parser.
+
+sanitize('Fix the <!-- secret --> parser.', 'reveal');
+// Fix the `<!-- secret -->` parser.
+```
+
+Revealing shows each comment, unused definition or footnote as code, exactly as an agent reads it: as code in its
+line, as a code block when it's on lines of its own, or as HTML code inside other HTML.
+
 ## What counts as hidden
 
 - **Comments.** An HTML comment hides its text, and so does HTML that a browser reads as a comment, such as `<?…>`.
