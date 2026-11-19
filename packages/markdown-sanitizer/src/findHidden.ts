@@ -7,8 +7,12 @@ import type { HiddenText } from './types.ts';
  * It finds:
  * - HTML comments, including one inside other HTML. A comment left open hides the rest of the page.
  * - Link definitions that no link uses, such as `[//]: # (note)`, and footnotes that nothing cites.
- * - Invisible characters, such as zero-width spaces, bidi controls and Unicode tag characters. The ones an emoji
- *   needs, such as the joiner that makes 👩 and 💻 one emoji, aren't hidden text.
+ * - Invisible characters, such as direction overrides and Unicode tag characters.
+ *
+ * Some invisible characters are ok and aren't reported:
+ * - The ones that only control line breaks, joining or the direction of punctuation: the soft hyphen, the
+ *   zero-width space, joiner and non-joiner, the word joiner, the byte order mark, and the direction marks.
+ * - The variation selectors and tags that form an emoji, such as a red heart or the Scotland flag.
  *
  * Code shows on the page as it is, so a comment in code isn't hidden. An invisible character in code is.
  *

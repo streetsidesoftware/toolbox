@@ -43,15 +43,15 @@ describe('sanitize remove', () => {
     ${'a comment block'}                | ${'a\n\n<!-- note -->\n\nb'}              | ${'a\n\n\n\nb'}
     ${'a comment left open'}            | ${'a\n\n<!-- open\n\nb'}                  | ${'a\n\n'}
     ${'a definition'}                   | ${'[//]: # (note)\n\nVisible'}            | ${'\n\nVisible'}
-    ${'invisible characters'}           | ${'pass\u200Bword &zwj;'}                 | ${'password '}
+    ${'invisible characters'}           | ${'a\u202Eb &#x202C;'}                    | ${'ab '}
     ${'a comment that removal forms'}   | ${'<!-<!-- -->- x -->'}                   | ${''}
-    ${'a reference that removal forms'} | ${'&#x2\u200B00B;'}                       | ${''}
+    ${'a reference that removal forms'} | ${'&#x20\u202E2E;'}                       | ${''}
   `('removes $name', ({ markdown, removed }: { markdown: string; removed: string }) => {
     assert.equal(sanitize(markdown, 'remove'), removed);
   });
 
   test('leaves Markdown that hides nothing as it is', () => {
-    const markdown = 'I like \u2764\uFE0F and `<!-- code -->`.\n';
+    const markdown = 'I like \u2764\uFE0F and `<!-- code -->`, @\u200Bname.\n';
     assert.equal(sanitize(markdown, 'remove'), markdown);
   });
 

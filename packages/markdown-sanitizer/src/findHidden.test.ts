@@ -24,10 +24,7 @@ describe('findHidden', () => {
     const markdown = '\uFEFFa <!-- x -->';
     assert.deepEqual(
       findHidden(markdown).map(({ kind, text }) => ({ kind, text })),
-      [
-        { kind: 'invisible', text: '\uFEFF' },
-        { kind: 'comment', text: '<!-- x -->' },
-      ],
+      [{ kind: 'comment', text: '<!-- x -->' }],
     );
   });
 
@@ -107,18 +104,16 @@ describe('definitions', () => {
 describe('invisible characters', () => {
   testEach`
     name                               | markdown                                     | hidden
-    ${'a zero-width space'}            | ${'pass\u200Bword'}                          | ${['\u200B']}
     ${'bidi controls'}                 | ${'a \u202Eevil\u202C b'}                    | ${['\u202E', '\u202C']}
     ${'tag characters as one run'}     | ${'fix\u{E0049}\u{E0067}\u{E006E} it'}       | ${['\u{E0049}\u{E0067}\u{E006E}']}
-    ${'a soft hyphen'}                 | ${'in\u00ADvisible'}                         | ${['\u00AD']}
-    ${'a joiner between letters'}      | ${'a\u200Db'}                                | ${['\u200D']}
+    ${'a Hangul filler'}               | ${'a\u3164b'}                                | ${['\u3164']}
     ${'a selector after a letter'}     | ${'a\uFE0F'}                                 | ${['\uFE0F']}
     ${'a second selector'}             | ${'\u2764\uFE0F\uFE0F'}                      | ${['\uFE0F']}
     ${'a run of selectors'}            | ${'\u{1F600}\u{E0100}\u{E0101}'}             | ${['\u{E0100}\u{E0101}']}
     ${'tags after a letter'}           | ${'a\u{E0067}\u{E0062}\u{E007F}'}            | ${['\u{E0067}\u{E0062}\u{E007F}']}
     ${'a message hidden after a flag'} | ${'\u{1F3F4}\u{E0068}\u{E0020}\u{E0069}\u{E007F}'} | ${['\u{E0068}\u{E0020}\u{E0069}\u{E007F}']}
     ${'a flag without its cancel tag'} | ${'\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}'} | ${['\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}']}
-    ${'characters in code'}            | ${'`a\u200Bb`'}                              | ${['\u200B']}
+    ${'characters in code'}            | ${'`a\u202Eb`'}                              | ${['\u202E']}
   `('finds $name', ({ markdown, hidden }: { markdown: string; hidden: string[] }) => {
     assert.deepEqual(texts(markdown, 'invisible'), hidden);
   });
@@ -138,22 +133,37 @@ describe('invisible characters', () => {
   });
 
   testEach`
+    name                       | markdown
+    ${'zero-width space'}      | ${'pass\u200Bword'}
+    ${'soft hyphen'}           | ${'in\u00ADvisible'}
+    ${'zero-width joiner'}     | ${'a\u200Db'}
+    ${'zero-width non-joiner'} | ${'a\u200Cb'}
+    ${'word joiner'}           | ${'a\u2060b'}
+    ${'byte order mark'}       | ${'a\uFEFFb'}
+    ${'direction marks'}       | ${'a\u200E\u200F\u061Cb'}
+    ${'references to them'}    | ${'a&#x200B;&shy;&zwj;&zwnj;&NoBreak;&lrm;&rlm;b'}
+  `('leaves the $name alone', ({ markdown }: { markdown: string }) => {
+    assert.deepEqual(findHidden(markdown), []);
+  });
+
+  testEach`
     name                          | markdown                       | hidden
-    ${'a hex reference'}          | ${'a&#x200B;b'}                | ${['&#x200B;']}
-    ${'a decimal reference'}      | ${'a&#8203;b'}                 | ${['&#8203;']}
-    ${'a named reference'}        | ${'a&zwj;b &ZeroWidthSpace;'}  | ${['&zwj;', '&ZeroWidthSpace;']}
+    ${'a hex reference'}          | ${'a&#x202E;b'}                | ${['&#x202E;']}
+    ${'a decimal reference'}      | ${'a&#8238;b'}                 | ${['&#8238;']}
+    ${'a named reference'}        | ${'a&af;b'}                    | ${['&af;']}
+    ${'a selector reference'}     | ${'\u2764&#xFE0F;'}            | ${['&#xFE0F;']}
     ${'tag references as one run'} | ${'a&#xE0049;&#xE0067;b'}      | ${['&#xE0049;&#xE0067;']}
-    ${'a reference in HTML'}      | ${'<span>&#x200B;</span>'}     | ${['&#x200B;']}
-    ${'a reference next to a character'} | ${'a&#x200B;\u200Bb'}   | ${['&#x200B;\u200B']}
+    ${'a reference in HTML'}      | ${'<span>&#x202E;</span>'}     | ${['&#x202E;']}
+    ${'a reference next to a character'} | ${'a&#x202E;\u202Eb'}   | ${['&#x202E;\u202E']}
   `('finds $name', ({ markdown, hidden }: { markdown: string; hidden: string[] }) => {
     assert.deepEqual(texts(markdown, 'invisible'), hidden);
   });
 
   testEach`
     name                      | markdown
-    ${'in a code span'}       | ${'`&#x200B;`'}
-    ${'in fenced code'}       | ${'```\n&zwj;\n```'}
-    ${'that is escaped'}      | ${'\\&#x200B;'}
+    ${'in a code span'}       | ${'`&#x202E;`'}
+    ${'in fenced code'}       | ${'```\n&af;\n```'}
+    ${'that is escaped'}      | ${'\\&#x202E;'}
     ${'for a visible char'}   | ${'&amp; &#65; &nbsp;'}
     ${'that is no entity'}    | ${'&bogus;'}
   `('ignores a reference $name', ({ markdown }: { markdown: string }) => {
@@ -161,11 +171,11 @@ describe('invisible characters', () => {
   });
 
   test('an escaped backslash leaves the reference in force', () => {
-    assert.deepEqual(texts('\\\\&#x200B;', 'invisible'), ['&#x200B;']);
+    assert.deepEqual(texts('\\\\&#x202E;', 'invisible'), ['&#x202E;']);
   });
 
   test('a character inside a comment is part of the comment', () => {
-    assert.deepEqual(kindsAndTexts('a <!-- x\u200By --> b'), [['comment', '<!-- x\u200By -->']]);
+    assert.deepEqual(kindsAndTexts('a <!-- x\u202Ey --> b'), [['comment', '<!-- x\u202Ey -->']]);
   });
 });
 

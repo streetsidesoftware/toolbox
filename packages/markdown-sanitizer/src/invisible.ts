@@ -4,10 +4,24 @@ import type { Span } from './span.ts';
 
 const ignorable = /\p{Default_Ignorable_Code_Point}/u;
 const emoji = /\p{Emoji}/u;
-const pictographic = /\p{Extended_Pictographic}/u;
 const reference = /&(?:#[xX]([0-9a-fA-F]{1,6})|#([0-9]{1,7})|([A-Za-z][A-Za-z0-9]{0,31}));/g;
 
-const ZWJ = 0x200d;
+/**
+ * The invisible characters that are ok anywhere. They only control line breaks, joining or the direction of
+ * punctuation, and one of them alone carries nothing a reader can decode.
+ */
+const ok = new Set([
+  0x00ad, // soft hyphen
+  0x061c, // Arabic letter mark
+  0x200b, // zero-width space
+  0x200c, // zero-width non-joiner
+  0x200d, // zero-width joiner
+  0x200e, // left-to-right mark
+  0x200f, // right-to-left mark
+  0x2060, // word joiner
+  0xfeff, // byte order mark
+]);
+
 const VS15 = 0xfe0e;
 const VS16 = 0xfe0f;
 const BLACK_FLAG = 0x1f3f4;
@@ -17,12 +31,11 @@ const CANCEL_TAG = 0xe007f;
  * Find the runs of invisible characters, as spans of the source.
  *
  * A character is invisible when Unicode says a font may draw nothing for it: its Default_Ignorable_Code_Point
- * property. That covers zero-width characters, bidi controls, variation selectors and tag characters.
+ * property. That covers bidi controls, variation selectors, tag characters and more. The characters in {@link ok}
+ * aren't reported.
  *
- * Emoji need some of them, so these are left alone:
+ * Emoji need some of the others, so these are left alone:
  * - Variation selector 15 or 16 right after an emoji character, as in U+2764 U+FE0F, a red heart.
- * - A zero-width joiner between two emoji, as in U+1F469 U+200D U+1F4BB, a technologist. A skin tone or variation
- *   selector 16 may come between the first emoji and the joiner.
  * - A subdivision flag, such as the Scotland flag: 🏴, then a subdivision code in tag letters and digits, then the
  *   cancel tag. A subdivision code is a two-letter region and one to four letters or digits.
  *
@@ -31,7 +44,6 @@ const CANCEL_TAG = 0xe007f;
 export function findInvisibleCharacters(markdown: string, skip: Span[]): Span[] {
   const spans: Span[] = [];
   let skipIndex = 0;
-  let before = 0;
   let previous = 0;
 
   for (let pos = 0; pos < markdown.length;) {
@@ -39,7 +51,7 @@ export function findInvisibleCharacters(markdown: string, skip: Span[]): Span[] 
     const covering = skip[skipIndex];
     if (covering && covering.start <= pos) {
       pos = covering.end;
-      before = previous = 0;
+      previous = 0;
       continue;
     }
 
@@ -50,19 +62,13 @@ export function findInvisibleCharacters(markdown: string, skip: Span[]): Span[] 
       const flagEnd = subdivisionFlagEnd(markdown, pos + size);
       if (flagEnd !== undefined) {
         pos = flagEnd;
-        before = previous = 0;
+        previous = 0;
         continue;
       }
     }
 
-    if (
-      ignorable.test(String.fromCodePoint(cp)) &&
-      !isEmojiPart(cp, before, previous, markdown.codePointAt(pos + size))
-    ) {
-      addSpan(spans, pos, pos + size);
-    }
+    if (isHiding(String.fromCodePoint(cp)) && !isEmojiSelector(cp, previous)) addSpan(spans, pos, pos + size);
 
-    before = previous;
     previous = cp;
     pos += size;
   }
@@ -71,8 +77,8 @@ export function findInvisibleCharacters(markdown: string, skip: Span[]): Span[] 
 }
 
 /**
- * Find the character references, such as `&#x200B;` or `&zwj;`, that the page turns into invisible characters, as
- * spans of the source. Emoji written as references aren't left alone, since nobody writes them that way.
+ * Find the character references, such as `&#x202E;`, that the page turns into invisible characters that aren't ok,
+ * as spans of the source. Emoji written as references aren't left alone, since nobody writes them that way.
  *
  * @param skip - spans where a reference is no reference or is already found hidden, such as code, sorted and not
  *   overlapping.
@@ -88,7 +94,7 @@ export function findInvisibleReferences(markdown: string, skip: Span[]): Span[] 
     if (isEscaped(markdown, start)) continue;
     const [, hex, decimal, name] = match;
     const decoded = name !== undefined ? characterEntities[name] : String.fromCodePoint(codePoint(hex, decimal));
-    if (decoded !== undefined && ignorable.test(decoded)) addSpan(spans, start, start + match[0].length);
+    if (decoded !== undefined && [...decoded].some(isHiding)) addSpan(spans, start, start + match[0].length);
   }
 
   return spans;
@@ -101,21 +107,14 @@ function addSpan(spans: Span[], start: number, end: number): void {
   else spans.push({ start, end });
 }
 
-/**
- * Tell whether an invisible character is one an emoji needs.
- * @param before - the code point before `previous`, or 0.
- * @param previous - the code point before `cp`, or 0.
- * @param next - the code point after `cp`.
- */
-function isEmojiPart(cp: number, before: number, previous: number, next: number | undefined): boolean {
-  if (cp === VS15 || cp === VS16) return previous !== 0 && emoji.test(String.fromCodePoint(previous));
-  if (cp !== ZWJ || next === undefined) return false;
-  const base = previous === VS16 || isSkinTone(previous) ? before : previous;
-  return base !== 0 && pictographic.test(String.fromCodePoint(base)) && pictographic.test(String.fromCodePoint(next));
+/** Tell whether a character is invisible and not ok. */
+function isHiding(char: string): boolean {
+  return ignorable.test(char) && !ok.has(char.codePointAt(0) ?? 0);
 }
 
-function isSkinTone(cp: number): boolean {
-  return cp >= 0x1f3fb && cp <= 0x1f3ff;
+/** Tell whether `cp` is variation selector 15 or 16 right after an emoji character, `previous`. */
+function isEmojiSelector(cp: number, previous: number): boolean {
+  return (cp === VS15 || cp === VS16) && previous !== 0 && emoji.test(String.fromCodePoint(previous));
 }
 
 /** Return the end of the subdivision code and cancel tag at `pos`, after a 🏴, or `undefined` if there isn't one. */
