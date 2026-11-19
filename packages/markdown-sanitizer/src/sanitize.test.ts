@@ -43,9 +43,9 @@ describe('sanitize remove', () => {
     ${'a comment block'}                | ${'a\n\n<!-- note -->\n\nb'}              | ${'a\n\n\n\nb'}
     ${'a comment left open'}            | ${'a\n\n<!-- open\n\nb'}                  | ${'a\n\n'}
     ${'a definition'}                   | ${'[//]: # (note)\n\nVisible'}            | ${'\n\nVisible'}
-    ${'invisible characters'}           | ${'a\u202Eb &#x202C;'}                    | ${'ab '}
+    ${'invisible characters'}           | ${'a\u{E0041}b &#xFE01;'}                 | ${'ab '}
     ${'a comment that removal forms'}   | ${'<!-<!-- -->- x -->'}                   | ${''}
-    ${'a reference that removal forms'} | ${'&#x20\u202E2E;'}                       | ${''}
+    ${'a reference that removal forms'} | ${'&#xE00\u{E0041}41;'}                   | ${''}
   `('removes $name', ({ markdown, removed }: { markdown: string; removed: string }) => {
     assert.equal(sanitize(markdown, 'remove'), removed);
   });

@@ -210,9 +210,6 @@ importers:
 
   packages/markdown-sanitizer:
     dependencies:
-      character-entities:
-        specifier: ^2.0.2
-        version: 2.0.2
       remark-gfm:
         specifier: ^4.0.1
         version: 4.0.1(supports-color@9.4.0)

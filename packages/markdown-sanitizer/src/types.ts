@@ -3,8 +3,8 @@
  * - `comment`: an HTML comment, or HTML that a browser reads as one, such as `<?…>`.
  * - `definition`: a link definition that no link uses, such as `[//]: # (note)`.
  * - `footnote`: a footnote that nothing cites.
- * - `invisible`: characters that show as nothing, such as direction overrides or Unicode tag characters, typed as
- *   they are or as character references like `&#x202E;`.
+ * - `invisible`: Unicode tag characters or variation selectors, typed as they are or as character references like
+ *   `&#xE0041;`.
  */
 export type HiddenKind = 'comment' | 'definition' | 'footnote' | 'invisible';
 

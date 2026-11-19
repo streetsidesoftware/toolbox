@@ -1,26 +1,7 @@
-import { characterEntities } from 'character-entities';
-
 import type { Span } from './span.ts';
 
-const ignorable = /\p{Default_Ignorable_Code_Point}/u;
 const emoji = /\p{Emoji}/u;
-const reference = /&(?:#[xX]([0-9a-fA-F]{1,6})|#([0-9]{1,7})|([A-Za-z][A-Za-z0-9]{0,31}));/g;
-
-/**
- * The invisible characters that are ok anywhere. They only control line breaks, joining or the direction of
- * punctuation, and one of them alone carries nothing a reader can decode.
- */
-const ok = new Set([
-  0x00ad, // soft hyphen
-  0x061c, // Arabic letter mark
-  0x200b, // zero-width space
-  0x200c, // zero-width non-joiner
-  0x200d, // zero-width joiner
-  0x200e, // left-to-right mark
-  0x200f, // right-to-left mark
-  0x2060, // word joiner
-  0xfeff, // byte order mark
-]);
+const reference = /&#(?:[xX]([0-9a-fA-F]{1,6})|([0-9]{1,7}));/g;
 
 const VS15 = 0xfe0e;
 const VS16 = 0xfe0f;
@@ -28,13 +9,12 @@ const BLACK_FLAG = 0x1f3f4;
 const CANCEL_TAG = 0xe007f;
 
 /**
- * Find the runs of invisible characters, as spans of the source.
+ * Find the runs of tag characters and variation selectors, as spans of the source.
  *
- * A character is invisible when Unicode says a font may draw nothing for it: its Default_Ignorable_Code_Point
- * property. That covers bidi controls, variation selectors, tag characters and more. The characters in {@link ok}
- * aren't reported.
+ * The page shows nothing for either, yet both reach a model: it reads tag characters as text, and a run of variation
+ * selectors can steer it. Other invisible characters, such as the zero-width space, carry nothing a model acts on.
  *
- * Emoji need some of the others, so these are left alone:
+ * Emoji need some of them, so these are left alone:
  * - Variation selector 15 or 16 right after an emoji character, as in U+2764 U+FE0F, a red heart.
  * - A subdivision flag, such as the Scotland flag: 🏴, then a subdivision code in tag letters and digits, then the
  *   cancel tag. A subdivision code is a two-letter region and one to four letters or digits.
@@ -67,7 +47,7 @@ export function findInvisibleCharacters(markdown: string, skip: Span[]): Span[] 
       }
     }
 
-    if (isHiding(String.fromCodePoint(cp)) && !isEmojiSelector(cp, previous)) addSpan(spans, pos, pos + size);
+    if (isHiding(cp) && !isEmojiSelector(cp, previous)) addSpan(spans, pos, pos + size);
 
     previous = cp;
     pos += size;
@@ -77,8 +57,10 @@ export function findInvisibleCharacters(markdown: string, skip: Span[]): Span[] 
 }
 
 /**
- * Find the character references, such as `&#x202E;`, that the page turns into invisible characters that aren't ok,
- * as spans of the source. Emoji written as references aren't left alone, since nobody writes them that way.
+ * Find the numeric character references, such as `&#xE0041;`, that the page turns into tag characters or variation
+ * selectors, as spans of the source. Emoji written as references aren't left alone, since nobody writes them that way.
+ *
+ * A named reference never hides anything: the only ones with a variation selector put it after a visible math symbol.
  *
  * @param skip - spans where a reference is no reference or is already found hidden, such as code, sorted and not
  *   overlapping.
@@ -92,9 +74,9 @@ export function findInvisibleReferences(markdown: string, skip: Span[]): Span[] 
     while (skipIndex < skip.length && skip[skipIndex].end <= start) skipIndex++;
     if (skip[skipIndex] && skip[skipIndex].start <= start) continue;
     if (isEscaped(markdown, start)) continue;
-    const [, hex, decimal, name] = match;
-    const decoded = name !== undefined ? characterEntities[name] : String.fromCodePoint(codePoint(hex, decimal));
-    if (decoded !== undefined && [...decoded].some(isHiding)) addSpan(spans, start, start + match[0].length);
+    const [, hex, decimal] = match;
+    const cp = hex !== undefined ? Number.parseInt(hex, 16) : Number(decimal);
+    if (isHiding(cp)) addSpan(spans, start, start + match[0].length);
   }
 
   return spans;
@@ -107,9 +89,9 @@ function addSpan(spans: Span[], start: number, end: number): void {
   else spans.push({ start, end });
 }
 
-/** Tell whether a character is invisible and not ok. */
-function isHiding(char: string): boolean {
-  return ignorable.test(char) && !ok.has(char.codePointAt(0) ?? 0);
+/** Tell whether `cp` is a tag character or a variation selector, which a model reads though the page shows nothing. */
+function isHiding(cp: number): boolean {
+  return (cp >= 0xe0000 && cp <= 0xe007f) || (cp >= 0xfe00 && cp <= 0xfe0f) || (cp >= 0xe0100 && cp <= 0xe01ef);
 }
 
 /** Tell whether `cp` is variation selector 15 or 16 right after an emoji character, `previous`. */
@@ -134,10 +116,4 @@ function isEscaped(markdown: string, pos: number): boolean {
   let count = 0;
   while (pos - count > 0 && markdown[pos - count - 1] === '\\') count++;
   return count % 2 === 1;
-}
-
-/** Decode a numeric reference as the page does: an invalid code point becomes U+FFFD. */
-function codePoint(hex: string | undefined, decimal: string | undefined): number {
-  const cp = hex !== undefined ? Number.parseInt(hex, 16) : Number(decimal);
-  return cp === 0 || cp > 0x10ffff || (cp >= 0xd800 && cp <= 0xdfff) ? 0xfffd : cp;
 }
