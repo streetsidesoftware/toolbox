@@ -38,7 +38,11 @@ sanitize('Fix the <!-- secret --> parser.', 'reveal');
 ```
 
 Revealing shows each comment, unused definition or footnote as code, exactly as an agent reads it: as code in its
-line, as a code block when it's on lines of its own, or as HTML code inside other HTML.
+line, as a code block when it's on lines of its own, or as HTML code inside other HTML. Each tag character or
+variation selector shows as an escape, such as `\u{E0041}`, so a model doesn't read the text it spells.
+
+Revealed text is for a reviewer. An agent reads it too, so remove hidden text from Markdown that agents read, such
+as a changelog.
 
 ## What counts as hidden
 

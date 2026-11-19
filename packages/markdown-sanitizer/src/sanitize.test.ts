@@ -24,10 +24,25 @@ describe('sanitize reveal', () => {
     ${'a block holding a fence'}         | ${'<!--\n```\n-->'}                           | ${'````\n<!--\n```\n-->\n````'}
   `('shows $name as code', ({ markdown, revealed }: { markdown: string; revealed: string }) => {
     assert.equal(sanitize(markdown, 'reveal'), revealed);
-    assert.deepEqual(
-      findHidden(revealed).filter((found) => found.kind !== 'invisible'),
-      [],
-    );
+    assert.deepEqual(findHidden(revealed), []);
+  });
+
+  testEach`
+    name                              | markdown                                   | revealed
+    ${'tag characters in text'}       | ${'fix\u{E0049}\u{E0067} it'}              | ${'fix`\\u{E0049}\\u{E0067}` it'}
+    ${'a variation selector'}         | ${'a\uFE01 b'}                             | ${'a`\\u{FE01}` b'}
+    ${'a reference in text'}          | ${'a &#xE0041; b'}                         | ${'a `&#xE0041;` b'}
+    ${'a character in code'}          | ${'`a\u{E0041}b`'}                         | ${'`a\\u{E0041}b`'}
+    ${'characters in HTML'}           | ${'<div>&#xE0041;\u{E0042}</div>'}         | ${'<div>&amp;#xE0041;\\u{E0042}</div>'}
+    ${'a character in a comment'}     | ${'x <!-- a\u{E0041} --> y'}               | ${'x `<!-- a\\u{E0041} -->` y'}
+    ${'a character in a code block'}  | ${'<!--\n\u{E0041}\n-->'}                  | ${'```\n<!--\n\\u{E0041}\n-->\n```'}
+  `('shows $name as escapes', ({ markdown, revealed }: { markdown: string; revealed: string }) => {
+    assert.equal(sanitize(markdown, 'reveal'), revealed);
+    assert.deepEqual(findHidden(revealed), []);
+  });
+
+  test('leaves an emoji alone', () => {
+    assert.equal(sanitize('I like \u2764\uFE0F.', 'reveal'), 'I like \u2764\uFE0F.');
   });
 
   test('leaves Markdown that hides nothing as it is', () => {

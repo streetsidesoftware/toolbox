@@ -1,3 +1,4 @@
+import { findInvisibleCharacters } from './invisible.ts';
 import type { Found } from './scan.ts';
 import { scanHidden } from './scan.ts';
 
@@ -11,9 +12,13 @@ const MAX_PASSES = 100;
  *
  * - `remove` takes the hidden text out. Taking it out can join what was around it into new hidden text, such as a
  *   new comment, so removal repeats until nothing is hidden.
- * - `reveal` shows each comment, unused definition or footnote on the page as code, exactly as an agent reads it.
- *   Inside a line it becomes code in the line. On lines of its own it becomes a code block. Inside other HTML it
- *   becomes HTML code.
+ * - `reveal` shows the hidden text on the page as code, so a reviewer can see it:
+ *   - A comment, unused definition or footnote shows exactly as an agent reads it. Inside a line it becomes code in
+ *     the line. On lines of its own it becomes a code block. Inside other HTML it becomes HTML code.
+ *   - Each tag character or variation selector shows as an escape, such as `\u{E0041}`, so a model doesn't read
+ *     the text it spells.
+ *
+ * Revealed text is for a reviewer. An agent reads it too, so use `remove` for Markdown that agents read.
  *
  * Removal gives up on Markdown that still hides text after 100 passes.
  *
@@ -45,21 +50,41 @@ function replaceAll(markdown: string, found: Found[], replacement: (markdown: st
   return parts.join('');
 }
 
-/** Show a piece of hidden text as code. Invisible characters stay as they are. */
+/** Show a piece of hidden text as code, with its tag characters and variation selectors as escapes. */
 function reveal(markdown: string, found: Found): string {
-  const text = markdown.slice(found.start, found.end);
-  switch (found.kind === 'invisible' ? 'invisible' : found.placement) {
-    case 'invisible':
-      return text;
+  const text = escapeInvisible(markdown.slice(found.start, found.end));
+  switch (found.placement) {
+    case 'literal':
+      return text.replaceAll('&', '&amp;');
     case 'inline': {
       const ticks = '`'.repeat(longestRun(text, '`') + 1);
       return ticks + text + ticks;
     }
     case 'html':
       return `<code>${escapeHtml(text)}</code>`;
-    default:
+    case 'block':
       return codeBlock(markdown, found, text);
   }
+}
+
+/**
+ * Replace each tag character and variation selector with an escape, such as `\u{E0041}`.
+ * Character references stay as they are: they show as text in code.
+ */
+function escapeInvisible(text: string): string {
+  const parts: string[] = [];
+  let pos = 0;
+  for (const { start, end } of findInvisibleCharacters(text, [])) {
+    parts.push(text.slice(pos, start));
+    for (const char of text.slice(start, end)) parts.push(escape(char));
+    pos = end;
+  }
+  parts.push(text.slice(pos));
+  return parts.join('');
+}
+
+function escape(char: string): string {
+  return `\\u{${(char.codePointAt(0) ?? 0).toString(16).toUpperCase()}}`;
 }
 
 /**
