@@ -17,7 +17,8 @@ export interface CommentSpan extends Span {
  *   no letter follows. A browser reads each as a comment that ends at the next `>`.
  *
  * A comment can sit anywhere inside an HTML node, such as between the tags of a `<div>`, but not inside a tag: a
- * `<!--` in an attribute value is text.
+ * `<!--` in an attribute value is text. An attribute value that its node doesn't close is still searched, so a
+ * comment in it is found.
  *
  * A comment that its node doesn't close runs on into the rest of the page, since the browser reads everything after
  * it as comment. It ends at the first `-->` or `--!>` in a later HTML node, or else at the end of the document. Only
@@ -116,11 +117,13 @@ type TagState = 'tagName' | 'between' | 'attributeName' | 'afterName' | 'beforeV
 
 /**
  * Return the end of the tag that starts at `start`, as a browser reads it, or `to` if it doesn't end before `to`.
- * A quoted attribute value can hold `<` and `>`.
+ * A quoted attribute value can hold `<` and `>`. When a quoted value doesn't end before `to`, return where the value
+ * starts, so the rest is searched for comments.
  */
 function tagEnd(markdown: string, start: number, to: number): number {
   let state: TagState = 'tagName';
   let quote = '';
+  let valueStart = to;
   for (let pos = start + 1; pos < to; pos++) {
     const char = markdown[pos];
     if (state === 'quoted') {
@@ -150,6 +153,7 @@ function tagEnd(markdown: string, start: number, to: number): number {
         if (char === '"' || char === "'") {
           state = 'quoted';
           quote = char;
+          valueStart = pos + 1;
         } else if (!space) state = 'unquoted';
         break;
       case 'unquoted':
@@ -157,7 +161,7 @@ function tagEnd(markdown: string, start: number, to: number): number {
         break;
     }
   }
-  return to;
+  return state === 'quoted' ? valueStart : to;
 }
 
 /** Return the index of the first `char` in `[from, to)`, or -1 if there is none. */

@@ -53,6 +53,7 @@ describe('comments', () => {
     ${'an end tag with no name'}      | ${'<div>\n</ secret>\n</div>'}                   | ${['</ secret>']}
     ${'conditional comments'}         | ${'<div>\n<![if IE]>x<![endif]>\n</div>'}        | ${['<![if IE]>', '<![endif]>']}
     ${'a comment after a quote in a name'} | ${'<div>\n<a ="><!-- x -->\n</div>'}        | ${['<!-- x -->']}
+    ${'a comment in an attribute left open'} | ${'<div title="<!-- x\n\nhidden'}         | ${['<!-- x\n\nhidden']}
   `('finds $name', ({ markdown, hidden }: { markdown: string; hidden: string[] }) => {
     assert.deepEqual(texts(markdown, 'comment'), hidden);
   });
