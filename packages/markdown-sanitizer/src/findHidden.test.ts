@@ -48,6 +48,11 @@ describe('comments', () => {
     ${'a CDATA section'}              | ${'a <![CDATA[hidden]]> b'}                      | ${['<![CDATA[hidden]]>']}
     ${'a comment in a quote'}         | ${'> a\n> <!-- x\n> y -->\n> b'}                 | ${['<!-- x\n> y -->']}
     ${'a comment in a list'}          | ${'- a <!-- x --> b\n- c'}                       | ${['<!-- x -->']}
+    ${'a declaration opened by <!-'}  | ${'<div>\n<!- secret ->\n</div>'}                | ${['<!- secret ->']}
+    ${'a declaration opened by <!1'}  | ${'<div>\n<!1 secret>\n</div>'}                  | ${['<!1 secret>']}
+    ${'an end tag with no name'}      | ${'<div>\n</ secret>\n</div>'}                   | ${['</ secret>']}
+    ${'conditional comments'}         | ${'<div>\n<![if IE]>x<![endif]>\n</div>'}        | ${['<![if IE]>', '<![endif]>']}
+    ${'a comment after a quote in a name'} | ${'<div>\n<a ="><!-- x -->\n</div>'}        | ${['<!-- x -->']}
   `('finds $name', ({ markdown, hidden }: { markdown: string; hidden: string[] }) => {
     assert.deepEqual(texts(markdown, 'comment'), hidden);
   });
@@ -59,8 +64,14 @@ describe('comments', () => {
     ${'in indented code'}   | ${'    <!-- x -->'}
     ${'that is escaped'}    | ${'\\<!-- x -->'}
     ${'not closed in text'} | ${'a <!-- x b'}
+    ${'in an attribute'}    | ${'See <img alt="<!--" src="x.png"> notes.\n\nMore.'}
+    ${'in a block attribute'} | ${"<div title='<!--'>\nshown\n</div>"}
   `('ignores a comment $name, which the page shows', ({ markdown }: { markdown: string }) => {
     assert.deepEqual(texts(markdown, 'comment'), []);
+  });
+
+  test('ignores </>, which a browser drops', () => {
+    assert.deepEqual(texts('<div>\n</>\n</div>', 'comment'), []);
   });
 
   test('a comment left open hides the rest of the document', () => {
@@ -95,6 +106,24 @@ describe('definitions', () => {
     assert.deepEqual(texts(markdown, 'footnote'), ['[^2]: Hidden.']);
   });
 
+  test('finds a definition that only a hidden footnote uses', () => {
+    const markdown = 'Text.\n\n[^9]: see [x]\n\n[x]: # (note)';
+    assert.deepEqual(kindsAndTexts(markdown), [
+      ['footnote', '[^9]: see [x]'],
+      ['definition', '[x]: # (note)'],
+    ]);
+  });
+
+  testEach`
+    name                                   | markdown                                          | hidden
+    ${'cited only by a hidden footnote'}   | ${'Text.\n\n[^a]: see[^b]\n\n[^b]: Hidden.'}      | ${['[^a]: see[^b]', '[^b]: Hidden.']}
+    ${'that cites only itself'}            | ${'Text.\n\n[^a]: Hidden [^a]'}                   | ${['[^a]: Hidden [^a]']}
+    ${'cited only by each other'}          | ${'Text.\n\n[^a]: x [^b]\n\n[^b]: y [^a]'}        | ${['[^a]: x [^b]', '[^b]: y [^a]']}
+    ${'nothing when cited through a shown one'} | ${'Text[^a].\n\n[^a]: see [^b]\n\n[^b]: Shown.'} | ${[]}
+  `('finds a footnote $name', ({ markdown, hidden }: { markdown: string; hidden: string[] }) => {
+    assert.deepEqual(texts(markdown, 'footnote'), hidden);
+  });
+
   test('a comment left open in a footnote still hides the rest', () => {
     const markdown = 'Text.\n\n[^1]: Note\n\n    <!-- open\n\nhidden';
     assert.deepEqual(kindsAndTexts(markdown), [['footnote', '[^1]: Note\n\n    <!-- open\n\nhidden']]);
@@ -105,13 +134,14 @@ describe('invisible characters', () => {
   testEach`
     name                               | markdown                                     | hidden
     ${'tag characters as one run'}     | ${'fix\u{E0049}\u{E0067}\u{E006E} it'}       | ${['\u{E0049}\u{E0067}\u{E006E}']}
-    ${'a selector from the first block'} | ${'a\uFE01 b'}                            | ${['\uFE01']}
+    ${'a selector other than VS15 or VS16'} | ${'a\uFE01 b'}                         | ${['\uFE01']}
     ${'a selector after a letter'}     | ${'a\uFE0F'}                                 | ${['\uFE0F']}
     ${'a second selector'}             | ${'\u2764\uFE0F\uFE0F'}                      | ${['\uFE0F']}
     ${'a run of selectors'}            | ${'\u{1F600}\u{E0100}\u{E0101}'}             | ${['\u{E0100}\u{E0101}']}
     ${'tags after a letter'}           | ${'a\u{E0067}\u{E0062}\u{E007F}'}            | ${['\u{E0067}\u{E0062}\u{E007F}']}
     ${'a message hidden after a flag'} | ${'\u{1F3F4}\u{E0068}\u{E0020}\u{E0069}\u{E007F}'} | ${['\u{E0068}\u{E0020}\u{E0069}\u{E007F}']}
     ${'a flag without its cancel tag'} | ${'\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}'} | ${['\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}']}
+    ${'a subdivision with no flag emoji'} | ${'\u{1F3F4}\u{E0075}\u{E0073}\u{E0063}\u{E0061}\u{E007F}'} | ${['\u{E0075}\u{E0073}\u{E0063}\u{E0061}\u{E007F}']}
     ${'characters in code'}            | ${'`a\u{E0041}b`'}                           | ${['\u{E0041}']}
   `('finds $name', ({ markdown, hidden }: { markdown: string; hidden: string[] }) => {
     assert.deepEqual(texts(markdown, 'invisible'), hidden);
@@ -127,6 +157,7 @@ describe('invisible characters', () => {
     ${'rainbow flag'}             | ${'\u{1F3F3}\uFE0F\u200D\u{1F308}'}
     ${'family'}                   | ${'\u{1F468}\u200D\u{1F469}\u200D\u{1F467}'}
     ${'Scotland flag'}            | ${'\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}'}
+    ${'England flag'}             | ${'\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}'}
   `('leaves the $name emoji alone', ({ markdown }: { markdown: string }) => {
     assert.deepEqual(findHidden(`I like ${markdown} a lot.`), []);
   });
@@ -157,6 +188,9 @@ describe('invisible characters', () => {
     ${'tag references as one run'} | ${'a&#xE0049;&#xE0067;b'}      | ${['&#xE0049;&#xE0067;']}
     ${'a reference in HTML'}      | ${'<span>&#xE0041;</span>'}    | ${['&#xE0041;']}
     ${'a reference next to a character'} | ${'a&#xE0041;\u{E0042}b'} | ${['&#xE0041;\u{E0042}']}
+    ${'leading zeros in HTML'}    | ${'<div>\n&#x0000E0041;\n</div>'} | ${['&#x0000E0041;']}
+    ${'no semicolon in HTML'}     | ${'<div>\n&#xE0041 x\n</div>'}    | ${['&#xE0041']}
+    ${'a backslash in HTML'}      | ${'<div>\\&#xE0041;</div>'}       | ${['&#xE0041;']}
   `('finds $name', ({ markdown, hidden }: { markdown: string; hidden: string[] }) => {
     assert.deepEqual(texts(markdown, 'invisible'), hidden);
   });
@@ -168,6 +202,8 @@ describe('invisible characters', () => {
     ${'that is escaped'}      | ${'\\&#xE0041;'}
     ${'for a visible char'}   | ${'&amp; &#65; &nbsp;'}
     ${'that is no entity'}    | ${'&bogus;'}
+    ${'with leading zeros in text'} | ${'a &#x0000E0041; b'}
+    ${'without a semicolon in text'} | ${'a &#xE0041 b'}
   `('ignores a reference $name', ({ markdown }: { markdown: string }) => {
     assert.deepEqual(texts(markdown, 'invisible'), []);
   });

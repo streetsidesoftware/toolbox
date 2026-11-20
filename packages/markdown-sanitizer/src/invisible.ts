@@ -1,12 +1,17 @@
+// cspell:ignore gbeng gbsct gbwls
 import type { Span } from './span.ts';
 
 const emoji = /\p{Emoji}/u;
-const reference = /&#(?:[xX]([0-9a-fA-F]{1,6})|([0-9]{1,7}));/g;
+/** A numeric character reference as a browser reads it in HTML, which allows more than Markdown does. */
+const reference = /&#(?:[xX]([0-9a-fA-F]+)|([0-9]+));?/g;
 
 const VS15 = 0xfe0e;
 const VS16 = 0xfe0f;
 const BLACK_FLAG = 0x1f3f4;
 const CANCEL_TAG = 0xe007f;
+
+/** The subdivisions with a flag emoji: England, Scotland and Wales. */
+const flagSubdivisions = new Set(['gbeng', 'gbsct', 'gbwls']);
 
 /**
  * Find the runs of tag characters and variation selectors, as spans of the source.
@@ -16,8 +21,8 @@ const CANCEL_TAG = 0xe007f;
  *
  * Emoji need some of them, so these are left alone:
  * - Variation selector 15 or 16 right after an emoji character, as in U+2764 U+FE0F, a red heart.
- * - A subdivision flag, such as the Scotland flag: 🏴, then a subdivision code in tag letters and digits, then the
- *   cancel tag. A subdivision code is a two-letter region and one to four letters or digits.
+ * - The flag of England, Scotland or Wales: 🏴, then the subdivision's code in tag letters, then the cancel tag. No
+ *   other subdivision has a flag emoji, so the page shows a plain black flag for it, and its tags spell text.
  *
  * @param skip - spans already found hidden, sorted and not overlapping. A run inside one isn't reported.
  */
@@ -60,26 +65,45 @@ export function findInvisibleCharacters(markdown: string, skip: Span[]): Span[] 
  * Find the numeric character references, such as `&#xE0041;`, that the page turns into tag characters or variation
  * selectors, as spans of the source. Emoji written as references aren't left alone, since nobody writes them that way.
  *
+ * - In text, a reference follows Markdown: up to 6 hex or 7 decimal digits, then `;`, with no backslash before it.
+ * - In raw HTML, the browser reads it: any number of digits, the `;` left out, and a backslash before it is text.
+ *
  * A named reference never hides anything: the only ones with a variation selector put it after a visible math symbol.
  *
  * @param skip - spans where a reference is no reference or is already found hidden, such as code, sorted and not
  *   overlapping.
+ * @param html - the spans of raw HTML, sorted and not overlapping.
  */
-export function findInvisibleReferences(markdown: string, skip: Span[]): Span[] {
+export function findInvisibleReferences(markdown: string, skip: Span[], html: Span[]): Span[] {
   const spans: Span[] = [];
-  let skipIndex = 0;
+  const inSkip = cursor(skip);
+  const inHtml = cursor(html);
 
   for (const match of markdown.matchAll(reference)) {
     const start = match.index;
-    while (skipIndex < skip.length && skip[skipIndex].end <= start) skipIndex++;
-    if (skip[skipIndex] && skip[skipIndex].start <= start) continue;
-    if (isEscaped(markdown, start)) continue;
-    const [, hex, decimal] = match;
+    if (inSkip(start)) continue;
+    const [text, hex, decimal] = match;
+    if (!inHtml(start) && !isMarkdownReference(markdown, start, text, hex ?? decimal)) continue;
     const cp = hex !== undefined ? Number.parseInt(hex, 16) : Number(decimal);
-    if (isHiding(cp)) addSpan(spans, start, start + match[0].length);
+    if (isHiding(cp)) addSpan(spans, start, start + text.length);
   }
 
   return spans;
+}
+
+/** Return a test of whether a position is inside one of `spans`, for positions that only grow. */
+function cursor(spans: Span[]): (pos: number) => boolean {
+  let index = 0;
+  return (pos) => {
+    while (index < spans.length && spans[index].end <= pos) index++;
+    return index < spans.length && spans[index].start <= pos;
+  };
+}
+
+/** Tell whether a reference that a browser reads is one in Markdown text too. */
+function isMarkdownReference(markdown: string, start: number, text: string, digits: string): boolean {
+  const limit = text[2] === 'x' || text[2] === 'X' ? 6 : 7;
+  return text.endsWith(';') && digits.length <= limit && !isEscaped(markdown, start);
 }
 
 /** Add a span, joining it to the last one when they touch. */
@@ -99,13 +123,16 @@ function isEmojiSelector(cp: number, previous: number): boolean {
   return (cp === VS15 || cp === VS16) && previous !== 0 && emoji.test(String.fromCodePoint(previous));
 }
 
-/** Return the end of the subdivision code and cancel tag at `pos`, after a 🏴, or `undefined` if there isn't one. */
+/**
+ * Return the end of the subdivision code and cancel tag at `pos`, after a 🏴, or `undefined` if they don't make the
+ * flag of England, Scotland or Wales.
+ */
 function subdivisionFlagEnd(markdown: string, pos: number): number | undefined {
   let code = '';
-  for (let at = pos; at < markdown.length; at += 2) {
+  for (let at = pos; at < markdown.length && code.length <= 5; at += 2) {
     const cp = markdown.codePointAt(at) ?? 0;
-    if (cp === CANCEL_TAG) return /^[a-z]{2}[a-z0-9]{1,4}$/.test(code) ? at + 2 : undefined;
-    if (cp < 0xe0020 || cp > 0xe007e || code.length >= 6) return undefined;
+    if (cp === CANCEL_TAG) return flagSubdivisions.has(code) ? at + 2 : undefined;
+    if (cp < 0xe0020 || cp > 0xe007e) return undefined;
     code += String.fromCodePoint(cp - 0xe0000);
   }
   return undefined;

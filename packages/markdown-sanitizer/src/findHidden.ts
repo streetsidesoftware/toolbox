@@ -5,7 +5,8 @@ import type { HiddenText } from './types.ts';
  * Find the text in Markdown that the rendered page hides, but an agent or anyone else reading the Markdown sees.
  *
  * It finds:
- * - HTML comments, including one inside other HTML. A comment left open hides the rest of the page.
+ * - HTML comments, and HTML a browser reads as one, such as `<?…>`, even inside other HTML. A comment left open hides
+ *   the rest of the page.
  * - Link definitions that no link uses, such as `[//]: # (note)`, and footnotes that nothing cites.
  * - Unicode tag characters and variation selectors. The page shows nothing for them, but a model reads tag
  *   characters as text, and a run of variation selectors can steer it. The ones that form an emoji, such as a red

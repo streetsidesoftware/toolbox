@@ -44,6 +44,9 @@ variation selector shows as an escape, such as `\u{E0041}`, so a model doesn't r
 Revealed text is for a reviewer. An agent reads it too, so remove hidden text from Markdown that agents read, such
 as a changelog.
 
+Removing hidden text can join the text around it into new hidden text, such as a new comment, so removal repeats until
+nothing is hidden. Markdown that still hides text after 100 passes of removal isn't allowed.
+
 ## What counts as hidden
 
 - **Comments.** An HTML comment hides its text, and so does HTML that a browser reads as a comment, such as `<?…>`.

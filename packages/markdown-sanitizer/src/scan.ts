@@ -41,9 +41,10 @@ export function scanHidden(markdown: string): Found[] {
   const { definitions, footnotes } = findUnusedDefinitions(tree, offset);
   const blocks = merged([...comments, ...asBlocks(definitions, 'definition'), ...asBlocks(footnotes, 'footnote')]);
 
+  const htmlSpans = shifted(html.map(nodeSpan), offset);
   const characters = findInvisibleCharacters(markdown, blocks);
-  const references = findInvisibleReferences(markdown, merged([...blocks, ...shifted(code, offset)]));
-  const literal = merged([...shifted(code, offset), ...shifted(html.map(nodeSpan), offset)]);
+  const references = findInvisibleReferences(markdown, merged([...blocks, ...shifted(code, offset)]), htmlSpans);
+  const literal = merged([...shifted(code, offset), ...htmlSpans]);
   const invisible = placeInvisible(joinTouching([...characters, ...references].sort(byStart)), literal);
 
   return [...blocks, ...invisible].sort(byStart);

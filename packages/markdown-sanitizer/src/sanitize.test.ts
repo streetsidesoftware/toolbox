@@ -22,6 +22,10 @@ describe('sanitize reveal', () => {
     ${'a definition'}                    | ${'[//]: # (hidden text)\n\nVisible'}         | ${'```\n[//]: # (hidden text)\n```\n\nVisible'}
     ${'a footnote'}                      | ${'Text.\n\n[^1]: Hidden.'}                   | ${'Text.\n\n```\n[^1]: Hidden.\n```'}
     ${'a block holding a fence'}         | ${'<!--\n```\n-->'}                           | ${'````\n<!--\n```\n-->\n````'}
+    ${'a comment between code spans'}    | ${'`a`<!-- x -->`b`'}                         | ${'`a` ``<!-- x -->`` `b`'}
+    ${'a comment after a stray backtick'} | ${'a`<!-- x --> b'}                          | ${'a` ``<!-- x -->`` b'}
+    ${'a block with CRLF line endings'}  | ${'a\r\n\r\n<!-- x\r\ny -->\r\n\r\nb'}        | ${'a\r\n\r\n```\r\n<!-- x\r\ny -->\r\n```\r\n\r\nb'}
+    ${'a block and HTML in one node'}    | ${'<!-- a --> text <!-- b -->'}               | ${'```\n<!-- a -->\n```\n text <code>&lt;!-- b --&gt;</code>'}
   `('shows $name as code', ({ markdown, revealed }: { markdown: string; revealed: string }) => {
     assert.equal(sanitize(markdown, 'reveal'), revealed);
     assert.deepEqual(findHidden(revealed), []);
@@ -36,6 +40,7 @@ describe('sanitize reveal', () => {
     ${'characters in HTML'}           | ${'<div>&#xE0041;\u{E0042}</div>'}         | ${'<div>&amp;#xE0041;\\u{E0042}</div>'}
     ${'a character in a comment'}     | ${'x <!-- a\u{E0041} --> y'}               | ${'x `<!-- a\\u{E0041} -->` y'}
     ${'a character in a code block'}  | ${'<!--\n\u{E0041}\n-->'}                  | ${'```\n<!--\n\\u{E0041}\n-->\n```'}
+    ${'a character after a backslash'} | ${'C:\\\u{E0041}x'}                      | ${'C:\\ `\\u{E0041}`x'}
   `('shows $name as escapes', ({ markdown, revealed }: { markdown: string; revealed: string }) => {
     assert.equal(sanitize(markdown, 'reveal'), revealed);
     assert.deepEqual(findHidden(revealed), []);
@@ -58,6 +63,9 @@ describe('sanitize remove', () => {
     ${'a comment block'}                | ${'a\n\n<!-- note -->\n\nb'}              | ${'a\n\n\n\nb'}
     ${'a comment left open'}            | ${'a\n\n<!-- open\n\nb'}                  | ${'a\n\n'}
     ${'a definition'}                   | ${'[//]: # (note)\n\nVisible'}            | ${'\n\nVisible'}
+    ${'a footnote'}                     | ${'Text.\n\n[^1]: Hidden.'}               | ${'Text.\n\n'}
+    ${'a comment in a quote'}           | ${'> a <!-- x --> b'}                     | ${'> a  b'}
+    ${'what only a footnote uses'}      | ${'Text.\n\n[^9]: see [x]\n\n[x]: # (note)'} | ${'Text.\n\n\n\n'}
     ${'invisible characters'}           | ${'a\u{E0041}b &#xFE01;'}                 | ${'ab '}
     ${'a comment that removal forms'}   | ${'<!-<!-- -->- x -->'}                   | ${''}
     ${'a reference that removal forms'} | ${'&#xE00\u{E0041}41;'}                   | ${''}
