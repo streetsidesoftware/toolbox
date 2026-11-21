@@ -43,6 +43,26 @@ describe('copyGitHubFiles', () => {
     assert.equal(await readFile(path.join(folder, 'static/footer.md'), 'utf8'), 'Footer.\n');
   });
 
+  test('reads paths only while there is room, and closes the source when the loop breaks', async (t) => {
+    fakeGitHub(t, upstream);
+    let pulled = 0;
+    let closed = false;
+    function* paths() {
+      try {
+        for (;;) yield `file-${++pulled}.md`;
+      } finally {
+        closed = true;
+      }
+    }
+    for await (const result of copyGitHubFiles(source, paths(), folder, { concurrency: 2 })) {
+      assert.ok('error' in result);
+      break;
+    }
+
+    assert.equal(pulled, 2);
+    assert.equal(closed, true);
+  });
+
   test('reads a path named twice once', async (t) => {
     const requests = fakeGitHub(t, upstream);
     const results = await collect(copyGitHubFiles(source, ['static/sponsor.md', 'static/sponsor.md'], folder));
