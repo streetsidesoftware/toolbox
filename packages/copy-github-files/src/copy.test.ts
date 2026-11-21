@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import type { TestContext } from 'node:test';
 import { afterEach, beforeEach, describe, test } from 'node:test';
-import { setTimeout as delay } from 'node:timers/promises';
+import { setTimeout as delay, setImmediate as nextTurn } from 'node:timers/promises';
 
 import { testEach } from '@streetsidesoftware/test-each';
 
@@ -41,6 +41,34 @@ describe('copyGitHubFiles', () => {
     ]);
     assert.equal(await readFile(path.join(folder, 'static/sponsor.md'), 'utf8'), 'Sponsor us.\n');
     assert.equal(await readFile(path.join(folder, 'static/footer.md'), 'utf8'), 'Footer.\n');
+  });
+
+  test('gives a finished file without waiting for the next path', async (t) => {
+    fakeGitHub(t, upstream);
+    const events: string[] = [];
+    async function* paths() {
+      yield 'static/sponsor.md';
+      await delay(50);
+      events.push('next path');
+      yield 'static/footer.md';
+    }
+    for await (const result of copyGitHubFiles(source, paths(), folder)) events.push(result.path);
+
+    assert.deepEqual(events, ['static/sponsor.md', 'next path', 'static/footer.md']);
+  });
+
+  test('stops when the loop breaks while the source is still finding its next path', async (t) => {
+    fakeGitHub(t, upstream);
+    async function* paths() {
+      yield 'static/sponsor.md';
+      await new Promise(() => {});
+    }
+    for await (const result of copyGitHubFiles(source, paths(), folder)) {
+      assert.equal(result.path, 'static/sponsor.md');
+      break;
+    }
+
+    assert.deepEqual(await readdir(path.join(folder, 'static')), ['sponsor.md']);
   });
 
   test('takes the paths from an async iterable', async (t) => {
@@ -164,7 +192,8 @@ describe('copyGitHubFiles', () => {
       break;
     }
 
-    assert.ok(github.signals.every((signal) => signal?.aborted));
+    // The request for slow.md was the second.
+    assert.equal(github.signals[1]?.aborted, true);
     assert.deepEqual(await readdir(folder), ['fast.md']);
   });
 
@@ -202,6 +231,29 @@ describe('copyGitHubFiles', () => {
     assert.deepEqual(await readdir(path.join(folder, 'static')), [path.basename(given[0]?.path ?? '')]);
   });
 
+  test('never empties a file, or gives a failed result for a written file, when aborted during a write', async (t) => {
+    const content = 'x'.repeat(2 ** 21);
+    fakeGitHub(t, { 'big.md': content });
+    const file = path.join(folder, 'big.md');
+    // Abort after more and more turns of the event loop, so some aborts land while the file is being written.
+    for (let turns = 0; turns < 40; turns += 1) {
+      await writeFile(file, 'Old.\n');
+      const controller = new AbortController();
+      void abortAfter(turns, controller);
+      const given: CopyResult[] = [];
+      try {
+        for await (const result of copyGitHubFiles(source, ['big.md'], folder, { signal: controller.signal })) {
+          given.push(result);
+        }
+      } catch (error) {
+        assert.equal((error as Error).name, 'AbortError');
+      }
+
+      assert.ok(given.every((result) => !('error' in result)));
+      assert.equal(await readFile(file, 'utf8'), given.length ? content : 'Old.\n');
+    }
+  });
+
   test('passes an abort of the signal on to each request', async (t) => {
     const requests = fakeGitHub(t, upstream);
     const controller = new AbortController();
@@ -216,6 +268,11 @@ async function collect(results: AsyncIterable<CopyResult>): Promise<CopyResult[]
   const collected: CopyResult[] = [];
   for await (const result of results) collected.push(result);
   return collected;
+}
+
+async function abortAfter(turns: number, controller: AbortController): Promise<void> {
+  for (let turn = 0; turn < turns; turn += 1) await nextTurn();
+  controller.abort();
 }
 
 function byPath(results: CopyResult[]): CopyResult[] {

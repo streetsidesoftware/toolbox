@@ -7,9 +7,11 @@ import { checkSource, fetchGitHubFile } from './github.ts';
 /** What happened to one file: the local file it was written to, or why it wasn't copied. */
 export type CopyResult = { path: string; file: string } | { path: string; error: Error };
 
-/** Options for copying files from GitHub. */
 export interface CopyOptions extends FetchOptions {
-  /** How many files to download at once. Defaults to 8. */
+  /**
+   * How many files to download at once.
+   * @default 8
+   */
   concurrency?: number | undefined;
 }
 
@@ -18,20 +20,24 @@ const defaultConcurrency = 8;
 /**
  * Copy files from a GitHub repository into a folder. Each file keeps its path from the root of the repository.
  *
- * Downloads several files at once, and gives each file's result as soon as that file is written or has failed, so
- * the results can come in any order. A failed file doesn't stop the others. To stop early, break out of the loop or
- * abort the signal: downloads still running are stopped, and only the files already given as results are written.
+ * Several files download at once. Each file's result comes as soon as that file is written or has failed, so results
+ * can come in any order.
  *
- * @param source - The repository, and the ref and token to read it with.
- * @param paths - The files' paths from the root of the repository, such as `static/sponsor.md`.
- * @param folder - The folder to write the files below.
- * @param options - Options, such as how many files to download at once, and a signal to stop copying.
- * @returns The result for each file.
+ * A failed file doesn't stop the others. Its result holds the error.
  *
+ * To stop early:
+ * - Break out of the loop.
+ * - Abort the signal. The loop then throws the signal's reason, such as the `TimeoutError` of `AbortSignal.timeout()`.
+ *
+ * Either way, downloads still running are stopped, and only the files already given as results are written.
+ *
+ * @param paths - from the root of the repository, such as `static/sponsor.md`.
  * @example
- * for await (const result of copyGitHubFiles({ repo: 'streetsidesoftware/.github' }, ['static/sponsor.md'], '.')) {
- *   if ('error' in result) console.error(`${result.path}: ${result.error.message}`);
+ * const source = { repo: 'streetsidesoftware/.github' };
+ * for await (const result of copyGitHubFiles(source, ['static/sponsor.md'], '.')) {
+ *   console.log('error' in result ? `Failed to copy ${result.path}` : `Copied ${result.file}`);
  * }
+ * // Copied static/sponsor.md
  */
 export async function* copyGitHubFiles(
   source: GitHubSource,
@@ -51,26 +57,36 @@ export async function* copyGitHubFiles(
   const signal = options.signal ? AbortSignal.any([options.signal, internal.signal]) : internal.signal;
   const pending = pullOnce(paths);
   const running = new Set<Promise<Download>>();
+  // Asked for while there's room, and raced with the downloads, so a slow source never holds back a finished file.
+  let nextPath: Promise<IteratorResult<string, void>> | undefined;
+  let exhausted = false;
   try {
-    let exhausted = false;
     for (;;) {
-      while (!exhausted && running.size < concurrency) {
-        const next = await pending.next();
-        if (next.done) exhausted = true;
-        else running.add(download(source, next.value, signal));
+      if (!exhausted && !nextPath && running.size < concurrency) nextPath = pending.next();
+      if (!nextPath && !running.size) return;
+      const finished = await Promise.race([
+        ...[...running].map((task) => task.then((downloaded) => ({ task, downloaded }))),
+        ...(nextPath ? [nextPath.then((next) => ({ next }))] : []),
+      ]);
+      if ('next' in finished) {
+        nextPath = undefined;
+        if (finished.next.done) exhausted = true;
+        else running.add(download(source, finished.next.value, signal));
+        continue;
       }
-      if (!running.size) return;
-      const [finished, downloaded] = await Promise.race(
-        [...running].map((task) => task.then((result) => [task, result] as const)),
-      );
-      running.delete(finished);
+      running.delete(finished.task);
       options.signal?.throwIfAborted();
-      yield await write(downloaded, folder, signal);
+      yield await write(finished.downloaded, folder);
       options.signal?.throwIfAborted();
     }
   } finally {
     internal.abort();
-    await pending.return();
+    if (nextPath) {
+      // The source would hold up the return until it gives its next path, which can no longer be copied.
+      pending.return().catch(() => {});
+    } else {
+      await pending.return();
+    }
   }
 }
 
@@ -95,13 +111,16 @@ async function download(source: GitHubSource, filePath: string, signal: AbortSig
   }
 }
 
-/** Write a downloaded file right before its result is given, so every file written is a file reported. */
-async function write(downloaded: Download, folder: string, signal: AbortSignal): Promise<CopyResult> {
+/**
+ * Write a downloaded file right before its result is given, so every file written is a file reported.
+ * Takes no signal: an abort would stop the write after the file was emptied.
+ */
+async function write(downloaded: Download, folder: string): Promise<CopyResult> {
   if ('error' in downloaded) return downloaded;
   const file = path.join(folder, ...downloaded.path.split('/'));
   try {
     await mkdir(path.dirname(file), { recursive: true });
-    await writeFile(file, downloaded.content, { signal });
+    await writeFile(file, downloaded.content);
     return { path: downloaded.path, file };
   } catch (error) {
     return { path: downloaded.path, error: toError(error) };
