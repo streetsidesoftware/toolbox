@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import type { TestContext } from 'node:test';
 import { afterEach, beforeEach, describe, test } from 'node:test';
+import { setTimeout as delay } from 'node:timers/promises';
 
 import type { CopyResult } from './copy.ts';
 import { copyGitHubFiles } from './copy.ts';
@@ -31,9 +33,9 @@ describe('copyGitHubFiles', () => {
     fakeGitHub(t, upstream);
     const results = await collect(copyGitHubFiles(source, ['static/sponsor.md', 'static/footer.md'], folder));
 
-    assert.deepEqual(results, [
-      { path: 'static/sponsor.md', file: path.join(folder, 'static', 'sponsor.md') },
+    assert.deepEqual(byPath(results), [
       { path: 'static/footer.md', file: path.join(folder, 'static', 'footer.md') },
+      { path: 'static/sponsor.md', file: path.join(folder, 'static', 'sponsor.md') },
     ]);
     assert.equal(await readFile(path.join(folder, 'static/sponsor.md'), 'utf8'), 'Sponsor us.\n');
     assert.equal(await readFile(path.join(folder, 'static/footer.md'), 'utf8'), 'Footer.\n');
@@ -57,6 +59,43 @@ describe('copyGitHubFiles', () => {
     assert.equal(requests.length, 1);
   });
 
+  test('gives each file as soon as it finishes', async (t) => {
+    slowGitHub(t, { 'slow.md': 30, 'fast.md': 0 });
+    const results = await collect(copyGitHubFiles(source, ['slow.md', 'fast.md'], folder));
+
+    assert.deepEqual(
+      results.map((result) => result.path),
+      ['fast.md', 'slow.md'],
+    );
+  });
+
+  test('downloads up to the concurrency at once', async (t) => {
+    const github = slowGitHub(t, { 'a.md': 10, 'b.md': 10, 'c.md': 10, 'd.md': 10, 'e.md': 10 });
+    await collect(copyGitHubFiles(source, ['a.md', 'b.md', 'c.md', 'd.md', 'e.md'], folder, { concurrency: 2 }));
+
+    assert.equal(github.mostAtOnce, 2);
+  });
+
+  test('downloads 8 files at once by default', async (t) => {
+    const delays = Object.fromEntries(Array.from({ length: 10 }, (_, index) => [`${index}.md`, 10]));
+    const github = slowGitHub(t, delays);
+    await collect(copyGitHubFiles(source, Object.keys(delays), folder));
+
+    assert.equal(github.mostAtOnce, 8);
+  });
+
+  test('refuses a concurrency that is not a whole number of at least 1', async (t) => {
+    const requests = fakeGitHub(t, upstream);
+    for (const concurrency of [0, -1, 1.5, Number.NaN]) {
+      await assert.rejects(
+        collect(copyGitHubFiles(source, ['static/sponsor.md'], folder, { concurrency })),
+        { message: 'The concurrency must be a whole number of at least 1.' },
+        String(concurrency),
+      );
+    }
+    assert.deepEqual(requests, []);
+  });
+
   test('gives a failed file as a result and copies the others', async (t) => {
     fakeGitHub(t, upstream);
     const results = await collect(
@@ -64,10 +103,10 @@ describe('copyGitHubFiles', () => {
     );
 
     assert.deepEqual(
-      results.map((result) => ('error' in result ? `${result.path}: ${result.error.message}` : result.path)),
-      ['static/sponsor.md', 'static/missing.md: GitHub responded with status 404', 'static/footer.md'],
+      byPath(results).map((result) => ('error' in result ? `${result.path}: ${result.error.message}` : result.path)),
+      ['static/footer.md', 'static/missing.md: GitHub responded with status 404', 'static/sponsor.md'],
     );
-    const failure = results[1];
+    const failure = results.find((result) => result.path === 'static/missing.md');
     assert.ok(failure && 'error' in failure && failure.error instanceof GitHubError);
     assert.equal(failure.error.status, 404);
     assert.deepEqual((await readdir(path.join(folder, 'static'))).sort(), ['footer.md', 'sponsor.md']);
@@ -100,42 +139,58 @@ describe('copyGitHubFiles', () => {
     assert.deepEqual(requests, []);
   });
 
-  test('stops at the next file when the loop breaks', async (t) => {
-    const requests = fakeGitHub(t, upstream);
-    for await (const result of copyGitHubFiles(source, ['static/missing.md', 'static/sponsor.md'], folder)) {
-      if ('error' in result) break;
+  test('stops the running downloads when the loop breaks', async (t) => {
+    const github = slowGitHub(t, { 'fast.md': 0, 'slow.md': 1000 });
+    for await (const result of copyGitHubFiles(source, ['fast.md', 'slow.md'], folder)) {
+      assert.equal(result.path, 'fast.md');
+      break;
     }
 
-    assert.equal(requests.length, 1);
-    assert.deepEqual(await readdir(folder), []);
+    assert.ok(github.signals.every((signal) => signal?.aborted));
+    assert.deepEqual(await readdir(folder), ['fast.md']);
   });
 
-  test('stops when the signal is aborted', async (t) => {
-    const requests = fakeGitHub(t, upstream);
+  test('writes no file that finished downloading after the loop breaks', async (t) => {
+    fakeGitHub(t, upstream);
+    let given = '';
+    for await (const result of copyGitHubFiles(source, ['static/sponsor.md', 'static/footer.md'], folder)) {
+      // The other file has finished downloading by now, but its result hasn't been given.
+      await delay(10);
+      given = result.path;
+      break;
+    }
+
+    assert.deepEqual(await readdir(path.join(folder, 'static')), [path.basename(given)]);
+  });
+
+  test('stops with the abort reason when the signal is aborted', async (t) => {
+    fakeGitHub(t, upstream);
     const controller = new AbortController();
-    const copied: CopyResult[] = [];
+    const given: CopyResult[] = [];
     await assert.rejects(
       async () => {
-        for await (const result of copyGitHubFiles(source, ['static/sponsor.md', 'static/footer.md'], folder, {
+        const results = copyGitHubFiles(source, ['static/sponsor.md', 'static/footer.md'], folder, {
           signal: controller.signal,
-        })) {
-          copied.push(result);
+        });
+        for await (const result of results) {
+          given.push(result);
           controller.abort();
         }
       },
       { name: 'AbortError' },
     );
 
-    assert.equal(copied.length, 1);
-    assert.equal(requests.length, 1);
+    assert.equal(given.length, 1);
+    assert.deepEqual(await readdir(path.join(folder, 'static')), [path.basename(given[0]?.path ?? '')]);
   });
 
-  test('passes the signal to each request', async (t) => {
+  test('passes an abort of the signal on to each request', async (t) => {
     const requests = fakeGitHub(t, upstream);
     const controller = new AbortController();
     await collect(copyGitHubFiles(source, ['static/sponsor.md'], folder, { signal: controller.signal }));
+    controller.abort();
 
-    assert.equal(requests[0]?.signal, controller.signal);
+    assert.equal(requests[0]?.signal?.aborted, true);
   });
 });
 
@@ -143,4 +198,30 @@ async function collect(results: AsyncIterable<CopyResult>): Promise<CopyResult[]
   const collected: CopyResult[] = [];
   for await (const result of results) collected.push(result);
   return collected;
+}
+
+function byPath(results: CopyResult[]): CopyResult[] {
+  return results.toSorted((a, b) => a.path.localeCompare(b.path));
+}
+
+/**
+ * Replace the global `fetch` for one test with a GitHub that answers each path after its delay in milliseconds.
+ * Counts how many requests ran at once, and keeps each request's signal.
+ */
+function slowGitHub(t: TestContext, delays: Record<string, number>) {
+  const github = { mostAtOnce: 0, signals: [] as (AbortSignal | null | undefined)[] };
+  let atOnce = 0;
+  t.mock.method(globalThis, 'fetch', async (input: string | URL | Request, init?: RequestInit) => {
+    github.signals.push(init?.signal);
+    atOnce += 1;
+    github.mostAtOnce = Math.max(github.mostAtOnce, atOnce);
+    try {
+      const filePath = new URL(String(input)).pathname.replace('/repos/owner/repo/contents/', '');
+      await delay(delays[filePath] ?? 0, undefined, { signal: init?.signal ?? undefined });
+      return new Response(filePath, { headers: { 'content-type': 'application/vnd.github.raw+json' } });
+    } finally {
+      atOnce -= 1;
+    }
+  });
+  return github;
 }

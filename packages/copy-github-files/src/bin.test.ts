@@ -32,9 +32,9 @@ describe('run', () => {
     assert.equal(code, 0);
     assert.equal(await readFile(path.join(cwd, 'static/sponsor.md'), 'utf8'), 'Sponsor us.\n');
     assert.equal(await readFile(path.join(cwd, 'static/footer.md'), 'utf8'), 'Footer.\n');
-    assert.deepEqual(context.logged, [
-      `Copied ${localPath('static/sponsor.md')}`,
+    assert.deepEqual(context.logged.toSorted(), [
       `Copied ${localPath('static/footer.md')}`,
+      `Copied ${localPath('static/sponsor.md')}`,
     ]);
   });
 
@@ -69,9 +69,9 @@ describe('run', () => {
     await run(['owner/repo', 'static/sponsor.md', 'static/footer.md'], context);
 
     assert.equal(await readFile(path.join(cwd, 'static/sponsor.md'), 'utf8'), 'Sponsor us.\n');
-    assert.deepEqual(context.logged, [
-      `Copied ${localPath('static/sponsor.md')}`,
+    assert.deepEqual(context.logged.toSorted(), [
       `Copied ${localPath('static/footer.md')}`,
+      `Copied ${localPath('static/sponsor.md')}`,
     ]);
   });
 
@@ -89,9 +89,9 @@ describe('run', () => {
 
     assert.equal(code, 1);
     assert.deepEqual(context.errors, ['Failed to copy static/missing.md: GitHub responded with status 404']);
-    assert.deepEqual(context.logged, [
-      `Copied ${localPath('static/sponsor.md')}`,
+    assert.deepEqual(context.logged.toSorted(), [
       `Copied ${localPath('static/footer.md')}`,
+      `Copied ${localPath('static/sponsor.md')}`,
     ]);
     assert.equal(await readFile(path.join(cwd, 'static/sponsor.md'), 'utf8'), 'Sponsor us.\n');
     assert.deepEqual((await readdir(path.join(cwd, 'static'))).sort(), ['footer.md', 'sponsor.md']);
@@ -118,7 +118,7 @@ describe('run', () => {
       assert.equal(code, 1, option);
       assert.deepEqual(
         context.errors,
-        [`Unknown option ${rawName}. The options are --output, --ref, --fail-fast and --help.`],
+        [`Unknown option ${rawName}. The options are --output, --ref, --concurrency, --fail-fast and --help.`],
         option,
       );
       assert.deepEqual(context.urls, [], option);
@@ -189,6 +189,28 @@ describe('run', () => {
     assert.deepEqual(context.urls, []);
   });
 
+  test('downloads up to --concurrency files at once', async (t) => {
+    const context = createContext(t);
+    const code = await run(['owner/repo', 'static/sponsor.md', 'static/footer.md', '--concurrency', '1'], context);
+
+    assert.equal(code, 0);
+    assert.deepEqual(context.logged, [
+      `Copied ${localPath('static/sponsor.md')}`,
+      `Copied ${localPath('static/footer.md')}`,
+    ]);
+  });
+
+  test('refuses a --concurrency that is not a whole number of at least 1', async (t) => {
+    for (const value of ['0', '-1', '1.5', 'many', '', '08']) {
+      const context = createContext(t);
+      const code = await run(['owner/repo', 'static/sponsor.md', `--concurrency=${value}`], context);
+
+      assert.equal(code, 1, value);
+      assert.deepEqual(context.errors, ['The --concurrency option must be a whole number of at least 1.'], value);
+      assert.deepEqual(context.urls, [], value);
+    }
+  });
+
   test('refuses an empty --ref', async (t) => {
     const context = createContext(t);
     const code = await run(['owner/repo', 'static/sponsor.md', '--ref='], context);
@@ -231,7 +253,10 @@ describe('run', () => {
 
   test('stops at the first failure with --fail-fast', async (t) => {
     const context = createContext(t);
-    const code = await run(['owner/repo', 'static/missing.md', 'static/sponsor.md', '--fail-fast'], context);
+    const code = await run(
+      ['owner/repo', 'static/missing.md', 'static/sponsor.md', '--fail-fast', '--concurrency', '1'],
+      context,
+    );
 
     assert.equal(code, 1);
     assert.deepEqual(context.errors, ['Failed to copy static/missing.md: GitHub responded with status 404']);

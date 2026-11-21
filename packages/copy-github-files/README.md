@@ -38,12 +38,13 @@ To run it from a script in `package.json`:
 
 ### Options
 
-| Option           | What it does                                                                            |
-| ---------------- | --------------------------------------------------------------------------------------- |
-| `--output <dir>` | Write the files below `<dir>` instead of the current folder, keeping their paths.       |
-| `--ref <ref>`    | Copy from a branch, tag or commit. Without it, the repository's default branch is used. |
-| `--fail-fast`    | Stop at the first file that fails.                                                      |
-| `--help`         | Show the usage.                                                                         |
+| Option              | What it does                                                                            |
+| ------------------- | --------------------------------------------------------------------------------------- |
+| `--output <dir>`    | Write the files below `<dir>` instead of the current folder, keeping their paths.       |
+| `--ref <ref>`       | Copy from a branch, tag or commit. Without it, the repository's default branch is used. |
+| `--concurrency <n>` | Download up to `<n>` files at once. Default: 8.                                         |
+| `--fail-fast`       | Stop at the first file that fails.                                                      |
+| `--help`            | Show the usage.                                                                         |
 
 With `--output docs`, `static/sponsor.md` is written to `docs/static/sponsor.md`.
 
@@ -85,11 +86,18 @@ for await (const result of copyGitHubFiles(source, ['static/sponsor.md', 'static
 }
 ```
 
-It gives one result per file, in the order of the paths, as each file is written or fails. A failed file doesn't stop
-the others. To stop early, break out of the loop, or pass a signal and abort it:
+It downloads up to 8 files at once, and gives each file's result as soon as that file is written or fails, so results
+can come in any order. A failed file doesn't stop the others. To stop early, break out of the loop, or pass a signal and
+abort it. Downloads still running are stopped, and only the files already given as results are written:
 
 ```ts
 const results = copyGitHubFiles(source, paths, '.', { signal: AbortSignal.timeout(30_000) });
+```
+
+To change how many files download at once, pass `concurrency`:
+
+```ts
+const results = copyGitHubFiles(source, paths, '.', { concurrency: 2 });
 ```
 
 The source also takes a `ref`, and a `token` for a private repository.
