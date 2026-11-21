@@ -1,95 +1,133 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { fetchFile } from './github.ts';
+import { fakeGitHub } from './fake-github.ts';
+import { fetchGitHubFile } from './github.ts';
 
-describe('fetchFile', () => {
-  test('reads a file from the default branch, without a token', async () => {
-    const { fetch, requests } = fakeFetch(() => rawResponse('# Sponsor\n'));
-    const result = await fetchFile(
-      { repo: 'owner/repo', ref: undefined, token: undefined, fetch },
-      'static/sponsor.md',
-    );
+describe('fetchGitHubFile', () => {
+  test('reads a file from the default branch, without a token', async (t) => {
+    const requests = fakeGitHub(t, { 'static/sponsor.md': '# Sponsor\n' });
+    const content = await fetchGitHubFile({ repo: 'owner/repo' }, 'static/sponsor.md');
 
-    assert.deepEqual(result, { ok: true, content: new TextEncoder().encode('# Sponsor\n') });
+    assert.deepEqual(content, new TextEncoder().encode('# Sponsor\n'));
     assert.equal(requests[0]?.url, 'https://api.github.com/repos/owner/repo/contents/static/sponsor.md');
     assert.equal(requests[0]?.headers['Accept'], 'application/vnd.github.raw+json');
     assert.equal(requests[0]?.headers['Authorization'], undefined);
   });
 
-  test('reads from the ref when one is given', async () => {
-    const { fetch, requests } = fakeFetch(() => rawResponse(''));
-    await fetchFile({ repo: 'owner/repo', ref: 'v1.0', token: undefined, fetch }, 'a.md');
+  test('reads from the ref when one is given', async (t) => {
+    const requests = fakeGitHub(t, { 'a.md': '' });
+    await fetchGitHubFile({ repo: 'owner/repo', ref: 'v1.0' }, 'a.md');
 
     assert.equal(requests[0]?.url, 'https://api.github.com/repos/owner/repo/contents/a.md?ref=v1.0');
   });
 
-  test('sends the token as a bearer token', async () => {
-    const { fetch, requests } = fakeFetch(() => rawResponse(''));
-    await fetchFile({ repo: 'owner/repo', ref: undefined, token: 'secret', fetch }, 'a.md');
+  test('sends the token as a bearer token', async (t) => {
+    const requests = fakeGitHub(t, { 'a.md': '' });
+    await fetchGitHubFile({ repo: 'owner/repo', token: 'secret' }, 'a.md');
 
     assert.equal(requests[0]?.headers['Authorization'], 'Bearer secret');
   });
 
-  test('encodes each segment of the path', async () => {
-    const { fetch, requests } = fakeFetch(() => rawResponse(''));
-    await fetchFile({ repo: 'owner/repo', ref: undefined, token: undefined, fetch }, 'my docs/a#b.md');
+  test('encodes each segment of the path', async (t) => {
+    const requests = fakeGitHub(t, { 'my docs/a#b.md': '' });
+    await fetchGitHubFile({ repo: 'owner/repo' }, 'my docs/a#b.md');
 
     assert.equal(requests[0]?.url, 'https://api.github.com/repos/owner/repo/contents/my%20docs/a%23b.md');
   });
 
-  test('gives the status when GitHub refuses the request', async () => {
-    const { fetch } = fakeFetch(() => new Response('{}', { status: 404 }));
-    const result = await fetchFile({ repo: 'owner/repo', ref: undefined, token: undefined, fetch }, 'a.md');
+  test('gives the status when GitHub refuses the request', async (t) => {
+    fakeGitHub(t, {});
 
-    assert.deepEqual(result, { ok: false, reason: 'GitHub responded with status 404' });
-  });
-
-  test('refuses a folder', async () => {
-    const { fetch } = fakeFetch(
-      () => new Response('[]', { status: 200, headers: { 'content-type': 'application/json; charset=utf-8' } }),
-    );
-    const result = await fetchFile({ repo: 'owner/repo', ref: undefined, token: undefined, fetch }, 'static');
-
-    assert.deepEqual(result, { ok: false, reason: 'it is not a file' });
-  });
-
-  test('gives the error when the body fails to arrive', async () => {
-    const body = new ReadableStream({
-      start(controller) {
-        controller.error(new Error('connection reset'));
-      },
+    await assert.rejects(fetchGitHubFile({ repo: 'owner/repo' }, 'a.md'), {
+      message: 'GitHub responded with status 404',
     });
-    const { fetch } = fakeFetch(
-      () => new Response(body, { headers: { 'content-type': 'application/vnd.github.raw+json' } }),
-    );
-    const result = await fetchFile({ repo: 'owner/repo', ref: undefined, token: undefined, fetch }, 'a.md');
-
-    assert.deepEqual(result, { ok: false, reason: 'connection reset' });
   });
 
-  test('gives the error when the request fails', async () => {
-    const { fetch } = fakeFetch(() => {
-      throw new TypeError('fetch failed');
-    });
-    const result = await fetchFile({ repo: 'owner/repo', ref: undefined, token: undefined, fetch }, 'a.md');
+  test('refuses a folder', async (t) => {
+    fakeGitHub(t, {});
 
-    assert.deepEqual(result, { ok: false, reason: 'fetch failed' });
+    await assert.rejects(fetchGitHubFile({ repo: 'owner/repo' }, 'static'), {
+      message: 'The path names a folder, not a file.',
+    });
+  });
+
+  test('passes the error on when the body fails to arrive', async (t) => {
+    t.mock.method(globalThis, 'fetch', async () => {
+      const body = new ReadableStream({
+        start(controller) {
+          controller.error(new Error('connection reset'));
+        },
+      });
+      return new Response(body, { headers: { 'content-type': 'application/vnd.github.raw+json' } });
+    });
+
+    await assert.rejects(fetchGitHubFile({ repo: 'owner/repo' }, 'a.md'), { message: 'connection reset' });
+  });
+
+  test('passes the signal to the request', async (t) => {
+    const requests = fakeGitHub(t, { 'a.md': '' });
+    const controller = new AbortController();
+    await fetchGitHubFile({ repo: 'owner/repo' }, 'a.md', { signal: controller.signal });
+
+    assert.equal(requests[0]?.signal, controller.signal);
+  });
+
+  test('stops when the signal is aborted', async (t) => {
+    fakeGitHub(t, { 'a.md': '' });
+
+    await assert.rejects(fetchGitHubFile({ repo: 'owner/repo' }, 'a.md', { signal: AbortSignal.abort() }), {
+      name: 'AbortError',
+    });
+  });
+
+  test('refuses a repository not written as owner/repo, without a request', async (t) => {
+    const requests = fakeGitHub(t, {});
+    for (const repo of [
+      'owner',
+      'owner/repo/extra',
+      'https://github.com/owner/repo',
+      '../..',
+      'owner/..',
+      'own.er/repo',
+    ]) {
+      await assert.rejects(
+        fetchGitHubFile({ repo }, 'a.md'),
+        { message: 'The repository must be written as <owner>/<repo>, such as streetsidesoftware/.github.' },
+        repo,
+      );
+    }
+    assert.deepEqual(requests, []);
+  });
+
+  test('accepts a repository name with dots', async (t) => {
+    const requests = fakeGitHub(t, { 'a.md': '' });
+    await fetchGitHubFile({ repo: 'owner/.github' }, 'a.md');
+
+    assert.equal(requests[0]?.url, 'https://api.github.com/repos/owner/.github/contents/a.md');
+  });
+
+  test('refuses an empty ref, without a request', async (t) => {
+    const requests = fakeGitHub(t, {});
+
+    await assert.rejects(fetchGitHubFile({ repo: 'owner/repo', ref: '' }, 'a.md'), {
+      message: 'The ref must name a branch, tag or commit.',
+    });
+    assert.deepEqual(requests, []);
+  });
+
+  test('refuses a path outside the repository, without a request', async (t) => {
+    const requests = fakeGitHub(t, {});
+    for (const filePath of ['../a.md', '/a.md', 'static/./a.md', 'static//a.md', '']) {
+      await assert.rejects(
+        fetchGitHubFile({ repo: 'owner/repo' }, filePath),
+        {
+          message:
+            'A path must name a file from the root of the repository, such as static/sponsor.md, without . or .. segments.',
+        },
+        filePath,
+      );
+    }
+    assert.deepEqual(requests, []);
   });
 });
-
-function rawResponse(body: string): Response {
-  return new Response(body, {
-    status: 200,
-    headers: { 'content-type': 'application/vnd.github.raw+json; charset=utf-8' },
-  });
-}
-
-function fakeFetch(respond: () => Response) {
-  const requests: { url: string; headers: Record<string, string> }[] = [];
-  const fetch: typeof globalThis.fetch = async (input, init) => {
-    requests.push({ url: String(input), headers: (init?.headers ?? {}) as Record<string, string> });
-    return respond();
-  };
-  return { fetch, requests };
-}

@@ -42,6 +42,7 @@ To run it from a script in `package.json`:
 | ---------------- | --------------------------------------------------------------------------------------- |
 | `--output <dir>` | Write the files below `<dir>` instead of the current folder, keeping their paths.       |
 | `--ref <ref>`    | Copy from a branch, tag or commit. Without it, the repository's default branch is used. |
+| `--fail-fast`    | Stop at the first file that fails.                                                      |
 | `--help`         | Show the usage.                                                                         |
 
 With `--output docs`, `static/sponsor.md` is written to `docs/static/sponsor.md`.
@@ -67,7 +68,39 @@ a token with read access to it, such as a fine-grained personal access token or 
 ### When a file can't be copied
 
 Each file is copied on its own. If one fails, such as a path that doesn't exist on that branch, the others are still
-copied. The command says which file failed and why, and exits with code 1.
+copied. The command says which file failed and why, and exits with code 1. With `--fail-fast`, it stops at the first
+file that fails.
+
+## Library
+
+The same copy is available from code:
+
+```ts
+import { copyGitHubFiles } from '@streetsidesoftware/copy-github-files';
+
+const source = { repo: 'streetsidesoftware/.github' };
+for await (const result of copyGitHubFiles(source, ['static/sponsor.md', 'static/footer.md'], '.')) {
+  if ('error' in result) console.error(`Failed to copy ${result.path}: ${result.error.message}`);
+  else console.log(`Copied ${result.file}`);
+}
+```
+
+It gives one result per file, in the order of the paths, as each file is written or fails. A failed file doesn't stop
+the others. To stop early, break out of the loop, or pass a signal and abort it:
+
+```ts
+const results = copyGitHubFiles(source, paths, '.', { signal: AbortSignal.timeout(30_000) });
+```
+
+The source also takes a `ref`, and a `token` for a private repository.
+
+To read one file without writing it, use `fetchGitHubFile`:
+
+```ts
+import { fetchGitHubFile } from '@streetsidesoftware/copy-github-files';
+
+const content = await fetchGitHubFile({ repo: 'streetsidesoftware/.github' }, 'static/sponsor.md');
+```
 
 ## Requirements
 
