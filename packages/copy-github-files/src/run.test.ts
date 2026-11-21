@@ -111,20 +111,52 @@ describe('run', () => {
     assert.deepEqual(context.logged, [usage]);
   });
 
-  test('shows the usage for an unknown option', async () => {
-    const context = createContext();
-    const code = await run(['owner/repo', 'a.md', '--force'], context);
+  test('names an unknown option', async () => {
+    const cases: [option: string, rawName: string][] = [
+      ['--outptu', '--outptu'],
+      ['--outptu=docs', '--outptu'],
+      ['-o', '-o'],
+    ];
+    for (const [option, rawName] of cases) {
+      const context = createContext();
+      const code = await run(['owner/repo', 'a.md', option], context);
 
-    assert.equal(code, 1);
-    assert.deepEqual(context.errors, [usage]);
+      assert.equal(code, 1, option);
+      assert.deepEqual(
+        context.errors,
+        [`Unknown option ${rawName}. The options are --output, --ref and --help.`],
+        option,
+      );
+      assert.deepEqual(context.urls, [], option);
+    }
   });
 
-  test('shows the usage for an option without its value', async () => {
+  test('names an option without its value', async () => {
+    for (const args of [['--ref'], ['--ref', '--output', 'docs']]) {
+      const context = createContext();
+      const code = await run(['owner/repo', 'a.md', ...args], context);
+
+      assert.equal(code, 1, args.join(' '));
+      assert.deepEqual(context.errors, ['The --ref option must name a branch, tag or commit.'], args.join(' '));
+      assert.deepEqual(context.urls, [], args.join(' '));
+    }
+  });
+
+  test('accepts a value that starts with a dash when written with =', async () => {
     const context = createContext();
-    const code = await run(['owner/repo', 'a.md', '--ref'], context);
+    const code = await run(['owner/repo', 'static/sponsor.md', '--ref=-v1'], context);
+
+    assert.equal(code, 0);
+    assert.deepEqual(context.urls, ['https://api.github.com/repos/owner/repo/contents/static/sponsor.md?ref=-v1']);
+  });
+
+  test('refuses a value for --help', async () => {
+    const context = createContext();
+    const code = await run(['--help=yes'], context);
 
     assert.equal(code, 1);
-    assert.deepEqual(context.errors, [usage]);
+    assert.deepEqual(context.errors, ['The --help option takes no value.']);
+    assert.deepEqual(context.logged, []);
   });
 
   test('refuses a repository not written as owner/repo', async () => {
