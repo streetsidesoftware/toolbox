@@ -41,13 +41,13 @@ const shortEscapes = new Map([
   ['\t', '\\t'],
 ]);
 
-/** Where {@link run} reads standard input and writes its output, such as to collect the output in a string. */
+/** Stand-ins for the process's standard input and output, such as to check a string and collect the output. */
 export interface Io {
-  /** Read when no file is given. */
-  stdin: AsyncIterable<Buffer | string>;
-  /** Gets the command's output. */
+  /** The input read when no file is given. */
+  stdin: AsyncIterable<Uint8Array | string>;
+  /** Take each piece of the command's output, in order. */
   stdout: (text: string) => void;
-  /** Gets the message for an error, one line. */
+  /** Take an error message: one line, ending in a newline. */
   stderr: (text: string) => void;
 }
 
@@ -61,8 +61,12 @@ interface Input {
 class CommandError extends Error {}
 
 /**
- * Run the `markdown-sanitizer` command and return its exit code: 0 when it succeeds, 1 when `check` finds hidden text,
- * and 2 for a wrong call or a file it can't read or write.
+ * Run the `markdown-sanitizer` command and return its exit code.
+ *
+ * The exit code is:
+ * - 0 when it succeeds.
+ * - 1 when `check` finds hidden text.
+ * - 2 for a wrong call, or a file it can't read or write.
  *
  * Every input is read before any file is written, so input that can't be read leaves the files as they were.
  *
@@ -74,6 +78,7 @@ class CommandError extends Error {}
  * import { run } from '@streetsidesoftware/markdown-sanitizer/cli';
  *
  * process.exitCode = await run(process.argv.slice(2));
+ * // Runs the command with the process's arguments, input and output, and sets its exit code.
  */
 export async function run(args: string[], io: Io = processIo()): Promise<number> {
   try {
@@ -142,7 +147,7 @@ function maxSize(value: string | undefined): number {
   return size;
 }
 
-async function readInputs(files: string[], max: number, stdin: AsyncIterable<Buffer | string>): Promise<Input[]> {
+async function readInputs(files: string[], max: number, stdin: AsyncIterable<Uint8Array | string>): Promise<Input[]> {
   if (!files.length) return [{ name: STDIN_NAME, markdown: await readText(STDIN_NAME, stdin, max) }];
   const inputs: Input[] = [];
   for (const name of files) inputs.push({ name, markdown: await readMarkdownFile(name, max) });
@@ -164,8 +169,8 @@ async function readMarkdownFile(name: string, max: number): Promise<string> {
  *
  * Throws a CommandError past `max`, or for bytes that aren't UTF-8, so a file is never rewritten with them replaced.
  */
-async function readText(name: string, stream: AsyncIterable<Buffer | string>, max: number): Promise<string> {
-  const chunks: Buffer[] = [];
+async function readText(name: string, stream: AsyncIterable<Uint8Array | string>, max: number): Promise<string> {
+  const chunks: Uint8Array[] = [];
   let size = 0;
   for await (const chunk of stream) {
     const buffer = typeof chunk === 'string' ? Buffer.from(chunk) : chunk;
