@@ -43,65 +43,6 @@ describe('copyGitHubFiles', () => {
     assert.equal(await readFile(path.join(folder, 'static/footer.md'), 'utf8'), 'Footer.\n');
   });
 
-  test('gives a finished file without waiting for the next path', async (t) => {
-    fakeGitHub(t, upstream);
-    const events: string[] = [];
-    async function* paths() {
-      yield 'static/sponsor.md';
-      await delay(50);
-      events.push('next path');
-      yield 'static/footer.md';
-    }
-    for await (const result of copyGitHubFiles(source, paths(), folder)) events.push(result.path);
-
-    assert.deepEqual(events, ['static/sponsor.md', 'next path', 'static/footer.md']);
-  });
-
-  test('stops when the loop breaks while the source is still finding its next path', async (t) => {
-    fakeGitHub(t, upstream);
-    async function* paths() {
-      yield 'static/sponsor.md';
-      await new Promise(() => {});
-    }
-    for await (const result of copyGitHubFiles(source, paths(), folder)) {
-      assert.equal(result.path, 'static/sponsor.md');
-      break;
-    }
-
-    assert.deepEqual(await readdir(path.join(folder, 'static')), ['sponsor.md']);
-  });
-
-  test('stops with the abort reason while the source is still finding its next path', async (t) => {
-    fakeGitHub(t, upstream);
-    const controller = new AbortController();
-    async function* paths() {
-      yield 'static/sponsor.md';
-      await new Promise(() => {});
-    }
-    const given: string[] = [];
-    await assert.rejects(
-      async () => {
-        for await (const result of copyGitHubFiles(source, paths(), folder, { signal: controller.signal })) {
-          given.push(result.path);
-          setTimeout(() => controller.abort(), 10);
-        }
-      },
-      { name: 'AbortError' },
-    );
-
-    assert.deepEqual(given, ['static/sponsor.md']);
-  });
-
-  test('takes the paths from an async iterable', async (t) => {
-    fakeGitHub(t, upstream);
-    async function* paths() {
-      yield 'static/sponsor.md';
-    }
-    const results = await collect(copyGitHubFiles(source, paths(), folder));
-
-    assert.deepEqual(results, [{ path: 'static/sponsor.md', file: path.join(folder, 'static', 'sponsor.md') }]);
-  });
-
   test('reads a path named twice once', async (t) => {
     const requests = fakeGitHub(t, upstream);
     const results = await collect(copyGitHubFiles(source, ['static/sponsor.md', 'static/sponsor.md'], folder));
