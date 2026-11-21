@@ -1,12 +1,10 @@
 #!/usr/bin/env node
-import path from 'node:path';
 import { parseArgs } from 'node:util';
 
 import { copyGitHubFiles } from './copy.ts';
 
-/** The working folder, token and console the command uses. Tests pass their own. */
+/** The token and console the command uses. Tests pass their own. */
 export interface RunContext {
-  cwd: string;
   /** The value of `GITHUB_TOKEN`. */
   token: string | undefined;
   log: (line: string) => void;
@@ -45,17 +43,16 @@ export async function run(args: string[], context: RunContext): Promise<number> 
     return 1;
   }
 
-  const folder = path.resolve(context.cwd, output);
   let failed = false;
   try {
     const source = { repo, ref, token: context.token };
-    for await (const result of copyGitHubFiles(source, paths, folder, { concurrency })) {
+    for await (const result of copyGitHubFiles(source, paths, output, { concurrency })) {
       if ('error' in result) {
         context.error(`Failed to copy ${result.path}: ${result.error.message}`);
         failed = true;
         if (failFast) break;
       } else if (!silent) {
-        context.log(`Copied ${path.join(output, ...result.path.split('/'))}`);
+        context.log(`Copied ${result.file}`);
       }
     }
   } catch (error) {
@@ -151,7 +148,6 @@ function checkOption(token: {
 // Last, so every constant above is set when the command runs.
 if (import.meta.main) {
   process.exitCode = await run(process.argv.slice(2), {
-    cwd: process.cwd(),
     token: process.env['GITHUB_TOKEN'] || undefined,
     log: (line) => console.log(line),
     error: (line) => console.error(line),

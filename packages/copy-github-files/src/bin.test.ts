@@ -16,13 +16,17 @@ const upstream: Record<string, string> = {
   'static/footer.md': 'Footer.\n',
 };
 
+const startFolder = process.cwd();
 let cwd = '';
 
+// The command writes below the working folder, as it does for a user, so each test runs in a folder of its own.
 beforeEach(async () => {
   cwd = await mkdtemp(path.join(tmpdir(), 'copy-github-files-'));
+  process.chdir(cwd);
 });
 
 afterEach(async () => {
+  process.chdir(startFolder);
   await rm(cwd, { recursive: true, force: true });
 });
 
@@ -304,7 +308,6 @@ function createContext(t: TestContext, { token }: { token?: string } = {}) {
   const errors: string[] = [];
   const requests = fakeGitHub(t, upstream);
   return {
-    cwd,
     token,
     log: (line: string) => logged.push(line),
     error: (line: string) => errors.push(line),
