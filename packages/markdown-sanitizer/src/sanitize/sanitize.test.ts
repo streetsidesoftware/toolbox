@@ -60,18 +60,21 @@ describe('sanitize reveal', () => {
 describe('sanitize remove', () => {
   testEach`
     name                                | markdown                                  | removed
-    ${'a comment in a line'}            | ${'Fix the <!-- secret --> parser.'}      | ${'Fix the  parser.'}
-    ${'a comment block'}                | ${'a\n\n<!-- note -->\n\nb'}              | ${'a\n\n\n\nb'}
-    ${'a comment left open'}            | ${'a\n\n<!-- open\n\nb'}                  | ${'a\n\n'}
-    ${'a definition'}                   | ${'[//]: # (note)\n\nVisible'}            | ${'\n\nVisible'}
-    ${'a footnote'}                     | ${'Text.\n\n[^1]: Hidden.'}               | ${'Text.\n\n'}
-    ${'a comment in a quote'}           | ${'> a <!-- x --> b'}                     | ${'> a  b'}
-    ${'what only a footnote uses'}      | ${'Text.\n\n[^9]: see [x]\n\n[x]: # (note)'} | ${'Text.\n\n\n\n'}
-    ${'invisible characters'}           | ${'a\u{E0041}b &#xFE01;'}                 | ${'ab '}
-    ${'a comment that removal forms'}   | ${'<!-<!-- -->- x -->'}                   | ${''}
-    ${'a reference that removal forms'} | ${'&#xE00\u{E0041}41;'}                   | ${''}
+    ${'a comment in a line'}            | ${'Fix the <!-- secret --> parser.'}      | ${'Fix the \u{200B} parser.'}
+    ${'a comment block'}                | ${'a\n\n<!-- note -->\n\nb'}              | ${'a\n\n\u{200B}\n\nb'}
+    ${'a comment left open'}            | ${'a\n\n<!-- open\n\nb'}                  | ${'a\n\n\u{200B}'}
+    ${'a definition'}                   | ${'[//]: # (note)\n\nVisible'}            | ${'\u{200B}\n\nVisible'}
+    ${'a footnote'}                     | ${'Text.\n\n[^1]: Hidden.'}               | ${'Text.\n\n\u{200B}'}
+    ${'a comment in a quote'}           | ${'> a <!-- x --> b'}                     | ${'> a \u{200B} b'}
+    ${'what only a footnote uses'}      | ${'Text.\n\n[^9]: see [x]\n\n[x]: # (note)'} | ${'Text.\n\n\u{200B}\n\n\u{200B}'}
+    ${'invisible characters'}           | ${'a\u{E0041}b &#xFE01;'}                 | ${'a\u{200B}b \u{200B}'}
+    ${'a comment hiding a comment'}     | ${'<!-<!-- -->- x -->'}                   | ${'<!-\u{200B}- x -->'}
+    ${'a character in a reference'}     | ${'&#xE00\u{E0041}41;'}                   | ${'&#xE00\u{200B}41;'}
+    ${'a comment before a definition'}  | ${'<!-- c -->[d]: # (z)'}                 | ${'\u{200B}[d]: # (z)'}
+    ${'a comment before indented text'} | ${'   <!-- c -->after'}                   | ${'   \u{200B}after'}
   `('removes $name', ({ markdown, removed }: { markdown: string; removed: string }) => {
     assert.equal(sanitize(markdown, 'remove'), removed);
+    assert.deepEqual(findHidden(removed), []);
   });
 
   test('leaves Markdown that hides nothing as it is', () => {
@@ -79,10 +82,8 @@ describe('sanitize remove', () => {
     assert.equal(sanitize(markdown, 'remove'), markdown);
   });
 
-  test('gives up on Markdown that keeps hiding text', () => {
+  test('removes deeply nested comments in one pass', () => {
     const markdown = '<!-'.repeat(101) + '<!-- -->' + '- x -->'.repeat(101);
-    assert.throws(() => sanitize(markdown, 'remove'), {
-      message: 'Markdown must not hide text that is still hidden after 100 passes of removal',
-    });
+    assert.deepEqual(findHidden(sanitize(markdown, 'remove')), []);
   });
 });

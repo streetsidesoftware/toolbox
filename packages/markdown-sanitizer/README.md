@@ -33,18 +33,19 @@ To take the hidden text out, or to show it on the page for a reviewer, use `sani
 import { sanitize } from '@streetsidesoftware/markdown-sanitizer';
 
 sanitize('Fix the <!-- secret --> parser.', 'remove');
-// Fix the  parser.
+// 'Fix the \u200B parser.'
 
 sanitize('Fix the <!-- secret --> parser.', 'reveal');
 // Fix the `<!-- secret -->` parser.
 ```
 
+Removing leaves a zero-width space in place of each piece of hidden text, so the text on either side can't join into
+new hidden text, such as a new comment.
+
 Revealing shows the hidden text on the page as code, so a reviewer sees what an agent reads. Each tag character or
 variation selector shows as its code point, such as `\u{E0041}`.
 
 An agent reads revealed text too, so remove hidden text from Markdown that agents read, such as a changelog.
-
-Markdown that still hides text after 100 rounds of removal isn't allowed.
 
 ## What counts as hidden
 
