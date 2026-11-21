@@ -112,8 +112,9 @@ import { fetchGitHubFile } from '@streetsidesoftware/copy-github-files';
 const content = await fetchGitHubFile({ repo: 'streetsidesoftware/.github' }, 'static/sponsor.md');
 ```
 
-When GitHub answers with an error status, the error is a `GitHubError` with the status code. A failed result from
-`copyGitHubFiles` carries the same error:
+When a file can't be read from GitHub, such as a path that doesn't exist or names a folder, the error is a
+`GitHubError`. Its `status` is the HTTP status GitHub answered with: 404 for a missing file, and 200 for a folder. A
+failed result from `copyGitHubFiles` carries the same error:
 
 ```ts
 import { GitHubError } from '@streetsidesoftware/copy-github-files';

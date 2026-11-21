@@ -53,8 +53,11 @@ describe('fetchGitHubFile', () => {
   test('refuses a folder', async (t) => {
     fakeGitHub(t, {});
 
-    await assert.rejects(fetchGitHubFile({ repo: 'owner/repo' }, 'static'), {
-      message: 'The path names a folder, not a file.',
+    await assert.rejects(fetchGitHubFile({ repo: 'owner/repo' }, 'static'), (error) => {
+      assert.ok(error instanceof GitHubError);
+      assert.equal(error.status, 200);
+      assert.equal(error.message, 'The path names a folder, not a file.');
+      return true;
     });
   });
 

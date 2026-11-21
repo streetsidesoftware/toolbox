@@ -14,14 +14,13 @@ export interface FetchOptions {
   signal?: AbortSignal | undefined;
 }
 
-/** GitHub answered a request with an error status, such as 404 for a file that doesn't exist on that ref. */
+/** A file couldn't be read from GitHub, such as a path that doesn't exist on that ref, or names a folder. */
 export class GitHubError extends Error {
-  /** The HTTP status code GitHub answered with. */
+  /** The HTTP status code GitHub answered with: 404 for a missing file, and 200 for a folder. */
   readonly status: number;
 
-  constructor(status: number) {
-    // The status code only: HTTP/2 responses carry no status text.
-    super(`GitHub responded with status ${status}`);
+  constructor(message: string, status: number) {
+    super(message);
     this.name = 'GitHubError';
     this.status = status;
   }
@@ -59,10 +58,11 @@ export async function fetchGitHubFile(
   if (source.token) headers['Authorization'] = `Bearer ${source.token}`;
 
   const response = await fetch(url, { headers, signal: options.signal ?? null });
-  if (!response.ok) throw new GitHubError(response.status);
+  // The status code only: HTTP/2 responses carry no status text.
+  if (!response.ok) throw new GitHubError(`GitHub responded with status ${response.status}`, response.status);
   // GitHub sends a folder's listing as JSON, even when the raw form is asked for.
   if (!response.headers.get('content-type')?.startsWith('application/vnd.github.raw')) {
-    throw new Error('The path names a folder, not a file.');
+    throw new GitHubError('The path names a folder, not a file.', response.status);
   }
   return new Uint8Array(await response.arrayBuffer());
 }
