@@ -31,7 +31,13 @@ export interface Found extends Span {
 /** The parents an HTML node has when it's a block of its own, not part of a line. */
 const blockParents = new Set(['root', 'blockquote', 'listItem', 'footnoteDefinition']);
 
-/** Find the hidden text in Markdown, in order and without overlaps. */
+/**
+ * Find the hidden text in Markdown, in order and without overlaps: hidden text inside a comment, definition or
+ * footnote is part of it.
+ *
+ * Code shows on the page as it is, so a comment or character reference in code isn't hidden. A tag character or
+ * variation selector is hidden even in code, since the page shows nothing for it.
+ */
 export function scanHidden(markdown: string): Found[] {
   const offset = markdown.startsWith('\uFEFF') ? 1 : 0;
   const tree = unified().use(remarkParse).use(remarkGfm).parse(markdown.slice(offset));

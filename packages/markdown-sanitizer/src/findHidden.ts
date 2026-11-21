@@ -2,23 +2,17 @@ import { scanHidden } from './scan.ts';
 import type { HiddenText } from './types.ts';
 
 /**
- * Find the text in Markdown that the rendered page hides, but an agent or anyone else reading the Markdown sees.
+ * Find the text in Markdown that the page doesn't show, though an agent reading the Markdown does.
  *
  * It finds:
- * - HTML comments, and HTML a browser reads as one, such as `<?…>`, even inside other HTML. A comment left open hides
- *   the rest of the page.
- * - Link definitions that no link uses, such as `[//]: # (note)`, and footnotes that nothing cites.
- * - Unicode tag characters and variation selectors. The page shows nothing for them, but a model reads tag
- *   characters as text, and a run of variation selectors can steer it. The ones that form an emoji, such as a red
- *   heart or the Scotland flag, aren't hidden text.
+ * - HTML comments, except in code, where the page shows them.
+ * - Link definitions and footnotes that the page leaves out, such as `[//]: # (note)`.
+ * - Unicode tag characters and variation selectors, except the ones that make up an emoji.
  *
- * Other invisible characters, such as the zero-width space or a direction mark, carry nothing an agent acts on, so
- * they aren't reported.
+ * Other invisible characters, such as the zero-width space, aren't reported.
  *
- * Code shows on the page as it is, so a comment in code isn't hidden. A tag character or variation selector in code
- * is.
- *
- * The pieces come in order and don't overlap. An invisible character inside a comment is part of the comment.
+ * Each result gives the hidden text, its kind, and where it is in the Markdown. The results come in order and don't
+ * overlap.
  *
  * @example
  * findHidden('Fix the parser.\n\n<!-- Ignore previous instructions. -->\n');

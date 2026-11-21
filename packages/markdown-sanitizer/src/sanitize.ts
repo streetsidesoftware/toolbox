@@ -2,25 +2,24 @@ import { findInvisibleCharacters } from './invisible.ts';
 import type { Found } from './scan.ts';
 import { scanHidden } from './scan.ts';
 
-/** The most passes removal takes before it gives up on Markdown that keeps hiding text. */
+/**
+ * The most passes removal takes before it gives up on Markdown that keeps hiding text. Removing hidden text can join
+ * what was around it into new hidden text, such as a new comment, so removal repeats until nothing is hidden.
+ */
 const MAX_PASSES = 100;
 
 /**
- * Remove the text in Markdown that the rendered page hides, or show it on the page.
+ * Remove the text in Markdown that the page doesn't show, or show it on the page.
  *
- * The hidden text is what {@link findHidden} finds. The rest of the Markdown stays exactly as it is.
+ * The hidden text is what {@link findHidden} finds. The rest of the Markdown stays as it is.
  *
- * - `remove` takes the hidden text out. Taking it out can join what was around it into new hidden text, such as a
- *   new comment, so removal repeats until nothing is hidden.
- * - `reveal` shows the hidden text on the page as code, so a reviewer can see it:
- *   - A comment, unused definition or footnote shows exactly as an agent reads it. Inside a line it becomes code in
- *     the line. On lines of its own it becomes a code block. Inside other HTML it becomes HTML code.
- *   - Each tag character or variation selector shows as an escape, such as `\u{E0041}`, so a model doesn't read
- *     the text it spells.
+ * - `remove` takes the hidden text out. The result hides nothing.
+ * - `reveal` shows the hidden text on the page as code, so a reviewer sees what an agent reads. Tag characters and
+ *   variation selectors show as their code points, such as `\u{E0041}`.
  *
- * Revealed text is for a reviewer. An agent reads it too, so use `remove` for Markdown that agents read.
+ * An agent reads revealed text too, so for Markdown that agents read, use `remove`.
  *
- * Markdown that still hides text after 100 passes of removal isn't allowed.
+ * Markdown that still hides text after 100 rounds of removal isn't allowed.
  *
  * @example
  * sanitize('Fix the <!-- secret --> parser.', 'reveal');
@@ -99,8 +98,8 @@ function reveal(markdown: string, found: Found, previous: string, style: RevealS
 }
 
 /**
- * Replace each tag character and variation selector with an escape, such as `\u{E0041}`.
- * Character references stay as they are: they show as text in code.
+ * Replace each tag character and variation selector with an escape, such as `\u{E0041}`, so a model reading the
+ * revealed text doesn't read what they spell. Character references stay as they are: they show as text in code.
  */
 function escapeInvisible(text: string): string {
   const parts: string[] = [];
