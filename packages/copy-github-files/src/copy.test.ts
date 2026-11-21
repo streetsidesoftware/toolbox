@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, test } from 'node:test';
 import type { CopyResult } from './copy.ts';
 import { copyGitHubFiles } from './copy.ts';
 import { fakeGitHub } from './fake-github.ts';
+import { GitHubError } from './github.ts';
 
 const upstream: Record<string, string> = {
   'static/sponsor.md': 'Sponsor us.\n',
@@ -66,6 +67,9 @@ describe('copyGitHubFiles', () => {
       results.map((result) => ('error' in result ? `${result.path}: ${result.error.message}` : result.path)),
       ['static/sponsor.md', 'static/missing.md: GitHub responded with status 404', 'static/footer.md'],
     );
+    const failure = results[1];
+    assert.ok(failure && 'error' in failure && failure.error instanceof GitHubError);
+    assert.equal(failure.error.status, 404);
     assert.deepEqual((await readdir(path.join(folder, 'static'))).sort(), ['footer.md', 'sponsor.md']);
   });
 

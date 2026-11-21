@@ -102,6 +102,17 @@ import { fetchGitHubFile } from '@streetsidesoftware/copy-github-files';
 const content = await fetchGitHubFile({ repo: 'streetsidesoftware/.github' }, 'static/sponsor.md');
 ```
 
+When GitHub answers with an error status, the error is a `GitHubError` with the status code. A failed result from
+`copyGitHubFiles` carries the same error:
+
+```ts
+import { GitHubError } from '@streetsidesoftware/copy-github-files';
+
+if ('error' in result && result.error instanceof GitHubError && result.error.status === 404) {
+  console.warn(`${result.path} doesn't exist on that branch.`);
+}
+```
+
 ## Requirements
 
 <!-- @@inject: ../../static/requirements.md#values-file=:package.json -->

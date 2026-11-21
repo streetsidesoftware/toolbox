@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
 import { fakeGitHub } from './fake-github.ts';
-import { fetchGitHubFile } from './github.ts';
+import { fetchGitHubFile, GitHubError } from './github.ts';
 
 describe('fetchGitHubFile', () => {
   test('reads a file from the default branch, without a token', async (t) => {
@@ -39,8 +39,12 @@ describe('fetchGitHubFile', () => {
   test('gives the status when GitHub refuses the request', async (t) => {
     fakeGitHub(t, {});
 
-    await assert.rejects(fetchGitHubFile({ repo: 'owner/repo' }, 'a.md'), {
-      message: 'GitHub responded with status 404',
+    await assert.rejects(fetchGitHubFile({ repo: 'owner/repo' }, 'a.md'), (error) => {
+      assert.ok(error instanceof GitHubError);
+      assert.equal(error.status, 404);
+      assert.equal(error.name, 'GitHubError');
+      assert.equal(error.message, 'GitHub responded with status 404');
+      return true;
     });
   });
 
