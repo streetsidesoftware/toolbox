@@ -260,12 +260,16 @@ describe('run', () => {
     assert.equal(await readFile(path.join(cwd, 'static/footer.md'), 'utf8'), 'Footer.\n');
   });
 
-  test('refuses a command without a file to copy', async (t) => {
-    const context = createContext(t);
-    const code = await run(['owner/repo'], context);
+  test('refuses a command without a repository or a file to copy', async (t) => {
+    for (const args of [[], ['owner/repo']]) {
+      const context = createContext(t);
+      const code = await run(args, context);
 
-    assert.equal(code, 1);
-    assert.deepEqual(context.errors, ['Name at least one file to copy.']);
+      assert.equal(code, 1);
+      assert.deepEqual(context.errors, [
+        'Name a repository and at least one file to copy: copy-github-files <owner>/<repo> <path>...',
+      ]);
+    }
   });
 
   test('refuses a path outside the repository, and copies the others', async (t) => {

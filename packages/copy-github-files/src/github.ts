@@ -8,7 +8,6 @@ export interface GitHubSource {
   token?: string | undefined;
 }
 
-/** Options for reading from GitHub. */
 export interface FetchOptions {
   /** Stops the request when aborted. */
   signal?: AbortSignal | undefined;
@@ -23,7 +22,7 @@ export type GitHubPath =
       entries: { type: 'file' | 'dir' | 'symlink' | 'submodule'; name: string; path: string }[];
     };
 
-/** Nothing usable was found on GitHub, such as no file at a path on that ref. */
+/** An error from GitHub, with the HTTP status that says what went wrong. */
 export class GitHubError extends Error {
   /** An HTTP status code that says what went wrong, such as 404 when nothing was found at the path. */
   readonly status: number;
@@ -38,10 +37,13 @@ export class GitHubError extends Error {
 /**
  * Read one file from a GitHub repository.
  *
- * @param source - The repository, and the ref and token to read it with.
- * @param filePath - The file's path from the root of the repository, such as `static/sponsor.md`.
- * @param options - Options, such as a signal to abort the request.
- * @returns The file's content.
+ * A folder at the path counts as no file there. To read a folder's entries, use {@link fetchGitHubPath}.
+ *
+ * @param filePath - from the root of the repository, such as `static/sponsor.md`.
+ * @example
+ * const content = await fetchGitHubFile({ repo: 'streetsidesoftware/.github' }, 'static/sponsor.md');
+ * console.log(new TextDecoder().decode(content));
+ * // The text of static/sponsor.md
  */
 export async function fetchGitHubFile(
   source: GitHubSource,
@@ -57,14 +59,13 @@ export async function fetchGitHubFile(
 /**
  * Read a path from a GitHub repository: a file's content, or a folder's entries.
  *
- * @param source - The repository, and the ref and token to read it with.
- * @param repoPath - The path from the root of the repository, such as `static/sponsor.md` or `static`.
- * @param options - Options, such as a signal to abort the request.
- * @returns The file or folder at the path.
+ * To read a path that must be a file, use {@link fetchGitHubFile}.
  *
+ * @param repoPath - from the root of the repository, such as `static/sponsor.md` or `static`.
  * @example
- * const result = await fetchGitHubPath({ repo: 'streetsidesoftware/.github' }, 'static/sponsor.md');
- * if (result.type === 'file') console.log(new TextDecoder().decode(result.content));
+ * const found = await fetchGitHubPath({ repo: 'streetsidesoftware/.github' }, 'static');
+ * if (found.type === 'dir') console.log(found.entries.map((entry) => entry.path));
+ * // The paths of the files and folders in static, such as static/sponsor.md
  */
 export async function fetchGitHubPath(
   source: GitHubSource,

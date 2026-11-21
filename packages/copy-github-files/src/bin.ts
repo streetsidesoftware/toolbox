@@ -3,14 +3,17 @@ import { parseArgs } from 'node:util';
 
 import { copyGitHubFiles } from './copy.ts';
 
-/** The token and console the command uses. Tests pass their own. */
+/** What the command reads from its environment and writes to the console, given by the caller instead. */
 export interface RunContext {
-  /** The value of `GITHUB_TOKEN`. */
+  /** A token for GitHub's API, such as the value of `GITHUB_TOKEN`. Needed for a private repository. */
   token: string | undefined;
+  /** Print a line of output, such as a file that was copied. */
   log: (line: string) => void;
+  /** Print a line about something that went wrong, such as a file that couldn't be copied. */
   error: (line: string) => void;
 }
 
+/** The help the command prints for `--help`. */
 export const usage: string = `Usage: copy-github-files <owner>/<repo> <path>... [options]
 
 Copy files from a GitHub repository. Each file keeps its path from the root of the repository.
@@ -25,7 +28,23 @@ Options:
 
 When GITHUB_TOKEN is set, it authenticates the requests. A private repository needs it.`;
 
-/** Run the command with its arguments, and return the exit code. */
+/**
+ * Run the command with its arguments, and return its exit code.
+ *
+ * The exit code is 1 when an argument is wrong or a file couldn't be copied, and 0 otherwise.
+ *
+ * Every line goes to the context's `log` or `error`, never straight to the console.
+ *
+ * @param args - without `node` and the script, as in `process.argv.slice(2)`.
+ * @example
+ * const code = await run(['streetsidesoftware/.github', 'static/sponsor.md'], {
+ *   token: process.env['GITHUB_TOKEN'],
+ *   log: (line) => console.log(line),
+ *   error: (line) => console.error(line),
+ * });
+ * // Prints: Copied static/sponsor.md
+ * // code is 0
+ */
 export async function run(args: string[], context: RunContext): Promise<number> {
   const commandLine = parseCommandLine(args);
   if (typeof commandLine === 'string') {
@@ -38,8 +57,8 @@ export async function run(args: string[], context: RunContext): Promise<number> 
   }
 
   const { repo, paths, output, ref, concurrency, failFast, silent } = commandLine;
-  if (!paths.length) {
-    context.error('Name at least one file to copy.');
+  if (!repo || !paths.length) {
+    context.error('Name a repository and at least one file to copy: copy-github-files <owner>/<repo> <path>...');
     return 1;
   }
 

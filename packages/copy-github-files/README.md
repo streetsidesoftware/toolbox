@@ -89,8 +89,11 @@ for await (const result of copyGitHubFiles(source, ['static/sponsor.md', 'static
 ```
 
 It downloads up to 8 files at once, and gives each file's result as soon as that file is written or fails, so results
-can come in any order. A failed file doesn't stop the others. To stop early, break out of the loop, or pass a signal and
-abort it. Downloads still running are stopped, and only the files already given as results are written:
+can come in any order. A failed file doesn't stop the others.
+
+To stop early, break out of the loop, or pass a signal and abort it. Downloads still running are stopped, and only the
+files already given as results are written. An aborted signal ends the loop by throwing its reason, such as the
+`TimeoutError` of `AbortSignal.timeout()`:
 
 ```ts
 const results = copyGitHubFiles(source, paths, '.', { signal: AbortSignal.timeout(30_000) });
@@ -125,8 +128,8 @@ if (found.type === 'dir') {
 }
 ```
 
-When nothing usable is found on GitHub, the error is a `GitHubError` with a `status` that says what went wrong, such
-as 404 when nothing is at the path. Asked for a file, `fetchGitHubFile` also gives 404 for a folder, since no file is
+An error from GitHub is a `GitHubError`, with a `status` that says what went wrong, such as 404 when nothing is at the
+path. Asked for a file, `fetchGitHubFile` also gives 404 for a folder, since no file is
 there. A failed result from `copyGitHubFiles` carries the same error:
 
 ```ts
