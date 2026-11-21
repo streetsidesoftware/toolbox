@@ -1,11 +1,13 @@
 import { isHtmlEntity } from '../builder/index.ts';
 import { textNodes } from '../core/index.ts';
-import type { PhrasingContent } from '../core/index.ts';
+import type { PhrasingContent, PlaceholderReplacements } from '../core/index.ts';
 import {
   assertUnhandledCase,
+  blockNodes,
   groupedNodes,
   inlineNodes,
   isArray,
+  isBlockLike,
   isKind,
   isMDElement,
   isText,
@@ -88,7 +90,30 @@ function isTemplateReplacement(value: unknown): value is TemplateReplacement {
   return t === 'string' || t === 'number' || t === 'boolean' || isMDElement(value) || Array.isArray(value);
 }
 
-export function replacementAsInline(replacement: TemplateReplacement, name: string): PhrasingContent[] {
+/** Return the replacements for the placeholders, each in the form that its place takes. */
+export function placeholderReplacements(resolve: TemplateResolver): PlaceholderReplacements {
+  return {
+    line(name) {
+      const replacement = resolve(name);
+      if (replacement === undefined) return undefined;
+      if (isBlockLike(replacement)) return { blocks: blockNodes(replacement, `{@ ${name} @}`) };
+      return replacementAsInline(replacement, name);
+    },
+    inline(name) {
+      const replacement = resolve(name);
+      return replacement === undefined ? undefined : replacementAsInline(replacement, name);
+    },
+    string(name, inside) {
+      const replacement = resolve(name);
+      if (replacement === undefined) return undefined;
+      if (inside === 'frontmatter') return replacementAsFrontmatter(replacement);
+      if (inside === 'code' || inside === 'HTML') return replacementAsCode(replacement, name, inside);
+      return replacementInLink(replacement, name, inside);
+    },
+  };
+}
+
+function replacementAsInline(replacement: TemplateReplacement, name: string): PhrasingContent[] {
   if (typeof replacement === 'number' || typeof replacement === 'boolean') return textNodes(String(replacement));
   // A replacement can be any kind. inlineNodes throws when it isn't inline.
   return inlineNodes(replacement as InlineContent, `{@ ${name} @}`);
@@ -99,7 +124,7 @@ export function replacementAsInline(replacement: TemplateReplacement, name: stri
  * Only a string, text, a placeholder or an HTML entity goes in, as is.
  * An entity goes in as its reference in HTML, which reads it, and as its character in code, which doesn't.
  */
-export function replacementAsCode(replacement: TemplateReplacement, name: string, inside: 'code' | 'HTML'): string {
+function replacementAsCode(replacement: TemplateReplacement, name: string, inside: 'code' | 'HTML'): string {
   const plain = replacementAsPlainText(replacement);
   if (plain !== undefined) return plain;
   if (isHtmlEntity(replacement)) return inside === 'HTML' ? replacement.toString() : replacement.character;
@@ -109,7 +134,7 @@ export function replacementAsCode(replacement: TemplateReplacement, name: string
 }
 
 /** Convert a replacement for use in a link's URL or title. Only a string, text or a placeholder goes in, as is. */
-export function replacementInLink(replacement: TemplateReplacement, name: string, inside: 'a URL' | 'a title'): string {
+function replacementInLink(replacement: TemplateReplacement, name: string, inside: 'a URL' | 'a title'): string {
   const plain = replacementAsPlainText(replacement);
   if (plain !== undefined) return plain;
   assertUnhandledCase(`{@ ${name} @} is inside ${inside} and takes only a string, text or a placeholder`);
@@ -129,7 +154,7 @@ function replacementAsPlainText(replacement: TemplateReplacement): string | unde
  * Convert a replacement for use inside frontmatter, as is: a string as written, and a Markdown element as rendered.
  * An HTML entity goes in as its character, since YAML doesn't read references.
  */
-export function replacementAsFrontmatter(replacement: TemplateReplacement): string {
+function replacementAsFrontmatter(replacement: TemplateReplacement): string {
   if (typeof replacement === 'string' || typeof replacement === 'number' || typeof replacement === 'boolean') {
     return String(replacement);
   }

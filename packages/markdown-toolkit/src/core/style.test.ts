@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { parseTree } from './parse.ts';
+import { parseNodes } from './parse.ts';
 import { detectMarkdownStyle } from './style.ts';
 
 function parse(content: string) {
-  return parseTree(content, false);
+  return parseNodes(content, false);
 }
 
 describe('detectMarkdownStyle', () => {
