@@ -3,7 +3,7 @@ import { describe, test } from 'node:test';
 
 import { testEach } from '@streetsidesoftware/test-each';
 
-import { findHidden } from './findHidden.ts';
+import { findHidden, lineOf } from './findHidden.ts';
 
 describe('findHidden', () => {
   test('gives the kind, place and text of each piece', () => {
@@ -17,6 +17,19 @@ describe('findHidden', () => {
     assert.deepEqual(
       found.map(({ line, column }) => ({ line, column })),
       [{ line: 4, column: 4 }],
+    );
+  });
+
+  test('gives the line and column of each piece, with several on a line', () => {
+    const found = findHidden('a <!-- 1 --> <!-- 2 -->\n\nb <!-- 3 -->\nc\n\nd <!-- 4 -->');
+    assert.deepEqual(
+      found.map(({ line, column }) => ({ line, column })),
+      [
+        { line: 1, column: 3 },
+        { line: 1, column: 14 },
+        { line: 3, column: 3 },
+        { line: 6, column: 3 },
+      ],
     );
   });
 
@@ -227,3 +240,19 @@ function texts(markdown: string, kind: string): string[] {
 function kindsAndTexts(markdown: string): [string, string][] {
   return findHidden(markdown).map((found) => [found.kind, found.text]);
 }
+
+describe('lineOf', () => {
+  const starts = [0, 4, 8, 12];
+
+  testEach`
+    offset | from | line
+    ${0}   | ${0} | ${0}
+    ${5}   | ${1} | ${1}
+    ${9}   | ${1} | ${2}
+    ${13}  | ${2} | ${3}
+    ${2}   | ${3} | ${0}
+    ${6}   | ${2} | ${1}
+  `('finds offset $offset from line $from on line $line', ({ offset, from, line }: Record<string, number>) => {
+    assert.equal(lineOf(starts, offset, from), line);
+  });
+});
