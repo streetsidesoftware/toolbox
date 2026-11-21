@@ -33,14 +33,14 @@ To take the hidden text out, or to show it on the page for a reviewer, use `sani
 import { sanitize } from '@streetsidesoftware/markdown-sanitizer';
 
 sanitize('Fix the <!-- secret --> parser.', 'remove');
-// 'Fix the \u200B parser.'
+// Fix the  parser.
 
 sanitize('Fix the <!-- secret --> parser.', 'reveal');
 // Fix the `<!-- secret -->` parser.
 ```
 
-Removing leaves a zero-width space in place of each piece of hidden text, so the text on either side can't join into
-new hidden text, such as a new comment.
+Removing leaves a zero-width space in place of hidden text, unless a space after other text comes before it. That way
+the text on either side can't join into new hidden text, such as a new comment.
 
 Revealing shows the hidden text on the page as code, so a reviewer sees what an agent reads. Each tag character or
 variation selector shows as its code point, such as `\u{E0041}`.
