@@ -1,0 +1,87 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+
+import { testEach } from '@streetsidesoftware/test-each';
+
+import { findHidden } from './findHidden.ts';
+import { sanitize } from './sanitize.ts';
+
+describe('sanitize reveal', () => {
+  testEach`
+    name                                 | markdown                                      | revealed
+    ${'a comment in a line'}             | ${'Fix the <!-- secret --> parser.'}          | ${'Fix the `<!-- secret -->` parser.'}
+    ${'a comment holding backticks'}     | ${'a <!-- `y` --> z'}                         | ${'a ``<!-- `y` -->`` z'}
+    ${'a comment in a table cell'}       | ${'| a |\n|---|\n| x <!-- c \\| d --> |'}     | ${'| a |\n|---|\n| x `<!-- c \\| d -->` |'}
+    ${'a comment block'}                 | ${'a\n\n<!-- note\nline 2 -->\n\nb'}          | ${'a\n\n```\n<!-- note\nline 2 -->\n```\n\nb'}
+    ${'a comment block in a quote'}      | ${'> a\n> <!-- x\n> y -->\n> b'}              | ${'> a\n> ```\n> <!-- x\n> > y -->\n> ```\n> b'}
+    ${'a comment block in a list'}       | ${'- <!-- x -->\n  more'}                     | ${'- ```\n  <!-- x -->\n  ```\n  more'}
+    ${'text after a comment block'}      | ${'<!-- x --> after'}                         | ${'```\n<!-- x -->\n```\n after'}
+    ${'a comment inside HTML'}           | ${'<div>\n<!-- a & b -->\nshown\n</div>'}     | ${'<div>\n<code>&lt;!-- a &amp; b --&gt;</code>\nshown\n</div>'}
+    ${'a comment left open in HTML'}     | ${'<div><!-- x\n\nrest'}                      | ${'<div>\n\n```\n<!-- x\n\nrest\n```'}
+    ${'a comment left open in a quote'}  | ${'> <!-- open\n\nafter'}                     | ${'> ```\n> <!-- open\n> \n> after\n> ```'}
+    ${'a definition'}                    | ${'[//]: # (hidden text)\n\nVisible'}         | ${'```\n[//]: # (hidden text)\n```\n\nVisible'}
+    ${'a footnote'}                      | ${'Text.\n\n[^1]: Hidden.'}                   | ${'Text.\n\n```\n[^1]: Hidden.\n```'}
+    ${'a block holding a fence'}         | ${'<!--\n```\n-->'}                           | ${'````\n<!--\n```\n-->\n````'}
+    ${'a comment between code spans'}    | ${'`a`<!-- x -->`b`'}                         | ${'`a` ``<!-- x -->`` `b`'}
+    ${'a comment after a stray backtick'} | ${'a`<!-- x --> b'}                          | ${'a` ``<!-- x -->`` b'}
+    ${'a block with CRLF line endings'}  | ${'a\r\n\r\n<!-- x\r\ny -->\r\n\r\nb'}        | ${'a\r\n\r\n```\r\n<!-- x\r\ny -->\r\n```\r\n\r\nb'}
+    ${'a block and HTML in one node'}    | ${'<!-- a --> text <!-- b -->'}               | ${'```\n<!-- a -->\n```\n text <code>&lt;!-- b --&gt;</code>'}
+  `('shows $name as code', ({ markdown, revealed }: { markdown: string; revealed: string }) => {
+    assert.equal(sanitize(markdown, 'reveal'), revealed);
+    assert.deepEqual(findHidden(revealed), []);
+  });
+
+  testEach`
+    name                              | markdown                                   | revealed
+    ${'tag characters in text'}       | ${'fix\u{E0049}\u{E0067} it'}              | ${'fix`\\u{E0049}\\u{E0067}` it'}
+    ${'a variation selector'}         | ${'a\uFE01 b'}                             | ${'a`\\u{FE01}` b'}
+    ${'a reference in text'}          | ${'a &#xE0041; b'}                         | ${'a `&#xE0041;` b'}
+    ${'a character in code'}          | ${'`a\u{E0041}b`'}                         | ${'`a\\u{E0041}b`'}
+    ${'characters in HTML'}           | ${'<div>&#xE0041;\u{E0042}</div>'}         | ${'<div>&amp;#xE0041;\\u{E0042}</div>'}
+    ${'a character in a comment'}     | ${'x <!-- a\u{E0041} --> y'}               | ${'x `<!-- a\\u{E0041} -->` y'}
+    ${'a character in a code block'}  | ${'<!--\n\u{E0041}\n-->'}                  | ${'```\n<!--\n\\u{E0041}\n-->\n```'}
+    ${'a character after a backslash'} | ${'C:\\\u{E0041}x'}                      | ${'C:\\ `\\u{E0041}`x'}
+  `('shows $name as escapes', ({ markdown, revealed }: { markdown: string; revealed: string }) => {
+    assert.equal(sanitize(markdown, 'reveal'), revealed);
+    assert.deepEqual(findHidden(revealed), []);
+  });
+
+  test('leaves an emoji alone', () => {
+    assert.equal(sanitize('I like \u2764\uFE0F.', 'reveal'), 'I like \u2764\uFE0F.');
+  });
+
+  test('leaves Markdown that hides nothing as it is', () => {
+    const markdown = '# Title\n\n- a\n- b\n\n```\n<!-- code -->\n```\n';
+    assert.equal(sanitize(markdown, 'reveal'), markdown);
+  });
+});
+
+describe('sanitize remove', () => {
+  testEach`
+    name                                | markdown                                  | removed
+    ${'a comment in a line'}            | ${'Fix the <!-- secret --> parser.'}      | ${'Fix the  parser.'}
+    ${'a comment block'}                | ${'a\n\n<!-- note -->\n\nb'}              | ${'a\n\n\n\nb'}
+    ${'a comment left open'}            | ${'a\n\n<!-- open\n\nb'}                  | ${'a\n\n'}
+    ${'a definition'}                   | ${'[//]: # (note)\n\nVisible'}            | ${'\n\nVisible'}
+    ${'a footnote'}                     | ${'Text.\n\n[^1]: Hidden.'}               | ${'Text.\n\n'}
+    ${'a comment in a quote'}           | ${'> a <!-- x --> b'}                     | ${'> a  b'}
+    ${'what only a footnote uses'}      | ${'Text.\n\n[^9]: see [x]\n\n[x]: # (note)'} | ${'Text.\n\n\n\n'}
+    ${'invisible characters'}           | ${'a\u{E0041}b &#xFE01;'}                 | ${'ab '}
+    ${'a comment that removal forms'}   | ${'<!-<!-- -->- x -->'}                   | ${''}
+    ${'a reference that removal forms'} | ${'&#xE00\u{E0041}41;'}                   | ${''}
+  `('removes $name', ({ markdown, removed }: { markdown: string; removed: string }) => {
+    assert.equal(sanitize(markdown, 'remove'), removed);
+  });
+
+  test('leaves Markdown that hides nothing as it is', () => {
+    const markdown = 'I like \u2764\uFE0F and `<!-- code -->`, @\u200Bname.\n';
+    assert.equal(sanitize(markdown, 'remove'), markdown);
+  });
+
+  test('gives up on Markdown that keeps hiding text', () => {
+    const markdown = '<!-'.repeat(101) + '<!-- -->' + '- x -->'.repeat(101);
+    assert.throws(() => sanitize(markdown, 'remove'), {
+      message: 'Markdown must not hide text that is still hidden after 100 passes of removal',
+    });
+  });
+});

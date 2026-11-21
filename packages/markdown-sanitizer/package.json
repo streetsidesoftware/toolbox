@@ -1,0 +1,48 @@
+{
+  "name": "@streetsidesoftware/markdown-sanitizer",
+  "version": "0.0.1-alpha.0",
+  "private": true,
+  "description": "Find Markdown text that the page hides but agents read, and remove it or make it visible. -- Private until verified",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/streetsidesoftware/toolbox.git",
+    "directory": "packages/markdown-sanitizer"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "!dist/**/*.map"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "clean": "shx rm -rf dist coverage",
+    "test": "node --test \"src/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.2.0"
+  },
+  "devDependencies": {
+    "@streetsidesoftware/test-each": "workspace:*",
+    "@types/mdast": "^4.0.4"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}
