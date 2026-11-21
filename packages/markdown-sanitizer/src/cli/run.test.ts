@@ -94,9 +94,9 @@ describe('check', () => {
 });
 
 test('check escapes the file name', async () => {
-  const name = await file('a\u{1B}[31mred.md', '<!-- x -->');
+  const name = await file('a\u{202E}b.md', '<!-- x -->');
   const { stdout } = await call(['check', name]);
-  assert.equal(stdout, `${name.replace('\u{1B}', '\\u{1B}')}:1:1 comment "<!-- x -->"\n`);
+  assert.equal(stdout, `${name.replace('\u{202E}', '\\u{202E}')}:1:1 comment "<!-- x -->"\n`);
 });
 
 describe('remove and reveal', () => {
@@ -229,6 +229,10 @@ describe('limits', () => {
       for (;;) yield 'x'.repeat(1000);
     }
     assert.equal((await call(['check', '--max-size', '100000'], endless())).code, 2);
+  });
+
+  test('takes a --max-size past the largest safe integer', async () => {
+    assert.equal((await call(['check', '--max-size', '99999999999999999999'], 'x')).code, 0);
   });
 
   test('takes a --max-size with leading zeros', async () => {

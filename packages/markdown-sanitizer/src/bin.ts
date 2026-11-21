@@ -2,8 +2,8 @@
 import { run } from './cli/index.ts';
 
 /**
- * A reader that stops early, such as `head`, closes the pipe. The rest of the output is dropped, and the exit code
- * still tells what was found.
+ * Whether the reader closed the pipe early, as `head` does. Output after that is dropped, and the exit code still tells
+ * what was found.
  */
 let closed = false;
 process.stdout.on('error', (error: NodeJS.ErrnoException) => {

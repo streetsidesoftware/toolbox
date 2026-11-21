@@ -123,7 +123,7 @@ function parse(args: string[]): Options {
 function maxSize(value: string | undefined): number {
   if (value === undefined) return DEFAULT_MAX_SIZE;
   const size = Number(value);
-  if (!/^[0-9]+$/.test(value) || !Number.isSafeInteger(size) || size < 1) {
+  if (!/^[0-9]+$/.test(value) || size < 1) {
     throw new CommandError('--max-size must be a whole number of bytes, at least 1');
   }
   return size;
