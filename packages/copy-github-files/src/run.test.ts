@@ -92,15 +92,28 @@ describe('run', () => {
     assert.equal(context.urls.length, 1);
   });
 
-  test('writes nothing when one file fails', async () => {
+  test('copies the other files when one cannot be fetched', async () => {
     await writeLocal('static/sponsor.md', 'Old text.\n');
     const context = createContext();
     const code = await run(['owner/repo', 'static/sponsor.md', 'static/missing.md', 'static/footer.md'], context);
 
     assert.equal(code, 1);
     assert.deepEqual(context.errors, ['Failed to copy static/missing.md: GitHub responded with status 404']);
-    assert.equal(await readFile(path.join(cwd, 'static/sponsor.md'), 'utf8'), 'Old text.\n');
-    assert.deepEqual(await readdir(path.join(cwd, 'static')), ['sponsor.md']);
+    assert.deepEqual(context.logged, [
+      `Updated ${localPath('static/sponsor.md')}`,
+      `Added ${localPath('static/footer.md')}`,
+    ]);
+    assert.equal(await readFile(path.join(cwd, 'static/sponsor.md'), 'utf8'), 'Sponsor us.\n');
+    assert.deepEqual((await readdir(path.join(cwd, 'static'))).sort(), ['footer.md', 'sponsor.md']);
+  });
+
+  test('prints no summary when the only file fails', async () => {
+    const context = createContext();
+    const code = await run(['owner/repo', 'static/missing.md'], context);
+
+    assert.equal(code, 1);
+    assert.deepEqual(context.errors, ['Failed to copy static/missing.md: GitHub responded with status 404']);
+    assert.deepEqual(context.logged, []);
   });
 
   test('shows the usage for --help', async () => {
@@ -204,7 +217,7 @@ describe('run', () => {
     assert.deepEqual(context.urls, []);
   });
 
-  test('writes nothing when a local copy cannot be read', async () => {
+  test('copies the other files when one cannot be written', async () => {
     await mkdir(path.join(cwd, 'static/sponsor.md'), { recursive: true });
     const context = createContext();
     const code = await run(['owner/repo', 'static/footer.md', 'static/sponsor.md'], context);
@@ -212,8 +225,8 @@ describe('run', () => {
     assert.equal(code, 1);
     assert.equal(context.errors.length, 1);
     assert.ok(context.errors[0]?.startsWith(`Failed to write ${localPath('static/sponsor.md')}: `));
-    assert.deepEqual(context.logged, []);
-    assert.deepEqual(await readdir(path.join(cwd, 'static')), ['sponsor.md']);
+    assert.deepEqual(context.logged, [`Added ${localPath('static/footer.md')}`]);
+    assert.equal(await readFile(path.join(cwd, 'static/footer.md'), 'utf8'), 'Footer.\n');
   });
 
   test('refuses a command without a file to copy', async () => {

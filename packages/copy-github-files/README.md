@@ -67,8 +67,8 @@ a token with read access to it, such as a fine-grained personal access token or 
 
 ### When a file can't be copied
 
-Every file is fetched, and every local copy read, before any is written. If one fails, such as a path that doesn't
-exist on that branch, no file is written. The command says which file failed and why, and exits with code 1.
+Each file is copied on its own. If one fails, such as a path that doesn't exist on that branch, the others are still
+copied. The command says which file failed and why, and exits with code 1.
 
 ## Requirements
 

@@ -46,9 +46,23 @@ export async function run(args: string[], context: RunContext): Promise<number> 
     return 1;
   }
 
-  const files = await fetchAll({ repo, ref, token: context.token, fetch: context.fetch }, paths, context);
-  if (!files) return 1;
-  return writeAll(files, output, context);
+  const source: GitHubSource = { repo, ref, token: context.token, fetch: context.fetch };
+  const outcomes = await Promise.all(
+    [...new Set(paths)].map((filePath) => copyFile(source, filePath, output, context.cwd)),
+  );
+  let failed = false;
+  let changed = false;
+  for (const outcome of outcomes) {
+    if (outcome.change === 'failed') {
+      context.error(outcome.message);
+      failed = true;
+    } else if (outcome.change !== 'unchanged') {
+      context.log(`${outcome.change === 'added' ? 'Added' : 'Updated'} ${outcome.localPath}`);
+      changed = true;
+    }
+  }
+  if (!failed && !changed) context.log('No changes.');
+  return failed ? 1 : 0;
 }
 
 interface CommandLine {
@@ -59,10 +73,7 @@ interface CommandLine {
   help: boolean;
 }
 
-interface FetchedFile {
-  filePath: string;
-  content: Uint8Array;
-}
+type Outcome = { change: 'added' | 'updated' | 'unchanged'; localPath: string } | { change: 'failed'; message: string };
 
 const options = {
   output: { type: 'string', default: '.' },
@@ -142,59 +153,22 @@ function isRepoPath(filePath: string): boolean {
   return filePath.split('/').every((segment) => segment !== '' && segment !== '.' && segment !== '..');
 }
 
-/** Fetch every file once, or report each failure and return `undefined`. */
-async function fetchAll(
-  source: GitHubSource,
-  paths: string[],
-  context: RunContext,
-): Promise<FetchedFile[] | undefined> {
-  const results = await Promise.all(
-    [...new Set(paths)].map(async (filePath) => ({ filePath, result: await fetchFile(source, filePath) })),
-  );
-  const files: FetchedFile[] = [];
-  for (const { filePath, result } of results) {
-    if (result.ok) files.push({ filePath, content: result.content });
-    else context.error(`Failed to copy ${filePath}: ${result.reason}`);
-  }
-  return files.length === results.length ? files : undefined;
-}
+/** Copy one file, unless its local copy already matches. A failure affects only this file. */
+async function copyFile(source: GitHubSource, filePath: string, output: string, cwd: string): Promise<Outcome> {
+  const fetched = await fetchFile(source, filePath);
+  if (!fetched.ok) return { change: 'failed', message: `Failed to copy ${filePath}: ${fetched.reason}` };
 
-/**
- * Write the files that differ from their local copies, and return the exit code.
- * Every local copy is read before any is written, so a copy that can't be read stops the command with nothing changed.
- */
-async function writeAll(files: FetchedFile[], output: string, context: RunContext): Promise<number> {
-  const targets: { localPath: string; file: string; content: Uint8Array; existing: Buffer | undefined }[] = [];
-  let failed = false;
-  for (const { filePath, content } of files) {
-    const localPath = path.join(output, ...filePath.split('/'));
-    const file = path.resolve(context.cwd, localPath);
-    try {
-      targets.push({ localPath, file, content, existing: await readExisting(file) });
-    } catch (error) {
-      context.error(`Failed to write ${localPath}: ${errorMessage(error)}`);
-      failed = true;
-    }
+  const localPath = path.join(output, ...filePath.split('/'));
+  const file = path.resolve(cwd, localPath);
+  try {
+    const existing = await readExisting(file);
+    if (existing && Buffer.from(fetched.content).equals(existing)) return { change: 'unchanged', localPath };
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, fetched.content);
+    return { change: existing ? 'updated' : 'added', localPath };
+  } catch (error) {
+    return { change: 'failed', message: `Failed to write ${localPath}: ${errorMessage(error)}` };
   }
-  if (failed) return 1;
-
-  let changed = 0;
-  for (const { localPath, file, content, existing } of targets) {
-    if (existing && Buffer.from(content).equals(existing)) continue;
-    try {
-      await mkdir(path.dirname(file), { recursive: true });
-      await writeFile(file, content);
-    } catch (error) {
-      context.error(`Failed to write ${localPath}: ${errorMessage(error)}`);
-      failed = true;
-      continue;
-    }
-    context.log(`${existing ? 'Updated' : 'Added'} ${localPath}`);
-    changed += 1;
-  }
-  if (failed) return 1;
-  if (!changed) context.log('No changes.');
-  return 0;
 }
 
 /** Read a file, or return `undefined` when there's none. */
