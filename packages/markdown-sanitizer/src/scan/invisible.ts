@@ -1,5 +1,5 @@
 // cspell:ignore gbeng gbsct gbwls
-import type { Span } from './span.ts';
+import type { Span } from './spans.ts';
 
 const emoji = /\p{Emoji}/u;
 /** A numeric character reference as a browser reads it in HTML, which allows more than Markdown does. */

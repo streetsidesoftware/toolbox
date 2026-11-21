@@ -1,4 +1,4 @@
-import { scanHidden } from './scan.ts';
+import { scanHidden } from './scan/index.ts';
 import type { HiddenText } from './types.ts';
 
 /**
