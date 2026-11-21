@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 import { testEach } from '@streetsidesoftware/test-each';
 
-import { run } from './run.ts';
+import { run } from './cli.ts';
 
 interface Result {
   code: number;
@@ -265,26 +265,51 @@ describe('wrong calls', () => {
   });
 });
 
+/** The command's source file, which Node can run directly. */
+const cli = new URL('./cli.ts', import.meta.url);
+
 test('runs as a command', () => {
-  const bin = fileURLToPath(new URL('../bin.ts', import.meta.url));
-  const { status, stdout } = spawnSync(process.execPath, [bin, 'check'], { input: 'a <!-- x -->', encoding: 'utf8' });
+  const { status, stdout } = spawnSync(process.execPath, [fileURLToPath(cli), 'check'], {
+    input: 'a <!-- x -->',
+    encoding: 'utf8',
+  });
   assert.equal(status, 1);
   assert.equal(stdout, '<stdin>:1:3 comment "<!-- x -->"\n');
 });
 
 test('does nothing when imported', () => {
-  const bin = new URL('../bin.ts', import.meta.url).href;
-  const script = `await import(${JSON.stringify(bin)});`;
-  const { status, stdout, stderr } = spawnSync(process.execPath, ['--input-type=module', '--eval', script], {
-    input: 'a <!-- x -->',
-    encoding: 'utf8',
-  });
+  const { status, stdout, stderr } = spawnSync(
+    process.execPath,
+    ['--input-type=module', '--eval', `await import(${JSON.stringify(cli.href)});`],
+    { input: 'a <!-- x -->', encoding: 'utf8' },
+  );
   assert.deepEqual({ status, stdout, stderr }, { status: 0, stdout: '', stderr: '' });
 });
 
+test('runs from a command that imports run', async () => {
+  const wrapper = await file(
+    'wrapper.mjs',
+    `import { run } from ${JSON.stringify(cli.href)};\nprocess.exitCode = await run(process.argv.slice(2));\n`,
+  );
+  const { status, stdout, stderr } = spawnSync(process.execPath, [wrapper, 'check'], {
+    input: 'a <!-- x -->',
+    encoding: 'utf8',
+  });
+  assert.deepEqual({ status, stdout, stderr }, { status: 1, stdout: '<stdin>:1:3 comment "<!-- x -->"\n', stderr: '' });
+});
+
+test('uses the process streams on every call without adding listeners', () => {
+  const script = `import { run } from ${JSON.stringify(cli.href)};\nfor (let i = 0; i < 20; i++) await run(['--help']);\n`;
+  const { status, stdout, stderr } = spawnSync(process.execPath, ['--input-type=module', '--eval', script], {
+    encoding: 'utf8',
+  });
+  assert.equal(status, 0);
+  assert.equal(stdout.split('Usage: markdown-sanitizer').length - 1, 20);
+  assert.equal(stderr, '');
+});
+
 test('stops quietly when the reader closes the pipe early', async () => {
-  const bin = fileURLToPath(new URL('../bin.ts', import.meta.url));
-  const child = spawn(process.execPath, [bin, 'check']);
+  const child = spawn(process.execPath, [fileURLToPath(cli), 'check']);
   let stderr = '';
   child.stderr.on('data', (chunk) => (stderr += chunk));
   child.stdout.once('data', () => child.stdout.destroy());

@@ -1,9 +1,10 @@
+#!/usr/bin/env node
 import { createReadStream } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 
-import { findHidden } from '../findHidden.ts';
-import { sanitize } from '../sanitize/index.ts';
+import { findHidden } from './findHidden.ts';
+import { sanitize } from './sanitize/index.ts';
 
 /** The default limit on each input, in bytes. The parser slows down sharply on large input. */
 const DEFAULT_MAX_SIZE = 10_000_000;
@@ -40,10 +41,13 @@ const shortEscapes = new Map([
   ['\t', '\\t'],
 ]);
 
-/** Where the command reads standard input and writes its output, so tests can stand in for the process. */
-interface Io {
+/** Where {@link run} reads standard input and writes its output, such as to collect the output in a string. */
+export interface Io {
+  /** Read when no file is given. */
   stdin: AsyncIterable<Buffer | string>;
+  /** Gets the command's output. */
   stdout: (text: string) => void;
+  /** Gets the message for an error, one line. */
   stderr: (text: string) => void;
 }
 
@@ -57,12 +61,21 @@ interface Input {
 class CommandError extends Error {}
 
 /**
- * Run the command line and return the exit code: 0 when it succeeds, 1 when `check` finds hidden text, and 2 for a
- * wrong call or a file it can't read or write.
+ * Run the `markdown-sanitizer` command and return its exit code: 0 when it succeeds, 1 when `check` finds hidden text,
+ * and 2 for a wrong call or a file it can't read or write.
  *
  * Every input is read before any file is written, so input that can't be read leaves the files as they were.
+ *
+ * @param args - the arguments after the program name, such as `process.argv.slice(2)`.
+ * @param io - where to read standard input and write the output. By default, the process's own.
+ *
+ * @example
+ * #!/usr/bin/env node
+ * import { run } from '@streetsidesoftware/markdown-sanitizer/cli';
+ *
+ * process.exitCode = await run(process.argv.slice(2));
  */
-export async function run(args: string[], io: Io): Promise<number> {
+export async function run(args: string[], io: Io = processIo()): Promise<number> {
   try {
     const options = parse(args);
     if (options.help) {
@@ -208,3 +221,33 @@ function escapeUnseen(text: string): string {
 function escape(char: string): string {
   return `\\u{${(char.codePointAt(0) ?? 0).toString(16).toUpperCase()}}`;
 }
+
+/** The process's own standard input and output, made once, so each call doesn't add another listener. */
+let defaultIo: Io | undefined;
+
+/** The error codes a write gets once the reader has closed the pipe: `EPIPE`, or `ENOTCONN` for a socket on macOS. */
+const closedPipeCodes = new Set(['EPIPE', 'ENOTCONN']);
+
+/**
+ * Return the process's own standard input and output. When the reader closes the pipe early, as `head` does, the rest of
+ * the output is dropped, and the exit code still tells what was found.
+ */
+function processIo(): Io {
+  if (defaultIo) return defaultIo;
+  let closed = false;
+  process.stdout.on('error', (error: NodeJS.ErrnoException) => {
+    if (!closedPipeCodes.has(error.code ?? '')) throw error;
+    closed = true;
+  });
+  defaultIo = {
+    stdin: process.stdin,
+    stdout: (text) => {
+      if (!closed) process.stdout.write(text);
+    },
+    stderr: (text) => process.stderr.write(text),
+  };
+  return defaultIo;
+}
+
+// Last, so every constant above is set before the command runs.
+if (import.meta.main) process.exitCode = await run(process.argv.slice(2));
