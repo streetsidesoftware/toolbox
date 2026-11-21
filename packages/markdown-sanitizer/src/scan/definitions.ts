@@ -1,7 +1,7 @@
 import type { Definition, FootnoteDefinition, Nodes, Root } from 'mdast';
 import { SKIP, visit } from 'unist-util-visit';
 
-import type { Span } from './span.ts';
+import type { Span } from './spans.ts';
 
 /** The spans of the link definitions and footnotes that the page leaves out. */
 export interface UnusedDefinitions {

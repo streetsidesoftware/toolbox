@@ -3,7 +3,7 @@ import { describe, test } from 'node:test';
 
 import { testEach } from '@streetsidesoftware/test-each';
 
-import { findHidden } from './findHidden.ts';
+import { findHidden } from '../findHidden.ts';
 import { sanitize } from './sanitize.ts';
 
 describe('sanitize reveal', () => {
