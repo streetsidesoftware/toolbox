@@ -92,8 +92,7 @@ export async function fetchGitHubPath(
   if (source.token) headers['Authorization'] = `Bearer ${source.token}`;
 
   const response = await fetch(url, { headers, signal: options.signal ?? null });
-  // The status code only: HTTP/2 responses carry no status text.
-  if (!response.ok) throw new GitHubError(`GitHub responded with status ${response.status}`, response.status);
+  if (!response.ok) throw new GitHubError(refusal(response, source), response.status);
   if (response.headers.get('content-type')?.startsWith('application/vnd.github.raw')) {
     return { type: 'file', path: repoPath, content: await response.bytes() };
   }
@@ -112,6 +111,16 @@ export function checkSource(source: GitHubSource): void {
     throw new Error('The repository must be written as <owner>/<repo>, such as streetsidesoftware/.github.');
   }
   if (source.ref === '') throw new Error('The ref must name a branch, tag or commit.');
+}
+
+/** Why GitHub refused a request. Otherwise the status code only: HTTP/2 responses carry no status text. */
+function refusal(response: Response, source: GitHubSource): string {
+  if (response.headers.get('x-ratelimit-remaining') === '0') {
+    return source.token
+      ? "GitHub's rate limit was reached."
+      : "GitHub's rate limit was reached. A token raises the limit.";
+  }
+  return `GitHub responded with status ${response.status}`;
 }
 
 function isRepoPath(repoPath: string): boolean {

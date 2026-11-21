@@ -50,6 +50,29 @@ describe('fetchGitHubFile', () => {
     });
   });
 
+  testEach`
+    refusal                                    | token        | remaining | message
+    ${'the rate limit, without a token'}       | ${undefined} | ${'0'}    | ${"GitHub's rate limit was reached. A token raises the limit."}
+    ${'the rate limit, with a token'}          | ${'secret'}  | ${'0'}    | ${"GitHub's rate limit was reached."}
+    ${'a 403 with requests left in the limit'} | ${undefined} | ${'12'}   | ${'GitHub responded with status 403'}
+  `(
+    'says when GitHub refuses a request for $refusal',
+    async ({ token, remaining, message }: { token: string | undefined; remaining: string; message: string }, t) => {
+      t.mock.method(
+        globalThis,
+        'fetch',
+        async () => new Response('{}', { status: 403, headers: { 'x-ratelimit-remaining': remaining } }),
+      );
+
+      await assert.rejects(fetchGitHubFile({ repo: 'owner/repo', token }, 'a.md'), (error) => {
+        assert.ok(error instanceof GitHubError);
+        assert.equal(error.status, 403);
+        assert.equal(error.message, message);
+        return true;
+      });
+    },
+  );
+
   test('finds no file at a folder', async (t) => {
     fakeGitHub(t, { 'static/a.md': '' });
 
