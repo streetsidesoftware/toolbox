@@ -27,19 +27,16 @@ export async function fetchFile(source: GitHubSource, filePath: string): Promise
   };
   if (source.token) headers['Authorization'] = `Bearer ${source.token}`;
 
-  let response: Response;
   try {
-    response = await source.fetch(url, { headers });
+    const response = await source.fetch(url, { headers });
+    // The status code only: HTTP/2 responses carry no status text.
+    if (!response.ok) return { ok: false, reason: `GitHub responded with status ${response.status}` };
+    // GitHub sends a folder's listing as JSON, even when the raw form is asked for.
+    if (!response.headers.get('content-type')?.startsWith('application/vnd.github.raw')) {
+      return { ok: false, reason: 'it is not a file' };
+    }
+    return { ok: true, content: new Uint8Array(await response.arrayBuffer()) };
   } catch (error) {
     return { ok: false, reason: error instanceof Error ? error.message : String(error) };
   }
-
-  if (!response.ok) {
-    return { ok: false, reason: `GitHub responded ${response.status} ${response.statusText}`.trimEnd() };
-  }
-  // GitHub sends a folder's listing as JSON, even when the raw form is asked for.
-  if (!response.headers.get('content-type')?.startsWith('application/vnd.github.raw')) {
-    return { ok: false, reason: 'it is not a file' };
-  }
-  return { ok: true, content: new Uint8Array(await response.arrayBuffer()) };
 }

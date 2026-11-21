@@ -49,10 +49,12 @@ With `--output docs`, `static/sponsor.md` is written to `docs/static/sponsor.md`
 
 ### Authentication
 
-A public repository needs no token. When `GITHUB_TOKEN` is set, it authenticates the requests. A private repository
-needs it, and it raises GitHub's limit of 60 unauthenticated requests an hour. Each file is one request.
+A public repository needs no token. When `GITHUB_TOKEN` is set, it authenticates the requests:
 
-In a GitHub workflow, pass the workflow's token:
+- It raises GitHub's limit of 60 unauthenticated requests an hour. Each file is one request.
+- It gives access to a private repository, when the token can read that repository.
+
+In a GitHub workflow, pass the workflow's token to copy from a public repository:
 
 ```yaml
 - run: npm run copy:static
@@ -60,10 +62,13 @@ In a GitHub workflow, pass the workflow's token:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+The workflow's token can read only the repository the workflow runs in. To copy from another private repository, use
+a token with read access to it, such as a fine-grained personal access token or a GitHub App token.
+
 ### When a file can't be copied
 
-Every file is fetched before any is written. If one can't be fetched, such as a path that doesn't exist on that
-branch, no file is written. The command says which file failed and why, and exits with code 1.
+Every file is fetched, and every local copy read, before any is written. If one fails, such as a path that doesn't
+exist on that branch, no file is written. The command says which file failed and why, and exits with code 1.
 
 ## Requirements
 

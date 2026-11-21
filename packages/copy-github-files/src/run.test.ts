@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, readFile, rm, stat, utimes, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, test } from 'node:test';
@@ -46,20 +46,24 @@ describe('run', () => {
 
   test('reads from the --ref', async () => {
     const context = createContext();
-    await run(['owner/repo', 'static/sponsor.md', '--ref', 'v2'], context);
+    const code = await run(['owner/repo', 'static/sponsor.md', '--ref', 'v2'], context);
 
+    assert.equal(code, 0);
     assert.deepEqual(context.urls, ['https://api.github.com/repos/owner/repo/contents/static/sponsor.md?ref=v2']);
   });
 
   test('passes the token on', async () => {
     const context = createContext({ token: 'secret' });
-    await run(['owner/repo', 'static/sponsor.md'], context);
+    const code = await run(['owner/repo', 'static/sponsor.md'], context);
 
+    assert.equal(code, 0);
     assert.deepEqual(context.authorizations, ['Bearer secret']);
   });
 
   test('leaves a file alone when it already matches', async () => {
     await writeLocal('static/sponsor.md', 'Sponsor us.\n');
+    // A time well in the past, so a rewrite shows even where timestamps are coarse.
+    await utimes(path.join(cwd, 'static/sponsor.md'), 1_000_000, 1_000_000);
     const before = await stat(path.join(cwd, 'static/sponsor.md'));
     const context = createContext();
     const code = await run(['owner/repo', 'static/sponsor.md'], context);
@@ -94,7 +98,7 @@ describe('run', () => {
     const code = await run(['owner/repo', 'static/sponsor.md', 'static/missing.md', 'static/footer.md'], context);
 
     assert.equal(code, 1);
-    assert.deepEqual(context.errors, ['Failed to copy static/missing.md: GitHub responded 404 Not Found']);
+    assert.deepEqual(context.errors, ['Failed to copy static/missing.md: GitHub responded with status 404']);
     assert.equal(await readFile(path.join(cwd, 'static/sponsor.md'), 'utf8'), 'Old text.\n');
     assert.deepEqual(await readdir(path.join(cwd, 'static')), ['sponsor.md']);
   });
@@ -124,7 +128,14 @@ describe('run', () => {
   });
 
   test('refuses a repository not written as owner/repo', async () => {
-    for (const repo of ['owner', 'owner/repo/extra', 'https://github.com/owner/repo']) {
+    for (const repo of [
+      'owner',
+      'owner/repo/extra',
+      'https://github.com/owner/repo',
+      '../..',
+      'owner/..',
+      'own.er/repo',
+    ]) {
       const context = createContext();
       const code = await run([repo, 'a.md'], context);
 
@@ -134,6 +145,43 @@ describe('run', () => {
       ]);
       assert.deepEqual(context.urls, []);
     }
+  });
+
+  test('accepts a repository name with dots', async () => {
+    const context = createContext();
+    await run(['owner/.github', 'a.md'], context);
+
+    assert.deepEqual(context.urls, ['https://api.github.com/repos/owner/.github/contents/a.md']);
+  });
+
+  test('refuses an empty --output', async () => {
+    const context = createContext();
+    const code = await run(['owner/repo', 'static/sponsor.md', '--output='], context);
+
+    assert.equal(code, 1);
+    assert.deepEqual(context.errors, ['The --output option must name a folder.']);
+    assert.deepEqual(context.urls, []);
+  });
+
+  test('refuses an empty --ref', async () => {
+    const context = createContext();
+    const code = await run(['owner/repo', 'static/sponsor.md', '--ref='], context);
+
+    assert.equal(code, 1);
+    assert.deepEqual(context.errors, ['The --ref option must name a branch, tag or commit.']);
+    assert.deepEqual(context.urls, []);
+  });
+
+  test('writes nothing when a local copy cannot be read', async () => {
+    await mkdir(path.join(cwd, 'static/sponsor.md'), { recursive: true });
+    const context = createContext();
+    const code = await run(['owner/repo', 'static/footer.md', 'static/sponsor.md'], context);
+
+    assert.equal(code, 1);
+    assert.equal(context.errors.length, 1);
+    assert.ok(context.errors[0]?.startsWith(`Failed to write ${localPath('static/sponsor.md')}: `));
+    assert.deepEqual(context.logged, []);
+    assert.deepEqual(await readdir(path.join(cwd, 'static')), ['sponsor.md']);
   });
 
   test('refuses a command without a file to copy', async () => {
@@ -179,7 +227,7 @@ function createContext({ token }: { token?: string } = {}) {
     const headers = (init?.headers ?? {}) as Record<string, string>;
     authorizations.push(headers['Authorization']);
     const content = upstream[url.pathname.replace('/repos/owner/repo/contents/', '')];
-    if (content === undefined) return new Response('{}', { status: 404, statusText: 'Not Found' });
+    if (content === undefined) return new Response('{}', { status: 404 });
     return new Response(content, { headers: { 'content-type': 'application/vnd.github.raw+json; charset=utf-8' } });
   };
   return {

@@ -39,10 +39,10 @@ describe('fetchFile', () => {
   });
 
   test('gives the status when GitHub refuses the request', async () => {
-    const { fetch } = fakeFetch(() => new Response('{}', { status: 404, statusText: 'Not Found' }));
+    const { fetch } = fakeFetch(() => new Response('{}', { status: 404 }));
     const result = await fetchFile({ repo: 'owner/repo', ref: undefined, token: undefined, fetch }, 'a.md');
 
-    assert.deepEqual(result, { ok: false, reason: 'GitHub responded 404 Not Found' });
+    assert.deepEqual(result, { ok: false, reason: 'GitHub responded with status 404' });
   });
 
   test('refuses a folder', async () => {
@@ -52,6 +52,20 @@ describe('fetchFile', () => {
     const result = await fetchFile({ repo: 'owner/repo', ref: undefined, token: undefined, fetch }, 'static');
 
     assert.deepEqual(result, { ok: false, reason: 'it is not a file' });
+  });
+
+  test('gives the error when the body fails to arrive', async () => {
+    const body = new ReadableStream({
+      start(controller) {
+        controller.error(new Error('connection reset'));
+      },
+    });
+    const { fetch } = fakeFetch(
+      () => new Response(body, { headers: { 'content-type': 'application/vnd.github.raw+json' } }),
+    );
+    const result = await fetchFile({ repo: 'owner/repo', ref: undefined, token: undefined, fetch }, 'a.md');
+
+    assert.deepEqual(result, { ok: false, reason: 'connection reset' });
   });
 
   test('gives the error when the request fails', async () => {
