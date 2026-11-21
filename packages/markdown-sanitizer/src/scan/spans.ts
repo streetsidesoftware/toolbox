@@ -10,7 +10,7 @@ export function shifted(spans: Span[], offset: number): Span[] {
 
 /**
  * Sort spans and merge each one that overlaps an earlier one into it, keeping the earlier one's other fields.
- * A comment left open inside a footnote runs past the footnote's end, so spans can overlap without nesting.
+ * An HTML comment left open inside a footnote runs past the footnote's end, so spans can overlap without nesting.
  */
 export function merged<T extends Span>(spans: T[]): T[] {
   const kept: T[] = [];

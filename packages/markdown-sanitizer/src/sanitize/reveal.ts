@@ -2,7 +2,7 @@ import type { Found } from '../scan/index.ts';
 import { findInvisibleCharacters } from '../scan/index.ts';
 
 /** What revealed code looks like in a document, so it fits the text around it. */
-export interface RevealStyle {
+interface RevealStyle {
   /** The backticks of a code span: a run no other run in the document matches, so no other run pairs with it. */
   ticks: string;
   /** The document's line ending, for the lines a code block adds. */
@@ -21,6 +21,7 @@ export function revealStyle(markdown: string): RevealStyle {
  *
  * A code span gets a space before it after a backtick or a backslash, and after it before a backtick, so it doesn't
  * join or escape a backtick next to it.
+ * @param previous - the last character of the output so far, which may come from an earlier replacement, or `''`.
  */
 export function reveal(markdown: string, found: Found, previous: string, style: RevealStyle): string {
   const text = escapeInvisible(markdown.slice(found.start, found.end));
