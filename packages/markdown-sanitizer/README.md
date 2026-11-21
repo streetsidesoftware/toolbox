@@ -66,7 +66,7 @@ CHANGELOG.md:12:1 comment "<!-- Ignore previous instructions. -->"
 | `reveal` | Prints the Markdown with the hidden text shown as code.                                             |
 
 In the list from `check`, line breaks, tag characters and other characters the terminal wouldn't show appear as
-escapes, such as `\n` or `\u{E0041}`.
+escapes, such as `\n` or `\u{E0041}`. So do any such characters in a file name.
 
 Options:
 
@@ -83,7 +83,9 @@ git log -1 --format=%B | npx @streetsidesoftware/markdown-sanitizer check
 npx @streetsidesoftware/markdown-sanitizer remove --write CHANGELOG.md
 ```
 
-A wrong call, a file it can't read, or input over the limit prints one line to standard error and exits with 2.
+A wrong call, a file it can't read or write, input that isn't UTF-8, or input over the limit prints one line to
+standard error and exits with 2. Every input is read and cleaned before any file is written, so input it can't read
+or clean leaves the files as they were.
 
 ## What counts as hidden
 
