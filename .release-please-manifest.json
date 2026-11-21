@@ -1,5 +1,5 @@
 {
-  ".": "2.2.0",
+  ".": "2.3.0",
   "packages/github-action-toolkit": "1.0.0",
   "packages/markdown-toolkit": "2.2.0",
   "packages/placeholders": "1.1.1",

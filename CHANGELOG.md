@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.3.0](https://github.com/streetsidesoftware/toolbox/compare/toolbox@2.2.0...toolbox@2.3.0) (2026-11-21)
+
+
+### Features
+
+* **markdown-sanitizer:** find text that the page hides in Markdown ([#220](https://github.com/streetsidesoftware/toolbox/issues/220)) ([d831065](https://github.com/streetsidesoftware/toolbox/commit/d831065e19e9b2780ed0d539cdb67e27b2d2b0cf))
+
+
+### Updates and Bug Fixes
+
+* **markdown-sanitizer:** remove hidden text in one pass ([#228](https://github.com/streetsidesoftware/toolbox/issues/228)) ([9fd1ae8](https://github.com/streetsidesoftware/toolbox/commit/9fd1ae84f45a026e58510b1af3c1cd04cd0b901c))
+
+
+### Performance Improvements
+
+* **markdown-sanitizer:** search for each line from the last one found ([#227](https://github.com/streetsidesoftware/toolbox/issues/227)) ([82e2dcb](https://github.com/streetsidesoftware/toolbox/commit/82e2dcb695b8492d0c622634920371a12fa4df4c))
+
 ## [2.2.0](https://github.com/streetsidesoftware/toolbox/compare/toolbox@2.1.0...toolbox@2.2.0) (2026-11-13)
 
 
