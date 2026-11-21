@@ -272,6 +272,16 @@ test('runs as a command', () => {
   assert.equal(stdout, '<stdin>:1:3 comment "<!-- x -->"\n');
 });
 
+test('does nothing when imported', () => {
+  const bin = new URL('../bin.ts', import.meta.url).href;
+  const script = `await import(${JSON.stringify(bin)});`;
+  const { status, stdout, stderr } = spawnSync(process.execPath, ['--input-type=module', '--eval', script], {
+    input: 'a <!-- x -->',
+    encoding: 'utf8',
+  });
+  assert.deepEqual({ status, stdout, stderr }, { status: 0, stdout: '', stderr: '' });
+});
+
 test('stops quietly when the reader closes the pipe early', async () => {
   const bin = fileURLToPath(new URL('../bin.ts', import.meta.url));
   const child = spawn(process.execPath, [bin, 'check']);
