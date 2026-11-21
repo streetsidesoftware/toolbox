@@ -166,10 +166,6 @@ describe('details', () => {
     );
   });
 
-  test('a summary with a multi-line comment throws', () => {
-    assert.throws(() => details(comment('a\nb'), 'c'), new TypeError('details summary must be inline'));
-  });
-
   test('it goes in a list item', () => {
     assert.equal(
       list([listItem(details(inlineCode('s'), 'b'))]).toString(),

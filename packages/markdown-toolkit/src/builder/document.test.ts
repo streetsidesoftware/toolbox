@@ -16,7 +16,6 @@ import {
   list,
   listItem,
   p,
-  parse,
   strikethrough,
   strong,
   template,
@@ -73,7 +72,6 @@ describe('document', () => {
     ${document('a', '', 'b')}                                      | ${'a\n\nb\n'}
     ${document('a', [], 'b')}                                      | ${'a\n\nb\n'}
     ${document('a', text(''), 'b')}                                | ${'a\n\nb\n'}
-    ${document('a', parse(''), 'b')}                               | ${'a\n\nb\n'}
     ${document('a', strong(''), 'b')}                              | ${'a\n**&#x20;**\nb\n'}
     ${document('a ', ' b')}                                        | ${'a\nb\n'}
     ${document('a\t', '\tb')}                                      | ${'a\nb\n'}

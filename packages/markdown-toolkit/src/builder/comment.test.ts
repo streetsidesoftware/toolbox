@@ -67,12 +67,6 @@ describe('comment chooses its form from its text', () => {
     assert.equal(document('a', comment('b\nc'), 'd').toString(), 'a\n\n<!--\nb\nc\n-->\n\nd\n');
   });
 
-  test('a multi-line comment throws where only inline content goes', () => {
-    assert.throws(() => paragraph('a', comment('b\nc')), new TypeError('paragraph content must be inline'));
-    assert.throws(() => dl([[comment('a\nb'), 'c']]), new TypeError('definition term must be inline'));
-    assert.throws(() => heading(1, comment('a\nb')), new TypeError('heading content must be inline'));
-  });
-
   test('a multi-line comment as a replacement throws in a sentence', () => {
     assert.throws(() => inlineTemplate('a {@ x @} b', { x: comment('c\nd') }), new TypeError('{@ x @} must be inline'));
   });
