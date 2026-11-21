@@ -17,15 +17,14 @@ copy-github-files streetsidesoftware/.github static/sponsor.md static/footer.md
 ```
 
 Each file keeps its path from the root of the repository, so `static/sponsor.md` is written to `static/sponsor.md` in
-the current folder. The first run adds both files:
+the current folder. The command lists each file it copied:
 
 ```text
-Added static/sponsor.md
-Added static/footer.md
+Copied static/sponsor.md
+Copied static/footer.md
 ```
 
-Run it again to bring the copies up to date. A file is written only when it differs from the local copy, and the
-command lists the files it added or updated. When every copy already matches, it prints `No changes.`
+Run it again to bring the copies up to date. Every file is written each time, and git shows which ones changed.
 
 To run it from a script in `package.json`:
 

@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 
@@ -18,7 +18,6 @@ export interface RunContext {
 export const usage: string = `Usage: copy-github-files <owner>/<repo> <path>... [options]
 
 Copy files from a GitHub repository. Each file keeps its path from the root of the repository.
-A file is written only when it differs from the local copy.
 
 Options:
   --output <dir>  The folder to write the files below. Default: the current folder.
@@ -51,17 +50,14 @@ export async function run(args: string[], context: RunContext): Promise<number> 
     [...new Set(paths)].map((filePath) => copyFile(source, filePath, output, context.cwd)),
   );
   let failed = false;
-  let changed = false;
   for (const outcome of outcomes) {
-    if (outcome.change === 'failed') {
+    if (outcome.ok) {
+      context.log(`Copied ${outcome.localPath}`);
+    } else {
       context.error(outcome.message);
       failed = true;
-    } else if (outcome.change !== 'unchanged') {
-      context.log(`${outcome.change === 'added' ? 'Added' : 'Updated'} ${outcome.localPath}`);
-      changed = true;
     }
   }
-  if (!failed && !changed) context.log('No changes.');
   return failed ? 1 : 0;
 }
 
@@ -73,7 +69,7 @@ interface CommandLine {
   help: boolean;
 }
 
-type Outcome = { change: 'added' | 'updated' | 'unchanged'; localPath: string } | { change: 'failed'; message: string };
+type Outcome = { ok: true; localPath: string } | { ok: false; message: string };
 
 const options = {
   output: { type: 'string', default: '.' },
@@ -153,31 +149,19 @@ function isRepoPath(filePath: string): boolean {
   return filePath.split('/').every((segment) => segment !== '' && segment !== '.' && segment !== '..');
 }
 
-/** Copy one file, unless its local copy already matches. A failure affects only this file. */
+/** Copy one file. A failure affects only this file. */
 async function copyFile(source: GitHubSource, filePath: string, output: string, cwd: string): Promise<Outcome> {
   const fetched = await fetchFile(source, filePath);
-  if (!fetched.ok) return { change: 'failed', message: `Failed to copy ${filePath}: ${fetched.reason}` };
+  if (!fetched.ok) return { ok: false, message: `Failed to copy ${filePath}: ${fetched.reason}` };
 
   const localPath = path.join(output, ...filePath.split('/'));
   const file = path.resolve(cwd, localPath);
   try {
-    const existing = await readExisting(file);
-    if (existing && Buffer.from(fetched.content).equals(existing)) return { change: 'unchanged', localPath };
     await mkdir(path.dirname(file), { recursive: true });
     await writeFile(file, fetched.content);
-    return { change: existing ? 'updated' : 'added', localPath };
+    return { ok: true, localPath };
   } catch (error) {
-    return { change: 'failed', message: `Failed to write ${localPath}: ${errorMessage(error)}` };
-  }
-}
-
-/** Read a file, or return `undefined` when there's none. */
-async function readExisting(file: string): Promise<Buffer | undefined> {
-  try {
-    return await readFile(file);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
-    throw error;
+    return { ok: false, message: `Failed to write ${localPath}: ${errorMessage(error)}` };
   }
 }
 
