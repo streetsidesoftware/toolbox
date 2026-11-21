@@ -2,7 +2,7 @@ import { scanHidden } from './scan/index.ts';
 import type { HiddenText } from './types.ts';
 
 /**
- * Find the text in Markdown that the page doesn't show, though an agent reading the Markdown does.
+ * Find the text in Markdown that the page GitHub renders doesn't show, though an agent reading the Markdown does.
  *
  * It finds:
  * - HTML comments, except in code, where the page shows them.
