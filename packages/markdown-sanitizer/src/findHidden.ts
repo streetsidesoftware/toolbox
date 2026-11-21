@@ -20,8 +20,9 @@ import type { HiddenText } from './types.ts';
  */
 export function findHidden(markdown: string): HiddenText[] {
   const lines = lineStarts(markdown);
+  let line = 0;
   return scanHidden(markdown).map(({ kind, start, end }) => {
-    const line = lineOf(lines, start);
+    line = lineOf(lines, start, line);
     return { kind, start, end, line: line + 1, column: start - lines[line] + 1, text: markdown.slice(start, end) };
   });
 }
@@ -37,9 +38,13 @@ function lineStarts(markdown: string): number[] {
   return starts;
 }
 
-/** Return the index of the line holding `offset`. */
-function lineOf(starts: number[], offset: number): number {
-  let low = 0;
+/**
+ * Return the index of the line holding `offset`.
+ * @param from - the line to search from, such as the last line returned, since offsets mostly come in order. An offset
+ *   before it is searched for from the first line.
+ */
+export function lineOf(starts: number[], offset: number, from: number): number {
+  let low = starts[from] <= offset ? from : 0;
   let high = starts.length - 1;
   while (low < high) {
     const mid = (low + high + 1) >> 1;
