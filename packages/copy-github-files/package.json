@@ -35,6 +35,9 @@
     "test": "node --test \"src/**/*.test.ts\"",
     "typecheck": "tsc --noEmit"
   },
+  "devDependencies": {
+    "@streetsidesoftware/test-each": "workspace:*"
+  },
   "engines": {
     "node": ">=22.18.0"
   }

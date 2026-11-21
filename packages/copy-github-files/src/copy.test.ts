@@ -6,6 +6,8 @@ import type { TestContext } from 'node:test';
 import { afterEach, beforeEach, describe, test } from 'node:test';
 import { setTimeout as delay } from 'node:timers/promises';
 
+import { testEach } from '@streetsidesoftware/test-each';
+
 import type { CopyResult } from './copy.ts';
 import { copyGitHubFiles } from './copy.ts';
 import { fakeGitHub } from './fake-github.ts';
@@ -84,17 +86,23 @@ describe('copyGitHubFiles', () => {
     assert.equal(github.mostAtOnce, 8);
   });
 
-  test('refuses a concurrency that is not a whole number of at least 1', async (t) => {
-    const requests = fakeGitHub(t, upstream);
-    for (const concurrency of [0, -1, 1.5, Number.NaN]) {
-      await assert.rejects(
-        collect(copyGitHubFiles(source, ['static/sponsor.md'], folder, { concurrency })),
-        { message: 'The concurrency must be a whole number of at least 1.' },
-        String(concurrency),
-      );
-    }
-    assert.deepEqual(requests, []);
-  });
+  testEach`
+    concurrency
+    ${0}
+    ${-1}
+    ${1.5}
+    ${Number.NaN}
+  `(
+    'refuses a concurrency of $concurrency, before any request',
+    async ({ concurrency }: { concurrency: number }, t) => {
+      const requests = fakeGitHub(t, upstream);
+
+      await assert.rejects(collect(copyGitHubFiles(source, ['static/sponsor.md'], folder, { concurrency })), {
+        message: 'The concurrency must be a whole number of at least 1.',
+      });
+      assert.deepEqual(requests, []);
+    },
+  );
 
   test('gives a failed file as a result and copies the others', async (t) => {
     fakeGitHub(t, upstream);

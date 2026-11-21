@@ -6,6 +6,8 @@ import path from 'node:path';
 import type { TestContext } from 'node:test';
 import { afterEach, beforeEach, describe, test } from 'node:test';
 
+import { testEach } from '@streetsidesoftware/test-each';
+
 import { run, usage } from './bin.ts';
 import { fakeGitHub } from './fake-github.ts';
 
@@ -105,37 +107,33 @@ describe('run', () => {
     assert.deepEqual(context.logged, [usage]);
   });
 
-  test('names an unknown option', async (t) => {
-    const cases: [option: string, rawName: string][] = [
-      ['--outptu', '--outptu'],
-      ['--outptu=docs', '--outptu'],
-      ['-o', '-o'],
-    ];
-    for (const [option, rawName] of cases) {
-      const context = createContext(t);
-      const code = await run(['owner/repo', 'a.md', option], context);
+  testEach`
+    option             | rawName
+    ${'--outptu'}      | ${'--outptu'}
+    ${'--outptu=docs'} | ${'--outptu'}
+    ${'-o'}            | ${'-o'}
+  `('names the unknown option in $option', async ({ option, rawName }: { option: string; rawName: string }, t) => {
+    const context = createContext(t);
+    const code = await run(['owner/repo', 'a.md', option], context);
 
-      assert.equal(code, 1, option);
-      assert.deepEqual(
-        context.errors,
-        [
-          `Unknown option ${rawName}. The options are --output, --ref, --concurrency, --fail-fast, --silent and --help.`,
-        ],
-        option,
-      );
-      assert.deepEqual(context.urls, [], option);
-    }
+    assert.equal(code, 1);
+    assert.deepEqual(context.errors, [
+      `Unknown option ${rawName}. The options are --output, --ref, --concurrency, --fail-fast, --silent and --help.`,
+    ]);
+    assert.deepEqual(context.urls, []);
   });
 
-  test('names an option without its value', async (t) => {
-    for (const args of [['--ref'], ['--ref', '--output', 'docs']]) {
-      const context = createContext(t);
-      const code = await run(['owner/repo', 'a.md', ...args], context);
+  testEach`
+    args
+    ${['--ref']}
+    ${['--ref', '--output', 'docs']}
+  `('names the option without its value in $args', async ({ args }: { args: string[] }, t) => {
+    const context = createContext(t);
+    const code = await run(['owner/repo', 'a.md', ...args], context);
 
-      assert.equal(code, 1, args.join(' '));
-      assert.deepEqual(context.errors, ['The --ref option must name a branch, tag or commit.'], args.join(' '));
-      assert.deepEqual(context.urls, [], args.join(' '));
-    }
+    assert.equal(code, 1);
+    assert.deepEqual(context.errors, ['The --ref option must name a branch, tag or commit.']);
+    assert.deepEqual(context.urls, []);
   });
 
   test('accepts a value that starts with a dash when written with =', async (t) => {
@@ -155,24 +153,23 @@ describe('run', () => {
     assert.deepEqual(context.logged, []);
   });
 
-  test('refuses a repository not written as owner/repo', async (t) => {
-    for (const repo of [
-      'owner',
-      'owner/repo/extra',
-      'https://github.com/owner/repo',
-      '../..',
-      'owner/..',
-      'own.er/repo',
-    ]) {
-      const context = createContext(t);
-      const code = await run([repo, 'a.md'], context);
+  testEach`
+    repo
+    ${'owner'}
+    ${'owner/repo/extra'}
+    ${'https://github.com/owner/repo'}
+    ${'../..'}
+    ${'owner/..'}
+    ${'own.er/repo'}
+  `('refuses the repository $repo', async ({ repo }: { repo: string }, t) => {
+    const context = createContext(t);
+    const code = await run([repo, 'a.md'], context);
 
-      assert.equal(code, 1);
-      assert.deepEqual(context.errors, [
-        'The repository must be written as <owner>/<repo>, such as streetsidesoftware/.github.',
-      ]);
-      assert.deepEqual(context.urls, []);
-    }
+    assert.equal(code, 1);
+    assert.deepEqual(context.errors, [
+      'The repository must be written as <owner>/<repo>, such as streetsidesoftware/.github.',
+    ]);
+    assert.deepEqual(context.urls, []);
   });
 
   test('accepts a repository name with dots', async (t) => {
@@ -221,15 +218,21 @@ describe('run', () => {
     ]);
   });
 
-  test('refuses a --concurrency that is not a whole number of at least 1', async (t) => {
-    for (const value of ['0', '-1', '1.5', 'many', '', '08']) {
-      const context = createContext(t);
-      const code = await run(['owner/repo', 'static/sponsor.md', `--concurrency=${value}`], context);
+  testEach`
+    value
+    ${'0'}
+    ${'-1'}
+    ${'1.5'}
+    ${'many'}
+    ${''}
+    ${'08'}
+  `('refuses --concurrency=$value', async ({ value }: { value: string }, t) => {
+    const context = createContext(t);
+    const code = await run(['owner/repo', 'static/sponsor.md', `--concurrency=${value}`], context);
 
-      assert.equal(code, 1, value);
-      assert.deepEqual(context.errors, ['The --concurrency option must be a whole number of at least 1.'], value);
-      assert.deepEqual(context.urls, [], value);
-    }
+    assert.equal(code, 1);
+    assert.deepEqual(context.errors, ['The --concurrency option must be a whole number of at least 1.']);
+    assert.deepEqual(context.urls, []);
   });
 
   test('refuses an empty --ref', async (t) => {

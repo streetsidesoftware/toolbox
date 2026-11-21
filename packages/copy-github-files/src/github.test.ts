@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
+import { testEach } from '@streetsidesoftware/test-each';
+
 import { fakeGitHub } from './fake-github.ts';
 import { fetchGitHubFile, GitHubError } from './github.ts';
 
@@ -85,22 +87,20 @@ describe('fetchGitHubFile', () => {
     });
   });
 
-  test('refuses a repository not written as owner/repo, without a request', async (t) => {
+  testEach`
+    repo
+    ${'owner'}
+    ${'owner/repo/extra'}
+    ${'https://github.com/owner/repo'}
+    ${'../..'}
+    ${'owner/..'}
+    ${'own.er/repo'}
+  `('refuses the repository $repo, without a request', async ({ repo }: { repo: string }, t) => {
     const requests = fakeGitHub(t, {});
-    for (const repo of [
-      'owner',
-      'owner/repo/extra',
-      'https://github.com/owner/repo',
-      '../..',
-      'owner/..',
-      'own.er/repo',
-    ]) {
-      await assert.rejects(
-        fetchGitHubFile({ repo }, 'a.md'),
-        { message: 'The repository must be written as <owner>/<repo>, such as streetsidesoftware/.github.' },
-        repo,
-      );
-    }
+
+    await assert.rejects(fetchGitHubFile({ repo }, 'a.md'), {
+      message: 'The repository must be written as <owner>/<repo>, such as streetsidesoftware/.github.',
+    });
     assert.deepEqual(requests, []);
   });
 
@@ -120,18 +120,20 @@ describe('fetchGitHubFile', () => {
     assert.deepEqual(requests, []);
   });
 
-  test('refuses a path outside the repository, without a request', async (t) => {
+  testEach`
+    filePath
+    ${'../a.md'}
+    ${'/a.md'}
+    ${'static/./a.md'}
+    ${'static//a.md'}
+    ${''}
+  `('refuses the path $filePath, without a request', async ({ filePath }: { filePath: string }, t) => {
     const requests = fakeGitHub(t, {});
-    for (const filePath of ['../a.md', '/a.md', 'static/./a.md', 'static//a.md', '']) {
-      await assert.rejects(
-        fetchGitHubFile({ repo: 'owner/repo' }, filePath),
-        {
-          message:
-            'A path must name a file from the root of the repository, such as static/sponsor.md, without . or .. segments.',
-        },
-        filePath,
-      );
-    }
+
+    await assert.rejects(fetchGitHubFile({ repo: 'owner/repo' }, filePath), {
+      message:
+        'A path must name a file from the root of the repository, such as static/sponsor.md, without . or .. segments.',
+    });
     assert.deepEqual(requests, []);
   });
 });
