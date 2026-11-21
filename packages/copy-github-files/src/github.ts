@@ -64,7 +64,7 @@ export async function fetchGitHubFile(
   if (!response.headers.get('content-type')?.startsWith('application/vnd.github.raw')) {
     throw new GitHubError('The path names a folder, not a file.', response.status);
   }
-  return new Uint8Array(await response.arrayBuffer());
+  return await response.bytes();
 }
 
 /** Throw when the source can't name a repository, so a request never reaches another part of GitHub's API. */
