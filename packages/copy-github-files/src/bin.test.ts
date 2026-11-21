@@ -274,7 +274,7 @@ describe('run', () => {
 
     assert.equal(code, 1);
     assert.deepEqual(context.errors, [
-      'Failed to copy ../a.md: A path must name a file from the root of the repository, such as static/sponsor.md, without . or .. segments.',
+      'Failed to copy ../a.md: A path must be written from the root of the repository, such as static/sponsor.md, without . or .. segments.',
     ]);
     assert.deepEqual(context.logged, [`Copied ${localPath('static/sponsor.md')}`]);
   });

@@ -129,6 +129,16 @@ describe('copyGitHubFiles', () => {
     assert.equal((result.error as NodeJS.ErrnoException).code, 'EISDIR');
   });
 
+  test('gives a folder as a failed result, with no file found', async (t) => {
+    fakeGitHub(t, upstream);
+    const [result] = await collect(copyGitHubFiles(source, ['static'], folder));
+
+    assert.ok(result && 'error' in result && result.error instanceof GitHubError);
+    assert.equal(result.error.status, 404);
+    assert.equal(result.error.message, 'The path names a folder, not a file.');
+    assert.deepEqual(await readdir(folder), []);
+  });
+
   test('never writes outside the folder', async (t) => {
     const requests = fakeGitHub(t, upstream);
     const results = await collect(copyGitHubFiles(source, ['../escape.md', 'static/../../escape.md'], folder));

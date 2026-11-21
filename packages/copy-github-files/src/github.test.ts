@@ -4,7 +4,7 @@ import { describe, test } from 'node:test';
 import { testEach } from '@streetsidesoftware/test-each';
 
 import { fakeGitHub } from './fake-github.ts';
-import { fetchGitHubFile, GitHubError } from './github.ts';
+import { fetchGitHubFile, fetchGitHubPath, GitHubError } from './github.ts';
 
 describe('fetchGitHubFile', () => {
   test('reads a file from the default branch, without a token', async (t) => {
@@ -50,12 +50,12 @@ describe('fetchGitHubFile', () => {
     });
   });
 
-  test('refuses a folder', async (t) => {
-    fakeGitHub(t, {});
+  test('finds no file at a folder', async (t) => {
+    fakeGitHub(t, { 'static/a.md': '' });
 
     await assert.rejects(fetchGitHubFile({ repo: 'owner/repo' }, 'static'), (error) => {
       assert.ok(error instanceof GitHubError);
-      assert.equal(error.status, 200);
+      assert.equal(error.status, 404);
       assert.equal(error.message, 'The path names a folder, not a file.');
       return true;
     });
@@ -135,8 +135,58 @@ describe('fetchGitHubFile', () => {
 
     await assert.rejects(fetchGitHubFile({ repo: 'owner/repo' }, filePath), {
       message:
-        'A path must name a file from the root of the repository, such as static/sponsor.md, without . or .. segments.',
+        'A path must be written from the root of the repository, such as static/sponsor.md, without . or .. segments.',
     });
     assert.deepEqual(requests, []);
+  });
+});
+
+describe('fetchGitHubPath', () => {
+  test('gives a file with its content', async (t) => {
+    fakeGitHub(t, { 'static/sponsor.md': '# Sponsor\n' });
+    const found = await fetchGitHubPath({ repo: 'owner/repo' }, 'static/sponsor.md');
+
+    assert.deepEqual(found, {
+      type: 'file',
+      path: 'static/sponsor.md',
+      content: new TextEncoder().encode('# Sponsor\n'),
+    });
+  });
+
+  test('gives a folder with its entries', async (t) => {
+    fakeGitHub(t, { 'static/sponsor.md': '', 'static/images/logo.svg': '' });
+    const found = await fetchGitHubPath({ repo: 'owner/repo' }, 'static');
+
+    assert.deepEqual(found, {
+      type: 'dir',
+      path: 'static',
+      entries: [
+        { type: 'file', name: 'sponsor.md', path: 'static/sponsor.md' },
+        { type: 'dir', name: 'images', path: 'static/images' },
+      ],
+    });
+  });
+
+  test('gives the status when nothing is at the path', async (t) => {
+    fakeGitHub(t, {});
+
+    await assert.rejects(fetchGitHubPath({ repo: 'owner/repo' }, 'missing.md'), (error) => {
+      assert.ok(error instanceof GitHubError);
+      assert.equal(error.status, 404);
+      assert.equal(error.message, 'GitHub responded with status 404');
+      return true;
+    });
+  });
+
+  test('refuses an answer that is neither a file nor a folder', async (t) => {
+    t.mock.method(
+      globalThis,
+      'fetch',
+      async () => new Response('{"type":"submodule"}', { headers: { 'content-type': 'application/json' } }),
+    );
+
+    await assert.rejects(fetchGitHubPath({ repo: 'owner/repo' }, 'vendor'), {
+      message: 'The path names neither a file nor a folder.',
+    });
   });
 });

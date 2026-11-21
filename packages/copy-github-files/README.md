@@ -112,15 +112,28 @@ import { fetchGitHubFile } from '@streetsidesoftware/copy-github-files';
 const content = await fetchGitHubFile({ repo: 'streetsidesoftware/.github' }, 'static/sponsor.md');
 ```
 
-When a file can't be read from GitHub, such as a path that doesn't exist or names a folder, the error is a
-`GitHubError`. Its `status` is the HTTP status GitHub answered with: 404 for a missing file, and 200 for a folder. A
-failed result from `copyGitHubFiles` carries the same error:
+To see what's at a path, a file or a folder, use `fetchGitHubPath`:
+
+```ts
+import { fetchGitHubPath } from '@streetsidesoftware/copy-github-files';
+
+const found = await fetchGitHubPath({ repo: 'streetsidesoftware/.github' }, 'static');
+if (found.type === 'dir') {
+  for (const entry of found.entries) console.log(`${entry.type} ${entry.path}`);
+} else {
+  console.log(`${found.path} is a file of ${found.content.length} bytes.`);
+}
+```
+
+When nothing usable is found on GitHub, the error is a `GitHubError` with a `status` that says what went wrong, such
+as 404 when nothing is at the path. Asked for a file, `fetchGitHubFile` also gives 404 for a folder, since no file is
+there. A failed result from `copyGitHubFiles` carries the same error:
 
 ```ts
 import { GitHubError } from '@streetsidesoftware/copy-github-files';
 
 if ('error' in result && result.error instanceof GitHubError && result.error.status === 404) {
-  console.warn(`${result.path} doesn't exist on that branch.`);
+  console.warn(`No file at ${result.path} on that branch.`);
 }
 ```
 

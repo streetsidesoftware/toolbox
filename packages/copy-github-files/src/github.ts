@@ -14,9 +14,18 @@ export interface FetchOptions {
   signal?: AbortSignal | undefined;
 }
 
-/** A file couldn't be read from GitHub, such as a path that doesn't exist on that ref, or names a folder. */
+/** What a path in a repository holds: a file's content, or a folder's entries. */
+export type GitHubPath =
+  | { type: 'file'; path: string; content: Uint8Array }
+  | {
+      type: 'dir';
+      path: string;
+      entries: { type: 'file' | 'dir' | 'symlink' | 'submodule'; name: string; path: string }[];
+    };
+
+/** Nothing usable was found on GitHub, such as no file at a path on that ref. */
 export class GitHubError extends Error {
-  /** The HTTP status code GitHub answered with: 404 for a missing file, and 200 for a folder. */
+  /** An HTTP status code that says what went wrong, such as 404 when nothing was found at the path. */
   readonly status: number;
 
   constructor(message: string, status: number) {
@@ -39,18 +48,42 @@ export async function fetchGitHubFile(
   filePath: string,
   options: FetchOptions = {},
 ): Promise<Uint8Array> {
+  const found = await fetchGitHubPath(source, filePath, options);
+  // Asked for a file, a folder means no file was found at the path.
+  if (found.type !== 'file') throw new GitHubError('The path names a folder, not a file.', 404);
+  return found.content;
+}
+
+/**
+ * Read a path from a GitHub repository: a file's content, or a folder's entries.
+ *
+ * @param source - The repository, and the ref and token to read it with.
+ * @param repoPath - The path from the root of the repository, such as `static/sponsor.md` or `static`.
+ * @param options - Options, such as a signal to abort the request.
+ * @returns The file or folder at the path.
+ *
+ * @example
+ * const result = await fetchGitHubPath({ repo: 'streetsidesoftware/.github' }, 'static/sponsor.md');
+ * if (result.type === 'file') console.log(new TextDecoder().decode(result.content));
+ */
+export async function fetchGitHubPath(
+  source: GitHubSource,
+  repoPath: string,
+  options: FetchOptions = {},
+): Promise<GitHubPath> {
   checkSource(source);
-  if (!isRepoPath(filePath)) {
+  if (!isRepoPath(repoPath)) {
     throw new Error(
-      'A path must name a file from the root of the repository, such as static/sponsor.md, without . or .. segments.',
+      'A path must be written from the root of the repository, such as static/sponsor.md, without . or .. segments.',
     );
   }
 
-  const encodedPath = filePath.split('/').map(encodeURIComponent).join('/');
+  const encodedPath = repoPath.split('/').map(encodeURIComponent).join('/');
   const url = new URL(`https://api.github.com/repos/${source.repo}/contents/${encodedPath}`);
   if (source.ref) url.searchParams.set('ref', source.ref);
 
   const headers: Record<string, string> = {
+    // A file comes back raw. A folder comes back as a JSON list of its entries, whatever is asked for.
     Accept: 'application/vnd.github.raw+json',
     'User-Agent': 'copy-github-files',
     'X-GitHub-Api-Version': '2022-11-28',
@@ -60,11 +93,15 @@ export async function fetchGitHubFile(
   const response = await fetch(url, { headers, signal: options.signal ?? null });
   // The status code only: HTTP/2 responses carry no status text.
   if (!response.ok) throw new GitHubError(`GitHub responded with status ${response.status}`, response.status);
-  // GitHub sends a folder's listing as JSON, even when the raw form is asked for.
-  if (!response.headers.get('content-type')?.startsWith('application/vnd.github.raw')) {
-    throw new GitHubError('The path names a folder, not a file.', response.status);
+  if (response.headers.get('content-type')?.startsWith('application/vnd.github.raw')) {
+    return { type: 'file', path: repoPath, content: await response.bytes() };
   }
-  return await response.bytes();
+  const listing: unknown = await response.json();
+  if (!Array.isArray(listing)) throw new Error('The path names neither a file nor a folder.');
+  const entries = (listing as { type: 'file' | 'dir' | 'symlink' | 'submodule'; name: string; path: string }[]).map(
+    ({ type, name, path }) => ({ type, name, path }),
+  );
+  return { type: 'dir', path: repoPath, entries };
 }
 
 /** Throw when the source can't name a repository, so a request never reaches another part of GitHub's API. */
@@ -76,6 +113,6 @@ export function checkSource(source: GitHubSource): void {
   if (source.ref === '') throw new Error('The ref must name a branch, tag or commit.');
 }
 
-function isRepoPath(filePath: string): boolean {
-  return filePath.split('/').every((segment) => segment !== '' && segment !== '.' && segment !== '..');
+function isRepoPath(repoPath: string): boolean {
+  return repoPath.split('/').every((segment) => segment !== '' && segment !== '.' && segment !== '..');
 }
