@@ -3,7 +3,7 @@ import { describe, test } from 'node:test';
 
 import { testEach } from '@streetsidesoftware/test-each';
 
-import { findHidden } from './findHidden.ts';
+import { findHidden } from '../findHidden.ts';
 import { sanitize } from './sanitize.ts';
 
 describe('sanitize reveal', () => {
@@ -24,6 +24,7 @@ describe('sanitize reveal', () => {
     ${'a block holding a fence'}         | ${'<!--\n```\n-->'}                           | ${'````\n<!--\n```\n-->\n````'}
     ${'a comment between code spans'}    | ${'`a`<!-- x -->`b`'}                         | ${'`a` ``<!-- x -->`` `b`'}
     ${'a comment after a stray backtick'} | ${'a`<!-- x --> b'}                          | ${'a` ``<!-- x -->`` b'}
+    ${'two comments side by side'}       | ${'a <!-- x --><!-- y --> b'}                 | ${'a `<!-- x -->` `<!-- y -->` b'}
     ${'a block with CRLF line endings'}  | ${'a\r\n\r\n<!-- x\r\ny -->\r\n\r\nb'}        | ${'a\r\n\r\n```\r\n<!-- x\r\ny -->\r\n```\r\n\r\nb'}
     ${'a block and HTML in one node'}    | ${'<!-- a --> text <!-- b -->'}               | ${'```\n<!-- a -->\n```\n text <code>&lt;!-- b --&gt;</code>'}
   `('shows $name as code', ({ markdown, revealed }: { markdown: string; revealed: string }) => {

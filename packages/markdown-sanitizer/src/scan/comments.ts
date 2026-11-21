@@ -1,6 +1,6 @@
 import type { Html } from 'mdast';
 
-import type { Span } from './span.ts';
+import type { Span } from './spans.ts';
 
 /** A comment, with the HTML node it opens in. */
 export interface CommentSpan extends Span {
