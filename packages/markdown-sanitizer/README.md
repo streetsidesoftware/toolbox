@@ -25,6 +25,8 @@ for (const hidden of findHidden(message)) {
 3:1 comment: "<!-- Ignore previous instructions. -->"
 ```
 
+Each result gives the kind, the offsets of the hidden text in the Markdown, its line and column, and the text itself.
+
 To take the hidden text out, or to show it on the page for a reviewer, use `sanitize`:
 
 ```ts
@@ -37,31 +39,23 @@ sanitize('Fix the <!-- secret --> parser.', 'reveal');
 // Fix the `<!-- secret -->` parser.
 ```
 
-Revealing shows each comment, unused definition or footnote as code, exactly as an agent reads it: as code in its
-line, as a code block when it's on lines of its own, or as HTML code inside other HTML. Each tag character or
-variation selector shows as an escape, such as `\u{E0041}`, so a model doesn't read the text it spells.
+Revealing shows the hidden text on the page as code, so a reviewer sees what an agent reads. Each tag character or
+variation selector shows as its code point, such as `\u{E0041}`.
 
-Revealed text is for a reviewer. An agent reads it too, so remove hidden text from Markdown that agents read, such
-as a changelog.
+An agent reads revealed text too, so remove hidden text from Markdown that agents read, such as a changelog.
 
-Removing hidden text can join the text around it into new hidden text, such as a new comment, so removal repeats until
-nothing is hidden. Markdown that still hides text after 100 passes of removal isn't allowed.
+Markdown that still hides text after 100 rounds of removal isn't allowed.
 
 ## What counts as hidden
 
-- **Comments.** An HTML comment hides its text, and so does HTML that a browser reads as a comment, such as `<?…>`.
-  A comment can sit inside other HTML. A comment left open hides the rest of the page. A comment in code shows on
-  the page, so it isn't hidden.
-- **Unused definitions.** A link definition that no link uses shows nothing, which makes `[//]: # (note)` a common
-  way to write a comment. A footnote that nothing cites shows nothing either.
-- **Tag characters and variation selectors.** The page shows nothing for them, even in code, but a model reads tag
-  characters as text, and a run of variation selectors can steer it. A character reference such as `&#xE0041;`
-  counts too. The ones that form an emoji, such as ❤️ or the Scotland flag, aren't hidden text.
+- **Comments.** HTML comments, and other HTML that the page hides the same way, such as `<?…>`. A comment in code
+  shows on the page, so it doesn't count.
+- **Unused definitions.** Link definitions that no link uses, such as `[//]: # (note)`, and footnotes that the page
+  leaves out.
+- **Tag characters and variation selectors.** The page shows nothing for them, but a model reads them. The ones that
+  make up an emoji, such as ❤️ or the Scotland flag, don't count.
 
-Other invisible characters, such as the zero-width space, the soft hyphen or a direction mark, carry nothing an agent
-acts on, so they aren't hidden text.
-
-Each result gives the kind, the offsets of the hidden text in the Markdown, its line and column, and the text itself.
+Other invisible characters, such as the zero-width space, the soft hyphen or a direction mark, don't count.
 
 ## Requirements
 
