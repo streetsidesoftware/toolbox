@@ -184,16 +184,6 @@ describe('input', () => {
     });
   });
 
-  test('reports Markdown that keeps hiding text after removal', async () => {
-    const markdown = '<!-'.repeat(101) + '<!-- -->' + '- x -->'.repeat(101);
-    assert.deepEqual(await call(['remove'], markdown), {
-      code: 2,
-      stdout: '',
-      stderr:
-        'markdown-sanitizer: <stdin>: Markdown must not hide text that is still hidden after 100 passes of removal\n',
-    });
-  });
-
   test('reads a file named like an option after --', async () => {
     const name = await file('--write', '<!-- x -->');
     const { code, stdout } = await call(['check', '--', name]);

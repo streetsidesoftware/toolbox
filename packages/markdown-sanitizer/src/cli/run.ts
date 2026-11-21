@@ -53,15 +53,14 @@ interface Input {
   markdown: string;
 }
 
-/** A wrong call, or input the command can't read, clean or write, reported as one line with exit code 2. */
+/** A wrong call, or input the command can't read or write, reported as one line with exit code 2. */
 class CommandError extends Error {}
 
 /**
  * Run the command line and return the exit code: 0 when it succeeds, 1 when `check` finds hidden text, and 2 for a
- * wrong call or a file it can't read, clean or write.
+ * wrong call or a file it can't read or write.
  *
- * Every input is read and cleaned before any file is written, so input that can't be read or cleaned leaves the files
- * as they were.
+ * Every input is read before any file is written, so input that can't be read leaves the files as they were.
  */
 export async function run(args: string[], io: Io): Promise<number> {
   try {
@@ -72,7 +71,8 @@ export async function run(args: string[], io: Io): Promise<number> {
     }
     const inputs = await readInputs(options.files, options.maxSize, io.stdin);
     if (options.command === 'check') return check(inputs, io);
-    const results = inputs.map((input) => ({ ...input, result: sanitizeInput(input, options.command) }));
+    const mode = options.command === 'remove' ? 'remove' : 'reveal';
+    const results = inputs.map((input) => ({ ...input, result: sanitize(input.markdown, mode) }));
     if (!options.write) {
       for (const { result } of results) io.stdout(result);
       return 0;
@@ -189,14 +189,6 @@ function check(inputs: Input[], io: Io): number {
     }
   }
   return found ? 1 : 0;
-}
-
-function sanitizeInput({ name, markdown }: Input, command: string): string {
-  try {
-    return sanitize(markdown, command === 'remove' ? 'remove' : 'reveal');
-  } catch (error) {
-    throw new CommandError(`${displayName(name)}: ${error instanceof Error ? error.message : String(error)}`);
-  }
 }
 
 /** Quote hidden text on one line, so the terminal shows every character it holds. */
