@@ -16,12 +16,12 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.js",
-    "./bin": "./dist/bin.js",
+    "./cli": "./dist/cli.js",
     "./package.json": "./package.json"
   },
   "types": "./dist/index.d.ts",
   "bin": {
-    "copy-github-files": "./dist/bin.js"
+    "copy-github-files": "./dist/cli.js"
   },
   "files": [
     "dist",
