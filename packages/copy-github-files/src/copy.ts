@@ -144,6 +144,11 @@ async function download(source: GitHubSource, filePath: string, signal: AbortSig
 async function write(downloaded: Download, folder: string): Promise<CopyResult> {
   if ('error' in downloaded) return downloaded;
   const file = path.join(folder, ...downloaded.path.split('/'));
+  // A file name in a repository may hold a backslash, which Windows reads as a separator, so `..` can climb out.
+  const relative = path.relative(folder, file);
+  if (!relative || relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    return { path: downloaded.path, error: new Error('A path must name a file inside the folder.') };
+  }
   try {
     await mkdir(path.dirname(file), { recursive: true });
     await writeFile(file, downloaded.content);

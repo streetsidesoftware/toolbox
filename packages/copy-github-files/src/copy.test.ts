@@ -197,6 +197,14 @@ describe('copyGitHubFiles', () => {
     assert.deepEqual(await readdir(folder), []);
   });
 
+  test('never writes outside the folder through a backslash, which Windows reads as a separator', async (t) => {
+    const name = 'a\\..\\..\\escape.md';
+    fakeGitHub(t, { [name]: 'Escaped.\n' });
+    await collect(copyGitHubFiles(source, [name], path.join(folder, 'out')));
+
+    await assert.rejects(readFile(path.join(folder, 'escape.md')), { code: 'ENOENT' });
+  });
+
   test('refuses a source that is not a repository, before any request', async (t) => {
     const requests = fakeGitHub(t, upstream);
 
