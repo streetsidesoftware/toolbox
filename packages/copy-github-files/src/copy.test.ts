@@ -71,6 +71,27 @@ describe('copyGitHubFiles', () => {
     assert.deepEqual(await readdir(path.join(folder, 'static')), ['sponsor.md']);
   });
 
+  test('stops with the abort reason while the source is still finding its next path', async (t) => {
+    fakeGitHub(t, upstream);
+    const controller = new AbortController();
+    async function* paths() {
+      yield 'static/sponsor.md';
+      await new Promise(() => {});
+    }
+    const given: string[] = [];
+    await assert.rejects(
+      async () => {
+        for await (const result of copyGitHubFiles(source, paths(), folder, { signal: controller.signal })) {
+          given.push(result.path);
+          setTimeout(() => controller.abort(), 10);
+        }
+      },
+      { name: 'AbortError' },
+    );
+
+    assert.deepEqual(given, ['static/sponsor.md']);
+  });
+
   test('takes the paths from an async iterable', async (t) => {
     fakeGitHub(t, upstream);
     async function* paths() {

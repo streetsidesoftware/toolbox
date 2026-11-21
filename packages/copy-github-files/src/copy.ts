@@ -56,22 +56,27 @@ export async function* copyGitHubFiles(
   const internal = new AbortController();
   const signal = options.signal ? AbortSignal.any([options.signal, internal.signal]) : internal.signal;
   const pending = pullOnce(paths);
-  const running = new Set<Promise<Download>>();
+  const running = new Set<Promise<Finished>>();
   // Asked for while there's room, and raced with the downloads, so a slow source never holds back a finished file.
-  let nextPath: Promise<IteratorResult<string, void>> | undefined;
+  let nextPath: Promise<NextPath> | undefined;
   let exhausted = false;
+  // Ends the race on an abort, even when the source's next path is all that's left to wait for.
+  const abort = options.signal ? rejectOnAbort(options.signal) : undefined;
   try {
     for (;;) {
-      if (!exhausted && !nextPath && running.size < concurrency) nextPath = pending.next();
+      if (!exhausted && !nextPath && running.size < concurrency) {
+        nextPath = pending.next().then((next) => ({ next }));
+      }
       if (!nextPath && !running.size) return;
       const finished = await Promise.race([
-        ...[...running].map((task) => task.then((downloaded) => ({ task, downloaded }))),
-        ...(nextPath ? [nextPath.then((next) => ({ next }))] : []),
+        ...running,
+        ...(nextPath ? [nextPath] : []),
+        ...(abort ? [abort.aborted] : []),
       ]);
       if ('next' in finished) {
         nextPath = undefined;
         if (finished.next.done) exhausted = true;
-        else running.add(download(source, finished.next.value, signal));
+        else running.add(start(source, finished.next.value, signal));
         continue;
       }
       running.delete(finished.task);
@@ -80,6 +85,7 @@ export async function* copyGitHubFiles(
       options.signal?.throwIfAborted();
     }
   } finally {
+    abort?.stop();
     internal.abort();
     if (nextPath) {
       // The source would hold up the return until it gives its next path, which can no longer be copied.
@@ -91,6 +97,26 @@ export async function* copyGitHubFiles(
 }
 
 type Download = { path: string; content: Uint8Array } | { path: string; error: Error };
+type Finished = { task: Promise<Finished>; downloaded: Download };
+type NextPath = { next: IteratorResult<string, void> };
+
+/**
+ * Reject with the signal's reason once it aborts, for a race that nothing else would end.
+ * The rejection is never unhandled. Call `stop` when done with it.
+ */
+function rejectOnAbort(signal: AbortSignal): { aborted: Promise<never>; stop: () => void } {
+  const { promise, reject } = Promise.withResolvers<never>();
+  promise.catch(() => {});
+  const onAbort = () => reject(signal.reason);
+  signal.addEventListener('abort', onAbort, { once: true });
+  return { aborted: promise, stop: () => signal.removeEventListener('abort', onAbort) };
+}
+
+/** Start downloading a file. The result names its own task, so the race can remove it from the running set. */
+function start(source: GitHubSource, filePath: string, signal: AbortSignal): Promise<Finished> {
+  const task: Promise<Finished> = download(source, filePath, signal).then((downloaded) => ({ task, downloaded }));
+  return task;
+}
 
 /** Read the paths only as they're needed, skipping a path seen before. */
 async function* pullOnce(paths: Iterable<string> | AsyncIterable<string>): AsyncGenerator<string, void> {
