@@ -24,7 +24,8 @@ Copied static/sponsor.md
 Copied static/footer.md
 ```
 
-Run it again to bring the copies up to date. Every file is written each time, and git shows which ones changed.
+Run it again to bring the copies up to date. Every file is written each time, and git shows which ones changed. With
+`--silent`, the command lists no copied files, and shows only failures.
 
 To run it from a script in `package.json`:
 
@@ -44,6 +45,7 @@ To run it from a script in `package.json`:
 | `--ref <ref>`       | Copy from a branch, tag or commit. Without it, the repository's default branch is used. |
 | `--concurrency <n>` | Download up to `<n>` files at once. Default: 8.                                         |
 | `--fail-fast`       | Stop at the first file that fails.                                                      |
+| `--silent`          | List no copied files. Failures are still shown.                                         |
 | `--help`            | Show the usage.                                                                         |
 
 With `--output docs`, `static/sponsor.md` is written to `docs/static/sponsor.md`.

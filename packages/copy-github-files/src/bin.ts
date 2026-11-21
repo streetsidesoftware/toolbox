@@ -22,6 +22,7 @@ Options:
   --ref <ref>        The branch, tag or commit to copy from. Default: the repository's default branch.
   --concurrency <n>  How many files to download at once. Default: 8.
   --fail-fast        Stop at the first file that fails. Without it, the other files are still copied.
+  --silent           Don't list the copied files. Failures are still shown.
   --help             Show this help.
 
 When GITHUB_TOKEN is set, it authenticates the requests. A private repository needs it.`;
@@ -38,7 +39,7 @@ export async function run(args: string[], context: RunContext): Promise<number> 
     return 0;
   }
 
-  const { repo, paths, output, ref, concurrency, failFast } = commandLine;
+  const { repo, paths, output, ref, concurrency, failFast, silent } = commandLine;
   if (!paths.length) {
     context.error('Name at least one file to copy.');
     return 1;
@@ -53,7 +54,7 @@ export async function run(args: string[], context: RunContext): Promise<number> 
         context.error(`Failed to copy ${result.path}: ${result.error.message}`);
         failed = true;
         if (failFast) break;
-      } else {
+      } else if (!silent) {
         context.log(`Copied ${path.join(output, ...result.path.split('/'))}`);
       }
     }
@@ -71,6 +72,7 @@ interface CommandLine {
   ref: string | undefined;
   concurrency: number | undefined;
   failFast: boolean;
+  silent: boolean;
   help: boolean;
 }
 
@@ -79,6 +81,7 @@ const options = {
   ref: { type: 'string' },
   concurrency: { type: 'string' },
   'fail-fast': { type: 'boolean', default: false },
+  silent: { type: 'boolean', default: false },
   help: { type: 'boolean', default: false },
 } as const;
 
@@ -115,6 +118,7 @@ function parseCommandLine(args: string[]): CommandLine | string {
     ref: values.ref as string | undefined,
     concurrency: values.concurrency === undefined ? undefined : Number(values.concurrency),
     failFast: values['fail-fast'] as boolean,
+    silent: values.silent as boolean,
     help: values.help as boolean,
   };
 }
@@ -128,7 +132,7 @@ function checkOption(token: {
 }): string | undefined {
   const { name, rawName, value, inlineValue } = token;
   if (!Object.hasOwn(options, name)) {
-    return `Unknown option ${rawName}. The options are --output, --ref, --concurrency, --fail-fast and --help.`;
+    return `Unknown option ${rawName}. The options are --output, --ref, --concurrency, --fail-fast, --silent and --help.`;
   }
   if (options[name as keyof typeof options].type === 'boolean') {
     return value === undefined ? undefined : `The ${rawName} option takes no value.`;

@@ -118,7 +118,9 @@ describe('run', () => {
       assert.equal(code, 1, option);
       assert.deepEqual(
         context.errors,
-        [`Unknown option ${rawName}. The options are --output, --ref, --concurrency, --fail-fast and --help.`],
+        [
+          `Unknown option ${rawName}. The options are --output, --ref, --concurrency, --fail-fast, --silent and --help.`,
+        ],
         option,
       );
       assert.deepEqual(context.urls, [], option);
@@ -186,6 +188,25 @@ describe('run', () => {
 
     assert.equal(code, 1);
     assert.deepEqual(context.errors, ['The --output option must name a folder.']);
+    assert.deepEqual(context.urls, []);
+  });
+
+  test('lists no copied file with --silent, but still shows failures', async (t) => {
+    const context = createContext(t);
+    const code = await run(['owner/repo', 'static/sponsor.md', 'static/missing.md', '--silent'], context);
+
+    assert.equal(code, 1);
+    assert.deepEqual(context.logged, []);
+    assert.deepEqual(context.errors, ['Failed to copy static/missing.md: GitHub responded with status 404']);
+    assert.equal(await readFile(path.join(cwd, 'static/sponsor.md'), 'utf8'), 'Sponsor us.\n');
+  });
+
+  test('refuses a value for --silent', async (t) => {
+    const context = createContext(t);
+    const code = await run(['owner/repo', 'static/sponsor.md', '--silent=yes'], context);
+
+    assert.equal(code, 1);
+    assert.deepEqual(context.errors, ['The --silent option takes no value.']);
     assert.deepEqual(context.urls, []);
   });
 
