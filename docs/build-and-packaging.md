@@ -40,9 +40,10 @@ How the packages in this repo are built, tested, and packaged for npm.
 
 ## Entry points
 
-- **Two lists, kept in step by hand.** Every published `src/*.ts` file needs both an entry in
-  `tsdown.config.ts`'s `entry` and a subpath in `package.json`'s `exports`. tsdown doesn't infer one from the
-  other. A file missing from `entry` builds without error and leaves its subpath broken.
+- **Exports follow `entry`.** Every published `src/*.ts` file is an entry in `tsdown.config.ts`. A package whose
+  config enables tsdown's `exports` option gets `package.json`'s `exports` and `bin` written by the build.
+  Otherwise, each entry needs a subpath in `exports` by hand, and a file missing from `entry` builds without error
+  and leaves its subpath broken.
 - **ESM only, plain extensions.** Build output is `dist/*.js` and `dist/*.d.ts`, one pair per entry. This needs
   `fixedExtension: false` in the shared config.
 
