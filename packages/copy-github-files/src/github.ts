@@ -113,9 +113,14 @@ export function checkSource(source: GitHubSource): void {
   if (source.ref === '') throw new Error('The ref must name a branch, tag or commit.');
 }
 
-/** Why GitHub refused a request. Otherwise the status code only: HTTP/2 responses carry no status text. */
+/**
+ * Return the message for a refused request: the rate limit when it ran out, or else the status code, since HTTP/2
+ * responses carry no status text.
+ * The request that uses up the limit is still answered with its own status, so only a 403 or 429 means the limit.
+ */
 function refusal(response: Response, source: GitHubSource): string {
-  if (response.headers.get('x-ratelimit-remaining') === '0') {
+  const limited = response.status === 403 || response.status === 429;
+  if (limited && response.headers.get('x-ratelimit-remaining') === '0') {
     return source.token
       ? "GitHub's rate limit was reached."
       : "GitHub's rate limit was reached. A token raises the limit.";

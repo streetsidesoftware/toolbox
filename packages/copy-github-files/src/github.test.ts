@@ -51,22 +51,32 @@ describe('fetchGitHubFile', () => {
   });
 
   testEach`
-    refusal                                    | token        | remaining | message
-    ${'the rate limit, without a token'}       | ${undefined} | ${'0'}    | ${"GitHub's rate limit was reached. A token raises the limit."}
-    ${'the rate limit, with a token'}          | ${'secret'}  | ${'0'}    | ${"GitHub's rate limit was reached."}
-    ${'a 403 with requests left in the limit'} | ${undefined} | ${'12'}   | ${'GitHub responded with status 403'}
+    refusal                                          | status | token        | remaining | message
+    ${'the rate limit, without a token'}             | ${403} | ${undefined} | ${'0'}    | ${"GitHub's rate limit was reached. A token raises the limit."}
+    ${'the rate limit, with a token'}                | ${403} | ${'secret'}  | ${'0'}    | ${"GitHub's rate limit was reached."}
+    ${'the rate limit, as a 429'}                    | ${429} | ${undefined} | ${'0'}    | ${"GitHub's rate limit was reached. A token raises the limit."}
+    ${'a 403 with requests left in the limit'}       | ${403} | ${undefined} | ${'12'}   | ${'GitHub responded with status 403'}
+    ${'a 404 on the request that used up the limit'} | ${404} | ${undefined} | ${'0'}    | ${'GitHub responded with status 404'}
   `(
     'says when GitHub refuses a request for $refusal',
-    async ({ token, remaining, message }: { token: string | undefined; remaining: string; message: string }, t) => {
+    async (
+      {
+        status,
+        token,
+        remaining,
+        message,
+      }: { status: number; token: string | undefined; remaining: string; message: string },
+      t,
+    ) => {
       t.mock.method(
         globalThis,
         'fetch',
-        async () => new Response('{}', { status: 403, headers: { 'x-ratelimit-remaining': remaining } }),
+        async () => new Response('{}', { status, headers: { 'x-ratelimit-remaining': remaining } }),
       );
 
       await assert.rejects(fetchGitHubFile({ repo: 'owner/repo', token }, 'a.md'), (error) => {
         assert.ok(error instanceof GitHubError);
-        assert.equal(error.status, 403);
+        assert.equal(error.status, status);
         assert.equal(error.message, message);
         return true;
       });
