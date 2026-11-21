@@ -57,8 +57,8 @@ A pnpm workspace monorepo. See `docs/build-and-packaging.md` before changing bui
   scripts (`update-release-please-config`, `release-as`, `publication-candidates`, `prepare-publication`,
   `trusted-publishing`), which are not lint.
 
-Every published `src/*.ts` entry needs a matching entry in **both** `tsdown.config.ts`'s `entry` and
-`package.json`'s `exports`; tsdown does not infer one from the other.
+Every published `src/*.ts` file is an entry in `tsdown.config.ts`. The build writes `package.json`'s `exports`
+(and `bin`) from `entry`, so don't edit them by hand; build and commit the result.
 
 **Dependency licenses** — every package is MIT. Before adding a dependency, bundling one, or copying code or
 data in, check its license by `docs/dependency-licenses.md`. If it would force a package's license to change,

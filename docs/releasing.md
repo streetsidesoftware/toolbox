@@ -62,8 +62,8 @@ hand, as an alpha, and CI publishes every version after it, starting with `1.0.0
   `description` ending in " -- Private until verified", and a placeholder `src/`, test and `README.md`.
   Here `private` only keeps the package off npm until it's verified. It's still public in this repo and listed in
   the root `README.md` like any other package.
-- Keep `files` as `["dist", "!dist/**/*.map"]`, and every published `src/*.ts` entry in both `tsdown.config.ts` and
-  `exports`. See [build and packaging](./build-and-packaging.md).
+- Keep `files` as `["dist", "!dist/**/*.map"]`, and every published `src/*.ts` file in `tsdown.config.ts`'s `entry`.
+  The build writes `exports` from it. See [build and packaging](./build-and-packaging.md).
 - Fill in the `README.md` for someone installing the package from npm, with absolute `https://` links only.
 - The README ends with a `## Support Future Development` section with empty inject markers for
   `../../static/sponsor.md` and `../../static/footer.md`. Leave them empty, and don't run `pnpm run build:readme` in
