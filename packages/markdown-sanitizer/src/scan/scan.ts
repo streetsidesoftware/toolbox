@@ -20,7 +20,7 @@ import { byStart, joinTouching, merged, shifted } from './spans.ts';
  * - `html`: inside other HTML, such as between the tags of a `<div>`, where Markdown doesn't work.
  * - `literal`: inside code or raw HTML, where text shows as it is.
  */
-export type Placement = 'inline' | 'block' | 'html' | 'literal';
+type Placement = 'inline' | 'block' | 'html' | 'literal';
 
 /** A piece of hidden text and where it sits. */
 export interface Found extends Span {
