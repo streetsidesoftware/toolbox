@@ -206,6 +206,12 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
+  packages/copy-github-files:
+    devDependencies:
+      '@streetsidesoftware/test-each':
+        specifier: workspace:*
+        version: link:../test-each
+
   packages/github-action-toolkit: {}
 
   packages/markdown-sanitizer:
