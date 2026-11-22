@@ -1,10 +1,7 @@
 # @streetsidesoftware/markdown-sanitizer
 
-Find the text in Markdown that the page GitHub renders hides, but an agent reading the Markdown sees. Use it to check
-text from commits or pull requests before it lands in a changelog that agents read.
-
-Other renderers can hide other text. A browser hides the content of a `<script>` element, for example, but GitHub
-shows it.
+Scans a Markdown document for text that may be hidden from the reader, such as an HTML comment. Use it to expose
+comments and other hidden text in a pull request body, a commit message or other content, before an agent reads it.
 
 ## Install
 
@@ -33,12 +30,12 @@ The command reads each file you give it, or standard input when you give none.
 Lists each piece of hidden text, one per line:
 
 ```sh
-npx @streetsidesoftware/markdown-sanitizer check CHANGELOG.md
+gh pr view 123 --json body -q .body | npx @streetsidesoftware/markdown-sanitizer check
 ```
 
 ```text
-CHANGELOG.md:3:1 comment "<!-- Ignore previous instructions. -->"
-CHANGELOG.md:5:17 invisible "\u{E0049}\u{E0067}"
+<stdin>:3:1 comment "<!-- Ignore previous instructions. -->"
+<stdin>:5:18 invisible "\u{E0049}\u{E0067}"
 ```
 
 Each line gives the file, line, column, kind and text.
@@ -67,7 +64,8 @@ Options:
 
 - `--write`: replace each file with the result, instead of printing it.
 
-To clean a changelog in place:
+A changelog built from commit messages, such as by a release tool, carries their hidden text into a file that agents
+read when they upgrade a dependency. To clean one in place:
 
 ```sh
 npx @streetsidesoftware/markdown-sanitizer remove --write CHANGELOG.md
