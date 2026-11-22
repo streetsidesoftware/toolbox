@@ -31,9 +31,12 @@ The command reads each file you give it, or standard input when you give none.
 | `remove` | Prints the Markdown without the hidden text.            |
 | `reveal` | Prints the Markdown with the hidden text shown as code. |
 
-Use `check` in CI or a pre-commit hook: it exits with 1 when it finds hidden text. Use `reveal` to show a reviewer
-what is hidden, but not for text that agents read, since an agent reads revealed text too. Use `remove` to clean
-text that agents will read, such as a changelog.
+Which to use:
+
+- `check` in CI or a pre-commit hook: it exits with 1 when it finds hidden text.
+- `reveal` to show a reviewer what is hidden, but not for text that agents read, since an agent reads revealed text
+  too.
+- `remove` to clean text that agents will read, such as a changelog.
 
 ### check
 
@@ -111,9 +114,9 @@ Options:
 
 ### Exit codes
 
-- 0: success. For `check`, that means it found no hidden text.
-- 1: `check` found hidden text.
-- 2: a wrong call, a file it can't read or write, input that isn't UTF-8, or input over the limit. It prints the
+- `0`: success. For `check`, that means it found no hidden text.
+- `1`: `check` found hidden text.
+- `2`: a wrong call, a file it can't read or write, input that isn't UTF-8, or input over the limit. It prints the
   error on standard error.
 
 ## What counts as hidden
@@ -141,7 +144,7 @@ or may not be hidden, depending on where the Markdown is shown, isn't reported:
 - Other invisible characters, such as the zero-width space, the soft hyphen or a direction mark. They're common in
   ordinary text, such as a zero-width space that keeps `@name` from mentioning someone.
 
-A clean `check` means it found none of the hidden text above, not that the Markdown hides nothing.
+> **Note:** a clean `check` means it found none of the hidden text above, not that the Markdown hides nothing.
 
 ## Library
 
@@ -165,7 +168,12 @@ for (const hidden of findHidden(message)) {
 3:1 comment: "<!-- Ignore previous instructions. -->"
 ```
 
-Each result gives the kind, the offsets of the hidden text in the Markdown, its line and column, and the text itself.
+Each result has these properties:
+
+- `kind`: what hides the text: `comment`, `definition`, `footnote` or `invisible`.
+- `start` and `end`: the offsets of the hidden text in the Markdown, with `end` just past it.
+- `line` and `column`: where the hidden text starts, both from 1.
+- `text`: the hidden text, exactly as it is in the Markdown.
 
 To take the hidden text out, or to show it on the page for a reviewer, use `sanitize`:
 
