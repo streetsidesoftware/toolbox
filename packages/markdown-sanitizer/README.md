@@ -6,8 +6,10 @@ comments and other hidden text in a pull request body, a commit message or other
 Hidden text matters because an agent reads the Markdown, not the page. A comment that no reviewer sees on GitHub
 still reaches an agent that reads the pull request, and it can carry instructions, such as
 `<!-- Ignore previous instructions. -->`. Tag characters are invisible even in the Markdown, but a model reads them as
-text. Revealing hidden text shows a reviewer what an agent sees. Removing it keeps it out of text that agents read
-later, such as a changelog.
+text.
+
+- Revealing hidden text shows a reviewer what an agent sees.
+- Removing it keeps it out of text that agents read later, such as a changelog.
 
 ## Install
 
