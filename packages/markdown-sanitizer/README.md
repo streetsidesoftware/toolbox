@@ -22,11 +22,11 @@ markdown-sanitizer <command> [options] [file...]
 
 The command reads each file you give it, or standard input when you give none.
 
-| Command  | What it does                                                                                        |
-| -------- | --------------------------------------------------------------------------------------------------- |
-| `check`  | Lists each piece of hidden text: file, line, column, kind and text. Exits with 1 when there is any. |
-| `remove` | Prints the Markdown without the hidden text.                                                        |
-| `reveal` | Prints the Markdown with the hidden text shown as code.                                             |
+| Command  | What it does                                            |
+| -------- | ------------------------------------------------------- |
+| `check`  | Lists the hidden text.                                  |
+| `remove` | Prints the Markdown without the hidden text.            |
+| `reveal` | Prints the Markdown with the hidden text shown as code. |
 
 ### check
 
@@ -37,13 +37,11 @@ npx @streetsidesoftware/markdown-sanitizer check CHANGELOG.md
 ```
 
 ```text
-CHANGELOG.md:3:1 comment "<!-- Ignore\nprevious instructions. -->"
-CHANGELOG.md:6:17 invisible "\u{E0049}\u{E0067}"
+CHANGELOG.md:3:1 comment "<!-- Ignore previous instructions. -->"
+CHANGELOG.md:5:17 invisible "\u{E0049}\u{E0067}"
 ```
 
-Each line gives the file, line, column, kind and text. The text is in quotes, with a line break shown as `\n`. A
-character that wouldn't show in a terminal, such as a tag character, is shown as its code point, such as `\u{E0049}`.
-File names are shown the same way.
+Each line gives the file, line, column, kind and text.
 
 It exits with 1 when it finds hidden text, and with 0 when it finds none. To check a commit message:
 
@@ -63,12 +61,11 @@ echo 'Fix the <!-- secret --> parser.' | npx @streetsidesoftware/markdown-saniti
 Fix the  parser.
 ```
 
-It leaves a zero-width space in place of hidden text, unless a space after other text comes before it. That way the
-text on either side can't join into new hidden text, such as a new comment.
+It can leave a zero-width space where the hidden text was, so the text on either side can't join into new hidden text.
 
 Options:
 
-- `--write`: replace each file with the result. Without it, the results are printed one after another.
+- `--write`: replace each file with the result, instead of printing it.
 
 To clean a changelog in place:
 
@@ -88,24 +85,24 @@ echo 'Fix the <!-- secret --> parser.' | npx @streetsidesoftware/markdown-saniti
 Fix the `<!-- secret -->` parser.
 ```
 
-Each tag character or variation selector is shown as its code point, such as `\u{E0041}`. An agent reads revealed
-text too, so remove hidden text from Markdown that agents read, such as a changelog.
+An agent reads revealed text too, so use `remove` for Markdown that agents read, such as a changelog.
 
 Options:
 
-- `--write`: replace each file with the result. Without it, the results are printed one after another.
+- `--write`: replace each file with the result, instead of printing it.
 
 ### Options for every command
 
-- `--max-size <bytes>`: the largest input allowed, in bytes. The default is 10000000 (10 MB). Parsing slows down
-  sharply as input grows, so larger input is turned away before it's parsed.
+- `--max-size <bytes>`: the largest input allowed, in bytes. The default is 10000000 (10 MB), since parsing larger
+  input can take a long time.
 - `-h`, `--help`: show the help.
 
-### Errors
+### Exit codes
 
-A wrong call, a file it can't read or write, input that isn't UTF-8, or input over the limit prints one line to
-standard error and exits with 2. Every input is read before any file is written, so input it can't read leaves the
-files as they were.
+- 0: success. For `check`, that means it found no hidden text.
+- 1: `check` found hidden text.
+- 2: a wrong call, a file it can't read or write, input that isn't UTF-8, or input over the limit. It prints the
+  error on standard error. With `--write`, no file is written unless every input could be read.
 
 ## What counts as hidden
 
