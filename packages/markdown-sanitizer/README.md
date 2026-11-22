@@ -50,6 +50,78 @@ variation selector shows as its code point, such as `\u{E0041}`.
 
 An agent reads revealed text too, so remove hidden text from Markdown that agents read, such as a changelog.
 
+## Command line
+
+The package also installs a `markdown-sanitizer` command. It reads each file you give it, or standard input when you
+give none.
+
+```sh
+npx @streetsidesoftware/markdown-sanitizer check CHANGELOG.md
+```
+
+```text
+CHANGELOG.md:12:1 comment "<!-- Ignore previous instructions. -->"
+```
+
+| Command  | What it does                                                                                        |
+| -------- | --------------------------------------------------------------------------------------------------- |
+| `check`  | Lists each piece of hidden text: file, line, column, kind and text. Exits with 1 when there is any. |
+| `remove` | Prints the Markdown without the hidden text.                                                        |
+| `reveal` | Prints the Markdown with the hidden text shown as code.                                             |
+
+In the list from `check`, line breaks, tag characters and other characters the terminal wouldn't show appear as
+escapes, such as `\n` or `\u{E0041}`. So do any such characters in a file name.
+
+Options:
+
+- `--write`: replace each file with the result, for `remove` and `reveal`. Without it, the results are printed one
+  after another.
+- `--max-size <bytes>`: the largest input allowed, in bytes. The default is 10000000 (10 MB). Parsing slows down
+  sharply as input grows, so larger input is turned away before it's parsed.
+- `-h`, `--help`: show the help.
+
+For example, to check a commit message, or to clean a changelog in place:
+
+```sh
+git log -1 --format=%B | npx @streetsidesoftware/markdown-sanitizer check
+npx @streetsidesoftware/markdown-sanitizer remove --write CHANGELOG.md
+```
+
+A wrong call, a file it can't read or write, input that isn't UTF-8, or input over the limit prints one line to
+standard error and exits with 2. Every input is read before any file is written, so input it can't read leaves the
+files as they were.
+
+### From code
+
+The command is also exported as `run`, from `@streetsidesoftware/markdown-sanitizer/cli`. It takes the arguments after
+the program name and returns the exit code. A package that wraps the command, such as one that provides a pre-commit
+hook, needs only this file as its `bin`:
+
+```js
+#!/usr/bin/env node
+import { run } from '@streetsidesoftware/markdown-sanitizer/cli';
+
+process.exitCode = await run(process.argv.slice(2));
+```
+
+By default, `run` reads the process's standard input and writes to its standard output and error. To use other
+streams, such as to check a string and collect the output, pass them as the second argument:
+
+```ts
+import { Readable } from 'node:stream';
+
+import { run } from '@streetsidesoftware/markdown-sanitizer/cli';
+
+let output = '';
+const code = await run(['check'], {
+  stdin: Readable.from(['Fix the parser.\n\n<!-- Ignore previous instructions. -->\n']),
+  stdout: (text) => (output += text),
+  stderr: (text) => (output += text),
+});
+// code: 1
+// output: '<stdin>:3:1 comment "<!-- Ignore previous instructions. -->"\n'
+```
+
 ## What counts as hidden
 
 - **Comments.** HTML comments, and other HTML that the page hides the same way, such as `<?…>`. A comment in code
