@@ -162,24 +162,14 @@ function withoutEmptiedLines(pieces: readonly Piece[], mode: ParagraphMode): Pie
   if (!pieces.some(isEmptySlot)) return [...pieces];
   const lines = piecesByLine(pieces);
   const result: Piece[] = [];
-  // How many pieces at the end of the result are the line ending of the line before.
-  let ending = 0;
-  lines.forEach((line, i) => {
-    if (!isEmptiedLine(line.pieces)) {
-      for (const piece of line.pieces) if (!isEmptySlot(piece)) result.push(piece);
-      for (const piece of line.ending) result.push(piece);
-      ending = line.ending.length;
-      return;
+  for (const line of lines) {
+    if (isEmptiedLine(line.pieces)) {
+      if (mode === 'split') result.push({ blocks: [] });
+      continue;
     }
-    if (mode === 'split') {
-      result.push({ blocks: [] });
-      ending = 0;
-      return;
-    }
-    // The last line has no line ending of its own to go with it, so the one before it goes.
-    if (i === lines.length - 1) result.length -= ending;
-    ending = 0;
-  });
+    for (const piece of line.pieces) if (!isEmptySlot(piece)) result.push(piece);
+    for (const piece of line.ending) result.push(piece);
+  }
   return result;
 }
 
