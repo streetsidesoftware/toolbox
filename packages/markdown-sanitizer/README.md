@@ -1,7 +1,10 @@
 # @streetsidesoftware/markdown-sanitizer
 
-Find the text in Markdown that the rendered page hides, but an agent reading the Markdown sees. Use it to check text
-from commits or pull requests before it lands in a changelog that agents read.
+Find the text in Markdown that the page GitHub renders hides, but an agent reading the Markdown sees. Use it to check
+text from commits or pull requests before it lands in a changelog that agents read.
+
+Other renderers can hide other text. A browser hides the content of a `<script>` element, for example, but GitHub
+shows it.
 
 ## Install
 
