@@ -20,7 +20,7 @@ export function textNodes(text: string): PhrasingContent[] {
 }
 
 /** Return the text nodes for a string, with each line ending as a line break. */
-export function stringNodes(text: string): PhrasingContent[] {
+export function textNodesWithBreaks(text: string): PhrasingContent[] {
   return text
     .split(/\r\n?|\n/)
     .flatMap((line, i): PhrasingContent[] => [...(i ? [{ type: 'break' } as const] : []), ...textNodes(line)]);

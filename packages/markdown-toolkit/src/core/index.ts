@@ -26,7 +26,7 @@ export { htmlBlockSlotNode, htmlGroupNode, htmlInlineSlotNode } from './htmlGrou
 export type { HtmlGroupNode, HtmlSlotNode } from './htmlGroupNode.ts';
 export { asInlineHtml, inlineHtmlNode } from './inlineHtmlNode.ts';
 export { htmlEntityNode } from './htmlEntityNode.ts';
-export { joinLines, stringNodes, textNodes } from './text.ts';
+export { joinLines, textNodesWithBreaks, textNodes } from './text.ts';
 export { parseNodes } from './parse.ts';
 export { detectMarkdownStyle } from './style.ts';
 export { substituteNodes } from './substitute.ts';
