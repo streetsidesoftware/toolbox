@@ -13,7 +13,7 @@ const STDIN_NAME = '<stdin>';
 
 const USAGE = `Usage: markdown-sanitizer <command> [options] [file...]
 
-Find the text in Markdown that the page hides, but an agent reading the Markdown sees.
+Find the text in Markdown that the page GitHub renders hides, but an agent reading the Markdown sees.
 Reads each file given, or standard input when there is none.
 
 Commands:
