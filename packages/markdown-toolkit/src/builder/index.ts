@@ -8,7 +8,7 @@ export { blockComment, comment, inlineComment } from './comment.ts';
 export { heading, horizontalRule, hr, p, paragraph, toBlock } from './block.ts';
 export { li, list, listItem, ol, taskListItem, ul } from './list.ts';
 export { DocumentElement, document } from './document.ts';
-export { frontmatter, readFrontmatter, yamlNode } from './frontmatter.ts';
+export { frontmatter, readFrontmatter } from './frontmatter.ts';
 export { copy, emsp, ensp, hellip, htmlEntity, isHtmlEntity, mdash, nbsp, ndash, shy, thinsp } from './htmlEntity.ts';
 export { table } from './table.ts';
 export { definitionList, details, dl, htmlTable } from './htmlBlocks.ts';
