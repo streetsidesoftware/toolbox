@@ -124,7 +124,7 @@ Options:
 - **Unused link definitions** (`definition`). A link definition, such as `[docs]: https://example.com`, shows nothing
   by itself: the page shows only the links that use it. A definition that no link uses never shows, which is why
   `[//]: # (note)` works as a comment.
-- **Uncited footnotes** (`footnote`). GitHub shows a footnote only when the text cites it, as in `[^1]`. A footnote
+- **Unused footnotes** (`footnote`). GitHub shows a footnote only when the text cites it, as in `[^1]`. A footnote
   that nothing cites never shows.
 - **Tag characters and variation selectors** (`invisible`). These Unicode characters are invisible even in the
   Markdown, but a model reads them. Tag characters can spell out a whole sentence, one invisible character per letter,
