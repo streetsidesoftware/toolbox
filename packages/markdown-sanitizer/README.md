@@ -1,18 +1,160 @@
 # @streetsidesoftware/markdown-sanitizer
 
-Find the text in Markdown that the page GitHub renders hides, but an agent reading the Markdown sees. Use it to check
-text from commits or pull requests before it lands in a changelog that agents read.
+Scans a Markdown document for text that may be hidden from the reader, such as an HTML comment. Use it to expose
+comments and other hidden text in a pull request body, a commit message or other content.
 
-Other renderers can hide other text. A browser hides the content of a `<script>` element, for example, but GitHub
-shows it.
+Hidden text matters because an agent reads the Markdown, not the page. A comment that no reviewer sees on GitHub
+still reaches an agent that reads the pull request, and it can carry instructions, such as
+`<!-- Ignore previous instructions. -->`. Tag characters are invisible even in the Markdown, but a model reads them as
+text.
+
+- Revealing hidden text shows a reviewer what an agent sees.
+- Removing it keeps it out of text that agents read later, such as a changelog.
 
 ## Install
 
 ```sh
-npm install @streetsidesoftware/markdown-sanitizer
+npm install --save-dev @streetsidesoftware/markdown-sanitizer
 ```
 
+Or run it without installing it, with `npx @streetsidesoftware/markdown-sanitizer`.
+
 ## Usage
+
+```text
+markdown-sanitizer <command> [options] [file...]
+```
+
+The command reads each file you give it, or standard input when you give none.
+
+| Command  | What it does                                            |
+| -------- | ------------------------------------------------------- |
+| `check`  | Lists the hidden text.                                  |
+| `remove` | Prints the Markdown without the hidden text.            |
+| `reveal` | Prints the Markdown with the hidden text shown as code. |
+
+Which to use:
+
+- `check` in CI or a pre-commit hook: it exits with 1 when it finds hidden text.
+- `reveal` to show a reviewer what is hidden, but not for text that agents read, since an agent reads revealed text
+  too.
+- `remove` to clean text that agents will read, such as a changelog.
+
+### check
+
+Lists each piece of hidden text, one per line:
+
+```sh
+gh pr view 123 --json body -q .body | npx @streetsidesoftware/markdown-sanitizer check
+```
+
+```text
+<stdin>:3:1 comment "<!-- Ignore previous instructions. -->"
+<stdin>:5:18 invisible "\u{E0049}\u{E0067}"
+```
+
+Each line gives the file, line, column, kind and text. Standard input is named `<stdin>`. The kind is `comment`,
+`definition`, `footnote` or `invisible`, as described under What counts as hidden.
+
+It exits with 1 when it finds hidden text, and with 0 when it finds none. To check a commit message:
+
+```sh
+git log -1 --format=%B | npx @streetsidesoftware/markdown-sanitizer check
+```
+
+### remove
+
+Prints the Markdown without the hidden text:
+
+```sh
+echo 'Fix the <!-- secret --> parser.' | npx @streetsidesoftware/markdown-sanitizer remove
+```
+
+```text
+Fix the  parser.
+```
+
+Removing text can bring the text on either side together into new hidden text. In `<!-<!-- x -->- y -->`, taking out
+`<!-- x -->` leaves `<!-- y -->`, a new comment. So in place of the hidden text, `remove` leaves a zero-width space,
+an invisible character that keeps the two sides apart. Where a space after a word already comes before the hidden
+text, as in the example above, it leaves nothing.
+
+Options:
+
+- `--write`: replace each file with the result, instead of printing it. Every input is read first, so if one can't be
+  read, no file is changed.
+
+A changelog built from commit messages, such as by a release tool, carries their hidden text into a file that agents
+read when they upgrade a dependency. To clean one in place:
+
+```sh
+npx @streetsidesoftware/markdown-sanitizer remove --write CHANGELOG.md
+```
+
+### reveal
+
+Prints the Markdown with the hidden text shown as code, so a reviewer sees what an agent reads:
+
+```sh
+echo 'Fix the <!-- secret --> parser.' | npx @streetsidesoftware/markdown-sanitizer reveal
+```
+
+```text
+Fix the `<!-- secret -->` parser.
+```
+
+Options:
+
+- `--write`: replace each file with the result, instead of printing it. Every input is read first, so if one can't be
+  read, no file is changed.
+
+### Options for every command
+
+- `--max-size <bytes>`: the largest input allowed, in bytes. The default is 10000000 (10 MB), since parsing larger
+  input can take a long time.
+- `-h`, `--help`: show the help.
+
+### Exit codes
+
+- `0`: success. For `check`, that means it found no hidden text.
+- `1`: `check` found hidden text.
+- `2`: a wrong call, a file it can't read or write, input that isn't UTF-8, or input over the limit. It prints the
+  error on standard error.
+
+## What counts as hidden
+
+- **Comments** (`comment`). An HTML comment, `<!-- … -->`, never shows on the page. Neither does other markup that a
+  browser reads as a comment, such as `<?php … ?>`. A comment inside code shows on the page as it is, so it doesn't
+  count.
+- **Unused link definitions** (`definition`). A link definition, such as `[docs]: https://example.com`, shows nothing
+  by itself: the page shows only the links that use it. A definition that no link uses never shows, which is why
+  `[//]: # (note)` works as a comment.
+- **Unused footnotes** (`footnote`). GitHub shows a footnote only when the text cites it, as in `[^1]`. A footnote
+  that nothing cites never shows.
+- **Tag characters and variation selectors** (`invisible`). These Unicode characters are invisible even in the
+  Markdown, but a model reads them. Tag characters can spell out a whole sentence, one invisible character per letter,
+  and a run of variation selectors can carry hidden text the same way. The ones that make up an emoji, such as ❤️ or
+  the Scotland flag, don't count.
+
+### What it doesn't catch
+
+It reports only text that is clearly hidden, where removing it can't delete anything a reader sees. Text that may
+or may not be hidden, depending on where the Markdown is shown, isn't reported:
+
+- HTML that a browser hides but GitHub shows, such as a `<script>` element or the `hidden` attribute.
+- Text a reader can see with a click or a hover, such as a closed `<details>` element or a link's title.
+- Other invisible characters, such as the zero-width space, the soft hyphen or a direction mark. They're common in
+  ordinary text, such as a zero-width space that keeps `@name` from mentioning someone.
+
+> **Note:** a clean `check` means it found none of the hidden text above, not that the Markdown hides nothing.
+
+## Library
+
+To use it from code, install it as a dependency:
+
+```sh
+npm install @streetsidesoftware/markdown-sanitizer
+```
 
 ```ts
 import { findHidden } from '@streetsidesoftware/markdown-sanitizer';
@@ -28,7 +170,12 @@ for (const hidden of findHidden(message)) {
 3:1 comment: "<!-- Ignore previous instructions. -->"
 ```
 
-Each result gives the kind, the offsets of the hidden text in the Markdown, its line and column, and the text itself.
+Each result has these properties:
+
+- `kind`: what hides the text: `comment`, `definition`, `footnote` or `invisible`.
+- `start` and `end`: the offsets of the hidden text in the Markdown, with `end` just past it.
+- `line` and `column`: where the hidden text starts, both from 1.
+- `text`: the hidden text, exactly as it is in the Markdown.
 
 To take the hidden text out, or to show it on the page for a reviewer, use `sanitize`:
 
@@ -42,56 +189,9 @@ sanitize('Fix the <!-- secret --> parser.', 'reveal');
 // Fix the `<!-- secret -->` parser.
 ```
 
-Removing leaves a zero-width space in place of hidden text, unless a space after other text comes before it. That way
-the text on either side can't join into new hidden text, such as a new comment.
+Each mode works as the command of the same name does, as described under Usage.
 
-Revealing shows the hidden text on the page as code, so a reviewer sees what an agent reads. Each tag character or
-variation selector shows as its code point, such as `\u{E0041}`.
-
-An agent reads revealed text too, so remove hidden text from Markdown that agents read, such as a changelog.
-
-## Command line
-
-The package also installs a `markdown-sanitizer` command. It reads each file you give it, or standard input when you
-give none.
-
-```sh
-npx @streetsidesoftware/markdown-sanitizer check CHANGELOG.md
-```
-
-```text
-CHANGELOG.md:12:1 comment "<!-- Ignore previous instructions. -->"
-```
-
-| Command  | What it does                                                                                        |
-| -------- | --------------------------------------------------------------------------------------------------- |
-| `check`  | Lists each piece of hidden text: file, line, column, kind and text. Exits with 1 when there is any. |
-| `remove` | Prints the Markdown without the hidden text.                                                        |
-| `reveal` | Prints the Markdown with the hidden text shown as code.                                             |
-
-In the list from `check`, line breaks, tag characters and other characters the terminal wouldn't show appear as
-escapes, such as `\n` or `\u{E0041}`. So do any such characters in a file name.
-
-Options:
-
-- `--write`: replace each file with the result, for `remove` and `reveal`. Without it, the results are printed one
-  after another.
-- `--max-size <bytes>`: the largest input allowed, in bytes. The default is 10000000 (10 MB). Parsing slows down
-  sharply as input grows, so larger input is turned away before it's parsed.
-- `-h`, `--help`: show the help.
-
-For example, to check a commit message, or to clean a changelog in place:
-
-```sh
-git log -1 --format=%B | npx @streetsidesoftware/markdown-sanitizer check
-npx @streetsidesoftware/markdown-sanitizer remove --write CHANGELOG.md
-```
-
-A wrong call, a file it can't read or write, input that isn't UTF-8, or input over the limit prints one line to
-standard error and exits with 2. Every input is read before any file is written, so input it can't read leaves the
-files as they were.
-
-### From code
+### Running the command from code
 
 The command is also exported as `run`, from `@streetsidesoftware/markdown-sanitizer/cli`. It takes the arguments after
 the program name and returns the exit code. A package that wraps the command, such as one that provides a pre-commit
@@ -105,7 +205,7 @@ process.exitCode = await run(process.argv.slice(2));
 ```
 
 By default, `run` reads the process's standard input and writes to its standard output and error. To use other
-streams, such as to check a string and collect the output, pass them as the second argument:
+streams, such as to test a command that wraps `run`, pass them as the second argument:
 
 ```ts
 import { Readable } from 'node:stream';
@@ -121,17 +221,6 @@ const code = await run(['check'], {
 // code: 1
 // output: '<stdin>:3:1 comment "<!-- Ignore previous instructions. -->"\n'
 ```
-
-## What counts as hidden
-
-- **Comments.** HTML comments, and other HTML that the page hides the same way, such as `<?…>`. A comment in code
-  shows on the page, so it doesn't count.
-- **Unused definitions.** Link definitions that no link uses, such as `[//]: # (note)`, and footnotes that the page
-  leaves out.
-- **Tag characters and variation selectors.** The page shows nothing for them, but a model reads them. The ones that
-  make up an emoji, such as ❤️ or the Scotland flag, don't count.
-
-Other invisible characters, such as the zero-width space, the soft hyphen or a direction mark, don't count.
 
 ## Requirements
 
