@@ -1,4 +1,5 @@
 {
+  "@streetsidesoftware/copy-github-files": { "trustedPublishing": false },
   "@streetsidesoftware/github-action-toolkit": { "trustedPublishing": true },
   "@streetsidesoftware/markdown-toolkit": { "trustedPublishing": true },
   "@streetsidesoftware/placeholders": { "trustedPublishing": true },
