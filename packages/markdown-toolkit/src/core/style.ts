@@ -1,13 +1,14 @@
-import type { Root } from 'mdast';
+import type { Root, RootContent } from 'mdast';
 import { visit } from 'unist-util-visit';
 
 import type { MarkdownStyle } from '../types.ts';
 
 /**
- * Detect the markers that `tree` uses, such as its bullets, emphasis and fences, by majority vote over its nodes.
- * Rendering it again can then keep them, instead of falling back to remark-stringify's defaults.
+ * Detect the markers that parsed nodes use, such as their bullets, emphasis and fences, by majority vote.
+ * Rendering them again can then keep those markers, instead of falling back to remark-stringify's defaults.
+ * @param content - the text the nodes were parsed from.
  */
-export function detectMarkdownStyle(tree: Root, content: string): MarkdownStyle {
+export function detectMarkdownStyle(nodes: RootContent[], content: string): MarkdownStyle {
   const rule = new Tally<'-' | '_' | '*'>();
   const bullet = new Tally<'-' | '+' | '*'>();
   const bulletOrdered = new Tally<'.' | ')'>();
@@ -15,7 +16,8 @@ export function detectMarkdownStyle(tree: Root, content: string): MarkdownStyle 
   const strong = new Tally<'_' | '*'>();
   const fence = new Tally<'`' | '~'>();
 
-  visit(tree, (node) => {
+  const root: Root = { type: 'root', children: nodes };
+  visit(root, (node) => {
     const offset = node.position?.start.offset;
     if (offset === undefined) return;
 

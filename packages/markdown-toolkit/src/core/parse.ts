@@ -1,4 +1,4 @@
-import type { Parent, Root, RootContent, Text } from 'mdast';
+import type { Parent, RootContent, Text } from 'mdast';
 import type { CompileContext, Extension as FromMarkdownExtension, Token } from 'mdast-util-from-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
@@ -27,10 +27,10 @@ const blockConstructs = [
 ];
 
 /**
- * Parse Markdown text into a tree. Each placeholder in its text is a node of its own, and so is each HTML entity.
+ * Parse Markdown text into nodes. Each placeholder in its text is a node of its own, and so is each HTML entity.
  * @param inline - the text goes inside a line, so block syntax, such as a list marker, stays text.
  */
-export function parseTree(markdown: string, inline: boolean): Root {
+export function parseNodes(markdown: string, inline: boolean): RootContent[] {
   const processor = unified().use(remarkParse).use(remarkGfm).use(readEntities);
   if (inline) {
     processor.use(function disableBlocks() {
@@ -40,7 +40,7 @@ export function parseTree(markdown: string, inline: boolean): Root {
   }
   const root = processor.parse(markdown);
   keepPlaceholders(root);
-  return root;
+  return root.children;
 }
 
 /** Make the placeholders in text raw, in place, so rendering can't escape them. */
