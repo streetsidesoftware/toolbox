@@ -85,7 +85,7 @@ When a function changes:
 - When it moves away from its context, such as to another file or away from its only caller, read its name and
   comment as a reader there would. Add what the old context used to supply.
 
-Examples from `packages/markdown-toolkit/src`:
+Examples:
 
 The contract, including the `undefined` case a caller must handle:
 
