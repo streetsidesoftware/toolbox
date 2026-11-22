@@ -1,4 +1,4 @@
-import { paragraphNode, stringNodes, textNodes } from '../core/index.ts';
+import { paragraphNode, textNodes, textNodesWithBreaks } from '../core/index.ts';
 import type { Paragraph } from '../core/index.ts';
 import { MarkdownElement } from '../element/index.ts';
 import type { MDFragment, MDText } from '../types.ts';
@@ -7,7 +7,7 @@ class TextElement extends MarkdownElement<'inline', 'text'> implements MDText {
   readonly text: string;
 
   constructor(text: string) {
-    super('inline', 'text', 'text', stringNodes(text));
+    super('inline', 'text', 'text', textNodesWithBreaks(text));
     this.text = text;
   }
 }
