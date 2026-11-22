@@ -16,15 +16,11 @@ Or run it without installing it, with `npx @streetsidesoftware/markdown-sanitize
 
 ## Usage
 
-The `markdown-sanitizer` command reads each file you give it, or standard input when you give none.
-
-```sh
-npx @streetsidesoftware/markdown-sanitizer check CHANGELOG.md
-```
-
 ```text
-CHANGELOG.md:12:1 comment "<!-- Ignore previous instructions. -->"
+markdown-sanitizer <command> [options] [file...]
 ```
+
+The command reads each file you give it, or standard input when you give none.
 
 | Command  | What it does                                                                                        |
 | -------- | --------------------------------------------------------------------------------------------------- |
@@ -32,27 +28,84 @@ CHANGELOG.md:12:1 comment "<!-- Ignore previous instructions. -->"
 | `remove` | Prints the Markdown without the hidden text.                                                        |
 | `reveal` | Prints the Markdown with the hidden text shown as code.                                             |
 
-In the list from `check`, line breaks, tag characters and other characters the terminal wouldn't show appear as
-escapes, such as `\n` or `\u{E0041}`. So do any such characters in a file name.
+### check
 
-For example, to check a commit message, or to clean a changelog in place:
+Lists each piece of hidden text, one per line:
+
+```sh
+npx @streetsidesoftware/markdown-sanitizer check CHANGELOG.md
+```
+
+```text
+CHANGELOG.md:3:1 comment "<!-- Ignore\nprevious instructions. -->"
+CHANGELOG.md:6:17 invisible "\u{E0049}\u{E0067}"
+```
+
+Each line gives the file, line, column, kind and text. The text is in quotes, with a line break shown as `\n`. A
+character that wouldn't show in a terminal, such as a tag character, is shown as its code point, such as `\u{E0049}`.
+File names are shown the same way.
+
+It exits with 1 when it finds hidden text, and with 0 when it finds none. To check a commit message:
 
 ```sh
 git log -1 --format=%B | npx @streetsidesoftware/markdown-sanitizer check
+```
+
+### remove
+
+Prints the Markdown without the hidden text:
+
+```sh
+echo 'Fix the <!-- secret --> parser.' | npx @streetsidesoftware/markdown-sanitizer remove
+```
+
+```text
+Fix the  parser.
+```
+
+It leaves a zero-width space in place of hidden text, unless a space after other text comes before it. That way the
+text on either side can't join into new hidden text, such as a new comment.
+
+Options:
+
+- `--write`: replace each file with the result. Without it, the results are printed one after another.
+
+To clean a changelog in place:
+
+```sh
 npx @streetsidesoftware/markdown-sanitizer remove --write CHANGELOG.md
 ```
+
+### reveal
+
+Prints the Markdown with the hidden text shown as code, so a reviewer sees what an agent reads:
+
+```sh
+echo 'Fix the <!-- secret --> parser.' | npx @streetsidesoftware/markdown-sanitizer reveal
+```
+
+```text
+Fix the `<!-- secret -->` parser.
+```
+
+Each tag character or variation selector is shown as its code point, such as `\u{E0041}`. An agent reads revealed
+text too, so remove hidden text from Markdown that agents read, such as a changelog.
+
+Options:
+
+- `--write`: replace each file with the result. Without it, the results are printed one after another.
+
+### Options for every command
+
+- `--max-size <bytes>`: the largest input allowed, in bytes. The default is 10000000 (10 MB). Parsing slows down
+  sharply as input grows, so larger input is turned away before it's parsed.
+- `-h`, `--help`: show the help.
+
+### Errors
 
 A wrong call, a file it can't read or write, input that isn't UTF-8, or input over the limit prints one line to
 standard error and exits with 2. Every input is read before any file is written, so input it can't read leaves the
 files as they were.
-
-### Options
-
-- `--write`: replace each file with the result, for `remove` and `reveal`. Without it, the results are printed one
-  after another.
-- `--max-size <bytes>`: the largest input allowed, in bytes. The default is 10000000 (10 MB). Parsing slows down
-  sharply as input grows, so larger input is turned away before it's parsed.
-- `-h`, `--help`: show the help.
 
 ## What counts as hidden
 
@@ -101,13 +154,7 @@ sanitize('Fix the <!-- secret --> parser.', 'reveal');
 // Fix the `<!-- secret -->` parser.
 ```
 
-Removing leaves a zero-width space in place of hidden text, unless a space after other text comes before it. That way
-the text on either side can't join into new hidden text, such as a new comment.
-
-Revealing shows the hidden text on the page as code, so a reviewer sees what an agent reads. Each tag character or
-variation selector shows as its code point, such as `\u{E0041}`.
-
-An agent reads revealed text too, so remove hidden text from Markdown that agents read, such as a changelog.
+Each mode works as the command of the same name does, as described under Usage.
 
 ### Running the command from code
 
