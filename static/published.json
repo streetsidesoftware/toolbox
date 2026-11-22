@@ -1,5 +1,6 @@
 {
   "@streetsidesoftware/github-action-toolkit": { "trustedPublishing": true },
+  "@streetsidesoftware/markdown-sanitizer": { "trustedPublishing": false },
   "@streetsidesoftware/markdown-toolkit": { "trustedPublishing": true },
   "@streetsidesoftware/placeholders": { "trustedPublishing": true },
   "@streetsidesoftware/test-each": { "trustedPublishing": true },
