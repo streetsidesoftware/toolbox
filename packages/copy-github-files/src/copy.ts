@@ -46,6 +46,8 @@ export async function* copyGitHubFiles(
   options: CopyOptions = {},
 ): AsyncIterable<CopyResult> {
   checkSource(source);
+  // A string is an iterable of its characters, so a lone path would be read one character at a time.
+  if (typeof paths === 'string') throw new Error("The paths must be a list of paths, such as ['static/sponsor.md'].");
   const concurrency = options.concurrency ?? defaultConcurrency;
   if (!Number.isInteger(concurrency) || concurrency < 1) {
     throw new Error('The concurrency must be a whole number of at least 1.');

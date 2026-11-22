@@ -175,6 +175,15 @@ describe('copyGitHubFiles', () => {
     assert.deepEqual(requests, []);
   });
 
+  test('refuses a lone path in place of a list, before any request', async (t) => {
+    const requests = fakeGitHub(t, upstream);
+
+    await assert.rejects(collect(copyGitHubFiles(source, 'static/sponsor.md', folder)), {
+      message: "The paths must be a list of paths, such as ['static/sponsor.md'].",
+    });
+    assert.deepEqual(requests, []);
+  });
+
   test('stops the running downloads when the loop breaks', async (t) => {
     const github = slowGitHub(t, { 'fast.md': 0, 'slow.md': 1000 });
     for await (const result of copyGitHubFiles(source, ['fast.md', 'slow.md'], folder)) {
