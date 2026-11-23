@@ -2,6 +2,9 @@
 import { parseArgs } from 'node:util';
 
 import { copyGitHubFiles } from './copy.ts';
+import type { GitHubSource } from './github.ts';
+import { checkSource } from './github.ts';
+import { findFiles, isExcluded, isPattern } from './glob.ts';
 
 /** What the command reads from its environment and writes to the console, given by the caller instead. */
 export interface RunContext {
@@ -70,7 +73,11 @@ export async function run(args: string[], context: RunContext): Promise<number> 
   let failed = false;
   try {
     const source = { repo, ref, token: context.token };
-    for await (const result of copyGitHubFiles(source, paths, output, { exclude, concurrency })) {
+    checkSource(source);
+    const found = await findPaths(source, paths, exclude, context, failFast);
+    if (found.failed && failFast) return 1;
+    failed = found.failed;
+    for await (const result of copyGitHubFiles(source, found.files, output, { concurrency })) {
       if ('error' in result) {
         context.error(`Failed to copy ${result.path}: ${result.error.message}`);
         failed = true;
@@ -79,11 +86,51 @@ export async function run(args: string[], context: RunContext): Promise<number> 
         context.log(`Copied ${result.file}`);
       }
     }
+    for (const pattern of found.unmatched) {
+      context.error(`No file matches ${pattern}`);
+      failed = true;
+    }
   } catch (error) {
-    context.error(error instanceof Error ? error.message : String(error));
+    context.error(toMessage(error));
     return 1;
   }
   return failed ? 1 : 0;
+}
+
+/**
+ * Replace each pattern among the paths with the files it matches that aren't excluded.
+ * A pattern whose folders can't be read is reported, and with `failFast` stops the search.
+ */
+async function findPaths(
+  source: GitHubSource,
+  paths: string[],
+  exclude: string[],
+  context: RunContext,
+  failFast: boolean,
+): Promise<{ files: string[]; unmatched: string[]; failed: boolean }> {
+  const files: string[] = [];
+  const unmatched: string[] = [];
+  let failed = false;
+  for (const repoPath of paths) {
+    if (!isPattern(repoPath)) {
+      files.push(repoPath);
+      continue;
+    }
+    try {
+      const matches = (await findFiles(source, repoPath)).filter((file) => !isExcluded(file, exclude));
+      if (!matches.length) unmatched.push(repoPath);
+      for (const file of matches) files.push(file);
+    } catch (error) {
+      context.error(`Failed to find files for ${repoPath}: ${toMessage(error)}`);
+      failed = true;
+      if (failFast) break;
+    }
+  }
+  return { files, unmatched, failed };
+}
+
+function toMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 interface CommandLine {

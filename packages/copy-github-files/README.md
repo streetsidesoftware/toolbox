@@ -51,8 +51,9 @@ copy-github-files streetsidesoftware/streetsidesoftware.github.io 'website/stati
   `packages`.
 - A pattern doesn't reach into subfolders. `'images/*'` copies only the files directly inside `images`, and `**` isn't
   supported in a path.
+- A pattern starts in a folder, so its first segment has no wildcard. `'*.md'` is refused.
 - A `*` doesn't match a name that starts with a dot. Write the dot, as in `'.github/.*'`.
-- A pattern that ends up with no file to copy fails, like a path where no file exists.
+- After copying, the command lists each pattern that matched no file, and exits with code 1.
 - Quote each pattern, so your shell doesn't expand it against your own files.
 
 Each folder a pattern looks in is one request to GitHub. GitHub lists at most 1,000 entries of a folder, so a pattern
@@ -133,6 +134,8 @@ for await (const result of copyGitHubFiles(source, ['static/sponsor.md', 'static
 }
 ```
 
+It takes each path in full. Patterns and `--exclude` work only on the command line.
+
 It downloads up to 8 files at once, and gives each file's result as soon as that file is written or fails, so results
 can come in any order. A failed file doesn't stop the others.
 
@@ -142,13 +145,6 @@ files already given as results are written. An aborted signal ends the loop by t
 
 ```ts
 const results = copyGitHubFiles(source, paths, '.', { signal: AbortSignal.timeout(30_000) });
-```
-
-A path can be a pattern, as on the command line. To skip some of the files patterns find, pass `exclude`, with the
-same globs as `--exclude`:
-
-```ts
-const results = copyGitHubFiles(source, ['website/static/img/sponsor/*.png'], '.', { exclude: ['banner.png'] });
 ```
 
 To change how many files download at once, pass `concurrency`:

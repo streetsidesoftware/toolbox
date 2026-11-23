@@ -5,7 +5,7 @@ import { testEach } from '@streetsidesoftware/test-each';
 
 import { fakeGitHub } from './fake-github.ts';
 import { GitHubError } from './github.ts';
-import { findFiles, isExcluded, isPattern, parseExcludes } from './glob.ts';
+import { findFiles, isExcluded, isPattern } from './glob.ts';
 
 const source = { repo: 'owner/repo' };
 
@@ -27,7 +27,6 @@ describe('isPattern', () => {
 describe('findFiles', () => {
   const files = {
     'README.md': '',
-    'CHANGELOG.md': '',
     'img/a.png': '',
     'img/b.svg': '',
     'img/.hidden.png': '',
@@ -44,7 +43,6 @@ describe('findFiles', () => {
     ${'img/*'}                 | ${['img/a.png', 'img/b.svg']}
     ${'img/*.{png,svg}'}       | ${['img/a.png', 'img/b.svg']}
     ${'img/.*'}                | ${['img/.hidden.png']}
-    ${'*.md'}                  | ${['README.md', 'CHANGELOG.md']}
     ${'packages/*/README.md'}  | ${['packages/one/README.md', 'packages/three/README.md']}
     ${'packages/*/src/*.ts'}   | ${['packages/three/src/index.ts']}
     ${'img/*.gif'}             | ${[]}
@@ -86,12 +84,19 @@ describe('findFiles', () => {
     });
   });
 
-  test('finds no folder at a file', async (t) => {
+  test('finds nothing below a file', async (t) => {
     fakeGitHub(t, files);
 
-    await assert.rejects(findFiles(source, 'README.md/*', {}), {
-      message: 'The path names a file, not a folder.',
+    assert.deepEqual(await findFiles(source, 'README.md/*', {}), []);
+  });
+
+  test('refuses a pattern with a wildcard in its first segment, without a request', async (t) => {
+    const requests = fakeGitHub(t, files);
+
+    await assert.rejects(findFiles(source, '*.md', {}), {
+      message: 'A pattern must name a folder before its first wildcard, such as static/*.md.',
     });
+    assert.deepEqual(requests, []);
   });
 
   test('never matches a symlink or a submodule', async (t) => {
@@ -142,27 +147,7 @@ describe('isExcluded', () => {
   `(
     'excludes $filePath with $globs: $expected',
     ({ globs, filePath, expected }: { globs: string[]; filePath: string; expected: boolean }) => {
-      assert.equal(isExcluded(filePath, parseExcludes(globs)), expected);
+      assert.equal(isExcluded(filePath, globs), expected);
     },
   );
-});
-
-describe('parseExcludes', () => {
-  testEach`
-    glob
-    ${''}
-    ${'!'}
-    ${'/'}
-    ${'!/'}
-  `('refuses the glob "$glob"', ({ glob }: { glob: string }) => {
-    assert.throws(() => parseExcludes([glob]), {
-      message: 'A glob to exclude must name a file or folder, such as banner.png.',
-    });
-  });
-
-  test('refuses a lone glob in place of a list', () => {
-    assert.throws(() => parseExcludes('banner.png'), {
-      message: "The exclude option must be a list of globs, such as ['banner.png'].",
-    });
-  });
 });

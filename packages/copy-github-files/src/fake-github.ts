@@ -32,17 +32,13 @@ export function fakeGitHub(t: TestContext, files: Record<string, string>): FakeR
   return requests;
 }
 
-/**
- * The entries directly in a folder, in the form GitHub lists them, or none when no file is below it.
- * The empty folder is the root.
- */
+/** The entries directly in a folder, in the form GitHub lists them, or none when no file is below it. */
 function listFolder(files: Record<string, string>, folder: string) {
-  const prefix = folder ? `${folder}/` : '';
   const entries = new Map<string, { type: 'file' | 'dir'; name: string; path: string; sha: string }>();
   for (const filePath of Object.keys(files)) {
-    if (!filePath.startsWith(prefix)) continue;
-    const [name = '', ...rest] = filePath.slice(prefix.length).split('/');
-    entries.set(name, { type: rest.length ? 'dir' : 'file', name, path: `${prefix}${name}`, sha: '0' });
+    if (!filePath.startsWith(`${folder}/`)) continue;
+    const [name = '', ...rest] = filePath.slice(folder.length + 1).split('/');
+    entries.set(name, { type: rest.length ? 'dir' : 'file', name, path: `${folder}/${name}`, sha: '0' });
   }
   return [...entries.values()];
 }

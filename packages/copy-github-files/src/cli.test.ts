@@ -125,15 +125,44 @@ describe('run', () => {
     assert.deepEqual(context.logged, [`Copied ${localPath('static/sponsor.md')}`]);
   });
 
-  test('fails for a pattern that matches nothing, and copies the other files', async (t) => {
+  testEach`
+    reason                       | args
+    ${'nothing matches'}         | ${['static/*.png']}
+    ${'every match is excluded'} | ${['static/s*', '--exclude', 'sponsor.md']}
+  `('lists a pattern at the end when $reason, and copies the other files', async ({ args }: { args: string[] }, t) => {
     const context = createContext(t);
-    const code = await run(['owner/repo', 'static/*.png', 'static/sponsor.md'], context);
+    const code = await run(['owner/repo', ...args, 'static/footer.md'], context);
 
     assert.equal(code, 1);
-    assert.deepEqual(context.errors, [
-      'Failed to copy static/*.png: A pattern must match at least one file that is not excluded.',
-    ]);
+    assert.deepEqual(context.logged, [`Copied ${localPath('static/footer.md')}`]);
+    assert.deepEqual(context.errors, [`No file matches ${args[0]}`]);
+  });
+
+  test('always copies a path given in full, even when an --exclude matches it', async (t) => {
+    const context = createContext(t);
+    const code = await run(['owner/repo', 'static/sponsor.md', '--exclude', 'sponsor.md'], context);
+
+    assert.equal(code, 0);
     assert.deepEqual(context.logged, [`Copied ${localPath('static/sponsor.md')}`]);
+  });
+
+  test('reports a pattern whose folder cannot be read, and copies the other files', async (t) => {
+    const context = createContext(t);
+    const code = await run(['owner/repo', 'missing/*.md', 'static/sponsor.md'], context);
+
+    assert.equal(code, 1);
+    assert.deepEqual(context.errors, ['Failed to find files for missing/*.md: GitHub responded with status 404']);
+    assert.deepEqual(context.logged, [`Copied ${localPath('static/sponsor.md')}`]);
+  });
+
+  test('stops before copying when a pattern cannot be read, with --fail-fast', async (t) => {
+    const context = createContext(t);
+    const code = await run(['owner/repo', 'missing/*.md', 'static/sponsor.md', '--fail-fast'], context);
+
+    assert.equal(code, 1);
+    assert.deepEqual(context.errors, ['Failed to find files for missing/*.md: GitHub responded with status 404']);
+    assert.deepEqual(context.logged, []);
+    assert.equal(context.urls.length, 1);
   });
 
   test('refuses an empty --exclude', async (t) => {

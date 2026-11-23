@@ -73,31 +73,12 @@ export async function fetchGitHubPath(
   options: FetchOptions = {},
 ): Promise<GitHubPath> {
   checkSource(source);
-  checkRepoPath(repoPath);
-  return fetchContents(source, repoPath, options);
-}
+  if (!isRepoPath(repoPath)) {
+    throw new Error(
+      'A path must be written from the root of the repository, such as static/sponsor.md, without . or .. segments.',
+    );
+  }
 
-/** A folder's entries, as a folder listing gives them. */
-export type FolderEntry = Extract<GitHubPath, { type: 'dir' }>['entries'][number];
-
-/**
- * List a folder's entries. The empty path lists the root of the repository.
- * A file at the path counts as no folder there, the way {@link fetchGitHubFile} treats a folder.
- */
-export async function listGitHubFolder(
-  source: GitHubSource,
-  folder: string,
-  options: FetchOptions = {},
-): Promise<FolderEntry[]> {
-  checkSource(source);
-  if (folder) checkRepoPath(folder);
-  const found = await fetchContents(source, folder, options);
-  if (found.type !== 'dir') throw new GitHubError('The path names a file, not a folder.', 404);
-  return found.entries;
-}
-
-/** Read a path that was already checked. The empty path is the root of the repository. */
-async function fetchContents(source: GitHubSource, repoPath: string, options: FetchOptions): Promise<GitHubPath> {
   const encodedPath = repoPath.split('/').map(encodeURIComponent).join('/');
   const url = new URL(`https://api.github.com/repos/${source.repo}/contents/${encodedPath}`);
   if (source.ref) url.searchParams.set('ref', source.ref);
@@ -117,7 +98,9 @@ async function fetchContents(source: GitHubSource, repoPath: string, options: Fe
   }
   const listing: unknown = await response.json();
   if (!Array.isArray(listing)) throw new Error('The path names neither a file nor a folder.');
-  const entries = (listing as FolderEntry[]).map(({ type, name, path }) => ({ type, name, path }));
+  const entries = (listing as { type: 'file' | 'dir' | 'symlink' | 'submodule'; name: string; path: string }[]).map(
+    ({ type, name, path }) => ({ type, name, path }),
+  );
   return { type: 'dir', path: repoPath, entries };
 }
 
@@ -145,10 +128,6 @@ function refusal(response: Response, source: GitHubSource): string {
   return `GitHub responded with status ${response.status}`;
 }
 
-function checkRepoPath(repoPath: string): void {
-  if (!repoPath.split('/').every((segment) => segment !== '' && segment !== '.' && segment !== '..')) {
-    throw new Error(
-      'A path must be written from the root of the repository, such as static/sponsor.md, without . or .. segments.',
-    );
-  }
+function isRepoPath(repoPath: string): boolean {
+  return repoPath.split('/').every((segment) => segment !== '' && segment !== '.' && segment !== '..');
 }

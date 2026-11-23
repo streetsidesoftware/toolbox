@@ -4,7 +4,7 @@ import { describe, test } from 'node:test';
 import { testEach } from '@streetsidesoftware/test-each';
 
 import { fakeGitHub } from './fake-github.ts';
-import { fetchGitHubFile, fetchGitHubPath, GitHubError, listGitHubFolder } from './github.ts';
+import { fetchGitHubFile, fetchGitHubPath, GitHubError } from './github.ts';
 
 describe('fetchGitHubFile', () => {
   test('reads a file from the default branch, without a token', async (t) => {
@@ -221,18 +221,5 @@ describe('fetchGitHubPath', () => {
     await assert.rejects(fetchGitHubPath({ repo: 'owner/repo' }, 'vendor'), {
       message: 'The path names neither a file nor a folder.',
     });
-  });
-});
-
-describe('listGitHubFolder', () => {
-  test('lists the root of the repository for the empty path', async (t) => {
-    const requests = fakeGitHub(t, { 'README.md': '', 'static/sponsor.md': '' });
-    const entries = await listGitHubFolder({ repo: 'owner/repo' }, '');
-
-    assert.equal(requests[0]?.url, 'https://api.github.com/repos/owner/repo/contents/');
-    assert.deepEqual(entries, [
-      { type: 'file', name: 'README.md', path: 'README.md' },
-      { type: 'dir', name: 'static', path: 'static' },
-    ]);
   });
 });
