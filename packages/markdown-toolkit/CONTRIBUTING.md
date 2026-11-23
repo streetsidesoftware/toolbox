@@ -39,4 +39,26 @@ The README ends with a function reference generated from the code, so the README
 - A heading is named for what a reader wants to do, not for Markdown's block and inline split.
 - Groups go from common to rare, as the guide does.
 
-[Writing comments and JSDoc](../../docs/writing-comments.md#exported-functions-and-types) has the rules for the JSDoc the reference is built from.
+The reference is built from each function's parameter names and JSDoc summary. [Writing comments and JSDoc](../../docs/writing-comments.md#exported-functions-and-types) has the rules for that JSDoc, and [Writing JSDoc](#writing-jsdoc) adds this package's own. Building the README fails when a function breaks one of these:
+
+- The summary is the first paragraph, so a blank line ends it. A `@summary` tag replaces it.
+- A summary is at most 140 characters. Its only inline tag is `{@link name}`. Raw HTML fails, so write a tag as code: `` `<details>` ``.
+- Every function has a `@category` tag that says what the function is, such as `style` or `line-breaks`. Users see it on hover. A new category also needs a group in [`.api-referencerc.json`](.api-referencerc.json).
+- An alias needs no `@category` of its own.
+
+## Writing JSDoc
+
+[Writing comments and JSDoc](../../docs/writing-comments.md) covers every comment in the repo. These rules add to it for this package.
+
+- In an example, show the Markdown when it tells the reader what they'll see, such as `// **important**`. When it doesn't, describe the page in a line that starts with `// The page shows`, so it can't pass for Markdown: `// The page shows "Show more"; clicking it reveals "Hidden text."`. This form is for examples only.
+- Write a placeholder in an example as `{@name@}`, with no spaces, so the hover renders it and copied code works. In prose, write it with zero-width spaces, as [Every comment](../../docs/writing-comments.md#every-comment) says.
+- A rule about replacements is repeated in `template`, `blockTemplate`, `templateDocument`, `substitutePlaceholders`, `inlineTemplate`, `placeholder` and `blockPlaceholder`. Change it in each. Where the rule is the same, use the same words.
+
+Words to avoid:
+
+| Avoid                                      | Why                                                         | Write instead                                                 |
+| ------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------- |
+| inline content, block content, node, run   | Internal terms the reader doesn't use                       | text, links, formatting or code; a list, table or other block |
+| Replacements go in as in {@link template}. | The reader leaves the hover to guess which rules carry over | Repeat the rules that apply                                   |
+| fill (a placeholder)                       | Not the library's word                                      | substitute                                                    |
+| value (what goes in a placeholder)         | Says nothing about its role                                 | replacement                                                   |
