@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.1](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/markdown-toolkit@2.2.0...@streetsidesoftware/markdown-toolkit@2.2.1) (2026-11-23)
+
+
+### Updates and Bug Fixes
+
+* **markdown-toolkit:** keep the line ending before an emptied last line of an inline template ([#241](https://github.com/streetsidesoftware/toolbox/issues/241)) ([eb4eaa3](https://github.com/streetsidesoftware/toolbox/commit/eb4eaa3dce06d664abd698a8bada1f05c0152fd9))
+
 ## [2.2.0](https://github.com/streetsidesoftware/toolbox/compare/@streetsidesoftware/markdown-toolkit@2.1.0...@streetsidesoftware/markdown-toolkit@2.2.0) (2026-11-13)
 
 

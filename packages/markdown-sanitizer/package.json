@@ -1,6 +1,6 @@
 {
   "name": "@streetsidesoftware/markdown-sanitizer",
-  "version": "0.0.1-alpha.0",
+  "version": "1.0.0",
   "description": "Find Markdown text that the page hides but agents read, and remove it or make it visible.",
   "repository": {
     "type": "git",
