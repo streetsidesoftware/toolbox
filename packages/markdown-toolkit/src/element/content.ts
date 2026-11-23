@@ -1,4 +1,4 @@
-import { asInlineHtml, inLists, joinLines, paragraphNode, stringNodes, trimBlanks } from '../core/index.ts';
+import { asInlineHtml, inLists, joinLines, paragraphNode, textNodesWithBreaks, trimBlanks } from '../core/index.ts';
 import type { BlockContent as MdastBlockContent, PhrasingContent, RootContent } from '../core/index.ts';
 import type { AnyContent, BlockContent, InlineContent, MDBlock, MDListItem } from '../types.ts';
 import { assertCondition, assertUnhandledCase, isArray, isKind, isListItem, markdownInternalsOf } from './element.ts';
@@ -11,7 +11,7 @@ type BlockLike = BlockContent | MDListItem | readonly (BlockContent | MDListItem
  * @param where - what the content is for, such as `heading content`, for error messages.
  */
 export function inlineNodes(content: InlineContent, where: string): PhrasingContent[] {
-  if (typeof content === 'string') return stringNodes(content);
+  if (typeof content === 'string') return textNodesWithBreaks(content);
   if (isArray(content)) return content.flatMap((c) => inlineNodes(c, where));
   // Inside a line, HTML such as a comment or `<br/>` is written as is, so a line ending before it stays.
   if (isKind(content, 'inline')) return markdownInternalsOf(content).nodes.map(asInlineHtml);

@@ -1,11 +1,10 @@
-import { detectMarkdownStyle, paragraphContent, parseTree, textNodes } from '../core/index.ts';
+import { detectMarkdownStyle, paragraphContent, parseNodes, substituteNodes, textNodes } from '../core/index.ts';
 import { assertCondition, MarkdownElement } from '../element/index.ts';
 import type { MDDocument, MDFragment, MDInlineFragment } from '../types.ts';
 import { fragmentOf } from './fragment.ts';
 import { documentOf } from './parse.ts';
-import { resolverOf } from './replacements.ts';
+import { placeholderReplacements, resolverOf } from './replacements.ts';
 import type { TemplateReplacements, TemplateResolver } from './replacements.ts';
-import { substituteInTree } from './substitute.ts';
 
 /**
  * Create Markdown from a template by replacing its `{​@ name @​}` placeholders.
@@ -32,11 +31,10 @@ export function template(
   markdown: string,
   replacements: TemplateReplacements | TemplateResolver,
 ): MDFragment | MDInlineFragment {
-  const root = parseTree(markdown, false);
+  const nodes = parseNodes(markdown, false);
   // A replacement keeps positions from its own text, so detect the style before any replacement goes in.
-  const style = detectMarkdownStyle(root, markdown);
-  substituteInTree(root, resolverOf(replacements), true);
-  return fragmentOf(root, style);
+  const style = detectMarkdownStyle(nodes, markdown);
+  return fragmentOf(substituteNodes(nodes, placeholderReplacements(resolverOf(replacements)), true), style);
 }
 
 /**
@@ -59,11 +57,11 @@ export function template(
  * @category templates
  */
 export function blockTemplate(markdown: string, replacements: TemplateReplacements | TemplateResolver): MDFragment {
-  const root = parseTree(markdown, false);
+  const nodes = parseNodes(markdown, false);
   // A replacement keeps positions from its own text, so detect the style before any replacement goes in.
-  const style = detectMarkdownStyle(root, markdown);
-  substituteInTree(root, resolverOf(replacements), true);
-  return new MarkdownElement('block', 'fragment', 'a Markdown fragment', root.children, style);
+  const style = detectMarkdownStyle(nodes, markdown);
+  const substituted = substituteNodes(nodes, placeholderReplacements(resolverOf(replacements)), true);
+  return new MarkdownElement('block', 'fragment', 'a Markdown fragment', substituted, style);
 }
 
 /**
@@ -91,10 +89,10 @@ export function inlineTemplate(
   const lead = markdown.slice(0, markdown.length - start.length);
   const body = start.trimEnd();
   const tail = start.slice(body.length);
-  const root = parseTree(body, true);
-  assertCondition(paragraphContent(root.children), 'inline template text must be one paragraph');
-  substituteInTree(root, resolverOf(replacements), false);
-  const children = paragraphContent(root.children) ?? [];
+  const nodes = parseNodes(body, true);
+  assertCondition(paragraphContent(nodes), 'inline template text must be one paragraph');
+  const substituted = substituteNodes(nodes, placeholderReplacements(resolverOf(replacements)), false);
+  const children = paragraphContent(substituted) ?? [];
   return new MarkdownElement('inline', 'inlineFragment', 'an inline Markdown fragment', [
     ...textNodes(lead),
     ...children,

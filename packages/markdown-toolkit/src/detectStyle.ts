@@ -1,4 +1,4 @@
-import { detectMarkdownStyle, parseTree } from './core/index.ts';
+import { detectMarkdownStyle, parseNodes } from './core/index.ts';
 import type { MarkdownStyle } from './types.ts';
 
 /**
@@ -12,5 +12,5 @@ import type { MarkdownStyle } from './types.ts';
  * @category style
  */
 export function detectStyle(markdown: string): MarkdownStyle {
-  return detectMarkdownStyle(parseTree(markdown, false), markdown);
+  return detectMarkdownStyle(parseNodes(markdown, false), markdown);
 }

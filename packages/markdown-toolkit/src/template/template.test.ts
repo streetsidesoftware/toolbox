@@ -16,6 +16,7 @@ import {
   link,
   list,
   listItem,
+  paragraph,
   parse,
   parseDocument,
   placeholder,
@@ -267,6 +268,13 @@ describe('template', () => {
   test('in an inline template, an empty line left by an empty replacement goes', () => {
     assert.equal(inlineTemplate('a\n{@ x @}\nb', { x: '' }).toString(), 'a\nb');
     assert.equal(inlineTemplate('a\n{@ x @}{@ y @}\nb', { x: '', y: '' }).toString(), 'a\nb');
+  });
+
+  test('in an inline template, an emptied last line keeps the line ending before it, as writing it would', () => {
+    // Printed alone, a fragment drops its trailing line ending, so place it next to text.
+    const emptied = paragraph(inlineTemplate('a\n{@ x @}', { x: '' }), 'b').toString();
+    assert.equal(emptied, paragraph(inlineTemplate('a\n', {}), 'b').toString());
+    assert.equal(emptied, 'a\nb');
   });
 
   test('an empty replacement in an inline template or a document', () => {
