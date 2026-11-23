@@ -44,6 +44,8 @@ Tests use `node:test` and `node:assert/strict`. Don't add vitest, jest, or anoth
 Only erasable TypeScript syntax: Node runs the `.ts` sources directly by stripping types. No `enum`,
 `namespace`, or parameter properties; use `import type` for types.
 
+In a workflow step, put `env` above `run`, so the reader sees what the command is given before the command itself.
+
 ## Architecture
 
 A pnpm workspace monorepo. See `docs/build-and-packaging.md` before changing build config or dependencies.
