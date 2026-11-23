@@ -52,9 +52,9 @@ jobs:
         run: pnpm run build
 
       - name: Copy the sponsor section and the footer
-        run: pnpm run update:static
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm run update:static
 
       - name: Update the READMEs
         run: pnpm run build:readme
