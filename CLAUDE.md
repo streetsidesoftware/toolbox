@@ -78,9 +78,11 @@ A package's `README.md` is rendered on npmjs.com on its own, so every link in it
 URL. Write it for someone installing and using the package, not for a contributor.
 
 Every package README ends with the sponsor section (`static/sponsor.md`) and the footer (`static/footer.md`),
-injected with `inject-markdown` markers. Edit the files in `static/`, not the injected copies, and run
-`pnpm run build:readme` to update every README. Keep `static/sponsor-pub.md` in step with `static/sponsor.md`:
-it's the Markdown-only version `publish.yml` swaps in for npm, since npmjs.com doesn't render HTML like `<picture>`.
+injected with `inject-markdown` markers. These two files and `static/sponsor-pub.md` are copies from
+[streetsidesoftware/.github](https://github.com/streetsidesoftware/.github). Change them there, not in this repo.
+The Update READMEs workflow copies them with `pnpm run update:static`, injects them into every README, and opens a
+PR with any change. The `sponsor-pub.md` file is the Markdown-only version `publish.yml` swaps in for npm, since
+npmjs.com doesn't render HTML like `<picture>`.
 
 The root `README.md` packages table is generated from every `packages/*/package.json`, private ones included (name
 and `description`), into `static/packages.csv` by `gen-readme`, and injected. Change the `description`, not the table.

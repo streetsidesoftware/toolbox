@@ -1,9 +1,13 @@
 name: '📄 Update READMEs'
 
-# Runs `pnpm run build:readme`, which regenerates static/packages.csv and each package's example output, and injects
-# them, the sponsor section and the footer into every README. Opens a `chore:` PR with any change.
+# Copies the sponsor section and the footer from streetsidesoftware/.github into static/. Then runs
+# `pnpm run build:readme`, which regenerates static/packages.csv and each package's example output, and injects them,
+# the sponsor section and the footer into every README. Opens a `chore:` PR with any change.
 
 on:
+  # A change in streetsidesoftware/.github can't trigger this workflow, so it also runs weekly to pick one up.
+  schedule:
+    - cron: '0 12 * * 1'
   workflow_dispatch:
     inputs:
       ref:
@@ -46,6 +50,11 @@ jobs:
       # The examples import their package, which resolves to its build.
       - name: Build
         run: pnpm run build
+
+      - name: Copy the sponsor section and the footer
+        run: pnpm run update:static
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update the READMEs
         run: pnpm run build:readme
