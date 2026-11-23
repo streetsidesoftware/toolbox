@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { parseArgs } from 'node:util';
 
-import { copyGitHubFiles } from './copy.ts';
+import { copyGitHubFiles } from './index.ts';
 
 /** What the command reads from its environment and writes to the console, given by the caller instead. */
 export interface RunContext {

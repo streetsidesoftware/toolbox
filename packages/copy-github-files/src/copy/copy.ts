@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import type { FetchOptions, GitHubSource } from './github.ts';
-import { checkSource, fetchGitHubFile } from './github.ts';
+import type { FetchOptions, GitHubSource } from '../github/index.ts';
+import { checkSource, fetchGitHubFile } from '../github/index.ts';
 
 /** What happened to one file: the local file it was written to, or why it wasn't copied. */
 export type CopyResult = { path: string; file: string } | { path: string; error: Error };

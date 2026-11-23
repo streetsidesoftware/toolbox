@@ -8,10 +8,10 @@ import { setTimeout as delay, setImmediate as nextTurn } from 'node:timers/promi
 
 import { testEach } from '@streetsidesoftware/test-each';
 
+import { GitHubError } from '../github/index.ts';
+import { fakeGitHub } from '../testing/fake-github.ts';
 import type { CopyResult } from './copy.ts';
 import { copyGitHubFiles } from './copy.ts';
-import { fakeGitHub } from './fake-github.ts';
-import { GitHubError } from './github.ts';
 
 const upstream: Record<string, string> = {
   'static/sponsor.md': 'Sponsor us.\n',

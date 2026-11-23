@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, test } from 'node:test';
 import { testEach } from '@streetsidesoftware/test-each';
 
 import { run, usage } from './cli.ts';
-import { fakeGitHub } from './fake-github.ts';
+import { fakeGitHub } from './testing/fake-github.ts';
 
 const upstream: Record<string, string> = {
   'static/sponsor.md': 'Sponsor us.\n',

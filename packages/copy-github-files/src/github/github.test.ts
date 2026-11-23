@@ -3,7 +3,7 @@ import { describe, test } from 'node:test';
 
 import { testEach } from '@streetsidesoftware/test-each';
 
-import { fakeGitHub } from './fake-github.ts';
+import { fakeGitHub } from '../testing/fake-github.ts';
 import { fetchGitHubFile, fetchGitHubPath, GitHubError } from './github.ts';
 
 describe('fetchGitHubFile', () => {
