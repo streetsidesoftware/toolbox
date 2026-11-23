@@ -111,7 +111,8 @@ function writeNode(node: PhrasingContent): string | undefined {
     case 'inlineHtml':
       return (node as Literal).value;
     case 'inlineCode':
-      // Written as Markdown writes code: empty code as one space, and a line ending as a space.
+      // Empty code is written as one space, as in Markdown. A line ending is written as a space, since Markdown reads
+      // a line ending in code as a space.
       return `<code>${htmlEscape(node.value.replace(/\r\n?|\n/g, ' ') || ' ')}</code>`;
     case 'strong':
       return writeFormatting('strong', node.children);

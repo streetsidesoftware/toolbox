@@ -154,8 +154,8 @@ function isBlockSlot(piece: Piece): piece is BlockSlot {
 }
 
 /**
- * Return a paragraph's pieces without the empty replacements, and without each line that held only those and spaces
- * or tabs. Such a line goes with its line ending:
+ * Return a paragraph's pieces without the empty replacements, and without each line that held nothing but empty
+ * replacements, spaces and tabs. Such a line goes with its line ending:
  * - Where the paragraph can split, the paragraph ends at that line, as an empty part ends the paragraph in `document`.
  * - Otherwise the paragraph stays whole.
  */
