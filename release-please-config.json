@@ -67,7 +67,8 @@
       "component": "toolbox"
     },
     "packages/copy-github-files": {
-      "component": "@streetsidesoftware/copy-github-files"
+      "component": "@streetsidesoftware/copy-github-files",
+      "release-as": "1.0.0"
     },
     "packages/github-action-toolkit": {
       "component": "@streetsidesoftware/github-action-toolkit"
