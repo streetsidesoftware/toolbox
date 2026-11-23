@@ -48,7 +48,7 @@ export class GitHubError extends Error {
 export async function fetchGitHubFile(
   source: GitHubSource,
   filePath: string,
-  options: FetchOptions = {},
+  options?: FetchOptions,
 ): Promise<Uint8Array> {
   const found = await fetchGitHubPath(source, filePath, options);
   // Asked for a file, a folder means no file was found at the path.
@@ -70,7 +70,7 @@ export async function fetchGitHubFile(
 export async function fetchGitHubPath(
   source: GitHubSource,
   repoPath: string,
-  options: FetchOptions = {},
+  options?: FetchOptions,
 ): Promise<GitHubPath> {
   checkSource(source);
   if (!isRepoPath(repoPath)) {
@@ -91,7 +91,7 @@ export async function fetchGitHubPath(
   };
   if (source.token) headers['Authorization'] = `Bearer ${source.token}`;
 
-  const response = await fetch(url, { headers, signal: options.signal ?? null });
+  const response = await fetch(url, { headers, signal: options?.signal ?? null });
   if (!response.ok) throw new GitHubError(refusal(response, source), response.status);
   if (response.headers.get('content-type')?.startsWith('application/vnd.github.raw')) {
     return { type: 'file', path: repoPath, content: await response.bytes() };

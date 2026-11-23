@@ -1,4 +1,3 @@
-// cspell:ignore outptu
 import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -8,8 +7,9 @@ import { afterEach, beforeEach, describe, test } from 'node:test';
 
 import { testEach } from '@streetsidesoftware/test-each';
 
-import { run, usage } from './cli.ts';
-import { fakeGitHub } from './fake-github.ts';
+import { fakeGitHub } from '../testing/fake-github.ts';
+import { usage } from './parse.ts';
+import { run } from './run.ts';
 
 const upstream: Record<string, string> = {
   'static/sponsor.md': 'Sponsor us.\n',
@@ -103,6 +103,38 @@ describe('run', () => {
     assert.deepEqual((await readdir(path.join(cwd, 'static'))).sort(), ['footer.md', 'sponsor.md']);
   });
 
+  test('prints to the console and reads GITHUB_TOKEN when no context is given', async (t) => {
+    const requests = fakeGitHub(t, upstream);
+    const log = t.mock.method(console, 'log', () => undefined);
+    setToken(t, 'from-env');
+    const code = await run(['owner/repo', 'static/sponsor.md']);
+
+    assert.equal(code, 0);
+    assert.deepEqual(
+      log.mock.calls.map((call) => call.arguments),
+      [[`Copied ${localPath('static/sponsor.md')}`]],
+    );
+    assert.equal(requests[0]?.headers['Authorization'], 'Bearer from-env');
+  });
+
+  test('uses the console only for the parts of the context left out', async (t) => {
+    const consoleError = t.mock.method(console, 'error', () => undefined);
+    const logged: string[] = [];
+    const code = await run(['owner/repo', 'a.md', '--nope'], { log: (line) => logged.push(line) });
+
+    assert.equal(code, 1);
+    assert.equal(consoleError.mock.callCount(), 1);
+    assert.deepEqual(logged, []);
+  });
+
+  test('prefers the token in the context to GITHUB_TOKEN', async (t) => {
+    const context = createContext(t, { token: 'given' });
+    setToken(t, 'from-env');
+    await run(['owner/repo', 'static/sponsor.md'], context);
+
+    assert.deepEqual(context.authorizations, ['Bearer given']);
+  });
+
   test('shows the usage for --help', async (t) => {
     const context = createContext(t);
     const code = await run(['--help'], context);
@@ -111,50 +143,14 @@ describe('run', () => {
     assert.deepEqual(context.logged, [usage]);
   });
 
-  testEach`
-    option             | rawName
-    ${'--outptu'}      | ${'--outptu'}
-    ${'--outptu=docs'} | ${'--outptu'}
-    ${'-o'}            | ${'-o'}
-  `('names the unknown option in $option', async ({ option, rawName }: { option: string; rawName: string }, t) => {
+  test('reports a wrong option, without a request', async (t) => {
     const context = createContext(t);
-    const code = await run(['owner/repo', 'a.md', option], context);
+    const code = await run(['owner/repo', 'static/sponsor.md', '--silent=yes'], context);
 
     assert.equal(code, 1);
-    assert.deepEqual(context.errors, [
-      `Unknown option ${rawName}. The options are --output, --ref, --concurrency, --fail-fast, --silent and --help.`,
-    ]);
-    assert.deepEqual(context.urls, []);
-  });
-
-  testEach`
-    args
-    ${['--ref']}
-    ${['--ref', '--output', 'docs']}
-  `('names the option without its value in $args', async ({ args }: { args: string[] }, t) => {
-    const context = createContext(t);
-    const code = await run(['owner/repo', 'a.md', ...args], context);
-
-    assert.equal(code, 1);
-    assert.deepEqual(context.errors, ['The --ref option must name a branch, tag or commit.']);
-    assert.deepEqual(context.urls, []);
-  });
-
-  test('accepts a value that starts with a dash when written with =', async (t) => {
-    const context = createContext(t);
-    const code = await run(['owner/repo', 'static/sponsor.md', '--ref=-v1'], context);
-
-    assert.equal(code, 0);
-    assert.deepEqual(context.urls, ['https://api.github.com/repos/owner/repo/contents/static/sponsor.md?ref=-v1']);
-  });
-
-  test('refuses a value for --help', async (t) => {
-    const context = createContext(t);
-    const code = await run(['--help=yes'], context);
-
-    assert.equal(code, 1);
-    assert.deepEqual(context.errors, ['The --help option takes no value.']);
+    assert.deepEqual(context.errors, ['The --silent option takes no value.']);
     assert.deepEqual(context.logged, []);
+    assert.deepEqual(context.urls, []);
   });
 
   testEach`
@@ -183,15 +179,6 @@ describe('run', () => {
     assert.deepEqual(context.urls, ['https://api.github.com/repos/owner/.github/contents/a.md']);
   });
 
-  test('refuses an empty --output', async (t) => {
-    const context = createContext(t);
-    const code = await run(['owner/repo', 'static/sponsor.md', '--output='], context);
-
-    assert.equal(code, 1);
-    assert.deepEqual(context.errors, ['The --output option must name a folder.']);
-    assert.deepEqual(context.urls, []);
-  });
-
   test('lists no copied file with --silent, but still shows failures', async (t) => {
     const context = createContext(t);
     const code = await run(['owner/repo', 'static/sponsor.md', 'static/missing.md', '--silent'], context);
@@ -200,15 +187,6 @@ describe('run', () => {
     assert.deepEqual(context.logged, []);
     assert.deepEqual(context.errors, ['Failed to copy static/missing.md: GitHub responded with status 404']);
     assert.equal(await readFile(path.join(cwd, 'static/sponsor.md'), 'utf8'), 'Sponsor us.\n');
-  });
-
-  test('refuses a value for --silent', async (t) => {
-    const context = createContext(t);
-    const code = await run(['owner/repo', 'static/sponsor.md', '--silent=yes'], context);
-
-    assert.equal(code, 1);
-    assert.deepEqual(context.errors, ['The --silent option takes no value.']);
-    assert.deepEqual(context.urls, []);
   });
 
   test('downloads up to --concurrency files at once', async (t) => {
@@ -220,32 +198,6 @@ describe('run', () => {
       `Copied ${localPath('static/sponsor.md')}`,
       `Copied ${localPath('static/footer.md')}`,
     ]);
-  });
-
-  testEach`
-    value
-    ${'0'}
-    ${'-1'}
-    ${'1.5'}
-    ${'many'}
-    ${''}
-    ${'08'}
-  `('refuses --concurrency=$value', async ({ value }: { value: string }, t) => {
-    const context = createContext(t);
-    const code = await run(['owner/repo', 'static/sponsor.md', `--concurrency=${value}`], context);
-
-    assert.equal(code, 1);
-    assert.deepEqual(context.errors, ['The --concurrency option must be a whole number of at least 1.']);
-    assert.deepEqual(context.urls, []);
-  });
-
-  test('refuses an empty --ref', async (t) => {
-    const context = createContext(t);
-    const code = await run(['owner/repo', 'static/sponsor.md', '--ref='], context);
-
-    assert.equal(code, 1);
-    assert.deepEqual(context.errors, ['The --ref option must name a branch, tag or commit.']);
-    assert.deepEqual(context.urls, []);
   });
 
   test('copies the other files when one cannot be written', async (t) => {
@@ -296,6 +248,16 @@ describe('run', () => {
     assert.equal(context.urls.length, 1);
   });
 });
+
+/** Set GITHUB_TOKEN for one test. */
+function setToken(t: TestContext, token: string): void {
+  const before = process.env['GITHUB_TOKEN'];
+  process.env['GITHUB_TOKEN'] = token;
+  t.after(() => {
+    if (before === undefined) delete process.env['GITHUB_TOKEN'];
+    else process.env['GITHUB_TOKEN'] = before;
+  });
+}
 
 /** The path as the command prints it, with the platform's separator. */
 function localPath(filePath: string): string {
