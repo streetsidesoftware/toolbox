@@ -53,6 +53,7 @@ The reference is built from each function's parameter names and JSDoc summary. [
 - Write a placeholder in an example as `{@name@}`, with no spaces, so the hover renders it and copied code works. In prose, write it with zero-width spaces, as [Every comment](../../docs/writing-comments.md#every-comment) says.
 - A rule about replacements is repeated in `template`, `blockTemplate`, `templateDocument`, `substitutePlaceholders`, `inlineTemplate`, `placeholder` and `blockPlaceholder`. Change it in each. Where the rule is the same, use the same words.
 - Call a value that adds nothing to the Markdown empty: `''`, `[]`, `text('')`, `p()`, and spaces and tabs where the toolkit drops them at the edge of a line. Write "empty", never "shows nothing" or "renders nothing". A value that writes anything isn't empty, even where the page doesn't show it, such as a comment or `sup('')`.
+- Keep "shows" for what the reader sees on the page. When a comment means what the Markdown file holds, write "is written as".
 
 Words to avoid:
 

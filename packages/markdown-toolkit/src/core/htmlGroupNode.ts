@@ -111,7 +111,7 @@ function writeNode(node: PhrasingContent): string | undefined {
     case 'inlineHtml':
       return (node as Literal).value;
     case 'inlineCode':
-      // Empty code shows as one space, and a line ending as a space, as in Markdown.
+      // Written as Markdown writes code: empty code as one space, and a line ending as a space.
       return `<code>${htmlEscape(node.value.replace(/\r\n?|\n/g, ' ') || ' ')}</code>`;
     case 'strong':
       return writeFormatting('strong', node.children);
@@ -131,7 +131,7 @@ function writeNode(node: PhrasingContent): string | undefined {
   }
 }
 
-/** Return formatting as HTML. Empty formatting shows as one formatted space, as in Markdown. */
+/** Return formatting as HTML. Empty formatting is written with one space, as in Markdown. */
 function writeFormatting(tag: string, children: readonly PhrasingContent[]): string | undefined {
   const inner = writeInline(children);
   return inner === undefined ? undefined : `<${tag}>${inner || ' '}</${tag}>`;

@@ -43,8 +43,9 @@ export function template(
  * - A string shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
- * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
- *   entity shows as its character in code, and as its reference in HTML.
+ * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. In
+ *   HTML, an entity such as {@link nbsp} is written as `&nbsp;`. In code, it's written as the character itself, since
+ *   code doesn't read entities.
  * - A placeholder in a link or image URL, a title or a reference definition takes only a string, which goes in as given.
  *   Markdown allows no spaces in a URL, so write `{​@name@​}` there, or wrap the URL in `<…>`.
  * - A placeholder without a replacement stays in place, so a later call can substitute it.
@@ -108,8 +109,9 @@ export function inlineTemplate(
  * - A string shows as text, not as formatting, with each newline as a line break.
  * - A placeholder within a sentence takes text, links, formatting or code.
  * - A placeholder on a line of its own can also take a list, table or other block.
- * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. An
- *   entity shows as its character in code, and as its reference in HTML.
+ * - A placeholder inside code or HTML takes only a string or an {@link htmlEntity}. A string goes in as given. In
+ *   HTML, an entity such as {@link nbsp} is written as `&nbsp;`. In code, it's written as the character itself, since
+ *   code doesn't read entities.
  * - A placeholder in a link or image URL, a title or a reference definition takes only a string, which goes in as given.
  *   Markdown allows no spaces in a URL, so write `{​@name@​}` there, or wrap the URL in `<…>`.
  * - A placeholder without a replacement stays in place, so a later call can substitute it.
