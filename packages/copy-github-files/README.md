@@ -37,12 +37,56 @@ To run it from a script in `package.json`:
 }
 ```
 
+### Patterns
+
+A path with `*`, `?`, `[` or `{` in it is a pattern. To copy every PNG in one folder:
+
+```sh
+copy-github-files streetsidesoftware/streetsidesoftware.github.io 'website/static/img/sponsor/*.png'
+```
+
+- Each segment of a pattern is matched against the names in one folder, with the syntax of Node's
+  [`path.matchesGlob`](https://nodejs.org/api/path.html#pathmatchesglobpath-pattern). The last segment matches files,
+  and the segments before it match folders. So `'packages/*/README.md'` copies the `README.md` of every folder in
+  `packages`.
+- A pattern doesn't reach into subfolders. `'images/*'` copies only the files directly inside `images`, and `**` isn't
+  supported in a path.
+- A `*` doesn't match a name that starts with a dot. Write the dot, as in `'.github/.*'`.
+- A pattern that ends up with no file to copy fails, like a path where no file exists.
+- Quote each pattern, so your shell doesn't expand it against your own files.
+
+Each folder a pattern looks in is one request to GitHub. GitHub lists at most 1,000 entries of a folder, so a pattern
+can't find files past the first 1,000.
+
+### Excluding files
+
+To skip some of the files a pattern finds, add `--exclude <glob>`, once for each glob:
+
+```sh
+copy-github-files streetsidesoftware/streetsidesoftware.github.io 'website/static/img/sponsor/*.png' --exclude banner.png
+```
+
+A glob is matched the way a line in `.gitignore` is:
+
+- A glob without a `/` matches the name of the file, or of any folder above it, such as `banner.png` or
+  `'*-dark-*.png'`.
+- A glob with a `/` at its start or in its middle matches the path from the root of the repository, such as
+  `website/static/img/sponsor/banner.png`.
+- A glob that ends in `/` matches only folders. `drafts/` skips every file inside a folder named `drafts`.
+- `**` matches any number of folders, as in `'website/**/banner.png'`.
+- A glob that starts with `!` keeps the files it matches, whatever other globs match them. The order of the globs
+  doesn't matter.
+
+Unlike in git, a `!` glob also keeps a file inside an excluded folder. A path given in full, without a wildcard, is
+always copied.
+
 ### Options
 
 | Option              | What it does                                                                            |
 | ------------------- | --------------------------------------------------------------------------------------- |
 | `--output <dir>`    | Write the files below `<dir>` instead of the current folder, keeping their paths.       |
 | `--ref <ref>`       | Copy from a branch, tag or commit. Without it, the repository's default branch is used. |
+| `--exclude <glob>`  | Skip the files a pattern finds that match `<glob>`. Give it once for each glob.         |
 | `--concurrency <n>` | Download up to `<n>` files at once. Default: 8.                                         |
 | `--fail-fast`       | Stop at the first file that fails.                                                      |
 | `--silent`          | List no copied files. Failures are still shown.                                         |
@@ -54,7 +98,8 @@ With `--output docs`, `static/sponsor.md` is written to `docs/static/sponsor.md`
 
 A public repository needs no token. When `GITHUB_TOKEN` is set, it authenticates the requests:
 
-- It raises GitHub's limit of 60 unauthenticated requests an hour. Each file is one request.
+- It raises GitHub's limit of 60 unauthenticated requests an hour. Each file is one request, and so is each folder a
+  pattern looks in.
 - It gives access to a private repository, when the token can read that repository.
 
 In a GitHub workflow, pass the workflow's token to copy from a public repository:
@@ -97,6 +142,13 @@ files already given as results are written. An aborted signal ends the loop by t
 
 ```ts
 const results = copyGitHubFiles(source, paths, '.', { signal: AbortSignal.timeout(30_000) });
+```
+
+A path can be a pattern, as on the command line. To skip some of the files patterns find, pass `exclude`, with the
+same globs as `--exclude`:
+
+```ts
+const results = copyGitHubFiles(source, ['website/static/img/sponsor/*.png'], '.', { exclude: ['banner.png'] });
 ```
 
 To change how many files download at once, pass `concurrency`:

@@ -103,6 +103,48 @@ describe('run', () => {
     assert.deepEqual((await readdir(path.join(cwd, 'static'))).sort(), ['footer.md', 'sponsor.md']);
   });
 
+  test('copies the files a pattern matches', async (t) => {
+    const context = createContext(t);
+    const code = await run(['owner/repo', 'static/*.md'], context);
+
+    assert.equal(code, 0);
+    assert.deepEqual(context.logged.toSorted(), [
+      `Copied ${localPath('static/footer.md')}`,
+      `Copied ${localPath('static/sponsor.md')}`,
+    ]);
+  });
+
+  test('skips the files that match an --exclude, given more than once', async (t) => {
+    const context = createContext(t);
+    const code = await run(
+      ['owner/repo', 'static/*', '--exclude', 'static/*', '--exclude', '!static/sponsor.md'],
+      context,
+    );
+
+    assert.equal(code, 0);
+    assert.deepEqual(context.logged, [`Copied ${localPath('static/sponsor.md')}`]);
+  });
+
+  test('fails for a pattern that matches nothing, and copies the other files', async (t) => {
+    const context = createContext(t);
+    const code = await run(['owner/repo', 'static/*.png', 'static/sponsor.md'], context);
+
+    assert.equal(code, 1);
+    assert.deepEqual(context.errors, [
+      'Failed to copy static/*.png: A pattern must match at least one file that is not excluded.',
+    ]);
+    assert.deepEqual(context.logged, [`Copied ${localPath('static/sponsor.md')}`]);
+  });
+
+  test('refuses an empty --exclude', async (t) => {
+    const context = createContext(t);
+    const code = await run(['owner/repo', 'static/*', '--exclude='], context);
+
+    assert.equal(code, 1);
+    assert.deepEqual(context.errors, ['The --exclude option must name a file or folder, such as banner.png.']);
+    assert.deepEqual(context.urls, []);
+  });
+
   test('shows the usage for --help', async (t) => {
     const context = createContext(t);
     const code = await run(['--help'], context);
@@ -122,7 +164,7 @@ describe('run', () => {
 
     assert.equal(code, 1);
     assert.deepEqual(context.errors, [
-      `Unknown option ${rawName}. The options are --output, --ref, --concurrency, --fail-fast, --silent and --help.`,
+      `Unknown option ${rawName}. The options are --output, --ref, --exclude, --concurrency, --fail-fast, --silent and --help.`,
     ]);
     assert.deepEqual(context.urls, []);
   });
