@@ -43,20 +43,21 @@ export async function* copyGitHubFiles(
   source: GitHubSource,
   paths: Iterable<string>,
   folder: string,
-  options: CopyOptions = {},
+  options?: CopyOptions,
 ): AsyncIterable<CopyResult> {
   checkSource(source);
   // A string is an iterable of its characters, so a lone path would be read one character at a time.
   if (typeof paths === 'string') throw new Error("The paths must be a list of paths, such as ['static/sponsor.md'].");
-  const concurrency = options.concurrency ?? defaultConcurrency;
+  const concurrency = options?.concurrency ?? defaultConcurrency;
+  const callerSignal = options?.signal;
   if (!Number.isInteger(concurrency) || concurrency < 1) {
     throw new Error('The concurrency must be a whole number of at least 1.');
   }
-  options.signal?.throwIfAborted();
+  callerSignal?.throwIfAborted();
 
   // Stops every download still running when the loop ends early, through a break, a return or a throw.
   const internal = new AbortController();
-  const signal = options.signal ? AbortSignal.any([options.signal, internal.signal]) : internal.signal;
+  const signal = callerSignal ? AbortSignal.any([callerSignal, internal.signal]) : internal.signal;
   const pending = pullOnce(paths);
   const running = new Set<Promise<Finished>>();
   try {
@@ -69,9 +70,9 @@ export async function* copyGitHubFiles(
       if (!running.size) return;
       const finished = await Promise.race(running);
       running.delete(finished.task);
-      options.signal?.throwIfAborted();
+      callerSignal?.throwIfAborted();
       yield await write(finished.downloaded, folder);
-      options.signal?.throwIfAborted();
+      callerSignal?.throwIfAborted();
     }
   } finally {
     internal.abort();
