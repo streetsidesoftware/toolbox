@@ -93,7 +93,7 @@ export function groupedNodes(content: AnyContent | readonly AnyContent[], where:
  * - Inline arguments in a row form one paragraph, a line each. An array is one argument.
  * - Text loses the spaces and tabs at the start and end of an argument, and next to a block within one. They would show
  *   escaped next to a line ending.
- * - An argument that renders nothing leaves an empty line, so the arguments around it are two paragraphs.
+ * - An empty argument ends the paragraph, so the arguments around it are two paragraphs.
  * @param where - what the content is for, for error messages.
  */
 export function argumentNodes(args: readonly AnyContent[], where: string): MdastBlockContent[] {

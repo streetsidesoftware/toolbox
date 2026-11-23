@@ -11,7 +11,7 @@ import { frontmatter, isFrontmatter } from './frontmatter.ts';
  *
  * Each other part goes on a line of its own:
  * - Text, links and other pieces in a row form one paragraph. The page shows a space between them.
- * - A part that shows nothing ends the paragraph.
+ * - An empty part, or one of only spaces and tabs, ends the paragraph.
  * - A paragraph, list or other block goes on its own lines.
  * - An array is one part, and its pieces join with no spaces added. For a sentence built from pieces, use an array or
  *   {@link p}.

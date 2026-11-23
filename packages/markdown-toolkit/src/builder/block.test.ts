@@ -69,7 +69,7 @@ describe('paragraph', () => {
     },
   );
 
-  test('an empty paragraph renders nothing', () => {
+  test('an empty paragraph is left out', () => {
     assert.equal(p('').toString(), '');
   });
 
@@ -96,7 +96,7 @@ describe('paragraph', () => {
     assert.equal(md.toString(), '## Release notes\n\n- x\n');
   });
 
-  test('a paragraph left empty by substitution renders nothing', () => {
+  test('a paragraph left empty by substitution is left out', () => {
     const md = document('a', p(placeholder('x')), 'b');
     assert.equal(substitutePlaceholders(md, { x: '' }).toString(), 'a\n\nb\n');
   });

@@ -102,7 +102,7 @@ describe('parseDocument', () => {
         ${'after frontmatter'}          | ${document(frontmatter('a: 1'), file)}                     | ${'---\na: 1\n---\n\n# T\n'}
         ${'after a heading'}            | ${document(heading(1, 'A'), file)}                         | ${'# A\n\n# T\n'}
         ${'after a comment'}            | ${document(comment('c'), file)}                            | ${'<!-- c -->\n\n# T\n'}
-        ${'after nothing shown'}        | ${document('', file)}                                      | ${'---\nb: 2\n---\n\n# T\n'}
+        ${'after an empty part'}        | ${document('', file)}                                      | ${'---\nb: 2\n---\n\n# T\n'}
         ${'after an empty paragraph'}   | ${document(p(''), file)}                                   | ${'# T\n'}
         ${'after another document'}     | ${document(parseDocument('---\na: 1\n---\nA\n'), file)}    | ${'---\na: 1\n---\n\nA\n\n# T\n'}
         ${'in a list item'}             | ${document(list([[file]]))}                                | ${'- # T\n'}

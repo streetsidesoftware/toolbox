@@ -54,7 +54,7 @@ export function strikethrough(content: InlineContent): MDStrikethrough {
  *
  * It can hold text, links, formatting or code, including {@link sub}.
  *
- * Empty text shows nothing.
+ * Empty text gives just the tags: `<sup></sup>`.
  *
  * The Markdown holds `<sup>` and `</sup>` tags, so the page must render HTML.
  *
@@ -72,7 +72,7 @@ export function sup(content: InlineContent): MDSup {
  *
  * It can hold text, links, formatting or code, including {@link sup}.
  *
- * Empty text shows nothing.
+ * Empty text gives just the tags: `<sub></sub>`.
  *
  * The Markdown holds `<sub>` and `</sub>` tags, so the page must render HTML.
  *
