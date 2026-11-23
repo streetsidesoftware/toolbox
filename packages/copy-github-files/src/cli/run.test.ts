@@ -14,6 +14,9 @@ import { run } from './run.ts';
 const upstream: Record<string, string> = {
   'static/sponsor.md': 'Sponsor us.\n',
   'static/footer.md': 'Footer.\n',
+  'static/img/logo.png': 'logo',
+  'static/img/banner.png': 'banner',
+  'static/img/logo.svg': 'svg',
 };
 
 const startFolder = process.cwd();
@@ -233,6 +236,66 @@ describe('run', () => {
       'Failed to copy ../a.md: A path must be written from the root of the repository, such as static/sponsor.md, without . or .. segments.',
     ]);
     assert.deepEqual(context.logged, [`Copied ${localPath('static/sponsor.md')}`]);
+  });
+
+  test('copies the files a pattern matches', async (t) => {
+    const context = createContext(t);
+    const code = await run(['owner/repo', 'static/*.md'], context);
+
+    assert.equal(code, 0);
+    assert.equal(await readFile(path.join(cwd, 'static/sponsor.md'), 'utf8'), 'Sponsor us.\n');
+    assert.deepEqual(context.logged.toSorted(), [
+      `Copied ${localPath('static/footer.md')}`,
+      `Copied ${localPath('static/sponsor.md')}`,
+    ]);
+  });
+
+  test('skips the files each --exclude matches, and keeps those a ! glob matches', async (t) => {
+    const context = createContext(t);
+    const code = await run(
+      ['owner/repo', 'static/img/*', '--exclude', 'static/img/*', '--exclude', '!static/img/*.png'],
+      context,
+    );
+
+    assert.equal(code, 0);
+    assert.deepEqual(context.logged.toSorted(), [
+      `Copied ${localPath('static/img/banner.png')}`,
+      `Copied ${localPath('static/img/logo.png')}`,
+    ]);
+  });
+
+  test('copies a path given in full that an --exclude matches', async (t) => {
+    const context = createContext(t);
+    const code = await run(['owner/repo', 'static/img/banner.png', '--exclude', 'banner.png'], context);
+
+    assert.equal(code, 0);
+    assert.deepEqual(context.logged, [`Copied ${localPath('static/img/banner.png')}`]);
+  });
+
+  testEach`
+    reason                       | args
+    ${'nothing matches'}         | ${['static/*.gif']}
+    ${'every match is excluded'} | ${['static/*.gif', '--exclude', '*.gif']}
+  `(
+    'lists a pattern that matches no file at the end, when $reason, and copies the others',
+    async ({ args }: { args: string[] }, t) => {
+      const context = createContext(t);
+      const code = await run(['owner/repo', ...args, 'static/sponsor.md'], context);
+
+      assert.equal(code, 1);
+      assert.deepEqual(context.logged, [`Copied ${localPath('static/sponsor.md')}`]);
+      assert.deepEqual(context.errors, ['No file matches static/*.gif']);
+    },
+  );
+
+  test('copies nothing when a pattern looks in a folder that cannot be listed', async (t) => {
+    const context = createContext(t);
+    const code = await run(['owner/repo', 'static/sponsor.md', 'missing/*.md'], context);
+
+    assert.equal(code, 1);
+    assert.deepEqual(context.errors, ['GitHub responded with status 404']);
+    assert.deepEqual(context.logged, []);
+    assert.deepEqual(await readdir(cwd), []);
   });
 
   test('stops at the first failure with --fail-fast', async (t) => {

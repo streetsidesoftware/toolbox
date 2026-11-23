@@ -5,9 +5,14 @@ export const usage: string = `Usage: copy-github-files <owner>/<repo> <path>... 
 
 Copy files from a GitHub repository. Each file keeps its path from the root of the repository.
 
+A path with *, ?, [ or { in it is a pattern, such as 'static/img/*.png'. Each segment matches the names in one
+folder, and a pattern doesn't reach into subfolders. Quote a pattern, so the shell doesn't expand it.
+
 Options:
   --output <dir>     The folder to write the files below. Default: the current folder.
   --ref <ref>        The branch, tag or commit to copy from. Default: the repository's default branch.
+  --exclude <glob>   Skip the files a pattern finds that match <glob>, as in .gitignore. A <glob> that starts with !
+                     keeps the files it matches. Give it once for each glob.
   --concurrency <n>  How many files to download at once. Default: 8.
   --fail-fast        Stop at the first file that fails. Without it, the other files are still copied.
   --silent           Don't list the copied files. Failures are still shown.
@@ -21,6 +26,7 @@ export interface CommandLine {
   paths: string[];
   output: string;
   ref: string | undefined;
+  exclude: string[];
   concurrency: number | undefined;
   failFast: boolean;
   silent: boolean;
@@ -30,6 +36,7 @@ export interface CommandLine {
 const options = {
   output: { type: 'string', default: '.' },
   ref: { type: 'string' },
+  exclude: { type: 'string', multiple: true },
   concurrency: { type: 'string' },
   'fail-fast': { type: 'boolean', default: false },
   silent: { type: 'boolean', default: false },
@@ -40,6 +47,7 @@ const options = {
 const valueRules: Record<string, string> = {
   output: 'must name a folder',
   ref: 'must name a branch, tag or commit',
+  exclude: 'must name a file or folder, such as banner.png',
   concurrency: 'must be a whole number of at least 1',
 };
 
@@ -67,6 +75,7 @@ export function parseCommandLine(args: string[]): CommandLine | string {
     paths,
     output: values.output as string,
     ref: values.ref as string | undefined,
+    exclude: (values.exclude as string[] | undefined) ?? [],
     concurrency: values.concurrency === undefined ? undefined : Number(values.concurrency),
     failFast: values['fail-fast'] as boolean,
     silent: values.silent as boolean,
@@ -83,7 +92,7 @@ function checkOption(token: {
 }): string | undefined {
   const { name, rawName, value, inlineValue } = token;
   if (!Object.hasOwn(options, name)) {
-    return `Unknown option ${rawName}. The options are --output, --ref, --concurrency, --fail-fast, --silent and --help.`;
+    return `Unknown option ${rawName}. The options are --output, --ref, --exclude, --concurrency, --fail-fast, --silent and --help.`;
   }
   if (options[name as keyof typeof options].type === 'boolean') {
     return value === undefined ? undefined : `The ${rawName} option takes no value.`;
