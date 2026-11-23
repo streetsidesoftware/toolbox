@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.3.0](https://github.com/streetsidesoftware/toolbox/compare/toolbox@2.2.0...toolbox@2.3.0) (2026-11-23)
+
+
+### Features
+
+* **copy-github-files:** add a command and library that copy files from a GitHub repository ([#219](https://github.com/streetsidesoftware/toolbox/issues/219)) ([e0b928e](https://github.com/streetsidesoftware/toolbox/commit/e0b928ef326899def7dbbaeceaaa292fe58e9d0e))
+* **copy-github-files:** publish to npm ([#236](https://github.com/streetsidesoftware/toolbox/issues/236)) ([de573dd](https://github.com/streetsidesoftware/toolbox/commit/de573dd20108f35f75edaca8d26b0950d50ba16c))
+* **markdown-sanitizer:** add a markdown-sanitizer command ([#226](https://github.com/streetsidesoftware/toolbox/issues/226)) ([1aeffcc](https://github.com/streetsidesoftware/toolbox/commit/1aeffcc4ab6bfd1979adce56729b5c2330924fa4))
+* **markdown-sanitizer:** find text that the page hides in Markdown ([#220](https://github.com/streetsidesoftware/toolbox/issues/220)) ([d831065](https://github.com/streetsidesoftware/toolbox/commit/d831065e19e9b2780ed0d539cdb67e27b2d2b0cf))
+* **markdown-sanitizer:** publish to npm ([#235](https://github.com/streetsidesoftware/toolbox/issues/235)) ([50c6111](https://github.com/streetsidesoftware/toolbox/commit/50c6111b71d953c54511da303923b262b7cc0007))
+
+
+### Updates and Bug Fixes
+
+* **markdown-sanitizer:** remove hidden text in one pass ([#228](https://github.com/streetsidesoftware/toolbox/issues/228)) ([9fd1ae8](https://github.com/streetsidesoftware/toolbox/commit/9fd1ae84f45a026e58510b1af3c1cd04cd0b901c))
+* **markdown-toolkit:** keep the line ending before an emptied last line of an inline template ([#241](https://github.com/streetsidesoftware/toolbox/issues/241)) ([eb4eaa3](https://github.com/streetsidesoftware/toolbox/commit/eb4eaa3dce06d664abd698a8bada1f05c0152fd9))
+
+
+### Performance Improvements
+
+* **markdown-sanitizer:** search for each line from the last one found ([#227](https://github.com/streetsidesoftware/toolbox/issues/227)) ([82e2dcb](https://github.com/streetsidesoftware/toolbox/commit/82e2dcb695b8492d0c622634920371a12fa4df4c))
+
 ## [2.2.0](https://github.com/streetsidesoftware/toolbox/compare/toolbox@2.1.0...toolbox@2.2.0) (2026-11-13)
 
 
