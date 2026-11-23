@@ -67,15 +67,13 @@
       "component": "toolbox"
     },
     "packages/copy-github-files": {
-      "component": "@streetsidesoftware/copy-github-files",
-      "release-as": "1.0.0"
+      "component": "@streetsidesoftware/copy-github-files"
     },
     "packages/github-action-toolkit": {
       "component": "@streetsidesoftware/github-action-toolkit"
     },
     "packages/markdown-sanitizer": {
-      "component": "@streetsidesoftware/markdown-sanitizer",
-      "release-as": "1.0.0"
+      "component": "@streetsidesoftware/markdown-sanitizer"
     },
     "packages/markdown-toolkit": {
       "component": "@streetsidesoftware/markdown-toolkit"

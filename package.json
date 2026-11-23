@@ -1,6 +1,6 @@
 {
   "name": "toolbox",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@12.18.0",
@@ -23,7 +23,8 @@
     "spell": "cspell --no-progress .",
     "test": "pnpm -r run test && pnpm run typecheck",
     "trusted-publishing": "trusted-publishing",
-    "typecheck": "pnpm -r run typecheck"
+    "typecheck": "pnpm -r run typecheck",
+    "update:static": "node packages/copy-github-files/src/cli.ts streetsidesoftware/.github static/sponsor.md static/sponsor-pub.md static/footer.md"
   },
   "devDependencies": {
     "@internal/scripts": "workspace:*",

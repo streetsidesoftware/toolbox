@@ -1,9 +1,9 @@
 {
-  ".": "2.2.0",
-  "packages/copy-github-files": "0.0.1-alpha.0",
+  ".": "2.3.0",
+  "packages/copy-github-files": "1.0.0",
   "packages/github-action-toolkit": "1.0.0",
-  "packages/markdown-sanitizer": "0.0.1-alpha.0",
-  "packages/markdown-toolkit": "2.2.0",
+  "packages/markdown-sanitizer": "1.0.0",
+  "packages/markdown-toolkit": "2.2.1",
   "packages/placeholders": "1.1.1",
   "packages/test-each": "1.0.0",
   "packages/unindent": "1.0.1"
