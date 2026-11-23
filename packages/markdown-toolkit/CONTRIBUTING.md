@@ -43,8 +43,7 @@ The reference is built from each function's parameter names and JSDoc summary. [
 
 - The summary is the first paragraph, so a blank line ends it. A `@summary` tag replaces it.
 - A summary is at most 140 characters. Its only inline tag is `{@link name}`. Raw HTML fails, so write a tag as code: `` `<details>` ``.
-- Every function has a `@category` tag that says what the function is, such as `style` or `line-breaks`. Users see it on hover. A new category also needs a group in [`.api-referencerc.json`](.api-referencerc.json).
-- An alias needs no `@category` of its own.
+- Every function has a `@category` tag that says what the function is, such as `style` or `line-breaks`. Users see it on hover. A new category also needs a group in [`.api-referencerc.json`](.api-referencerc.json). An alias needs no `@category` of its own.
 
 ## Writing JSDoc
 

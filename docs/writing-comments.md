@@ -7,7 +7,7 @@ How to write comments and JSDoc in this repo, in every package and in `scripts/`
 - [Internal functions](#internal-functions) covers functions a package doesn't export.
 - [Exported functions and types](#exported-functions-and-types) covers the JSDoc users read on hover.
 
-A package's `CONTRIBUTING.md` may add rules of its own.
+A package's `CONTRIBUTING.md` may add rules of its own. Read it too before writing a comment in that package.
 
 The text of a package's examples, which make up most of its README, follows these rules too, since the same user reads
 it.
@@ -206,7 +206,8 @@ Read each changed comment as the hover a user sees, top to bottom.
 
 Before and after, from markdown-toolkit's rewrite in PR [#92](https://github.com/streetsidesoftware/toolbox/pull/92).
 The "after" summaries are in the imperative, as this guide asks. PR 92 wrote them in the third person.
-They show the general rules.
+They show the general rules. Their `// The page shows` lines follow
+[markdown-toolkit's own rule for examples](../packages/markdown-toolkit/CONTRIBUTING.md#writing-jsdoc).
 
 #### Text
 
@@ -247,7 +248,7 @@ Before: names the Markdown it writes.
  */
 ```
 
-After: says what the page shows and where it works.
+After: says what the reader gets and where it works.
 
 ```ts
 /**
