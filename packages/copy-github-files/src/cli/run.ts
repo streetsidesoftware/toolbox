@@ -35,7 +35,7 @@ export interface RunContext {
  * // lines is ['Copied static/sponsor.md']
  * // code is 0
  */
-export async function run(args: string[], context: Partial<RunContext> = {}): Promise<number> {
+export async function run(args: string[], context?: Partial<RunContext>): Promise<number> {
   const { token, log, error } = withDefaults(context);
   const commandLine = parseCommandLine(args);
   if (typeof commandLine === 'string') {
@@ -73,10 +73,10 @@ export async function run(args: string[], context: Partial<RunContext> = {}): Pr
 }
 
 /** Take each part of the context the caller left out from the environment and the console. */
-function withDefaults(context: Partial<RunContext>): RunContext {
+function withDefaults(context: Partial<RunContext> | undefined): RunContext {
   return {
-    token: context.token ?? (process.env['GITHUB_TOKEN'] || undefined),
-    log: context.log ?? ((line) => console.log(line)),
-    error: context.error ?? ((line) => console.error(line)),
+    token: context?.token ?? (process.env['GITHUB_TOKEN'] || undefined),
+    log: context?.log ?? ((line) => console.log(line)),
+    error: context?.error ?? ((line) => console.error(line)),
   };
 }
