@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import path from 'node:path';
 
 // Repository paths always use `/`, so a backslash in a file's name never counts as a separator, on Windows too.
@@ -19,7 +20,7 @@ interface ExcludeGlob {
  */
 export function createExcludeFilter(globs: Iterable<string>): ExcludeFilter {
   // A string is an iterable of its characters, so a lone glob would be read one character at a time.
-  if (typeof globs === 'string') throw new Error("The exclude option must be a list of globs, such as ['footer.md'].");
+  assert(typeof globs !== 'string', "The exclude option must be a list of globs, such as ['footer.md'].");
   const excludes: ExcludeGlob[] = [];
   const keeps: ExcludeGlob[] = [];
   for (const glob of globs) {

@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import path from 'node:path';
 
 import type { FetchOptions, GitHubPath, GitHubSource } from '../github/index.ts';
@@ -66,7 +67,7 @@ export async function findGitHubFiles(
 ): Promise<FindResult> {
   checkSource(source);
   // A string is an iterable of its characters, so a lone path would be read one character at a time.
-  if (typeof paths === 'string') throw new Error("The paths must be a list of paths, such as ['static/sponsor.md'].");
+  assert(typeof paths !== 'string', "The paths must be a list of paths, such as ['static/sponsor.md'].");
   const isExcluded = createExcludeFilter(options?.exclude ?? []);
   // Every pattern is read before the first request, so a wrong one costs none.
   const searches = Array.from(new Set(paths), (repoPath) => ({
