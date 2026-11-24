@@ -118,6 +118,7 @@ describe('findGitHubFiles', () => {
     await assert.rejects(findGitHubFiles(source, ['README.md', 'missing/*.png']), (error) => {
       assert.ok(error instanceof GitHubError);
       assert.equal(error.status, 404);
+      assert.equal(error.path, 'missing');
       return true;
     });
   });

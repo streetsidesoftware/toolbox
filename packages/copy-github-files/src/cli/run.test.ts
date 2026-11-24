@@ -97,7 +97,9 @@ describe('run', () => {
     const code = await run(['owner/repo', 'static/sponsor.md', 'static/missing.md', 'static/footer.md'], context);
 
     assert.equal(code, 1);
-    assert.deepEqual(context.errors, ['Failed to copy static/missing.md: GitHub responded with status 404']);
+    assert.deepEqual(context.errors, [
+      'Failed to copy static/missing.md: GitHub responded with status 404 for static/missing.md',
+    ]);
     assert.deepEqual(context.logged.toSorted(), [
       `Copied ${localPath('static/footer.md')}`,
       `Copied ${localPath('static/sponsor.md')}`,
@@ -188,7 +190,9 @@ describe('run', () => {
 
     assert.equal(code, 1);
     assert.deepEqual(context.logged, []);
-    assert.deepEqual(context.errors, ['Failed to copy static/missing.md: GitHub responded with status 404']);
+    assert.deepEqual(context.errors, [
+      'Failed to copy static/missing.md: GitHub responded with status 404 for static/missing.md',
+    ]);
     assert.equal(await readFile(path.join(cwd, 'static/sponsor.md'), 'utf8'), 'Sponsor us.\n');
   });
 
@@ -273,18 +277,19 @@ describe('run', () => {
   });
 
   testEach`
-    reason                       | args
-    ${'nothing matches'}         | ${['static/*.gif']}
-    ${'every match is excluded'} | ${['static/*.gif', '--exclude', '*.gif']}
+    reason                       | pattern               | exclude
+    ${'nothing matches'}         | ${'static/img/*.gif'} | ${[]}
+    ${'every match is excluded'} | ${'static/img/*.svg'} | ${['--exclude', 'logo.svg']}
   `(
     'lists a pattern that matches no file at the end, when $reason, and copies the others',
-    async ({ args }: { args: string[] }, t) => {
-      const context = createContext(t);
-      const code = await run(['owner/repo', ...args, 'static/sponsor.md'], context);
+    async ({ pattern, exclude }: { pattern: string; exclude: string[] }, t) => {
+      fakeGitHub(t, upstream);
+      const lines: string[] = [];
+      const print = (line: string) => lines.push(line);
+      const code = await run(['owner/repo', pattern, 'static/sponsor.md', ...exclude], { log: print, error: print });
 
       assert.equal(code, 1);
-      assert.deepEqual(context.logged, [`Copied ${localPath('static/sponsor.md')}`]);
-      assert.deepEqual(context.errors, ['No file matches static/*.gif']);
+      assert.deepEqual(lines, [`Copied ${localPath('static/sponsor.md')}`, `No file matches ${pattern}`]);
     },
   );
 
@@ -293,7 +298,7 @@ describe('run', () => {
     const code = await run(['owner/repo', 'static/sponsor.md', 'missing/*.md'], context);
 
     assert.equal(code, 1);
-    assert.deepEqual(context.errors, ['GitHub responded with status 404']);
+    assert.deepEqual(context.errors, ['GitHub responded with status 404 for missing']);
     assert.deepEqual(context.logged, []);
     assert.deepEqual(await readdir(cwd), []);
   });
@@ -306,7 +311,9 @@ describe('run', () => {
     );
 
     assert.equal(code, 1);
-    assert.deepEqual(context.errors, ['Failed to copy static/missing.md: GitHub responded with status 404']);
+    assert.deepEqual(context.errors, [
+      'Failed to copy static/missing.md: GitHub responded with status 404 for static/missing.md',
+    ]);
     assert.deepEqual(context.logged, []);
     assert.equal(context.urls.length, 1);
   });

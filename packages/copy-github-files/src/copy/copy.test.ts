@@ -122,7 +122,11 @@ describe('copyGitHubFiles', () => {
 
     assert.deepEqual(
       byPath(results).map((result) => ('error' in result ? `${result.path}: ${result.error.message}` : result.path)),
-      ['static/footer.md', 'static/missing.md: GitHub responded with status 404', 'static/sponsor.md'],
+      [
+        'static/footer.md',
+        'static/missing.md: GitHub responded with status 404 for static/missing.md',
+        'static/sponsor.md',
+      ],
     );
     const failure = results.find((result) => result.path === 'static/missing.md');
     assert.ok(failure && 'error' in failure && failure.error instanceof GitHubError);
@@ -145,7 +149,7 @@ describe('copyGitHubFiles', () => {
 
     assert.ok(result && 'error' in result && result.error instanceof GitHubError);
     assert.equal(result.error.status, 404);
-    assert.equal(result.error.message, 'The path names a folder, not a file.');
+    assert.equal(result.error.message, 'The path static names a folder, not a file.');
     assert.deepEqual(await readdir(folder), []);
   });
 

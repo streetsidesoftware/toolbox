@@ -201,9 +201,9 @@ if (found.type === 'dir') {
 }
 ```
 
-An error from GitHub is a `GitHubError`, with a `status` that says what went wrong, such as 404 when nothing is at the
-path. Asked for a file, `fetchGitHubFile` also gives 404 for a folder, since no file is
-there. A failed result from `copyGitHubFiles` carries the same error:
+An error from GitHub is a `GitHubError`. Its `path` is the path that was asked for, and its `status` says what went
+wrong, such as 404 when nothing is at the path. Asked for a file, `fetchGitHubFile` also gives 404 for a folder, since
+no file is there. A failed result from `copyGitHubFiles` carries the same error:
 
 ```ts
 import { GitHubError } from '@streetsidesoftware/copy-github-files';
