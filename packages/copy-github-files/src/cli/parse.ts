@@ -10,8 +10,8 @@ A path can be a simple glob pattern, such as 'static/*.md'.
 Options:
   --output <dir>     The folder to write the files below. Default: the current folder.
   --ref <ref>        The branch, tag or commit to copy from. Default: the repository's default branch.
-  --exclude <glob>   Skip the files a pattern finds that match <glob>, as in .gitignore. A <glob> that starts with !
-                     keeps the files it matches. Give it once for each glob.
+  --exclude <glob>   Skip matching files, such as footer.md or '*.svg'. Can be repeated.
+                     Start the glob with ! to keep matching files instead.
   --concurrency <n>  How many files to download at once. Default: 8.
   --fail-fast        Stop at the first file that fails. Without it, the other files are still copied.
   --silent           Don't list the copied files. Failures are still shown.
