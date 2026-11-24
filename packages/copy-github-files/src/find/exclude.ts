@@ -1,14 +1,15 @@
 import path from 'node:path';
 
-// Repository paths always use `/`, so a backslash in a glob never counts as a separator, on Windows too.
-const { matchesGlob } = path.posix;
+// Repository paths always use `/`, so a backslash in a file's name never counts as a separator, on Windows too.
+const { basename, matchesGlob } = path.posix;
 
 /** Returns whether an exclude glob matches the file or folder itself, and no `!` glob does. */
 export type ExcludeFilter = (entryPath: string, type: 'file' | 'dir') => boolean;
 
 interface ExcludeGlob {
-  /** Matched against the whole path. */
-  pathGlob: string;
+  glob: string;
+  /** Match the name alone, at any depth, instead of the whole path. */
+  nameOnly: boolean;
   folderOnly: boolean;
 }
 
@@ -32,14 +33,18 @@ export function createExcludeFilter(globs: Iterable<string>): ExcludeFilter {
 }
 
 function matchesAny(entryPath: string, type: 'file' | 'dir', globs: readonly ExcludeGlob[]): boolean {
-  return globs.some(({ pathGlob, folderOnly }) => (type === 'dir' || !folderOnly) && matchesGlob(entryPath, pathGlob));
+  const entryName = basename(entryPath);
+  return globs.some(
+    ({ glob, nameOnly, folderOnly }) =>
+      (type === 'dir' || !folderOnly) && matchesGlob(nameOnly ? entryName : entryPath, glob),
+  );
 }
 
-/** A glob without a `/` at its start or in its middle matches at any depth. */
+/** Read a glob. One without a `/` at its start or in its middle matches a name at any depth. */
 function parseGlob(glob: string): ExcludeGlob {
   const folderOnly = glob.endsWith('/');
   const trimmed = folderOnly ? glob.slice(0, -1) : glob;
   const name = trimmed.replace(/^\//, '');
   if (!name) throw new Error('A glob to exclude must name a file or folder, such as footer.md.');
-  return { pathGlob: trimmed.includes('/') ? name : `**/${name}`, folderOnly };
+  return { glob: name, nameOnly: !trimmed.includes('/'), folderOnly };
 }

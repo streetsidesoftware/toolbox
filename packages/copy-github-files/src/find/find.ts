@@ -6,7 +6,7 @@ import { expandBraces } from './braces.ts';
 import type { ExcludeFilter } from './exclude.ts';
 import { createExcludeFilter } from './exclude.ts';
 
-// Repository paths always use `/`, so a backslash in a glob never counts as a separator, on Windows too.
+// Repository paths always use `/`, so a backslash in a file's name never counts as a separator, on Windows too.
 const { matchesGlob } = path.posix;
 
 export interface FindOptions extends FetchOptions {
@@ -69,7 +69,7 @@ export async function findGitHubFiles(
   const isExcluded = createExcludeFilter(options?.exclude ?? []);
   const seen = new Set<string>();
   const result: FindResult = { files: [], unmatched: [] };
-  for (const repoPath of paths) {
+  for (const repoPath of new Set(paths)) {
     const matches = isPattern(repoPath) ? await findMatches(source, repoPath, isExcluded, options) : [repoPath];
     if (!matches.length) result.unmatched.push(repoPath);
     for (const file of matches) {

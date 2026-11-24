@@ -34,6 +34,10 @@ describe('createExcludeFilter', () => {
     ${['*.svg', '!a.svg', '!b.svg']} | ${'img/b.svg'} | ${'file'} | ${false}
     ${['*.svg', '!a.svg', '!b.svg']} | ${'img/c.svg'} | ${'file'} | ${true}
     ${['!logo.png']} | ${'img/logo.png'} | ${'file'} | ${false}
+    ${['footer.md']} | ${'.github/footer.md'} | ${'file'} | ${true}
+    ${['*-draft.yml']} | ${'.github/workflows/a-draft.yml'} | ${'file'} | ${true}
+    ${['vscode/']} | ${'.a/vscode'} | ${'dir'} | ${true}
+    ${['.github']} | ${'.github'} | ${'dir'} | ${true}
     ${[]} | ${'img/logo.png'} | ${'file'} | ${false}
   `(
     'excludes the $type $entryPath with $globs: $expected',

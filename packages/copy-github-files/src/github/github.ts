@@ -110,10 +110,20 @@ export async function fetchGitHubPath(
   }
   const listing: unknown = await response.json();
   if (!Array.isArray(listing)) throw new Error('The path names neither a file nor a folder.');
-  const entries = (listing as { type: 'file' | 'dir' | 'symlink' | 'submodule'; name: string; path: string }[]).map(
-    ({ type, name, path }) => ({ type, name, path }),
-  );
+  const entries = (listing as ListedEntry[]).map(({ type, name, path, download_url: downloadUrl }) => {
+    // GitHub lists a submodule as a file, with nothing to download.
+    const isSubmodule = type === 'file' && downloadUrl === null;
+    return { type: isSubmodule ? ('submodule' as const) : type, name, path };
+  });
   return { type: 'dir', path: repoPath, entries };
+}
+
+/** An entry of a folder, as GitHub lists it. */
+interface ListedEntry {
+  type: 'file' | 'dir' | 'symlink' | 'submodule';
+  name: string;
+  path: string;
+  download_url: string | null;
 }
 
 /** Throw when the source can't name a repository, so a request never reaches another part of GitHub's API. */

@@ -135,6 +135,14 @@ describe('findGitHubFiles', () => {
     assert.deepEqual(found, { files: ['img/deeper/c.png'], unmatched: ['img/{*.gif,deeper/*.gif}'] });
   });
 
+  test('looks up a pattern given twice once', async (t) => {
+    const requests = fakeGitHub(t, files);
+    const found = await findGitHubFiles(source, ['img/*.gif', 'img/*.gif']);
+
+    assert.deepEqual(found, { files: [], unmatched: ['img/*.gif'] });
+    assert.equal(requests.length, 1);
+  });
+
   test('lists a file found twice once', async (t) => {
     fakeGitHub(t, files);
     const found = await findGitHubFiles(source, ['img/a.png', 'img/*.png', 'img/*']);
@@ -166,9 +174,10 @@ describe('findGitHubFiles', () => {
   test('never matches a symlink or a submodule', async (t) => {
     t.mock.method(globalThis, 'fetch', async () => {
       const entries = [
-        { type: 'file', name: 'a.md', path: 'docs/a.md' },
-        { type: 'symlink', name: 'b.md', path: 'docs/b.md' },
-        { type: 'submodule', name: 'c.md', path: 'docs/c.md' },
+        { type: 'file', name: 'a.md', path: 'docs/a.md', download_url: 'https://example.com/a.md' },
+        { type: 'symlink', name: 'b.md', path: 'docs/b.md', download_url: 'https://example.com/b.md' },
+        // GitHub lists a submodule as a file, with nothing to download.
+        { type: 'file', name: 'c.md', path: 'docs/c.md', download_url: null },
       ];
       return new Response(JSON.stringify(entries), { headers: { 'content-type': 'application/json' } });
     });

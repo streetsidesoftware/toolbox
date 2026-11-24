@@ -223,6 +223,20 @@ describe('fetchGitHubPath', () => {
     });
   });
 
+  test('tells a submodule from a file', async (t) => {
+    t.mock.method(globalThis, 'fetch', async () => {
+      const entries = [
+        { type: 'file', name: 'a.md', path: 'docs/a.md', download_url: 'https://example.com/a.md' },
+        { type: 'file', name: 'tool', path: 'docs/tool', download_url: null },
+        { type: 'dir', name: 'img', path: 'docs/img', download_url: null },
+      ];
+      return new Response(JSON.stringify(entries), { headers: { 'content-type': 'application/json' } });
+    });
+    const found = await fetchGitHubPath({ repo: 'owner/repo' }, 'docs');
+
+    assert.deepEqual(found.type === 'dir' && found.entries.map((entry) => entry.type), ['file', 'submodule', 'dir']);
+  });
+
   test('gives the status when nothing is at the path', async (t) => {
     fakeGitHub(t, {});
 
