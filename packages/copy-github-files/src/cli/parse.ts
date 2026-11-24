@@ -5,9 +5,7 @@ export const usage: string = `Usage: copy-github-files <owner>/<repo> <path>... 
 
 Copy files from a GitHub repository. Each file keeps its path from the root of the repository.
 
-To copy files without naming each one, use a pattern: 'static/*.md' for the Markdown files in a folder, or
-'packages/*/README.md' for the README of each package. Quote it, so the shell doesn't expand it. A pattern starts with
-a folder name, and doesn't support **.
+A path can be a simple glob pattern, such as 'static/*.md'.
 
 Options:
   --output <dir>     The folder to write the files below. Default: the current folder.
