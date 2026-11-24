@@ -42,7 +42,7 @@ To run it from a script in `package.json`:
 A path with `*`, `?`, `[` or `{` in it is a pattern. It copies each file it matches:
 
 ```sh
-copy-github-files streetsidesoftware/streetsidesoftware.github.io 'website/static/img/sponsor/*.png'
+copy-github-files streetsidesoftware/.github 'static/*.md'
 ```
 
 - Each segment of a pattern matches the names in one folder, with the syntax of Node's
@@ -64,17 +64,16 @@ code 1.
 Use `--exclude <glob>` to skip some of the files a pattern matches. Give it once for each glob:
 
 ```sh
-copy-github-files streetsidesoftware/streetsidesoftware.github.io 'website/static/img/sponsor/*.png' \
-  --exclude banner.png --exclude '*-dark.png'
+copy-github-files streetsidesoftware/.github 'static/*.md' --exclude footer.md --exclude '*-pub.md'
 ```
 
 The globs match the way lines in a `.gitignore` file do:
 
-- A glob without a `/` matches the name of a file, or of any folder above it, such as `banner.png` or `drafts`.
+- A glob without a `/` matches the name of a file, or of any folder above it, such as `footer.md` or `drafts`.
 - A glob with a `/` at its start or in its middle matches the path from the root of the repository, such as
-  `website/static/img/sponsor/banner.png`.
+  `static/footer.md`.
 - A glob that ends in `/` matches only folders, such as `drafts/`.
-- `**` matches any number of folders, such as `website/**/banner.png`.
+- `**` matches any number of folders, such as `static/**/footer.md`.
 - A glob that starts with `!` keeps the files it matches. Unlike in a `.gitignore` file, it always wins, whatever its
   place in the list, and it also keeps a file inside an excluded folder.
 
