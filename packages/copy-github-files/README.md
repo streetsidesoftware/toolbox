@@ -186,7 +186,7 @@ import { fetchGitHubFile } from '@streetsidesoftware/copy-github-files';
 const content = await fetchGitHubFile({ repo: 'streetsidesoftware/.github' }, 'static/sponsor.md');
 ```
 
-To see what's at a path, a file or a folder, use `fetchGitHubPath`:
+To see what's at a path, a file or a folder, use `fetchGitHubPath`. An empty path is the root of the repository:
 
 ```ts
 import { fetchGitHubPath } from '@streetsidesoftware/copy-github-files';
