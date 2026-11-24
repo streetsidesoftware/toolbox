@@ -2,6 +2,7 @@ import path from 'node:path';
 
 import type { FetchOptions, GitHubSource } from '../github/index.ts';
 import { checkSource, fetchGitHubPath } from '../github/index.ts';
+import type { ExcludeFilter } from './exclude.ts';
 import { createExcludeFilter } from './exclude.ts';
 
 // Repository paths always use `/`, so a backslash in a glob never counts as a separator, on Windows too.
@@ -17,7 +18,7 @@ export interface FindOptions extends FetchOptions {
    * - All SVG files below one folder: `static/**​/*.svg`
    *
    * To keep a file that another glob skips, add a glob that starts with `!`, such as `!logo.svg`. It always wins,
-   * whatever its place in the list.
+   * whatever its place in the list. It can't keep a file in a folder that is skipped.
    *
    * A path given in full is never skipped.
    */
@@ -68,9 +69,7 @@ export async function findGitHubFiles(
   const seen = new Set<string>();
   const result: FindResult = { files: [], unmatched: [] };
   for (const repoPath of paths) {
-    const matches = isPattern(repoPath)
-      ? (await findMatches(source, repoPath, options)).filter((file) => !isExcluded(file))
-      : [repoPath];
+    const matches = isPattern(repoPath) ? await findMatches(source, repoPath, isExcluded, options) : [repoPath];
     if (!matches.length) result.unmatched.push(repoPath);
     for (const file of matches) {
       if (!seen.has(file)) result.files.push(file);
@@ -86,11 +85,12 @@ function isPattern(repoPath: string): boolean {
 
 /**
  * List the folders a pattern reaches, one segment at a time: folders for a middle segment, files for the last.
- * The segments before the first wildcard name the folder to start in.
+ * The segments before the first wildcard name the folder to start in. An excluded folder is never listed.
  */
 async function findMatches(
   source: GitHubSource,
   pattern: string,
+  isExcluded: ExcludeFilter,
   options: FetchOptions | undefined,
 ): Promise<string[]> {
   const segments = pattern.split('/');
@@ -98,7 +98,9 @@ async function findMatches(
   if (firstWildcard === 0) {
     throw new Error('A pattern must name a folder before its first wildcard, such as static/*.md.');
   }
-  let found = [segments.slice(0, firstWildcard).join('/')];
+  const start = segments.slice(0, firstWildcard);
+  if (start.some((_, index) => isExcluded(start.slice(0, index + 1).join('/'), 'dir'))) return [];
+  let found = [start.join('/')];
   for (let index = firstWildcard; index < segments.length; index += 1) {
     const segment = segments[index] ?? '';
     const type = index === segments.length - 1 ? 'file' : 'dir';
@@ -107,7 +109,8 @@ async function findMatches(
       const listing = await fetchGitHubPath(source, folder, options);
       if (listing.type !== 'dir') continue;
       for (const entry of listing.entries) {
-        if (entry.type === type && matchesGlob(entry.name, segment)) matches.push(entry.path);
+        if (entry.type !== type || !matchesGlob(entry.name, segment)) continue;
+        if (!isExcluded(entry.path, type)) matches.push(entry.path);
       }
     }
     found = matches;

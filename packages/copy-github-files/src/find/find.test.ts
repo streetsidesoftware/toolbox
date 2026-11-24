@@ -55,6 +55,35 @@ describe('findGitHubFiles', () => {
     assert.deepEqual(found.files, ['img/a.png', 'packages/three/README.md']);
   });
 
+  testEach`
+    reason                                              | pattern                  | exclude                                           | expected                                                 | folders
+    ${'skips an excluded folder'}                             | ${'packages/*/*.md'}     | ${['two', 'three']}                               | ${['packages/one/README.md']}                            | ${['packages', 'packages/one']}
+    ${'skips an excluded folder, even with a ! glob for a file in it'}    | ${'packages/*/*.md'}     | ${['two', 'three', '!packages/two/notes.md']}     | ${['packages/one/README.md']}                            | ${['packages', 'packages/one']}
+    ${'lists a folder that a ! glob keeps'}             | ${'packages/*/*.md'}     | ${['two', 'three', '!packages/two']}              | ${['packages/one/README.md', 'packages/two/notes.md']}   | ${['packages', 'packages/one', 'packages/two']}
+    ${'lists a folder when only its files are excluded'}      | ${'packages/*/*.md'}     | ${['packages/two/*', '!packages/two/notes.md']}   | ${['packages/one/README.md', 'packages/two/notes.md', 'packages/three/README.md']} | ${['packages', 'packages/one', 'packages/two', 'packages/three']}
+    ${'skips the folder it starts in'} | ${'packages/three/*.md'} | ${['packages']}                                  | ${[]}                                                    | ${[]}
+  `(
+    'lists only the folders it needs: $reason',
+    async (
+      {
+        pattern,
+        exclude,
+        expected,
+        folders,
+      }: { pattern: string; exclude: string[]; expected: string[]; folders: string[] },
+      t,
+    ) => {
+      const requests = fakeGitHub(t, files);
+      const found = await findGitHubFiles(source, [pattern], { exclude });
+
+      assert.deepEqual(found.files, expected);
+      assert.deepEqual(
+        requests.map((request) => request.url.replace('https://api.github.com/repos/owner/repo/contents/', '')),
+        folders,
+      );
+    },
+  );
+
   test('reads the excludes once, for every pattern', async (t) => {
     fakeGitHub(t, files);
     const exclude = new Set(['*.svg', 'packages/one']).values();

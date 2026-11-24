@@ -7,33 +7,48 @@ import { createExcludeFilter } from './exclude.ts';
 
 describe('createExcludeFilter', () => {
   testEach`
-    globs                              | filePath                           | expected
-    ${['banner.png']}                  | ${'img/sponsor/banner.png'}        | ${true}
-    ${['banner.png']}                  | ${'img/sponsor/logo.png'}          | ${false}
-    ${['banner.png']}                  | ${'banner.png'}                    | ${true}
-    ${['*-dark-*.png']}                | ${'img/cspell-dark-172px.png'}     | ${true}
-    ${['drafts']}                      | ${'docs/drafts/note.md'}           | ${true}
-    ${['drafts/']}                     | ${'docs/drafts/note.md'}           | ${true}
-    ${['drafts/']}                     | ${'docs/drafts'}                   | ${false}
-    ${['img/banner.png']}              | ${'img/banner.png'}                | ${true}
-    ${['img/banner.png']}              | ${'website/img/banner.png'}        | ${false}
-    ${['/img/banner.png']}             | ${'img/banner.png'}                | ${true}
-    ${['website/img']}                 | ${'website/img/banner.png'}        | ${true}
-    ${['website/**/banner.png']}       | ${'website/static/img/banner.png'} | ${true}
-    ${['img/*', '!img/*.png']}         | ${'img/logo.png'}                  | ${false}
-    ${['img/*', '!img/*.png']}         | ${'img/logo.svg'}                  | ${true}
-    ${['!img/*.png', 'img/*']}         | ${'img/logo.png'}                  | ${false}
-    ${['drafts/', '!drafts/keep.png']} | ${'drafts/keep.png'}               | ${false}
-    ${['*.svg', '*.png', '!logo.svg']} | ${'img/logo.svg'}                  | ${false}
-    ${['*.svg', '*.png', '!logo.svg']} | ${'img/logo.png'}                  | ${true}
-    ${['*.svg', '!a.svg', '!b.svg']}   | ${'img/b.svg'}                     | ${false}
-    ${['*.svg', '!a.svg', '!b.svg']}   | ${'img/c.svg'}                     | ${true}
-    ${['!logo.png']}                   | ${'img/logo.png'}                  | ${false}
-    ${[]}                              | ${'img/logo.png'}                  | ${false}
+    globs | entryPath | type | expected
+    ${['banner.png']} | ${'img/sponsor/banner.png'} | ${'file'} | ${true}
+    ${['banner.png']} | ${'img/sponsor/logo.png'} | ${'file'} | ${false}
+    ${['banner.png']} | ${'banner.png'} | ${'file'} | ${true}
+    ${['*-dark-*.png']} | ${'img/cspell-dark-172px.png'} | ${'file'} | ${true}
+    ${['drafts']} | ${'docs/drafts'} | ${'dir'} | ${true}
+    ${['drafts']} | ${'docs/drafts'} | ${'file'} | ${true}
+    ${['drafts']} | ${'docs/drafts/note.md'} | ${'file'} | ${false}
+    ${['drafts/']} | ${'docs/drafts'} | ${'dir'} | ${true}
+    ${['drafts/']} | ${'docs/drafts'} | ${'file'} | ${false}
+    ${['img/banner.png']} | ${'img/banner.png'} | ${'file'} | ${true}
+    ${['img/banner.png']} | ${'website/img/banner.png'} | ${'file'} | ${false}
+    ${['/img/banner.png']} | ${'img/banner.png'} | ${'file'} | ${true}
+    ${['website/img']} | ${'website/img'} | ${'dir'} | ${true}
+    ${['website/**/banner.png']} | ${'website/static/img/banner.png'} | ${'file'} | ${true}
+    ${['img/*', '!img/*.png']} | ${'img/logo.png'} | ${'file'} | ${false}
+    ${['img/*', '!img/*.png']} | ${'img/logo.svg'} | ${'file'} | ${true}
+    ${['!img/*.png', 'img/*']} | ${'img/logo.png'} | ${'file'} | ${false}
+    ${['drafts/', '!drafts/keep.png']} | ${'drafts'} | ${'dir'} | ${true}
+    ${['drafts', '!docs/drafts']} | ${'docs/drafts'} | ${'dir'} | ${false}
+    ${['drafts', '!docs/drafts']} | ${'img/drafts'} | ${'dir'} | ${true}
+    ${['drafts', '!docs/drafts/']} | ${'docs/drafts'} | ${'file'} | ${true}
+    ${['*.svg', '*.png', '!logo.svg']} | ${'img/logo.svg'} | ${'file'} | ${false}
+    ${['*.svg', '*.png', '!logo.svg']} | ${'img/logo.png'} | ${'file'} | ${true}
+    ${['*.svg', '!a.svg', '!b.svg']} | ${'img/b.svg'} | ${'file'} | ${false}
+    ${['*.svg', '!a.svg', '!b.svg']} | ${'img/c.svg'} | ${'file'} | ${true}
+    ${['!logo.png']} | ${'img/logo.png'} | ${'file'} | ${false}
+    ${[]} | ${'img/logo.png'} | ${'file'} | ${false}
   `(
-    'excludes $filePath with $globs: $expected',
-    ({ globs, filePath, expected }: { globs: string[]; filePath: string; expected: boolean }) => {
-      assert.equal(createExcludeFilter(globs)(filePath), expected);
+    'excludes the $type $entryPath with $globs: $expected',
+    ({
+      globs,
+      entryPath,
+      type,
+      expected,
+    }: {
+      globs: string[];
+      entryPath: string;
+      type: 'file' | 'dir';
+      expected: boolean;
+    }) => {
+      assert.equal(createExcludeFilter(globs)(entryPath, type), expected);
     },
   );
 
