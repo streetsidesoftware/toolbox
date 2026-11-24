@@ -68,10 +68,15 @@ export async function findGitHubFiles(
   // A string is an iterable of its characters, so a lone path would be read one character at a time.
   if (typeof paths === 'string') throw new Error("The paths must be a list of paths, such as ['static/sponsor.md'].");
   const isExcluded = createExcludeFilter(options?.exclude ?? []);
+  // Every pattern is read before the first request, so a wrong one costs none.
+  const searches = Array.from(new Set(paths), (repoPath) => ({
+    repoPath,
+    walks: isPattern(repoPath) ? expandBraces(repoPath).map(parseWalk) : undefined,
+  }));
   const seen = new Set<string>();
   const result: FindResult = { files: [], unmatched: [] };
-  for (const repoPath of new Set(paths)) {
-    const matches = isPattern(repoPath) ? await findMatches(source, repoPath, isExcluded, options) : [repoPath];
+  for (const { repoPath, walks } of searches) {
+    const matches = walks ? await findMatches(source, walks, isExcluded, options) : [repoPath];
     if (!matches.length) result.unmatched.push(repoPath);
     for (const file of matches) {
       if (!seen.has(file)) result.files.push(file);
@@ -85,15 +90,15 @@ function isPattern(repoPath: string): boolean {
   return /[*?[{]/.test(repoPath);
 }
 
-/** Find the files a pattern matches, from the folders that each of its expansions reaches. */
+/** Find the files a pattern matches, with a walk for each of its expansions. */
 async function findMatches(
   source: GitHubSource,
-  pattern: string,
+  walks: Walk[],
   isExcluded: ExcludeFilter,
   options: FetchOptions | undefined,
 ): Promise<string[]> {
   const found: string[] = [];
-  for (const walk of expandBraces(pattern).map(parseWalk)) {
+  for (const walk of walks) {
     for (const file of await walkFolders(source, walk, isExcluded, options)) found.push(file);
   }
   return found;
@@ -108,6 +113,7 @@ interface Walk {
 
 /** The last segment is always matched, since an expansion such as `static/a.md` can have no wildcard. */
 function parseWalk(pattern: string): Walk {
+  if (pattern.includes('**')) throw new Error("A pattern can't hold **.");
   const segments = pattern.split('/');
   const firstWildcard = segments.findIndex(isPattern);
   const matchFrom = firstWildcard < 0 ? segments.length - 1 : firstWildcard;

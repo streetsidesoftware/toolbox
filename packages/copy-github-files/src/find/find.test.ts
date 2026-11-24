@@ -233,6 +233,21 @@ describe('findGitHubFiles', () => {
     assert.deepEqual(requests, []);
   });
 
+  testEach`
+    pattern
+    ${'**/*.md'}
+    ${'img/**'}
+    ${'img/**/*.png'}
+    ${'img/**.png'}
+    ${'img/{**,deeper}/*.png'}
+    ${'packages/{*,three/src}*'}
+  `('refuses $pattern, without a request for it or another pattern', async ({ pattern }: { pattern: string }, t) => {
+    const requests = fakeGitHub(t, files);
+
+    await assert.rejects(findGitHubFiles(source, ['img/*', pattern]), { message: "A pattern can't hold **." });
+    assert.deepEqual(requests, []);
+  });
+
   test('refuses a source that is not a repository, before any request', async (t) => {
     const requests = fakeGitHub(t, files);
 
