@@ -16,8 +16,7 @@ export function createExcludeFilter(globs: Iterable<string>): (filePath: string)
     if (glob.startsWith('!')) keeps.push(...toPathGlobs(glob.slice(1)));
     else excludes.push(...toPathGlobs(glob));
   }
-  // The first list is tested for every file, and the second only when the first doesn't settle the answer.
-  // So the shorter one goes first. The order doesn't change the answer.
+  // Likely faster test first.
   return excludes.length < keeps.length
     ? (filePath) => matchesAny(filePath, excludes) && !matchesAny(filePath, keeps)
     : (filePath) => !matchesAny(filePath, keeps) && matchesAny(filePath, excludes);
