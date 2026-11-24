@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import type { FetchOptions, GitHubSource } from '../github/index.ts';
+import type { FetchOptions, GitHubPath, GitHubSource } from '../github/index.ts';
 import { checkRepoPath, checkSource, fetchGitHubPath } from '../github/index.ts';
 import { expandBraces } from './braces.ts';
 import type { ExcludeFilter } from './exclude.ts';
@@ -46,7 +46,7 @@ export interface FindResult {
  * A pattern doesn't support `**`. Any path with `*`, `?`, `[` or `{` in it is a pattern, with the syntax of Node's
  * `path.matchesGlob`.
  *
- * Each folder a pattern looks in is one request. A path given in full makes none, and is kept as it is.
+ * Each folder the patterns look in is one request. A path given in full makes none, and is kept as it is.
  *
  * A folder that can't be listed, such as one that doesn't exist, ends the search with its error.
  *
@@ -73,10 +73,11 @@ export async function findGitHubFiles(
     repoPath,
     walks: isPattern(repoPath) ? expandBraces(repoPath).map(parseWalk) : undefined,
   }));
+  const listFolder = createFolderLister(source, options);
   const seen = new Set<string>();
   const result: FindResult = { files: [], unmatched: [] };
   for (const { repoPath, walks } of searches) {
-    const matches = walks ? await findMatches(source, walks, isExcluded, options) : [repoPath];
+    const matches = walks ? await findMatches(listFolder, walks, isExcluded) : [repoPath];
     if (!matches.length) result.unmatched.push(repoPath);
     for (const file of matches) {
       if (!seen.has(file)) result.files.push(file);
@@ -86,19 +87,25 @@ export async function findGitHubFiles(
   return result;
 }
 
+type FolderLister = (folder: string) => Promise<GitHubPath>;
+
+function createFolderLister(source: GitHubSource, options: FetchOptions | undefined): FolderLister {
+  const listings = new Map<string, GitHubPath>();
+  return async (folder) => {
+    const listing = listings.get(folder) ?? (await fetchGitHubPath(source, folder, options));
+    listings.set(folder, listing);
+    return listing;
+  };
+}
+
 function isPattern(repoPath: string): boolean {
   return /[*?[{]/.test(repoPath);
 }
 
-async function findMatches(
-  source: GitHubSource,
-  walks: Walk[],
-  isExcluded: ExcludeFilter,
-  options: FetchOptions | undefined,
-): Promise<string[]> {
+async function findMatches(listFolder: FolderLister, walks: Walk[], isExcluded: ExcludeFilter): Promise<string[]> {
   const found: string[] = [];
   for (const walk of walks) {
-    for (const file of await walkFolders(source, walk, isExcluded, options)) found.push(file);
+    for (const file of await walkFolders(listFolder, walk, isExcluded)) found.push(file);
   }
   return found;
 }
@@ -124,10 +131,9 @@ function parseWalk(pattern: string): Walk {
 
 /** List the folders a walk reaches, one segment at a time. An excluded folder is never listed. */
 async function walkFolders(
-  source: GitHubSource,
+  listFolder: FolderLister,
   { start, segments }: Walk,
   isExcluded: ExcludeFilter,
-  options: FetchOptions | undefined,
 ): Promise<string[]> {
   if (start.some((_, index) => isExcluded(start.slice(0, index + 1).join('/'), 'dir'))) return [];
   let found = [start.join('/')];
@@ -135,7 +141,7 @@ async function walkFolders(
     const type = index === segments.length - 1 ? 'file' : 'dir';
     const matches: string[] = [];
     for (const folder of found) {
-      const listing = await fetchGitHubPath(source, folder, options);
+      const listing = await listFolder(folder);
       if (listing.type !== 'dir') continue;
       for (const entry of listing.entries) {
         if (entry.type !== type || !matchesGlob(entry.name, segment)) continue;

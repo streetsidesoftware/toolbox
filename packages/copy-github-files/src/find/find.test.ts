@@ -150,6 +150,25 @@ describe('findGitHubFiles', () => {
     assert.equal(requests.length, 1);
   });
 
+  testEach`
+    patterns                                          | folders
+    ${['img/*.png', 'img/*.svg']}                     | ${['img']}
+    ${['packages/*/README.md', 'packages/*/*.ts']}    | ${['packages', 'packages/one', 'packages/two', 'packages/three']}
+    ${['packages/*/{README.md,src/*.ts}']}            | ${['packages', 'packages/one', 'packages/two', 'packages/three', 'packages/three/src']}
+    ${['*.md', '{README.md,img/*.png}', 'img/*']}     | ${['', 'img']}
+  `(
+    'lists each folder once for $patterns',
+    async ({ patterns, folders }: { patterns: string[]; folders: string[] }, t) => {
+      const requests = fakeGitHub(t, files);
+      await findGitHubFiles(source, patterns);
+
+      assert.deepEqual(
+        requests.map((request) => request.url.replace('https://api.github.com/repos/owner/repo/contents/', '')),
+        folders,
+      );
+    },
+  );
+
   test('lists a file found twice once', async (t) => {
     fakeGitHub(t, files);
     const found = await findGitHubFiles(source, ['img/a.png', 'img/*.png', 'img/*']);

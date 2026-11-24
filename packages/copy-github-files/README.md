@@ -102,7 +102,7 @@ With `--output docs`, `static/sponsor.md` is written to `docs/static/sponsor.md`
 
 A public repository needs no token. When `GITHUB_TOKEN` is set, it authenticates the requests:
 
-- It raises GitHub's limit of 60 unauthenticated requests an hour. Each file is one request, and so is each folder a pattern looks in.
+- It raises GitHub's limit of 60 unauthenticated requests an hour. Each file is one request, and so is each folder the patterns look in.
 - It gives access to a private repository, when the token can read that repository.
 
 In a GitHub workflow, pass the workflow's token to copy from a public repository:
