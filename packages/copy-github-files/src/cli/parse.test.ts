@@ -84,7 +84,7 @@ describe('parseCommandLine', () => {
     option        | message
     ${'--output='} | ${'The --output option must name a folder.'}
     ${'--ref='}    | ${'The --ref option must name a branch, tag or commit.'}
-    ${'--exclude='} | ${'The --exclude option must name a file or folder, such as banner.png.'}
+    ${'--exclude='} | ${'The --exclude option must name a file or folder, such as footer.md.'}
   `('refuses an empty $option', ({ option, message }: { option: string; message: string }) => {
     assert.equal(parseCommandLine(['owner/repo', 'a.md', option]), message);
   });

@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
-import { describe } from 'node:test';
+import { describe, test } from 'node:test';
 
 import { testEach } from '@streetsidesoftware/test-each';
 
-import { isExcluded } from './exclude.ts';
+import { createExcludeFilter } from './exclude.ts';
 
-describe('isExcluded', () => {
+describe('createExcludeFilter', () => {
   testEach`
     globs                              | filePath                           | expected
     ${['banner.png']}                  | ${'img/sponsor/banner.png'}        | ${true}
@@ -24,12 +24,35 @@ describe('isExcluded', () => {
     ${['img/*', '!img/*.png']}         | ${'img/logo.svg'}                  | ${true}
     ${['!img/*.png', 'img/*']}         | ${'img/logo.png'}                  | ${false}
     ${['drafts/', '!drafts/keep.png']} | ${'drafts/keep.png'}               | ${false}
+    ${['*.svg', '*.png', '!logo.svg']} | ${'img/logo.svg'}                  | ${false}
+    ${['*.svg', '*.png', '!logo.svg']} | ${'img/logo.png'}                  | ${true}
+    ${['*.svg', '!a.svg', '!b.svg']}   | ${'img/b.svg'}                     | ${false}
+    ${['*.svg', '!a.svg', '!b.svg']}   | ${'img/c.svg'}                     | ${true}
     ${['!logo.png']}                   | ${'img/logo.png'}                  | ${false}
     ${[]}                              | ${'img/logo.png'}                  | ${false}
   `(
     'excludes $filePath with $globs: $expected',
     ({ globs, filePath, expected }: { globs: string[]; filePath: string; expected: boolean }) => {
-      assert.equal(isExcluded(filePath, globs), expected);
+      assert.equal(createExcludeFilter(globs)(filePath), expected);
     },
   );
+
+  testEach`
+    glob
+    ${''}
+    ${'/'}
+    ${'//'}
+    ${'!'}
+    ${'!/'}
+  `('refuses the glob $glob, which names nothing', ({ glob }: { glob: string }) => {
+    assert.throws(() => createExcludeFilter(['logo.png', glob]), {
+      message: 'A glob to exclude must name a file or folder, such as footer.md.',
+    });
+  });
+
+  test('refuses a lone glob in place of a list', () => {
+    assert.throws(() => createExcludeFilter('footer.md'), {
+      message: "The exclude option must be a list of globs, such as ['footer.md'].",
+    });
+  });
 });

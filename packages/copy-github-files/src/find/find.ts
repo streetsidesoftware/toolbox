@@ -2,7 +2,7 @@ import path from 'node:path';
 
 import type { FetchOptions, GitHubSource } from '../github/index.ts';
 import { checkSource, fetchGitHubPath } from '../github/index.ts';
-import { isExcluded } from './exclude.ts';
+import { createExcludeFilter } from './exclude.ts';
 
 // Repository paths always use `/`, so a backslash in a glob never counts as a separator, on Windows too.
 const { matchesGlob } = path.posix;
@@ -64,12 +64,12 @@ export async function findGitHubFiles(
   checkSource(source);
   // A string is an iterable of its characters, so a lone path would be read one character at a time.
   if (typeof paths === 'string') throw new Error("The paths must be a list of paths, such as ['static/sponsor.md'].");
-  const exclude = [...(options?.exclude ?? [])];
+  const isExcluded = createExcludeFilter(options?.exclude ?? []);
   const seen = new Set<string>();
   const result: FindResult = { files: [], unmatched: [] };
   for (const repoPath of paths) {
     const matches = isPattern(repoPath)
-      ? (await findMatches(source, repoPath, options)).filter((file) => !isExcluded(file, exclude))
+      ? (await findMatches(source, repoPath, options)).filter((file) => !isExcluded(file))
       : [repoPath];
     if (!matches.length) result.unmatched.push(repoPath);
     for (const file of matches) {

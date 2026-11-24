@@ -55,6 +55,23 @@ describe('findGitHubFiles', () => {
     assert.deepEqual(found.files, ['img/a.png', 'packages/three/README.md']);
   });
 
+  test('reads the excludes once, for every pattern', async (t) => {
+    fakeGitHub(t, files);
+    const exclude = new Set(['*.svg', 'packages/one']).values();
+    const found = await findGitHubFiles(source, ['img/*', 'packages/*/README.md'], { exclude });
+
+    assert.deepEqual(found.files, ['img/a.png', 'packages/three/README.md']);
+  });
+
+  test('refuses an exclude that names nothing, before any request', async (t) => {
+    const requests = fakeGitHub(t, files);
+
+    await assert.rejects(findGitHubFiles(source, ['img/*'], { exclude: ['/'] }), {
+      message: 'A glob to exclude must name a file or folder, such as footer.md.',
+    });
+    assert.deepEqual(requests, []);
+  });
+
   testEach`
     reason                       | pattern        | exclude
     ${'nothing matches'}         | ${'img/*.gif'} | ${[]}

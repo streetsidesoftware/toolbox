@@ -46,7 +46,7 @@ const options = {
 const valueRules: Record<string, string> = {
   output: 'must name a folder',
   ref: 'must name a branch, tag or commit',
-  exclude: 'must name a file or folder, such as banner.png',
+  exclude: 'must name a file or folder, such as footer.md',
   concurrency: 'must be a whole number of at least 1',
 };
 
