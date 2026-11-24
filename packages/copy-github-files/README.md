@@ -79,8 +79,8 @@ copy-github-files streetsidesoftware/.github 'static/*.md' --exclude footer.md
 | All SVG files below one folder | `--exclude 'static/**/*.svg'`             |
 | All SVG files except the logo  | `--exclude '*.svg' --exclude '!logo.svg'` |
 
-Repeat `--exclude` to skip more. The globs work like the lines of a `.gitignore` file, except that a `!` glob always
-wins, whatever its place in the list. It can't keep a file in a folder that is skipped.
+Repeat `--exclude` to skip more. To keep a file that another glob skips, start a glob with `!`. It can't keep a
+file in a folder that is skipped.
 
 A path given in full is always copied, even when an exclude matches it.
 

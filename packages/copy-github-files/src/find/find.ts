@@ -11,7 +11,7 @@ const { matchesGlob } = path.posix;
 
 export interface FindOptions extends FetchOptions {
   /**
-   * Globs for the files to skip among those the patterns match. They work like the lines of a `.gitignore` file:
+   * Globs for the files to skip among those the patterns match:
    * - A file, in any folder: `footer.md`
    * - One file: `static/footer.md`
    * - All SVG files: `*.svg`
