@@ -9,14 +9,17 @@ const { matchesGlob } = path.posix;
 
 export interface FindOptions extends FetchOptions {
   /**
-   * Globs for files that a pattern matches but that aren't to be copied, matched the way `.gitignore` matches:
-   * - A glob without a `/` matches the name of the file, or of any folder above it, such as `banner.png`.
-   * - A glob with a `/` at its start or in its middle matches the path from the root of the repository.
-   * - A glob that ends in `/` matches only folders.
-   * - `**` matches any number of folders.
-   * - A glob that starts with `!` keeps the files it matches, whatever other globs match them.
+   * Globs for the files to skip among those the patterns match. They work like the lines of a `.gitignore` file:
+   * - A file, in any folder: `footer.md`
+   * - One file: `static/footer.md`
+   * - All SVG files: `*.svg`
+   * - A folder and everything in it: `drafts/`
+   * - All SVG files below one folder: `static/**​/*.svg`
    *
-   * A path given in full is never excluded.
+   * To keep a file that another glob skips, add a glob that starts with `!`, such as `!logo.svg`. It always wins,
+   * whatever its place in the list.
+   *
+   * A path given in full is never skipped.
    */
   exclude?: Iterable<string> | undefined;
 }
@@ -29,13 +32,16 @@ export interface FindResult {
 }
 
 /**
- * Find the files to copy from a GitHub repository, for paths that can hold patterns.
+ * Find the files to copy from a GitHub repository.
  *
- * A path with `*`, `?`, `[` or `{` in it is a pattern, such as `static/img/*.png`:
- * - Each segment after the first is matched against the names in one folder, with the syntax of Node's
- *   `path.matchesGlob`. The last segment matches files, and the segments before it match folders.
- * - The first segment names a folder, so it can't hold a wildcard.
- * - A pattern doesn't reach into subfolders, and `**` isn't supported in it.
+ * A path names one file, or is a pattern for several:
+ * - The Markdown files in a folder: `static/*.md`
+ * - Every file in a folder, but not its subfolders: `images/*`
+ * - The PNG and SVG files in a folder: `images/*.{png,svg}`
+ * - The README of each package: `packages/*​/README.md`
+ *
+ * A pattern starts with a folder name, and doesn't support `**`. Any path with `*`, `?`, `[` or `{` in it is a pattern,
+ * with the syntax of Node's `path.matchesGlob`.
  *
  * Each folder a pattern looks in is one request. A path given in full makes none, and is kept as it is.
  *

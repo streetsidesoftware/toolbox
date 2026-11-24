@@ -39,51 +39,49 @@ To run it from a script in `package.json`:
 
 ### Patterns
 
-A path with `*`, `?`, `[` or `{` in it is a pattern. It copies each file it matches:
+To copy files without naming each one, use a pattern:
 
 ```sh
 copy-github-files streetsidesoftware/.github 'static/*.md'
 ```
 
-- Each segment of a pattern matches the names in one folder, with the syntax of Node's
-  [`path.matchesGlob`](https://nodejs.org/api/path.html#pathmatchesglobpath-pattern).
-- The last segment matches files, and the segments before it match folders, so `packages/*/README.md` copies the
-  README of each folder in `packages`.
-- A pattern doesn't reach into subfolders: `images/*` copies only the files directly in `images`. Use `*` per level;
-  `**` isn't supported in a pattern.
-- The first segment names a folder, so it can't hold a wildcard.
-- `*` doesn't match a name that starts with `.`. Write `.*` for those.
+| To copy                                        | Use                      |
+| ---------------------------------------------- | ------------------------ |
+| The Markdown files in a folder                 | `'static/*.md'`          |
+| Every file in a folder, but not its subfolders | `'images/*'`             |
+| The PNG and SVG files in a folder              | `'images/*.{png,svg}'`   |
+| The README of each package                     | `'packages/*/README.md'` |
 
 Quote a pattern, so the shell doesn't expand it against your own files.
 
-After copying, the command lists each pattern that matched no file, as `No file matches <pattern>`, and exits with
-code 1.
+A pattern starts with a folder name and doesn't support `**`. To copy dotfiles, write the dot, as in `'images/.*'`.
+
+Any path with `*`, `?`, `[` or `{` in it is a pattern, with the syntax of Node's
+[`path.matchesGlob`](https://nodejs.org/api/path.html#pathmatchesglobpath-pattern).
+
+If a pattern matches no file, the command says so after copying, as `No file matches <pattern>`, and exits with code 1.
 
 ### Excluding files
 
-Use `--exclude <glob>` to skip some of the files a pattern matches. Give it once for each glob:
+To skip some of the files a pattern matches, use `--exclude`:
 
 ```sh
-copy-github-files streetsidesoftware/.github 'static/*.md' --exclude footer.md --exclude '*-pub.md'
+copy-github-files streetsidesoftware/.github 'static/*.md' --exclude footer.md
 ```
 
-The globs match the way lines in a `.gitignore` file do:
+| To skip                        | Use                                       |
+| ------------------------------ | ----------------------------------------- |
+| A file, in any folder          | `--exclude footer.md`                     |
+| One file                       | `--exclude static/footer.md`              |
+| All SVG files                  | `--exclude '*.svg'`                       |
+| A folder and everything in it  | `--exclude drafts/`                       |
+| All SVG files below one folder | `--exclude 'static/**/*.svg'`             |
+| All SVG files except the logo  | `--exclude '*.svg' --exclude '!logo.svg'` |
 
-- A glob without a `/` matches the name of a file, or of any folder above it, such as `footer.md` or `drafts`.
-- A glob with a `/` at its start or in its middle matches the path from the root of the repository, such as
-  `static/footer.md`.
-- A glob that ends in `/` matches only folders, such as `drafts/`.
-- `**` matches any number of folders, such as `static/**/footer.md`.
-- A glob that starts with `!` keeps the files it matches. Unlike in a `.gitignore` file, it always wins, whatever its
-  place in the list, and it also keeps a file inside an excluded folder.
+Repeat `--exclude` to skip more. The globs work like the lines of a `.gitignore` file, except that a `!` glob always
+wins, whatever its place in the list. It keeps a file even inside an excluded folder.
 
-To copy only the `.png` files from a folder:
-
-```sh
-copy-github-files owner/repo 'images/*' --exclude 'images/*' --exclude '!images/*.png'
-```
-
-An exclude skips only files that a pattern matched. A path given in full is always copied.
+A path given in full is always copied, even when an exclude matches it.
 
 ### Options
 
