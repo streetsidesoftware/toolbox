@@ -22,17 +22,24 @@ export type GitHubPath =
       entries: { type: 'file' | 'dir' | 'symlink' | 'submodule'; name: string; path: string }[];
     };
 
-/** An error from GitHub, with the path it is about and the HTTP status that says what went wrong. */
+/** An error from GitHub, with what was asked for and the HTTP status that says what went wrong. */
 export class GitHubError extends Error {
-  /** An HTTP status code that says what went wrong, such as 404 when nothing was found at the path. */
+  /** An HTTP status code that says what went wrong, such as 404 when the repository, ref or path wasn't found. */
   readonly status: number;
+  /** The repository that was asked for, as `owner/repo`. */
+  readonly repo: string;
+  /** The branch, tag or commit that was asked for, or undefined for the repository's default branch. */
+  readonly ref: string | undefined;
   /** The path that was asked for, from the root of the repository, such as `static/sponsor.md`. */
   readonly path: string;
 
-  constructor(message: string, status: number, path: string) {
+  constructor(message: string, status: number, source: GitHubSource, path: string) {
     super(message);
     this.name = 'GitHubError';
     this.status = status;
+    // Not the whole source: it holds the token, and logging an error prints its fields.
+    this.repo = source.repo;
+    this.ref = source.ref;
     this.path = path;
   }
 }
@@ -55,7 +62,9 @@ export async function fetchGitHubFile(
 ): Promise<Uint8Array> {
   const found = await fetchGitHubPath(source, filePath, options);
   // Asked for a file, a folder means no file was found at the path.
-  if (found.type !== 'file') throw new GitHubError(`The path ${filePath} names a folder, not a file.`, 404, filePath);
+  if (found.type !== 'file') {
+    throw new GitHubError(`The path ${filePath} names a folder, not a file.`, 404, source, filePath);
+  }
   return found.content;
 }
 
@@ -95,7 +104,7 @@ export async function fetchGitHubPath(
   if (source.token) headers['Authorization'] = `Bearer ${source.token}`;
 
   const response = await fetch(url, { headers, signal: options?.signal ?? null });
-  if (!response.ok) throw new GitHubError(refusal(response, source, repoPath), response.status, repoPath);
+  if (!response.ok) throw new GitHubError(refusal(response, source, repoPath), response.status, source, repoPath);
   if (response.headers.get('content-type')?.startsWith('application/vnd.github.raw')) {
     return { type: 'file', path: repoPath, content: await response.bytes() };
   }
@@ -128,7 +137,8 @@ function refusal(response: Response, source: GitHubSource, repoPath: string): st
       ? "GitHub's rate limit was reached."
       : "GitHub's rate limit was reached. A token raises the limit.";
   }
-  return `GitHub responded with status ${response.status} for ${repoPath}`;
+  const ref = source.ref ? ` at ${source.ref}` : '';
+  return `GitHub responded with status ${response.status} for ${repoPath} in ${source.repo}${ref}`;
 }
 
 function isRepoPath(repoPath: string): boolean {

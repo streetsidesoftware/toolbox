@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
+import { inspect } from 'node:util';
 
 import { testEach } from '@streetsidesoftware/test-each';
 
@@ -46,7 +47,7 @@ describe('fetchGitHubFile', () => {
       assert.equal(error.status, 404);
       assert.equal(error.path, 'a.md');
       assert.equal(error.name, 'GitHubError');
-      assert.equal(error.message, 'GitHub responded with status 404 for a.md');
+      assert.equal(error.message, 'GitHub responded with status 404 for a.md in owner/repo');
       return true;
     });
   });
@@ -56,8 +57,8 @@ describe('fetchGitHubFile', () => {
     ${'the rate limit, without a token'}             | ${403} | ${undefined} | ${'0'}    | ${"GitHub's rate limit was reached. A token raises the limit."}
     ${'the rate limit, with a token'}                | ${403} | ${'secret'}  | ${'0'}    | ${"GitHub's rate limit was reached."}
     ${'the rate limit, as a 429'}                    | ${429} | ${undefined} | ${'0'}    | ${"GitHub's rate limit was reached. A token raises the limit."}
-    ${'a 403 with requests left in the limit'}       | ${403} | ${undefined} | ${'12'}   | ${'GitHub responded with status 403 for a.md'}
-    ${'a 404 on the request that used up the limit'} | ${404} | ${undefined} | ${'0'}    | ${'GitHub responded with status 404 for a.md'}
+    ${'a 403 with requests left in the limit'}       | ${403} | ${undefined} | ${'12'}   | ${'GitHub responded with status 403 for a.md in owner/repo'}
+    ${'a 404 on the request that used up the limit'} | ${404} | ${undefined} | ${'0'}    | ${'GitHub responded with status 404 for a.md in owner/repo'}
   `(
     'says when GitHub refuses a request for $refusal',
     async (
@@ -80,6 +81,25 @@ describe('fetchGitHubFile', () => {
         assert.equal(error.status, status);
         assert.equal(error.path, 'a.md');
         assert.equal(error.message, message);
+        return true;
+      });
+    },
+  );
+
+  testEach`
+    reason                 | files                   | path        | message
+    ${'a refused request'} | ${{}}                   | ${'a.md'}   | ${'GitHub responded with status 404 for a.md in owner/repo at v2'}
+    ${'a folder'}          | ${{ 'static/a.md': '' }} | ${'static'} | ${'The path static names a folder, not a file.'}
+  `(
+    'says what was asked for, without the token, in the error for $reason',
+    async ({ files, path, message }: { files: Record<string, string>; path: string; message: string }, t) => {
+      fakeGitHub(t, files);
+
+      await assert.rejects(fetchGitHubFile({ repo: 'owner/repo', ref: 'v2', token: 'secret' }, path), (error) => {
+        assert.ok(error instanceof GitHubError);
+        assert.deepEqual([error.repo, error.ref, error.path], ['owner/repo', 'v2', path]);
+        assert.equal(error.message, message);
+        assert.ok(!inspect(error).includes('secret'));
         return true;
       });
     },
@@ -210,7 +230,7 @@ describe('fetchGitHubPath', () => {
       assert.ok(error instanceof GitHubError);
       assert.equal(error.status, 404);
       assert.equal(error.path, 'missing.md');
-      assert.equal(error.message, 'GitHub responded with status 404 for missing.md');
+      assert.equal(error.message, 'GitHub responded with status 404 for missing.md in owner/repo');
       return true;
     });
   });

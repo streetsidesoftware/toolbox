@@ -98,7 +98,7 @@ describe('run', () => {
 
     assert.equal(code, 1);
     assert.deepEqual(context.errors, [
-      'Failed to copy static/missing.md: GitHub responded with status 404 for static/missing.md',
+      'Failed to copy static/missing.md: GitHub responded with status 404 for static/missing.md in owner/repo',
     ]);
     assert.deepEqual(context.logged.toSorted(), [
       `Copied ${localPath('static/footer.md')}`,
@@ -191,7 +191,7 @@ describe('run', () => {
     assert.equal(code, 1);
     assert.deepEqual(context.logged, []);
     assert.deepEqual(context.errors, [
-      'Failed to copy static/missing.md: GitHub responded with status 404 for static/missing.md',
+      'Failed to copy static/missing.md: GitHub responded with status 404 for static/missing.md in owner/repo',
     ]);
     assert.equal(await readFile(path.join(cwd, 'static/sponsor.md'), 'utf8'), 'Sponsor us.\n');
   });
@@ -298,7 +298,7 @@ describe('run', () => {
     const code = await run(['owner/repo', 'static/sponsor.md', 'missing/*.md'], context);
 
     assert.equal(code, 1);
-    assert.deepEqual(context.errors, ['GitHub responded with status 404 for missing']);
+    assert.deepEqual(context.errors, ['GitHub responded with status 404 for missing in owner/repo']);
     assert.deepEqual(context.logged, []);
     assert.deepEqual(await readdir(cwd), []);
   });
@@ -312,7 +312,7 @@ describe('run', () => {
 
     assert.equal(code, 1);
     assert.deepEqual(context.errors, [
-      'Failed to copy static/missing.md: GitHub responded with status 404 for static/missing.md',
+      'Failed to copy static/missing.md: GitHub responded with status 404 for static/missing.md in owner/repo',
     ]);
     assert.deepEqual(context.logged, []);
     assert.equal(context.urls.length, 1);

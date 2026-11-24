@@ -124,7 +124,7 @@ describe('copyGitHubFiles', () => {
       byPath(results).map((result) => ('error' in result ? `${result.path}: ${result.error.message}` : result.path)),
       [
         'static/footer.md',
-        'static/missing.md: GitHub responded with status 404 for static/missing.md',
+        'static/missing.md: GitHub responded with status 404 for static/missing.md in owner/repo',
         'static/sponsor.md',
       ],
     );
