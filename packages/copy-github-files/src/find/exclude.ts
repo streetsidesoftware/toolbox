@@ -14,7 +14,7 @@ interface ExcludeGlob {
 }
 
 /**
- * Create the test for whether a file or folder is excluded, from globs that match as `.gitignore` lines do.
+ * Create the test for whether a file or folder is excluded.
  * The test runs for every file and folder, so everything that depends only on the globs is done here.
  */
 export function createExcludeFilter(globs: Iterable<string>): ExcludeFilter {
@@ -26,7 +26,6 @@ export function createExcludeFilter(globs: Iterable<string>): ExcludeFilter {
     if (glob.startsWith('!')) keeps.push(parseGlob(glob.slice(1)));
     else excludes.push(parseGlob(glob));
   }
-  // Likely faster test first.
   return excludes.length < keeps.length
     ? (entryPath, type) => matchesAny(entryPath, type, excludes) && !matchesAny(entryPath, type, keeps)
     : (entryPath, type) => !matchesAny(entryPath, type, keeps) && matchesAny(entryPath, type, excludes);

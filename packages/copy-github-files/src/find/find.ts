@@ -90,7 +90,6 @@ function isPattern(repoPath: string): boolean {
   return /[*?[{]/.test(repoPath);
 }
 
-/** Find the files a pattern matches, with a walk for each of its expansions. */
 async function findMatches(
   source: GitHubSource,
   walks: Walk[],
