@@ -11,11 +11,14 @@ describe('parseCommandLine', () => {
   test('reads the repository, the paths and every option', () => {
     const args = ['owner/repo', 'a.md', 'b.md', '--output', 'docs', '--ref', 'v2', '--concurrency', '2'];
 
-    assert.deepEqual(parseCommandLine([...args, '--fail-fast', '--silent']), {
+    const more = ['--exclude', 'banner.png', '--exclude', '!logo.png', '--fail-fast', '--silent'];
+
+    assert.deepEqual(parseCommandLine([...args, ...more]), {
       repo: 'owner/repo',
       paths: ['a.md', 'b.md'],
       output: 'docs',
       ref: 'v2',
+      exclude: ['banner.png', '!logo.png'],
       concurrency: 2,
       failFast: true,
       silent: true,
@@ -29,6 +32,7 @@ describe('parseCommandLine', () => {
       paths: ['a.md'],
       output: '.',
       ref: undefined,
+      exclude: [],
       concurrency: undefined,
       failFast: false,
       silent: false,
@@ -44,7 +48,7 @@ describe('parseCommandLine', () => {
   `('names the unknown option in $option', ({ option, rawName }: { option: string; rawName: string }) => {
     assert.equal(
       parseCommandLine(['owner/repo', 'a.md', option]),
-      `Unknown option ${rawName}. The options are --output, --ref, --concurrency, --fail-fast, --silent and --help.`,
+      `Unknown option ${rawName}. The options are --output, --ref, --exclude, --concurrency, --fail-fast, --silent and --help.`,
     );
   });
 
@@ -80,6 +84,7 @@ describe('parseCommandLine', () => {
     option        | message
     ${'--output='} | ${'The --output option must name a folder.'}
     ${'--ref='}    | ${'The --ref option must name a branch, tag or commit.'}
+    ${'--exclude='} | ${'The --exclude option must name a file or folder, such as footer.md.'}
   `('refuses an empty $option', ({ option, message }: { option: string; message: string }) => {
     assert.equal(parseCommandLine(['owner/repo', 'a.md', option]), message);
   });

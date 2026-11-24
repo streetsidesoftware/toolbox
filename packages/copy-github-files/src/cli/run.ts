@@ -1,4 +1,4 @@
-import { copyGitHubFiles } from '../index.ts';
+import { copyGitHubFiles, findGitHubFiles } from '../index.ts';
 import { parseCommandLine, usage } from './parse.ts';
 
 /** What the command reads from its environment and writes to the console. A caller can give any part instead. */
@@ -23,7 +23,8 @@ export interface RunContext {
 /**
  * Run the command with its arguments, and return its exit code.
  *
- * The exit code is 1 when an argument is wrong or a file couldn't be copied, and 0 otherwise.
+ * The exit code is 1 when an argument is wrong, a file couldn't be copied or a pattern matched no file, and 0
+ * otherwise.
  *
  * The context gives the token, and where each line goes. Any part left out comes from the environment and the
  * console, as when the command runs on its own.
@@ -47,7 +48,7 @@ export async function run(args: string[], context?: Partial<RunContext>): Promis
     return 0;
   }
 
-  const { repo, paths, output, ref, concurrency, failFast, silent } = commandLine;
+  const { repo, paths, output, ref, exclude, concurrency, failFast, silent } = commandLine;
   if (!repo || !paths.length) {
     error('Name a repository and at least one file to copy: copy-github-files <owner>/<repo> <path>...');
     return 1;
@@ -56,7 +57,8 @@ export async function run(args: string[], context?: Partial<RunContext>): Promis
   let failed = false;
   try {
     const source = { repo, ref, token };
-    for await (const result of copyGitHubFiles(source, paths, output, { concurrency })) {
+    const found = await findGitHubFiles(source, paths, { exclude });
+    for await (const result of copyGitHubFiles(source, found.files, output, { concurrency })) {
       if ('error' in result) {
         error(`Failed to copy ${result.path}: ${result.error.message}`);
         failed = true;
@@ -64,6 +66,10 @@ export async function run(args: string[], context?: Partial<RunContext>): Promis
       } else if (!silent) {
         log(`Copied ${result.file}`);
       }
+    }
+    for (const pattern of found.unmatched) {
+      error(`No file matches ${pattern}`);
+      failed = true;
     }
   } catch (caught) {
     error(caught instanceof Error ? caught.message : String(caught));

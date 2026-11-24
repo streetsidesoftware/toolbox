@@ -37,12 +37,60 @@ To run it from a script in `package.json`:
 }
 ```
 
+### Patterns
+
+To copy files without naming each one, use a pattern:
+
+```sh
+copy-github-files streetsidesoftware/.github 'static/*.md'
+```
+
+| To copy                                        | Use                      |
+| ---------------------------------------------- | ------------------------ |
+| The Markdown files in a folder                 | `'static/*.md'`          |
+| The Markdown files in the root folder          | `'*.md'`                 |
+| Every file in a folder, but not its subfolders | `'images/*'`             |
+| The PNG and SVG files in a folder              | `'images/*.{png,svg}'`   |
+| The README of each package                     | `'packages/*/README.md'` |
+
+Quote a pattern, so the shell doesn't expand it against your own files.
+
+A pattern doesn't support `**`. To copy dotfiles, write the dot, as in `'images/.*'`.
+
+Any path with `*`, `?`, `[` or `{` in it is a pattern, with the syntax of Node's
+[`path.matchesGlob`](https://nodejs.org/api/path.html#pathmatchesglobpath-pattern).
+
+If a pattern matches no file, the command says so after copying, as `No file matches <pattern>`, and exits with code 1.
+
+### Excluding files
+
+To skip some of the files a pattern matches, use `--exclude`:
+
+```sh
+copy-github-files streetsidesoftware/.github 'static/*.md' --exclude footer.md
+```
+
+| To skip                        | Use                                       |
+| ------------------------------ | ----------------------------------------- |
+| A file, in any folder          | `--exclude footer.md`                     |
+| One file                       | `--exclude static/footer.md`              |
+| All SVG files                  | `--exclude '*.svg'`                       |
+| A folder and everything in it  | `--exclude drafts/`                       |
+| All SVG files below one folder | `--exclude 'static/**/*.svg'`             |
+| All SVG files except the logo  | `--exclude '*.svg' --exclude '!logo.svg'` |
+
+Repeat `--exclude` to skip more. To keep a file that another glob skips, start a glob with `!`. It can't keep a
+file in a folder that is skipped.
+
+A path given in full is always copied, even when an exclude matches it.
+
 ### Options
 
 | Option              | What it does                                                                            |
 | ------------------- | --------------------------------------------------------------------------------------- |
 | `--output <dir>`    | Write the files below `<dir>` instead of the current folder, keeping their paths.       |
 | `--ref <ref>`       | Copy from a branch, tag or commit. Without it, the repository's default branch is used. |
+| `--exclude <glob>`  | Skip the files a pattern matches that `<glob>` matches. Repeat it for more globs.       |
 | `--concurrency <n>` | Download up to `<n>` files at once. Default: 8.                                         |
 | `--fail-fast`       | Stop at the first file that fails.                                                      |
 | `--silent`          | List no copied files. Failures are still shown.                                         |
@@ -54,7 +102,7 @@ With `--output docs`, `static/sponsor.md` is written to `docs/static/sponsor.md`
 
 A public repository needs no token. When `GITHUB_TOKEN` is set, it authenticates the requests:
 
-- It raises GitHub's limit of 60 unauthenticated requests an hour. Each file is one request.
+- It raises GitHub's limit of 60 unauthenticated requests an hour. Each file is one request, and so is each folder the patterns look in.
 - It gives access to a private repository, when the token can read that repository.
 
 In a GitHub workflow, pass the workflow's token to copy from a public repository:
@@ -73,6 +121,11 @@ a token with read access to it, such as a fine-grained personal access token or 
 Each file is copied on its own. If one fails, such as a path that doesn't exist on that branch, the others are still
 copied. The command says which file failed and why, and exits with code 1. With `--fail-fast`, it stops at the first
 file that fails.
+
+A pattern is different: if a folder it looks in can't be listed, such as one that doesn't exist, the command shows
+the error, copies nothing, and exits with code 1.
+
+GitHub lists at most 1,000 entries of a folder, so a pattern doesn't see the rest of a larger folder.
 
 ## Library
 
@@ -107,6 +160,24 @@ const results = copyGitHubFiles(source, paths, '.', { concurrency: 2 });
 
 The source also takes a `ref`, and a `token` for a private repository.
 
+To copy the files that patterns match, find them with `findGitHubFiles` first, and pass the files it finds to
+`copyGitHubFiles`:
+
+```ts
+import { copyGitHubFiles, findGitHubFiles } from '@streetsidesoftware/copy-github-files';
+
+const source = { repo: 'streetsidesoftware/.github' };
+const found = await findGitHubFiles(source, ['static/*.md'], { exclude: ['footer.md'] });
+for (const pattern of found.unmatched) console.error(`No file matches ${pattern}`);
+for await (const result of copyGitHubFiles(source, found.files, '.')) {
+  if ('error' in result) console.error(`Failed to copy ${result.path}: ${result.error.message}`);
+  else console.log(`Copied ${result.file}`);
+}
+```
+
+It keeps each path given in full as it is. It lists a file found twice once, and gives in `unmatched` each pattern
+that matched no file. If a folder a pattern looks in can't be listed, it rejects with that folder's error.
+
 To read one file without writing it, use `fetchGitHubFile`:
 
 ```ts
@@ -128,9 +199,11 @@ if (found.type === 'dir') {
 }
 ```
 
-An error from GitHub is a `GitHubError`, with a `status` that says what went wrong, such as 404 when nothing is at the
-path. Asked for a file, `fetchGitHubFile` also gives 404 for a folder, since no file is
-there. A failed result from `copyGitHubFiles` carries the same error:
+To list the root of the repository, pass an empty path.
+
+An error from GitHub is a `GitHubError`. Its `repo`, `ref` and `path` are what was asked for, and its `status` says what
+went wrong, such as 404 when the repository, ref or path wasn't found. Asked for a file, `fetchGitHubFile` also gives
+404 for a folder, since no file is there. A failed result from `copyGitHubFiles` carries the same error:
 
 ```ts
 import { GitHubError } from '@streetsidesoftware/copy-github-files';
