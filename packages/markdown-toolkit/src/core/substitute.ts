@@ -82,7 +82,7 @@ function substituteInNodes(
       const replacement = paragraph === 'split' && wholeLine ? replacements.line(name) : replacements.inline(name);
       if (replacement === undefined) return [node];
       if ('blocks' in replacement) return [replacement];
-      // Markdown ignores spaces and tabs at the ends of a line, so keeping them would mean writing them as escapes.
+      // Keeping spaces and tabs at the ends of a line would mean writing them as escapes.
       const content = wholeLine ? trimBlanks(replacement) : replacement;
       return content.length || !paragraph ? content : [{ empty: true }];
     }
