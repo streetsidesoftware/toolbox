@@ -186,7 +186,7 @@ import { fetchGitHubFile } from '@streetsidesoftware/copy-github-files';
 const content = await fetchGitHubFile({ repo: 'streetsidesoftware/.github' }, 'static/sponsor.md');
 ```
 
-To see what's at a path, a file or a folder, use `fetchGitHubPath`. An empty path is the root of the repository:
+To see what's at a path, a file or a folder, use `fetchGitHubPath`:
 
 ```ts
 import { fetchGitHubPath } from '@streetsidesoftware/copy-github-files';
@@ -198,6 +198,8 @@ if (found.type === 'dir') {
   console.log(`${found.path} is a file of ${found.content.length} bytes.`);
 }
 ```
+
+To list the root of the repository, pass an empty path.
 
 An error from GitHub is a `GitHubError`. Its `repo`, `ref` and `path` are what was asked for, and its `status` says what
 went wrong, such as 404 when the repository, ref or path wasn't found. Asked for a file, `fetchGitHubFile` also gives
