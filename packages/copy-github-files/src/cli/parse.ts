@@ -17,7 +17,17 @@ Options:
   --silent           Don't list the copied files. Failures are still shown.
   --help             Show this help.
 
-When GITHUB_TOKEN is set, it authenticates the requests. A private repository needs it.`;
+When GITHUB_TOKEN is set, it authenticates the requests. A private repository needs it.
+
+Examples:
+    copy-github-files streetsidesoftware/.github static/sponsor.md
+        Copy one file.
+
+    copy-github-files streetsidesoftware/.github 'static/*.md'
+        Copy the Markdown files in a folder.
+
+    copy-github-files streetsidesoftware/.github 'static/*.md' --exclude footer.md
+        Copy the Markdown files in a folder, except footer.md.`;
 
 /** The options and paths the command was given. */
 export interface CommandLine {
