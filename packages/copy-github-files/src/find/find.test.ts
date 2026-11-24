@@ -35,6 +35,12 @@ describe('findGitHubFiles', () => {
     ${'packages/three/{src/*.ts,*.md}'} | ${['packages/three/src/index.ts', 'packages/three/README.md']}
     ${'packages/{one/*.md,*/*.md}'} | ${['packages/one/README.md', 'packages/two/notes.md', 'packages/three/README.md']}
     ${'img/{a.png,deeper/*.png}'} | ${['img/a.png', 'img/deeper/c.png']}
+    ${'*.md'}                 | ${['README.md']}
+    ${'*/*.png'}              | ${['img/a.png']}
+    ${'*/*/README.md'}        | ${['packages/one/README.md', 'packages/three/README.md']}
+    ${'{img,packages}/*'}     | ${['img/a.png', 'img/b.svg']}
+    ${'{README.md,img/*.png}'} | ${['README.md', 'img/a.png']}
+    ${'{,img/}*.{md,png}'}    | ${['README.md', 'img/a.png']}
     ${'{packages/two,img}/*'} | ${['packages/two/notes.md', 'img/a.png', 'img/b.svg']}
   `('finds $expected for $pattern', async ({ pattern, expected }: { pattern: string; expected: string[] }, t) => {
     fakeGitHub(t, files);
@@ -65,6 +71,7 @@ describe('findGitHubFiles', () => {
     ${'skips an excluded folder, even with a ! glob for a file in it'}    | ${'packages/*/*.md'}     | ${['two', 'three', '!packages/two/notes.md']}     | ${['packages/one/README.md']}                            | ${['packages', 'packages/one']}
     ${'lists a folder that a ! glob keeps'}             | ${'packages/*/*.md'}     | ${['two', 'three', '!packages/two']}              | ${['packages/one/README.md', 'packages/two/notes.md']}   | ${['packages', 'packages/one', 'packages/two']}
     ${'lists a folder when only its files are excluded'}      | ${'packages/*/*.md'}     | ${['packages/two/*', '!packages/two/notes.md']}   | ${['packages/one/README.md', 'packages/two/notes.md', 'packages/three/README.md']} | ${['packages', 'packages/one', 'packages/two', 'packages/three']}
+    ${'starts in the root'} | ${'{img,packages}/*.png'} | ${['packages']} | ${['img/a.png']} | ${['', 'img']}
     ${'skips the folder it starts in'} | ${'packages/three/*.md'} | ${['packages']}                                  | ${[]}                                                    | ${[]}
   `(
     'lists only the folders it needs: $reason',
@@ -150,6 +157,16 @@ describe('findGitHubFiles', () => {
     assert.deepEqual(found, { files: ['img/a.png', 'img/b.svg'], unmatched: [] });
   });
 
+  test('lists the root from the ref', async (t) => {
+    const requests = fakeGitHub(t, files);
+    await findGitHubFiles({ repo: 'owner/repo', ref: 'v2' }, ['*.md']);
+
+    assert.deepEqual(
+      requests.map((request) => request.url),
+      ['https://api.github.com/repos/owner/repo/contents/?ref=v2'],
+    );
+  });
+
   test('lists only the folders the pattern reaches, from the ref', async (t) => {
     const requests = fakeGitHub(t, files);
     await findGitHubFiles({ repo: 'owner/repo', ref: 'v2' }, ['packages/*/README.md']);
@@ -198,21 +215,23 @@ describe('findGitHubFiles', () => {
 
   testEach`
     pattern
-    ${'*.md'}
-    ${'{packages,img}/*'}
-    ${'{packages/one,*}/*.md'}
-    ${'{README.md,img/*}'}
-  `(
-    'refuses $pattern, which has no folder before its first wildcard, without a request',
-    async ({ pattern }: { pattern: string }, t) => {
-      const requests = fakeGitHub(t, files);
+    ${'/*.md'}
+    ${'/img/*.png'}
+    ${'img//*.png'}
+    ${'./*.md'}
+    ${'../*.md'}
+    ${'img/../*.md'}
+    ${'img/{*,../packages/*}'}
+    ${'{*.md,/img/*}'}
+  `('refuses $pattern, without a request', async ({ pattern }: { pattern: string }, t) => {
+    const requests = fakeGitHub(t, files);
 
-      await assert.rejects(findGitHubFiles(source, [pattern]), {
-        message: 'A pattern must name a folder before its first wildcard, such as static/*.md.',
-      });
-      assert.deepEqual(requests, []);
-    },
-  );
+    await assert.rejects(findGitHubFiles(source, [pattern]), {
+      message:
+        'A path must be written from the root of the repository, such as static/sponsor.md, without . or .. segments.',
+    });
+    assert.deepEqual(requests, []);
+  });
 
   test('refuses a source that is not a repository, before any request', async (t) => {
     const requests = fakeGitHub(t, files);

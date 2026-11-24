@@ -223,6 +223,49 @@ describe('fetchGitHubPath', () => {
     });
   });
 
+  test('gives the root with its entries, for an empty path', async (t) => {
+    const requests = fakeGitHub(t, { 'README.md': '', 'static/sponsor.md': '' });
+    const found = await fetchGitHubPath({ repo: 'owner/repo' }, '');
+
+    assert.deepEqual(found, {
+      type: 'dir',
+      path: '',
+      entries: [
+        { type: 'file', name: 'README.md', path: 'README.md' },
+        { type: 'dir', name: 'static', path: 'static' },
+      ],
+    });
+    assert.equal(requests[0]?.url, 'https://api.github.com/repos/owner/repo/contents/');
+  });
+
+  test('names the root when GitHub refuses its listing', async (t) => {
+    fakeGitHub(t, {});
+
+    await assert.rejects(fetchGitHubPath({ repo: 'owner/repo', ref: 'v2' }, ''), (error) => {
+      assert.ok(error instanceof GitHubError);
+      assert.equal(error.path, '');
+      assert.equal(error.message, 'GitHub responded with status 404 for the root of owner/repo at v2');
+      return true;
+    });
+  });
+
+  testEach`
+    repoPath
+    ${'../a.md'}
+    ${'/'}
+    ${'static/'}
+    ${'static/..'}
+    ${'.'}
+  `('refuses the path $repoPath, without a request', async ({ repoPath }: { repoPath: string }, t) => {
+    const requests = fakeGitHub(t, {});
+
+    await assert.rejects(fetchGitHubPath({ repo: 'owner/repo' }, repoPath), {
+      message:
+        'A path must be written from the root of the repository, such as static/sponsor.md, without . or .. segments.',
+    });
+    assert.deepEqual(requests, []);
+  });
+
   test('tells a submodule from a file', async (t) => {
     t.mock.method(globalThis, 'fetch', async () => {
       const entries = [

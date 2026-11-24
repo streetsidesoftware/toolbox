@@ -1,7 +1,7 @@
 import path from 'node:path';
 
 import type { FetchOptions, GitHubSource } from '../github/index.ts';
-import { checkSource, fetchGitHubPath } from '../github/index.ts';
+import { checkRepoPath, checkSource, fetchGitHubPath } from '../github/index.ts';
 import { expandBraces } from './braces.ts';
 import type { ExcludeFilter } from './exclude.ts';
 import { createExcludeFilter } from './exclude.ts';
@@ -38,12 +38,13 @@ export interface FindResult {
  *
  * A path names one file, or is a pattern for several:
  * - The Markdown files in a folder: `static/*.md`
+ * - The Markdown files in the root folder: `*.md`
  * - Every file in a folder, but not its subfolders: `images/*`
  * - The PNG and SVG files in a folder: `images/*.{png,svg}`
  * - The README of each package: `packages/*​/README.md`
  *
- * A pattern starts with a folder name, and doesn't support `**`. Any path with `*`, `?`, `[` or `{` in it is a pattern,
- * with the syntax of Node's `path.matchesGlob`.
+ * A pattern doesn't support `**`. Any path with `*`, `?`, `[` or `{` in it is a pattern, with the syntax of Node's
+ * `path.matchesGlob`.
  *
  * Each folder a pattern looks in is one request. A path given in full makes none, and is kept as it is.
  *
@@ -99,7 +100,7 @@ async function findMatches(
 }
 
 interface Walk {
-  /** The folder to start in, one name for each level. */
+  /** The folder to start in, one name for each level. Empty for the root. */
   start: string[];
   /** Matched against the names in each folder from there: folders for a middle segment, files for the last. */
   segments: string[];
@@ -110,10 +111,10 @@ function parseWalk(pattern: string): Walk {
   const segments = pattern.split('/');
   const firstWildcard = segments.findIndex(isPattern);
   const matchFrom = firstWildcard < 0 ? segments.length - 1 : firstWildcard;
-  if (matchFrom === 0) {
-    throw new Error('A pattern must name a folder before its first wildcard, such as static/*.md.');
-  }
-  return { start: segments.slice(0, matchFrom), segments: segments.slice(matchFrom) };
+  const start = segments.slice(0, matchFrom);
+  // The start of /*.md is an empty name, which would join to the root.
+  if (start.length) checkRepoPath(start.join('/'));
+  return { start, segments: segments.slice(matchFrom) };
 }
 
 /** List the folders a walk reaches, one segment at a time. An excluded folder is never listed. */

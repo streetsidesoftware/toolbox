@@ -30,7 +30,7 @@ export class GitHubError extends Error {
   readonly repo: string;
   /** The branch, tag or commit that was asked for, or undefined for the repository's default branch. */
   readonly ref: string | undefined;
-  /** The path that was asked for, from the root of the repository, such as `static/sponsor.md`. */
+  /** The path that was asked for, such as `static/sponsor.md`, or empty for the root of the repository. */
   readonly path: string;
 
   constructor(message: string, status: number, source: GitHubSource, path: string) {
@@ -60,6 +60,8 @@ export async function fetchGitHubFile(
   filePath: string,
   options?: FetchOptions,
 ): Promise<Uint8Array> {
+  // Refuses an empty path too: it names the root, which is never a file.
+  checkRepoPath(filePath);
   const found = await fetchGitHubPath(source, filePath, options);
   // Asked for a file, a folder means no file was found at the path.
   if (found.type !== 'file') {
@@ -73,7 +75,7 @@ export async function fetchGitHubFile(
  *
  * To read a path that must be a file, use {@link fetchGitHubFile}.
  *
- * @param repoPath - from the root of the repository, such as `static/sponsor.md` or `static`.
+ * @param repoPath - from the root of the repository, such as `static/sponsor.md` or `static`. Empty for the root.
  * @example
  * const found = await fetchGitHubPath({ repo: 'streetsidesoftware/.github' }, 'static');
  * if (found.type === 'dir') console.log(found.entries.map((entry) => entry.path));
@@ -85,11 +87,7 @@ export async function fetchGitHubPath(
   options?: FetchOptions,
 ): Promise<GitHubPath> {
   checkSource(source);
-  if (!isRepoPath(repoPath)) {
-    throw new Error(
-      'A path must be written from the root of the repository, such as static/sponsor.md, without . or .. segments.',
-    );
-  }
+  if (repoPath) checkRepoPath(repoPath);
 
   const encodedPath = repoPath.split('/').map(encodeURIComponent).join('/');
   const url = new URL(`https://api.github.com/repos/${source.repo}/contents/${encodedPath}`);
@@ -135,6 +133,15 @@ export function checkSource(source: GitHubSource): void {
   if (source.ref === '') throw new Error('The ref must name a branch, tag or commit.');
 }
 
+/** Throw when a path can't name a file or folder below the root, so a request never reaches outside the repository. */
+export function checkRepoPath(repoPath: string): void {
+  if (repoPath.split('/').some((segment) => segment === '' || segment === '.' || segment === '..')) {
+    throw new Error(
+      'A path must be written from the root of the repository, such as static/sponsor.md, without . or .. segments.',
+    );
+  }
+}
+
 /**
  * Return the message for a refused request: the rate limit when it ran out, or else the status code, since HTTP/2
  * responses carry no status text.
@@ -148,9 +155,6 @@ function refusal(response: Response, source: GitHubSource, repoPath: string): st
       : "GitHub's rate limit was reached. A token raises the limit.";
   }
   const ref = source.ref ? ` at ${source.ref}` : '';
-  return `GitHub responded with status ${response.status} for ${repoPath} in ${source.repo}${ref}`;
-}
-
-function isRepoPath(repoPath: string): boolean {
-  return repoPath.split('/').every((segment) => segment !== '' && segment !== '.' && segment !== '..');
+  const asked = repoPath ? `${repoPath} in ${source.repo}` : `the root of ${source.repo}`;
+  return `GitHub responded with status ${response.status} for ${asked}${ref}`;
 }

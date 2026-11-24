@@ -48,13 +48,14 @@ copy-github-files streetsidesoftware/.github 'static/*.md'
 | To copy                                        | Use                      |
 | ---------------------------------------------- | ------------------------ |
 | The Markdown files in a folder                 | `'static/*.md'`          |
+| The Markdown files in the root folder          | `'*.md'`                 |
 | Every file in a folder, but not its subfolders | `'images/*'`             |
 | The PNG and SVG files in a folder              | `'images/*.{png,svg}'`   |
 | The README of each package                     | `'packages/*/README.md'` |
 
 Quote a pattern, so the shell doesn't expand it against your own files.
 
-A pattern starts with a folder name and doesn't support `**`. To copy dotfiles, write the dot, as in `'images/.*'`.
+A pattern doesn't support `**`. To copy dotfiles, write the dot, as in `'images/.*'`.
 
 Any path with `*`, `?`, `[` or `{` in it is a pattern, with the syntax of Node's
 [`path.matchesGlob`](https://nodejs.org/api/path.html#pathmatchesglobpath-pattern).
