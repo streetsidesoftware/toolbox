@@ -82,7 +82,7 @@ function substituteInNodes(
       const replacement = paragraph === 'split' && wholeLine ? replacements.line(name) : replacements.inline(name);
       if (replacement === undefined) return [node];
       if ('blocks' in replacement) return [replacement];
-      // Trim the ends, so that a replacement of only spaces and tabs is empty, and formatting such as `strong(' a ')`
+      // Trim the replacement's ends, so that one of only spaces and tabs is empty, and formatting such as `strong(' a ')`
       // isn't written with escapes.
       const content = wholeLine ? trimBlanks(replacement) : replacement;
       return content.length || !paragraph ? content : [{ empty: true }];

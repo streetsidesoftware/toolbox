@@ -51,7 +51,7 @@ export function renderNodes(children: RootContent[], style: MarkdownStyle | unde
     }
   });
   // Frontmatter works only at the start of a file, and a parsed document can bring it after other content. There,
-  // Markdown reads its first `---` as a rule, and the rest as content.
+  // Markdown would read it as content.
   visit(root, 'yaml', (_node, index, parent) => {
     if (parent === undefined || index === undefined || (parent === root && index === 0)) return undefined;
     parent.children.splice(index, 1);
