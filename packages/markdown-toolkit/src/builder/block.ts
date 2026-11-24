@@ -43,7 +43,7 @@ export function heading(depth: HeadingDepth, content: InlineContent): MDHeading 
  * - For a string that's already Markdown, use {@link parse}.
  * - For plain text where blank lines should separate paragraphs, use {@link blockText}.
  *
- * An empty paragraph shows nothing and leaves no gap.
+ * An empty paragraph is left out of the Markdown.
  *
  * @example
  * md.p('One sentence.', ' Another one.');

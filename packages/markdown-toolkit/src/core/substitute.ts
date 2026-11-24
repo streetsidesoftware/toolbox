@@ -27,7 +27,7 @@ interface BlockSlot {
   readonly blocks: RootContent[];
 }
 
-/** Stands in for a placeholder whose replacement shows nothing, until its paragraph is rebuilt. */
+/** Stands in for a placeholder whose replacement is empty, until its paragraph is rebuilt. */
 interface EmptySlot {
   readonly empty: true;
 }
@@ -82,9 +82,9 @@ function substituteInNodes(
       const replacement = paragraph === 'split' && wholeLine ? replacements.line(name) : replacements.inline(name);
       if (replacement === undefined) return [node];
       if ('blocks' in replacement) return [replacement];
-      // Spaces and tabs at the ends of a line would show escaped next to its line ending.
-      const shown = wholeLine ? trimBlanks(replacement) : replacement;
-      return shown.length || !paragraph ? shown : [{ empty: true }];
+      // Markdown ignores spaces and tabs at the ends of a line, so keeping them would mean writing them as escapes.
+      const content = wholeLine ? trimBlanks(replacement) : replacement;
+      return content.length || !paragraph ? content : [{ empty: true }];
     }
     if (node.type === 'link' || node.type === 'image' || node.type === 'definition') {
       node.url = substituteInString(node.url, replacements, 'a URL');
@@ -154,9 +154,10 @@ function isBlockSlot(piece: Piece): piece is BlockSlot {
 }
 
 /**
- * Return a paragraph's pieces without the lines that replacements showing nothing left empty, as passing the
- * replacements directly would: where the paragraph can split, such a line ends it; otherwise the line goes, with its
- * line ending.
+ * Return a paragraph's pieces without the empty replacements, and without each line that held nothing but empty
+ * replacements, spaces and tabs. Such a line goes with its line ending:
+ * - Where the paragraph can split, the paragraph ends at that line, as an empty part ends the paragraph in `document`.
+ * - Otherwise the paragraph stays whole.
  */
 function withoutEmptiedLines(pieces: readonly Piece[], mode: ParagraphMode): Piece[] {
   if (!pieces.some(isEmptySlot)) return [...pieces];
@@ -167,8 +168,12 @@ function withoutEmptiedLines(pieces: readonly Piece[], mode: ParagraphMode): Pie
       if (mode === 'split') result.push({ blocks: [] });
       continue;
     }
-    for (const piece of line.pieces) if (!isEmptySlot(piece)) result.push(piece);
-    for (const piece of line.ending) result.push(piece);
+    for (const piece of line.pieces) {
+      if (!isEmptySlot(piece)) result.push(piece);
+    }
+    for (const piece of line.ending) {
+      result.push(piece);
+    }
   }
   return result;
 }
@@ -205,7 +210,7 @@ function piecesByLine(pieces: readonly Piece[]): PieceLine[] {
   return lines;
 }
 
-/** Check whether a line holds a replacement that shows nothing, and nothing else but spaces and tabs. */
+/** Check whether a line holds an empty replacement and nothing else but spaces and tabs. */
 function isEmptiedLine(pieces: readonly Piece[]): boolean {
   return pieces.some(isEmptySlot) && pieces.every((piece) => isEmptySlot(piece) || isBlankText(piece));
 }

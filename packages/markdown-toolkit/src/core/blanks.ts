@@ -10,8 +10,9 @@ export function trimBlanks(nodes: readonly PhrasingContent[]): PhrasingContent[]
 
 /**
  * Return a paragraph's, heading's or table cell's inline nodes without the spaces, tabs, line endings and line breaks
- * at their start and end. Nothing is on their other side, so they would only show escaped, or as a literal `\`.
- * A paragraph of only spaces and tabs keeps them, since it still shows as a paragraph.
+ * at their start and end. Markdown ignores spaces and tabs there, so keeping them would mean writing them as escapes,
+ * such as `&#x20;`, and a line break there would be written as a lone `\`.
+ * A paragraph, heading or cell of only spaces and tabs keeps them: they're its content.
  */
 export function trimLineEdges(nodes: readonly PhrasingContent[]): PhrasingContent[] {
   const trimmed = trimBlanksAtEnd(trimBlanksAtStart(nodes, true), true);
@@ -21,7 +22,7 @@ export function trimLineEdges(nodes: readonly PhrasingContent[]): PhrasingConten
 
 /**
  * Return the inline nodes without the spaces, tabs and line endings next to a line break.
- * The break already ends the line, so they would only show escaped, as `&#x20;` or `&#xA;`.
+ * The break already ends the line, so keeping them would mean writing them as escapes, such as `&#x20;` or `&#xA;`.
  */
 export function trimBlanksAroundBreaks(nodes: readonly PhrasingContent[]): PhrasingContent[] {
   if (!nodes.some((node) => node.type === 'break')) return [...nodes];
@@ -42,7 +43,7 @@ export function trimBlanksAroundBreaks(nodes: readonly PhrasingContent[]): Phras
 
 /**
  * Return the inline nodes with each line ending in their text alone: the spaces, tabs and empty lines around it go.
- * At the edge of a line they would only show escaped, and a paragraph can't hold an empty line.
+ * At the edge of a line, keeping them would mean writing them as escapes, and a paragraph can't hold an empty line.
  * Text next to text is joined first, so a line ending split between the two counts too.
  */
 export function trimAroundLineEndings(nodes: readonly PhrasingContent[]): PhrasingContent[] {
@@ -118,7 +119,7 @@ function trimBlanksAtEnd(nodes: readonly PhrasingContent[], breaks: boolean): Ph
 
 /**
  * Return the formatting with its text trimmed at one side.
- * Formatting with only blanks in it stays as it is: it shows as a space, as empty formatting does.
+ * Formatting with only blanks in it stays as it is: the blanks are its content.
  */
 function trimmedInside<T extends Delete | Emphasis | Strong>(
   node: T,

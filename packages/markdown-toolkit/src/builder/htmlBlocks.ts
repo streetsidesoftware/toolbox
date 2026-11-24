@@ -36,7 +36,7 @@ import { alignOf } from './table.ts';
  * The content can hold anything a page can, such as paragraphs, lists and tables. Each piece of it goes on a line of
  * its own:
  * - Text, links and other pieces in a row form one paragraph. The page shows a space between them.
- * - A piece that shows nothing ends the paragraph.
+ * - An empty piece, or one of only spaces and tabs, ends the paragraph.
  * - A paragraph, list or other block goes on its own lines.
  * - An array is one piece, and its parts join with no spaces added. For a sentence built from pieces, use an array or
  *   {@link p}.

@@ -50,7 +50,7 @@ export function renderNodes(children: RootContent[], style: MarkdownStyle | unde
       node.children = trimLineEdges(node.children);
     }
   });
-  // Frontmatter after other content, such as a parsed document's, would show as a rule and a heading.
+  // Markdown reads frontmatter after other content, such as a parsed document's, as a rule and a heading.
   visit(root, 'yaml', (_node, index, parent) => {
     if (parent === undefined || index === undefined || (parent === root && index === 0)) return undefined;
     parent.children.splice(index, 1);
@@ -63,9 +63,11 @@ export function renderNodes(children: RootContent[], style: MarkdownStyle | unde
     if ('children' in node) {
       node.children = withCodeSpansApart(node.children as PhrasingContent[]) as typeof node.children;
     }
-    // Markdown has no empty code: two backticks show as text, and two such pairs turn the text between them into code.
+    // Markdown has no empty code. It reads a lone pair of backticks as text, and two pairs on a line as code around the
+    // text between them.
     if (node.type === 'inlineCode' && !node.value) node.value = ' ';
-    // Formatting markers with nothing between them show as text, or as a horizontal rule on a line of their own.
+    // Markdown reads formatting markers with nothing between them as text, or on a line of their own as a rule or a
+    // code fence.
     if (isFormatting(node) && !node.children.length) node.children.push({ type: 'text', value: ' ' });
     if (node.type === 'link') {
       // remark writes a link as an autolink only when its text is a single text node.
