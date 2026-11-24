@@ -2,6 +2,7 @@ import path from 'node:path';
 
 import type { FetchOptions, GitHubSource } from '../github/index.ts';
 import { checkSource, fetchGitHubPath } from '../github/index.ts';
+import { expandBraces } from './braces.ts';
 import type { ExcludeFilter } from './exclude.ts';
 import { createExcludeFilter } from './exclude.ts';
 
@@ -83,26 +84,48 @@ function isPattern(repoPath: string): boolean {
   return /[*?[{]/.test(repoPath);
 }
 
-/**
- * List the folders a pattern reaches, one segment at a time: folders for a middle segment, files for the last.
- * The segments before the first wildcard name the folder to start in. An excluded folder is never listed.
- */
+/** Find the files a pattern matches, from the folders that each of its expansions reaches. */
 async function findMatches(
   source: GitHubSource,
   pattern: string,
   isExcluded: ExcludeFilter,
   options: FetchOptions | undefined,
 ): Promise<string[]> {
+  const found: string[] = [];
+  for (const walk of expandBraces(pattern).map(parseWalk)) {
+    for (const file of await walkFolders(source, walk, isExcluded, options)) found.push(file);
+  }
+  return found;
+}
+
+interface Walk {
+  /** The folder to start in, one name for each level. */
+  start: string[];
+  /** Matched against the names in each folder from there: folders for a middle segment, files for the last. */
+  segments: string[];
+}
+
+/** The last segment is always matched, since an expansion such as `static/a.md` can have no wildcard. */
+function parseWalk(pattern: string): Walk {
   const segments = pattern.split('/');
   const firstWildcard = segments.findIndex(isPattern);
-  if (firstWildcard === 0) {
+  const matchFrom = firstWildcard < 0 ? segments.length - 1 : firstWildcard;
+  if (matchFrom === 0) {
     throw new Error('A pattern must name a folder before its first wildcard, such as static/*.md.');
   }
-  const start = segments.slice(0, firstWildcard);
+  return { start: segments.slice(0, matchFrom), segments: segments.slice(matchFrom) };
+}
+
+/** List the folders a walk reaches, one segment at a time. An excluded folder is never listed. */
+async function walkFolders(
+  source: GitHubSource,
+  { start, segments }: Walk,
+  isExcluded: ExcludeFilter,
+  options: FetchOptions | undefined,
+): Promise<string[]> {
   if (start.some((_, index) => isExcluded(start.slice(0, index + 1).join('/'), 'dir'))) return [];
   let found = [start.join('/')];
-  for (let index = firstWildcard; index < segments.length; index += 1) {
-    const segment = segments[index] ?? '';
+  for (const [index, segment] of segments.entries()) {
     const type = index === segments.length - 1 ? 'file' : 'dir';
     const matches: string[] = [];
     for (const folder of found) {

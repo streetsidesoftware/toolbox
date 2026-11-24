@@ -32,6 +32,10 @@ describe('findGitHubFiles', () => {
     ${'img/.*'}               | ${['img/.hidden.png']}
     ${'packages/*/README.md'} | ${['packages/one/README.md', 'packages/three/README.md']}
     ${'packages/*/src/*.ts'}  | ${['packages/three/src/index.ts']}
+    ${'packages/three/{src/*.ts,*.md}'} | ${['packages/three/src/index.ts', 'packages/three/README.md']}
+    ${'packages/{one/*.md,*/*.md}'} | ${['packages/one/README.md', 'packages/two/notes.md', 'packages/three/README.md']}
+    ${'img/{a.png,deeper/*.png}'} | ${['img/a.png', 'img/deeper/c.png']}
+    ${'{packages/two,img}/*'} | ${['packages/two/notes.md', 'img/a.png', 'img/b.svg']}
   `('finds $expected for $pattern', async ({ pattern, expected }: { pattern: string; expected: string[] }, t) => {
     fakeGitHub(t, files);
 
@@ -117,6 +121,20 @@ describe('findGitHubFiles', () => {
     },
   );
 
+  test('leaves out a file an expansion names when it is missing or excluded', async (t) => {
+    fakeGitHub(t, files);
+    const found = await findGitHubFiles(source, ['img/{missing.png,a.png,deeper/*.png}'], { exclude: ['a.png'] });
+
+    assert.deepEqual(found, { files: ['img/deeper/c.png'], unmatched: [] });
+  });
+
+  test('lists a pattern as unmatched only when none of its expansions match', async (t) => {
+    fakeGitHub(t, files);
+    const found = await findGitHubFiles(source, ['img/{*.gif,deeper/*.gif}', 'img/{*.gif,deeper/*.png}']);
+
+    assert.deepEqual(found, { files: ['img/deeper/c.png'], unmatched: ['img/{*.gif,deeper/*.gif}'] });
+  });
+
   test('lists a file found twice once', async (t) => {
     fakeGitHub(t, files);
     const found = await findGitHubFiles(source, ['img/a.png', 'img/*.png', 'img/*']);
@@ -169,14 +187,23 @@ describe('findGitHubFiles', () => {
     });
   });
 
-  test('refuses a pattern with a wildcard in its first segment, without a request', async (t) => {
-    const requests = fakeGitHub(t, files);
+  testEach`
+    pattern
+    ${'*.md'}
+    ${'{packages,img}/*'}
+    ${'{packages/one,*}/*.md'}
+    ${'{README.md,img/*}'}
+  `(
+    'refuses $pattern, which has no folder before its first wildcard, without a request',
+    async ({ pattern }: { pattern: string }, t) => {
+      const requests = fakeGitHub(t, files);
 
-    await assert.rejects(findGitHubFiles(source, ['*.md']), {
-      message: 'A pattern must name a folder before its first wildcard, such as static/*.md.',
-    });
-    assert.deepEqual(requests, []);
-  });
+      await assert.rejects(findGitHubFiles(source, [pattern]), {
+        message: 'A pattern must name a folder before its first wildcard, such as static/*.md.',
+      });
+      assert.deepEqual(requests, []);
+    },
+  );
 
   test('refuses a source that is not a repository, before any request', async (t) => {
     const requests = fakeGitHub(t, files);
