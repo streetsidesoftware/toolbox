@@ -91,8 +91,8 @@ export function groupedNodes(content: AnyContent | readonly AnyContent[], where:
  * Return the blocks for the arguments of `document`, `listItem` or `details`, as {@link groupedNodes} does, but with
  * each argument on its own line:
  * - Inline arguments in a row form one paragraph, a line each. An array is one argument.
- * - Text loses the spaces and tabs at the start and end of an argument, and next to a block within one. Keeping
- *   them would mean writing them as escapes.
+ * - Text loses the spaces and tabs at the start and end of an argument, and next to a block within one. So
+ *   an argument of only spaces and tabs is empty, and formatting such as `strong(' a ')` isn't written with escapes.
  * - An empty argument ends the paragraph, so the arguments around it are two paragraphs.
  * @param where - what the content is for, for error messages.
  */
