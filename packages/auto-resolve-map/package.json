@@ -1,0 +1,45 @@
+{
+  "name": "@streetsidesoftware/auto-resolve-map",
+  "version": "0.0.1-alpha.0",
+  "private": true,
+  "description": "Maps that compute and store a missing value, with strong or weak keys and values -- Private until verified",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/streetsidesoftware/toolbox.git",
+    "directory": "packages/auto-resolve-map"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "keywords": [
+    "cache",
+    "getOrInsert",
+    "getOrInsertComputed",
+    "map",
+    "memoize",
+    "weak-map",
+    "weak-ref",
+    "weak-value"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "!dist/**/*.map"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "clean": "shx rm -rf dist coverage",
+    "test": "node --test \"src/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}
