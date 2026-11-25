@@ -83,6 +83,17 @@ describe('template', () => {
     assert.equal(md.toString(), '## Dictionaries\n\n- en\n- de\n\nEnd.');
   });
 
+  testEach`
+    tpl                              | expected                                 | place
+    ${'> a\n> {@ x @}\n> b'}         | ${'> a\n>\n> - en\n> - de\n>\n> b'}      | ${'a blockquote'}
+    ${'a[^1]\n\n[^1]: {@ x @}'}      | ${'a[^1]\n\n[^1]: - en\n    - de'}       | ${'a footnote'}
+  `(
+    'a placeholder alone on its line in $place takes blocks',
+    ({ tpl, expected }: { tpl: string; expected: string }) => {
+      assert.equal(template(tpl, { x: list(['en', 'de']) }).toString(), expected);
+    },
+  );
+
   test('a block inside a line throws', () => {
     assert.throws(
       () => template('See {@ list @}.', { list: list(['en']) }),
@@ -200,6 +211,7 @@ describe('template', () => {
     ${'- a\n\n{@ x @}'}        | ${listItem('b')}                          | ${'- a\n- b'}
     ${'{@ x @}\n\n- b'}        | ${listItem('a')}                          | ${'- a\n- b'}
     ${'- a\n\n  {@ x @}'}      | ${listItem('b')}                          | ${'- a\n\n  - b'}
+    ${'> - a\n>\n> {@ x @}'}   | ${listItem('b')}                          | ${'> - a\n> - b'}
   `(
     'a list item replacement on its own line forms a list: $tpl',
     ({ tpl, x, expected }: { tpl: string; x: TemplateReplacement; expected: string }) => {
@@ -238,6 +250,7 @@ describe('template', () => {
     tpl                              | label
     ${'a\n{@ x @}{@ y @}\nb'}        | ${'side by side'}
     ${'a\n{@ x @} {@ y @}\nb'}       | ${'with a space between'}
+    ${'a\n{@ x @}\t{@ y @}\nb'}      | ${'with a tab between'}
     ${'a\r\n{@ x @}{@ y @}\r\nb'}    | ${'with CRLF line endings'}
   `('empty replacements that leave a line empty between them end the paragraph: $label', ({ tpl }: { tpl: string }) => {
     assert.equal(template(tpl, { x: '', y: '' }).toString(), 'a\n\nb');
@@ -268,6 +281,10 @@ describe('template', () => {
   test('in an inline template, an empty line left by an empty replacement goes', () => {
     assert.equal(inlineTemplate('a\n{@ x @}\nb', { x: '' }).toString(), 'a\nb');
     assert.equal(inlineTemplate('a\n{@ x @}{@ y @}\nb', { x: '', y: '' }).toString(), 'a\nb');
+  });
+
+  test('in an inline template, removing an empty line keeps the CRLF line ending before it', () => {
+    assert.equal(inlineTemplate('a\r\n{@ x @}\r\nb', { x: '' }).toString(), 'a\r\nb');
   });
 
   test('in an inline template, an emptied last line keeps the line ending before it, as writing it would', () => {
