@@ -49,7 +49,7 @@ npm install @streetsidesoftware/auto-resolve-map
 | `StrongWeakCache`      | Strong | Weak   | `StrongWeakMap` with lookup and mutation statistics.                         |
 | `WeakWeakCache`        | Weak   | Weak   | `WeakWeakMap` with lookup and mutation statistics.                           |
 
-All the map classes have `getOrInsert` and `getOrInsertComputed`.
+All the map classes have `getOrInsert` and `getOrInsertComputed`, with the same semantics as `autoResolve`.
 
 ## Usage
 
@@ -184,7 +184,7 @@ getLines(file) === current; // true while `current` is strongly referenced
 ```
 
 Object values, caller retention and lifetime are the same as for `StrongWeakMap`. There is no `FinalizationRegistry`: the
-empty `WeakRef` of a collected value stays until its key is collected.
+empty `WeakRef` of a collected value stays until the entry is replaced or removed, or its key is collected.
 
 ### Cache instrumentation
 
