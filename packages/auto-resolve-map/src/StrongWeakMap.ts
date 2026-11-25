@@ -139,7 +139,10 @@ export class StrongWeakMap<K, V extends object> implements Map<K, V> {
     return this.#map.get(key)?.deref();
   }
 
-  /** Not a generator, which would keep the last value alive while paused, and couldn't be continued after a `break`. */
+  /**
+   * Create an iterator over the entries whose value wasn't released.
+   * A generator would keep its last value alive while paused, and couldn't be continued after a `break`.
+   */
   #iterate<T>(pick: (key: K, value: V) => T): MapIterator<T> {
     const entries = this.#map.entries();
     const iterator: Iterator<T, undefined> = {
