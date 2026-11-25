@@ -10,8 +10,10 @@ export function trimBlanks(nodes: readonly PhrasingContent[]): PhrasingContent[]
 
 /**
  * Return a paragraph's, heading's or table cell's inline nodes without the spaces, tabs, line endings and line breaks
- * at their start and end. Markdown ignores spaces and tabs there, so keeping them would mean writing them as escapes,
- * such as `&#x20;`, and a line break there would be written as a lone `\`.
+ * at their start and end:
+ * - In a paragraph or heading, spaces and tabs there would be written as escapes, such as `&#x20;`.
+ * - A line break would show as an empty line at the start, or as a `\` at a paragraph's end.
+ *
  * A paragraph, heading or cell of only spaces and tabs keeps them: they're its content.
  */
 export function trimLineEdges(nodes: readonly PhrasingContent[]): PhrasingContent[] {
@@ -22,7 +24,8 @@ export function trimLineEdges(nodes: readonly PhrasingContent[]): PhrasingConten
 
 /**
  * Return the inline nodes without the spaces, tabs and line endings next to a line break.
- * The break already ends the line, so keeping them would mean writing them as escapes, such as `&#x20;` or `&#xA;`.
+ * The break already ends the line, so the page doesn't show them, and some would be written as escapes, such as
+ * `&#x20;`.
  */
 export function trimBlanksAroundBreaks(nodes: readonly PhrasingContent[]): PhrasingContent[] {
   if (!nodes.some((node) => node.type === 'break')) return [...nodes];
