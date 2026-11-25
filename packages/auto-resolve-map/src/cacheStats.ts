@@ -1,6 +1,10 @@
 /** How often a cache was used, since it was created or its stats were reset. */
 export interface CacheStats {
-  /** The number of lookups that found a value. A lookup is `get`, `getOrInsert` or `getOrInsertComputed`, not `has`. */
+  /**
+   * The number of lookups that found a value.
+   *
+   * A lookup is `get`, `getOrInsert` or `getOrInsertComputed`, not `has`.
+   */
   hits: number;
   /** The number of lookups that found no value. */
   misses: number;
@@ -15,9 +19,17 @@ export interface CacheStats {
 }
 
 export interface CacheMethods {
-  /** Get the stats as they are now. Later use of the cache doesn't change the result. */
+  /**
+   * Get the stats as they are now.
+   *
+   * Later use of the cache doesn't change the result.
+   */
   stats(): Readonly<CacheStats>;
-  /** Set every count in the stats to 0. The entries stay. */
+  /**
+   * Set every count in the stats to 0.
+   *
+   * The entries stay.
+   */
   resetStats(): void;
 }
 

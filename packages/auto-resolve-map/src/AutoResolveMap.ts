@@ -11,7 +11,12 @@ import { assertCallback, normalizeKey } from './checks.ts';
 export class AutoResolveMap<K, V> extends Map<K, V> {
   // As in the built-in, these don't go through a subclass's `get`, `has` and `set`.
 
-  /** Get the value for a key, or store the given one when there is none. */
+  /**
+   * Get the value for a key, or store the given one when there is none.
+   *
+   * @param key - the key to look up.
+   * @param value - the value to store when there is none.
+   */
   getOrInsert(key: K, value: V): V {
     const found = super.get(key);
     if (found !== undefined || super.has(key)) return found as V;
@@ -25,7 +30,8 @@ export class AutoResolveMap<K, V> extends Map<K, V> {
    * - A stored `undefined` counts as a value.
    * - Nothing is stored when the callback throws.
    *
-   * @param callback - called with the key, only when there is no value.
+   * @param key - the key to look up.
+   * @param callback - computes the value. It's called with the key, only when there is no value.
    */
   getOrInsertComputed(key: K, callback: (key: K) => V): V {
     assertCallback(callback);

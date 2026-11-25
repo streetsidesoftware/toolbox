@@ -13,6 +13,13 @@ import { WeakWeakMap } from './WeakWeakMap.ts';
 export class AutoResolveCache<K, V> extends AutoResolveMap<K, V> implements CacheMethods {
   readonly #stats = new StatsTracker();
 
+  /**
+   * Create a cache.
+   *
+   * The entries it starts with don't count as sets.
+   *
+   * @param entries - the keys and values to start with.
+   */
   constructor(entries?: Iterable<readonly [K, V]> | null) {
     // The `Map` constructor would call `set` before `#stats` exists.
     super();
@@ -21,26 +28,51 @@ export class AutoResolveCache<K, V> extends AutoResolveMap<K, V> implements Cach
     }
   }
 
-  /** Remove every entry. The stats stay, apart from counting the call. */
+  /**
+   * Remove every entry.
+   *
+   * Counts a call to `clear`. The other counts stay as they are.
+   */
   override clear(): void {
     super.clear();
     ++this.#stats.clears;
   }
 
-  /** Remove the entry for a key. Returns `true` if there was one. */
+  /**
+   * Remove the entry for a key.
+   *
+   * The result is `true` when there was one.
+   *
+   * Counts a call, also when there was none.
+   *
+   * @param key - the key to remove.
+   */
   override delete(key: K): boolean {
     ++this.#stats.deletes;
     return super.delete(key);
   }
 
-  /** Get the value for a key, or `undefined` if there is none. Counts a hit or a miss. */
+  /**
+   * Get the value for a key, or `undefined` if there is none.
+   *
+   * Counts a hit or a miss.
+   *
+   * @param key - the key to look up.
+   */
   override get(key: K): V | undefined {
     const found = super.get(key);
     this.#stats.lookup(found !== undefined || super.has(key));
     return found;
   }
 
-  /** Get the value for a key, or store the given one when there is none. Counts a hit or a miss. */
+  /**
+   * Get the value for a key, or store the given one when there is none.
+   *
+   * Counts a hit, or a miss and a set.
+   *
+   * @param key - the key to look up.
+   * @param value - the value to store when there is none.
+   */
   override getOrInsert(key: K, value: V): V {
     const found = super.get(key);
     if (found !== undefined || super.has(key)) {
@@ -54,12 +86,15 @@ export class AutoResolveCache<K, V> extends AutoResolveMap<K, V> implements Cach
   }
 
   /**
-   * Get the value for a key, or compute and store it when there is none. Counts a hit or a miss.
+   * Get the value for a key, or compute and store it when there is none.
    *
    * - A stored `undefined` counts as a value.
    * - Nothing is stored when the callback throws.
    *
-   * @param callback - called with the key, only when there is no value.
+   * Counts a hit, or a miss. A stored result counts as resolved.
+   *
+   * @param key - the key to look up.
+   * @param callback - computes the value. It's called with the key, only when there is no value.
    */
   override getOrInsertComputed(key: K, callback: (key: K) => V): V {
     assertCallback(callback);
@@ -74,19 +109,32 @@ export class AutoResolveCache<K, V> extends AutoResolveMap<K, V> implements Cach
     return value;
   }
 
-  /** Store a value for a key, replacing the one it had. */
+  /**
+   * Store a value for a key, replacing the one it had.
+   *
+   * @param key - the key to store the value for.
+   * @param value - the value to store.
+   */
   override set(key: K, value: V): this {
     super.set(key, value);
     ++this.#stats.sets;
     return this;
   }
 
-  /** Get the stats as they are now. Later use of the cache doesn't change the result. */
+  /**
+   * Get the stats as they are now.
+   *
+   * Later use of the cache doesn't change the result.
+   */
   stats(): Readonly<CacheStats> {
     return this.#stats.snapshot();
   }
 
-  /** Set every count in the stats to 0. The entries stay. */
+  /**
+   * Set every count in the stats to 0.
+   *
+   * The entries stay.
+   */
   resetStats(): void {
     this.#stats.reset();
   }
@@ -96,26 +144,51 @@ export class AutoResolveCache<K, V> extends AutoResolveMap<K, V> implements Cach
 export class AutoResolveWeakCache<K extends WeakKey, V> extends AutoResolveWeakMap<K, V> implements CacheMethods {
   readonly #stats = new StatsTracker();
 
-  /** Remove every entry. The stats stay, apart from counting the call. */
+  /**
+   * Remove every entry, even when its key is still in use.
+   *
+   * Counts a call to `clear`. The other counts stay as they are.
+   */
   override clear(): void {
     super.clear();
     ++this.#stats.clears;
   }
 
-  /** Remove the entry for a key. Returns `true` if there was one. */
+  /**
+   * Remove the entry for a key.
+   *
+   * The result is `true` when there was one.
+   *
+   * Counts a call, also when there was none.
+   *
+   * @param key - the key to remove.
+   */
   override delete(key: K): boolean {
     ++this.#stats.deletes;
     return super.delete(key);
   }
 
-  /** Get the value for a key, or `undefined` if there is none. Counts a hit or a miss. */
+  /**
+   * Get the value for a key, or `undefined` if there is none.
+   *
+   * Counts a hit or a miss.
+   *
+   * @param key - the key to look up.
+   */
   override get(key: K): V | undefined {
     const found = super.get(key);
     this.#stats.lookup(found !== undefined || super.has(key));
     return found;
   }
 
-  /** Get the value for a key, or store the given one when there is none. Counts a hit or a miss. */
+  /**
+   * Get the value for a key, or store the given one when there is none.
+   *
+   * Counts a hit, or a miss and a set.
+   *
+   * @param key - the key to look up.
+   * @param value - the value to store when there is none.
+   */
   override getOrInsert(key: K, value: V): V {
     const found = super.get(key);
     if (found !== undefined || super.has(key)) {
@@ -129,12 +202,15 @@ export class AutoResolveWeakCache<K extends WeakKey, V> extends AutoResolveWeakM
   }
 
   /**
-   * Get the value for a key, or compute and store it when there is none. Counts a hit or a miss.
+   * Get the value for a key, or compute and store it when there is none.
    *
    * - A stored `undefined` counts as a value.
    * - Nothing is stored when the callback throws.
    *
-   * @param callback - called with the key, only when there is no value.
+   * Counts a hit, or a miss. A stored result counts as resolved.
+   *
+   * @param key - the key to look up.
+   * @param callback - computes the value. It's called with the key, only when there is no value.
    */
   override getOrInsertComputed(key: K, callback: (key: K) => V): V {
     assertWeakKey(key);
@@ -150,19 +226,32 @@ export class AutoResolveWeakCache<K extends WeakKey, V> extends AutoResolveWeakM
     return value;
   }
 
-  /** Store a value for a key, replacing the one it had. */
+  /**
+   * Store a value for a key, replacing the one it had.
+   *
+   * @param key - the key to store the value for.
+   * @param value - the value to store.
+   */
   override set(key: K, value: V): this {
     super.set(key, value);
     ++this.#stats.sets;
     return this;
   }
 
-  /** Get the stats as they are now. Later use of the cache doesn't change the result. */
+  /**
+   * Get the stats as they are now.
+   *
+   * Later use of the cache doesn't change the result.
+   */
   stats(): Readonly<CacheStats> {
     return this.#stats.snapshot();
   }
 
-  /** Set every count in the stats to 0. The entries stay. */
+  /**
+   * Set every count in the stats to 0.
+   *
+   * The entries stay.
+   */
   resetStats(): void {
     this.#stats.reset();
   }
@@ -172,26 +261,51 @@ export class AutoResolveWeakCache<K extends WeakKey, V> extends AutoResolveWeakM
 export class StrongWeakCache<K, V extends object> extends StrongWeakMap<K, V> implements CacheMethods {
   readonly #stats = new StatsTracker();
 
-  /** Remove every entry. The stats stay, apart from counting the call. */
+  /**
+   * Remove every entry.
+   *
+   * Counts a call to `clear`. The other counts stay as they are.
+   */
   override clear(): void {
     super.clear();
     ++this.#stats.clears;
   }
 
-  /** Remove the entry for a key. Returns `true` if there was one whose value hadn't been released. */
+  /**
+   * Remove the entry for a key.
+   *
+   * The result is `true` when there was one whose value hadn't been released.
+   *
+   * Counts a call, also when there was none.
+   *
+   * @param key - the key to remove.
+   */
   override delete(key: K): boolean {
     ++this.#stats.deletes;
     return super.delete(key);
   }
 
-  /** Get the value for a key, or `undefined` if there is none or it was released. Counts a hit or a miss. */
+  /**
+   * Get the value for a key, or `undefined` if there is none or it was released.
+   *
+   * Counts a hit or a miss.
+   *
+   * @param key - the key to look up.
+   */
   override get(key: K): V | undefined {
     const found = super.get(key);
     this.#stats.lookup(found !== undefined);
     return found;
   }
 
-  /** Get the value for a key, or store the given one when there is none or it was released. Counts a hit or a miss. */
+  /**
+   * Get the value for a key, or store the given one when there is none or it was released.
+   *
+   * Counts a hit, or a miss and a set.
+   *
+   * @param key - the key to look up.
+   * @param value - the value to store when there is none.
+   */
   override getOrInsert(key: K, value: V): V {
     const found = super.get(key);
     if (found !== undefined) {
@@ -205,11 +319,14 @@ export class StrongWeakCache<K, V extends object> extends StrongWeakMap<K, V> im
   }
 
   /**
-   * Get the value for a key, or compute and store it when there is none or it was released. Counts a hit or a miss.
+   * Get the value for a key, or compute and store it when there is none or it was released.
    *
    * Nothing is stored when the callback throws.
    *
-   * @param callback - called with the key, only when there is no value.
+   * Counts a hit, or a miss. A stored result counts as resolved.
+   *
+   * @param key - the key to look up.
+   * @param callback - computes the value. It's called with the key, only when there is no value.
    */
   override getOrInsertComputed(key: K, callback: (key: K) => V): V {
     assertCallback(callback);
@@ -224,19 +341,32 @@ export class StrongWeakCache<K, V extends object> extends StrongWeakMap<K, V> im
     return value;
   }
 
-  /** Store a value for a key, replacing the one it had. */
+  /**
+   * Store a value for a key, replacing the one it had.
+   *
+   * @param key - the key to store the value for.
+   * @param value - the value to store.
+   */
   override set(key: K, value: V): this {
     super.set(key, value);
     ++this.#stats.sets;
     return this;
   }
 
-  /** Get the stats as they are now. Later use of the cache doesn't change the result. */
+  /**
+   * Get the stats as they are now.
+   *
+   * Later use of the cache doesn't change the result.
+   */
   stats(): Readonly<CacheStats> {
     return this.#stats.snapshot();
   }
 
-  /** Set every count in the stats to 0. The entries stay. */
+  /**
+   * Set every count in the stats to 0.
+   *
+   * The entries stay.
+   */
   resetStats(): void {
     this.#stats.reset();
   }
@@ -246,26 +376,51 @@ export class StrongWeakCache<K, V extends object> extends StrongWeakMap<K, V> im
 export class WeakWeakCache<K extends WeakKey, V extends object> extends WeakWeakMap<K, V> implements CacheMethods {
   readonly #stats = new StatsTracker();
 
-  /** Remove every entry. The stats stay, apart from counting the call. */
+  /**
+   * Remove every entry, even when its key and value are still in use.
+   *
+   * Counts a call to `clear`. The other counts stay as they are.
+   */
   override clear(): void {
     super.clear();
     ++this.#stats.clears;
   }
 
-  /** Remove the entry for a key. Returns `true` if there was one whose value hadn't been released. */
+  /**
+   * Remove the entry for a key.
+   *
+   * The result is `true` when there was one whose value hadn't been released.
+   *
+   * Counts a call, also when there was none.
+   *
+   * @param key - the key to remove.
+   */
   override delete(key: K): boolean {
     ++this.#stats.deletes;
     return super.delete(key);
   }
 
-  /** Get the value for a key, or `undefined` if there is none or it was released. Counts a hit or a miss. */
+  /**
+   * Get the value for a key, or `undefined` if there is none or it was released.
+   *
+   * Counts a hit or a miss.
+   *
+   * @param key - the key to look up.
+   */
   override get(key: K): V | undefined {
     const found = super.get(key);
     this.#stats.lookup(found !== undefined);
     return found;
   }
 
-  /** Get the value for a key, or store the given one when there is none or it was released. Counts a hit or a miss. */
+  /**
+   * Get the value for a key, or store the given one when there is none or it was released.
+   *
+   * Counts a hit, or a miss and a set.
+   *
+   * @param key - the key to look up.
+   * @param value - the value to store when there is none.
+   */
   override getOrInsert(key: K, value: V): V {
     const found = super.get(key);
     if (found !== undefined) {
@@ -279,11 +434,14 @@ export class WeakWeakCache<K extends WeakKey, V extends object> extends WeakWeak
   }
 
   /**
-   * Get the value for a key, or compute and store it when there is none or it was released. Counts a hit or a miss.
+   * Get the value for a key, or compute and store it when there is none or it was released.
    *
    * Nothing is stored when the callback throws.
    *
-   * @param callback - called with the key, only when there is no value.
+   * Counts a hit, or a miss. A stored result counts as resolved.
+   *
+   * @param key - the key to look up.
+   * @param callback - computes the value. It's called with the key, only when there is no value.
    */
   override getOrInsertComputed(key: K, callback: (key: K) => V): V {
     assertWeakKey(key);
@@ -299,19 +457,32 @@ export class WeakWeakCache<K extends WeakKey, V extends object> extends WeakWeak
     return value;
   }
 
-  /** Store a value for a key, replacing the one it had. */
+  /**
+   * Store a value for a key, replacing the one it had.
+   *
+   * @param key - the key to store the value for.
+   * @param value - the value to store.
+   */
   override set(key: K, value: V): this {
     super.set(key, value);
     ++this.#stats.sets;
     return this;
   }
 
-  /** Get the stats as they are now. Later use of the cache doesn't change the result. */
+  /**
+   * Get the stats as they are now.
+   *
+   * Later use of the cache doesn't change the result.
+   */
   stats(): Readonly<CacheStats> {
     return this.#stats.snapshot();
   }
 
-  /** Set every count in the stats to 0. The entries stay. */
+  /**
+   * Set every count in the stats to 0.
+   *
+   * The entries stay.
+   */
   resetStats(): void {
     this.#stats.reset();
   }
