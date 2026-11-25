@@ -226,14 +226,44 @@ Call `resetStats` to start counting from 0, for example to measure only one part
 
 ## Requirements
 
-<!-- @@inject: ../../static/requirements.md#values-file=:package.json -->
+<!--- @@inject: ../../static/requirements.md#values-file=:package.json --->
+
+Requires Node.js >=22.18.0. ESM only.
+
+<!--- @@inject-end: ../../static/requirements.md#values-file=:package.json --->
 
 ## License
 
-<!-- @@inject: ../../static/licenseTpl.md#values-file=:package.json -->
+<!--- @@inject: ../../static/licenseTpl.md#values-file=:package.json --->
+
+MIT
+
+<!--- @@inject-end: ../../static/licenseTpl.md#values-file=:package.json --->
 
 ## Support Future Development
 
 <!--- @@inject: ../../static/sponsor.md --->
 
+If our tools save you time, please consider supporting their development.
+
+Please show your support through one of the following sites:
+
+<p align="left">
+  <a href="https://github.com/sponsors/streetsidesoftware" title="GitHub Sponsor"><picture><source media="(prefers-color-scheme: dark)" srcset="https://streetsidesoftware.com/img/sponsor/github-sponsor-dark.png" /><img alt="GitHub Sponsor" src="https://streetsidesoftware.com/img/sponsor/github-sponsor.png" width="180" /></picture></a> &nbsp; <a href="https://thanks.dev/u/gh/streetsidesoftware" title="thanks.dev"><picture><source media="(prefers-color-scheme: dark)" srcset="https://streetsidesoftware.com/img/sponsor/thanks-dev-dark.png" /><img alt="thanks.dev" src="https://streetsidesoftware.com/img/sponsor/thanks-dev.png" width="180" /></picture></a> &nbsp; <a href="https://opencollective.com/cspell" title="Open Collective"><picture><source media="(prefers-color-scheme: dark)" srcset="https://streetsidesoftware.com/img/sponsor/open-collective-dark.png" /><img alt="Open Collective" src="https://streetsidesoftware.com/img/sponsor/open-collective.png" width="180" /></picture></a> &nbsp; <a href="https://streetsidesoftware.com/sponsor/" title="Street Side Software"><picture><source media="(prefers-color-scheme: dark)" srcset="https://streetsidesoftware.com/img/sponsor/cspell-dark.png" /><img alt="CSpell" src="https://streetsidesoftware.com/img/sponsor/cspell.png" width="180" /></picture></a>
+</p>
+
+<!--- @@inject-end: ../../static/sponsor.md --->
+
 <!--- @@inject: ../../static/footer.md --->
+
+<br/>
+
+---
+
+<p align="center">
+Brought to you by <a href="https://streetsidesoftware.com" title="Street Side Software">
+<img width="16" alt="Street Side Software Logo" src="https://i.imgur.com/CyduuVY.png" /> Street Side Software
+</a>
+</p>
+
+<!--- @@inject-end: ../../static/footer.md --->
