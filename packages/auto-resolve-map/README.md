@@ -58,7 +58,8 @@ words.get('b'); // The result of `loadWords('b')`
 
 ### Values that can be released
 
-`StrongWeakMap` and `WeakWeakMap` share a value for as long as something uses it, and let it go after that:
+Use `StrongWeakMap` or `WeakWeakMap` to share a value for as long as something uses it, and to let it go after
+that:
 
 ```ts
 import { StrongWeakMap } from '@streetsidesoftware/auto-resolve-map';

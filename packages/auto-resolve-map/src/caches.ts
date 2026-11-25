@@ -2,6 +2,7 @@ import { AutoResolveMap } from './AutoResolveMap.ts';
 import { AutoResolveWeakMap } from './AutoResolveWeakMap.ts';
 import type { CacheMethods, CacheStats } from './cacheStats.ts';
 import { StatsTracker } from './cacheStats.ts';
+import { assertCallback, assertWeakKey } from './checks.ts';
 import { StrongWeakMap } from './StrongWeakMap.ts';
 import { WeakWeakMap } from './WeakWeakMap.ts';
 
@@ -34,33 +35,43 @@ export class AutoResolveCache<K, V> extends AutoResolveMap<K, V> implements Cach
 
   /** Get the value for a key, or `undefined` if there is none. Counts a hit or a miss. */
   override get(key: K): V | undefined {
-    const value = super.get(key);
-    this.#stats.lookup(value !== undefined || super.has(key));
-    return value;
+    const found = super.get(key);
+    this.#stats.lookup(found !== undefined || super.has(key));
+    return found;
   }
 
   /** Get the value for a key, or store the given one when there is none. Counts a hit or a miss. */
   override getOrInsert(key: K, value: V): V {
-    const found = super.has(key);
-    this.#stats.lookup(found);
-    const result = super.getOrInsert(key, value);
-    if (!found) ++this.#stats.sets;
-    return result;
+    const found = super.get(key);
+    if (found !== undefined || super.has(key)) {
+      ++this.#stats.hits;
+      return found as V;
+    }
+    super.set(key, value);
+    ++this.#stats.misses;
+    ++this.#stats.sets;
+    return value;
   }
 
   /**
    * Get the value for a key, or compute and store it when there is none. Counts a hit or a miss.
    *
-   * Nothing is stored when the callback throws.
+   * - A stored `undefined` counts as a value.
+   * - Nothing is stored when the callback throws.
    *
    * @param callback - called with the key, only when there is no value.
    */
   override getOrInsertComputed(key: K, callback: (key: K) => V): V {
-    const found = super.has(key);
-    this.#stats.lookup(found);
-    const result = super.getOrInsertComputed(key, callback);
-    if (!found) ++this.#stats.resolved;
-    return result;
+    assertCallback(callback);
+    const found = super.get(key);
+    if (found !== undefined || super.has(key)) {
+      ++this.#stats.hits;
+      return found as V;
+    }
+    ++this.#stats.misses;
+    const value = super.getOrInsertComputed(key, callback);
+    ++this.#stats.resolved;
+    return value;
   }
 
   /** Store a value for a key, replacing the one it had. */
@@ -99,33 +110,44 @@ export class AutoResolveWeakCache<K extends object, V> extends AutoResolveWeakMa
 
   /** Get the value for a key, or `undefined` if there is none. Counts a hit or a miss. */
   override get(key: K): V | undefined {
-    const value = super.get(key);
-    this.#stats.lookup(value !== undefined || super.has(key));
-    return value;
+    const found = super.get(key);
+    this.#stats.lookup(found !== undefined || super.has(key));
+    return found;
   }
 
   /** Get the value for a key, or store the given one when there is none. Counts a hit or a miss. */
   override getOrInsert(key: K, value: V): V {
-    const found = super.has(key);
-    this.#stats.lookup(found);
-    const result = super.getOrInsert(key, value);
-    if (!found) ++this.#stats.sets;
-    return result;
+    const found = super.get(key);
+    if (found !== undefined || super.has(key)) {
+      ++this.#stats.hits;
+      return found as V;
+    }
+    super.set(key, value);
+    ++this.#stats.misses;
+    ++this.#stats.sets;
+    return value;
   }
 
   /**
    * Get the value for a key, or compute and store it when there is none. Counts a hit or a miss.
    *
-   * Nothing is stored when the callback throws.
+   * - A stored `undefined` counts as a value.
+   * - Nothing is stored when the callback throws.
    *
    * @param callback - called with the key, only when there is no value.
    */
   override getOrInsertComputed(key: K, callback: (key: K) => V): V {
-    const found = super.has(key);
-    this.#stats.lookup(found);
-    const result = super.getOrInsertComputed(key, callback);
-    if (!found) ++this.#stats.resolved;
-    return result;
+    assertWeakKey(key);
+    assertCallback(callback);
+    const found = super.get(key);
+    if (found !== undefined || super.has(key)) {
+      ++this.#stats.hits;
+      return found as V;
+    }
+    ++this.#stats.misses;
+    const value = super.getOrInsertComputed(key, callback);
+    ++this.#stats.resolved;
+    return value;
   }
 
   /** Store a value for a key, replacing the one it had. */
@@ -164,18 +186,22 @@ export class StrongWeakCache<K, V extends object> extends StrongWeakMap<K, V> im
 
   /** Get the value for a key, or `undefined` if there is none or it was released. Counts a hit or a miss. */
   override get(key: K): V | undefined {
-    const value = super.get(key);
-    this.#stats.lookup(value !== undefined);
-    return value;
+    const found = super.get(key);
+    this.#stats.lookup(found !== undefined);
+    return found;
   }
 
   /** Get the value for a key, or store the given one when there is none or it was released. Counts a hit or a miss. */
   override getOrInsert(key: K, value: V): V {
-    const found = super.has(key);
-    this.#stats.lookup(found);
-    const result = super.getOrInsert(key, value);
-    if (!found) ++this.#stats.sets;
-    return result;
+    const found = super.get(key);
+    if (found !== undefined) {
+      ++this.#stats.hits;
+      return found;
+    }
+    super.set(key, value);
+    ++this.#stats.misses;
+    ++this.#stats.sets;
+    return value;
   }
 
   /**
@@ -186,11 +212,16 @@ export class StrongWeakCache<K, V extends object> extends StrongWeakMap<K, V> im
    * @param callback - called with the key, only when there is no value.
    */
   override getOrInsertComputed(key: K, callback: (key: K) => V): V {
-    const found = super.has(key);
-    this.#stats.lookup(found);
-    const result = super.getOrInsertComputed(key, callback);
-    if (!found) ++this.#stats.resolved;
-    return result;
+    assertCallback(callback);
+    const found = super.get(key);
+    if (found !== undefined) {
+      ++this.#stats.hits;
+      return found;
+    }
+    ++this.#stats.misses;
+    const value = super.getOrInsertComputed(key, callback);
+    ++this.#stats.resolved;
+    return value;
   }
 
   /** Store a value for a key, replacing the one it had. */
@@ -229,18 +260,22 @@ export class WeakWeakCache<K extends object, V extends object> extends WeakWeakM
 
   /** Get the value for a key, or `undefined` if there is none or it was released. Counts a hit or a miss. */
   override get(key: K): V | undefined {
-    const value = super.get(key);
-    this.#stats.lookup(value !== undefined);
-    return value;
+    const found = super.get(key);
+    this.#stats.lookup(found !== undefined);
+    return found;
   }
 
   /** Get the value for a key, or store the given one when there is none or it was released. Counts a hit or a miss. */
   override getOrInsert(key: K, value: V): V {
-    const found = super.has(key);
-    this.#stats.lookup(found);
-    const result = super.getOrInsert(key, value);
-    if (!found) ++this.#stats.sets;
-    return result;
+    const found = super.get(key);
+    if (found !== undefined) {
+      ++this.#stats.hits;
+      return found;
+    }
+    super.set(key, value);
+    ++this.#stats.misses;
+    ++this.#stats.sets;
+    return value;
   }
 
   /**
@@ -251,11 +286,17 @@ export class WeakWeakCache<K extends object, V extends object> extends WeakWeakM
    * @param callback - called with the key, only when there is no value.
    */
   override getOrInsertComputed(key: K, callback: (key: K) => V): V {
-    const found = super.has(key);
-    this.#stats.lookup(found);
-    const result = super.getOrInsertComputed(key, callback);
-    if (!found) ++this.#stats.resolved;
-    return result;
+    assertWeakKey(key);
+    assertCallback(callback);
+    const found = super.get(key);
+    if (found !== undefined) {
+      ++this.#stats.hits;
+      return found;
+    }
+    ++this.#stats.misses;
+    const value = super.getOrInsertComputed(key, callback);
+    ++this.#stats.resolved;
+    return value;
   }
 
   /** Store a value for a key, replacing the one it had. */

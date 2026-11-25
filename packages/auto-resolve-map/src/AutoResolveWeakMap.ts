@@ -34,7 +34,8 @@ export class AutoResolveWeakMap<K extends object, V> implements WeakMap<K, V> {
 
   /** Get the value for a key, or store the given one when there is none. */
   getOrInsert(key: K, value: V): V {
-    if (this.#map.has(key)) return this.#map.get(key) as V;
+    const found = this.#map.get(key);
+    if (found !== undefined || this.#map.has(key)) return found as V;
     this.#map.set(key, value);
     return value;
   }
@@ -50,7 +51,8 @@ export class AutoResolveWeakMap<K extends object, V> implements WeakMap<K, V> {
   getOrInsertComputed(key: K, callback: (key: K) => V): V {
     assertWeakKey(key);
     assertCallback(callback);
-    if (this.#map.has(key)) return this.#map.get(key) as V;
+    const found = this.#map.get(key);
+    if (found !== undefined || this.#map.has(key)) return found as V;
     const value = callback(key);
     this.#map.set(key, value);
     return value;

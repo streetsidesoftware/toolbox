@@ -241,6 +241,30 @@ for (const [name, MapClass] of Object.entries(strongKeyMaps)) {
       assert.deepEqual(seen, ['a', 'c']);
     });
 
+    test('an iterator can be continued after stopping early', () => {
+      const map = entries();
+      const iterators = [map.entries(), map.keys(), map.values(), map[Symbol.iterator]()];
+      const all = [[...map.entries()], [...map.keys()], [...map.values()], [...map]];
+      for (const [i, iterator] of iterators.entries()) {
+        const [first] = iterator;
+        const [second] = iterator;
+        assert.deepEqual([first, second], all[i]);
+      }
+    });
+
+    test('an iterator has the iterator helpers', () => {
+      const ns = entries()
+        .values()
+        .map(({ n }) => n)
+        .toArray();
+      assert.deepEqual(ns, [1, 2]);
+    });
+
+    test('forEach needs a function, even when the map is empty', () => {
+      const notAFunction = 'one' as unknown as () => void;
+      assert.throws(() => new MapClass<string, Value>().forEach(notAFunction), TypeError);
+    });
+
     test('a key of -0 becomes 0', () => {
       const map = new MapClass<number, Value>();
       let received: number | undefined;

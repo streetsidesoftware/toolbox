@@ -22,7 +22,12 @@ export interface MapLike<K, V> {
  * autoResolve(lengths, 'apple', (key) => key.length); // 5, computed and stored
  * autoResolve(lengths, 'apple', (key) => key.length); // 5, from the map
  */
-export function autoResolve<K, V>(map: MapLike<K, V>, key: K, callback: (key: K) => V): V {
+export function autoResolve<K, V>(
+  map: MapLike<K, V>,
+  // The map alone decides the types, so the callback can't store a value that doesn't fit it.
+  key: NoInfer<K>,
+  callback: (key: NoInfer<K>) => NoInfer<V>,
+): V {
   const found = map.get(key);
   if (found !== undefined || map.has(key)) return found as V;
   const value = callback(key);

@@ -136,6 +136,17 @@ for (const [name, MapClass] of Object.entries(strongWeakMaps)) {
       });
     });
 
+    test('a paused iterator lets go of the last value it gave', async () => {
+      const map = new MapClass<string, Value>();
+      for (const iterate of [() => map.values(), () => map.entries()]) {
+        map.set('a', value()).set('b', value());
+        const iterator = iterate();
+        iterator.next();
+        assert.ok(await releaseUntil(() => map.size === 0));
+        assert.equal(iterator.next().done, true);
+      }
+    });
+
     test('lets go of a key removed while its value is in use', async () => {
       const map = new MapClass<object, Value>();
       const used = value();

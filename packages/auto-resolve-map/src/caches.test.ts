@@ -19,6 +19,7 @@ type StrongKeyCacheClass = new <K, V extends object>(entries?: Entries<K, V>) =>
 const strongValueCaches: Record<string, StrongValueCacheClass> = { AutoResolveCache, AutoResolveWeakCache };
 const weakValueCaches: Record<string, CacheClass> = { StrongWeakCache, WeakWeakCache };
 const strongKeyCaches: Record<string, StrongKeyCacheClass> = { AutoResolveCache, StrongWeakCache };
+const weakKeyCaches: Record<string, CacheClass> = { AutoResolveWeakCache, WeakWeakCache };
 const caches: Record<string, CacheClass> = { ...strongValueCaches, ...weakValueCaches };
 
 const noStats: CacheStats = { hits: 0, misses: 0, resolved: 0, sets: 0, deletes: 0, clears: 0 };
@@ -77,6 +78,14 @@ for (const [name, CacheClass] of Object.entries(caches)) {
         /failed/,
       );
       assert.deepEqual(cache.stats(), { ...noStats, misses: 1 });
+    });
+
+    test("a rejected call doesn't count", () => {
+      const cache = new CacheClass<object, Value>([[keyA, one]]);
+      const notAFunction = 'one' as unknown as () => Value;
+      assert.throws(() => cache.getOrInsertComputed(keyA, notAFunction), TypeError);
+      assert.throws(() => cache.getOrInsertComputed(keyB, notAFunction), TypeError);
+      assert.deepEqual(cache.stats(), noStats);
     });
 
     test('set, delete and clear count calls', () => {
@@ -141,6 +150,17 @@ for (const [name, CacheClass] of Object.entries(weakValueCaches)) {
     cache.get(keyA);
     cache.getOrInsertComputed(keyA, () => one);
     assert.deepEqual(cache.stats(), { ...noStats, sets: 1, misses: 2, resolved: 1 });
+  });
+}
+
+for (const [name, CacheClass] of Object.entries(weakKeyCaches)) {
+  test(`${name} doesn't count a call with a key it can't store`, () => {
+    const cache = new CacheClass<object, Value>();
+    const badKey = 'a' as unknown as object;
+    assert.throws(() => cache.getOrInsert(badKey, one), TypeError);
+    assert.throws(() => cache.getOrInsertComputed(badKey, () => one), TypeError);
+    assert.throws(() => cache.set(badKey, one), TypeError);
+    assert.deepEqual(cache.stats(), noStats);
   });
 }
 

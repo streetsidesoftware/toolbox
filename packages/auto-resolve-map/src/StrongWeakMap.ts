@@ -27,7 +27,7 @@ export class StrongWeakMap<K, V extends object> implements Map<K, V> {
 
   // Keep it an instance field. Bundlers don't remove an unused class with a static one.
   readonly #registry: FinalizationRegistry<Note<K, V>> = new FinalizationRegistry(({ key, ref }) => {
-    // The key may have a newer value.
+    // Only a safeguard: replacing or removing an entry cancels its note.
     if (this.#map.get(key) === ref) this.#map.delete(key);
   });
 
@@ -60,15 +60,13 @@ export class StrongWeakMap<K, V extends object> implements Map<K, V> {
   }
 
   /** Get the key and value of each entry whose value wasn't released. */
-  *entries(): MapIterator<[K, V]> {
-    for (const [key, ref] of this.#map) {
-      const value = ref.deref();
-      if (value !== undefined) yield [key, value];
-    }
+  entries(): MapIterator<[K, V]> {
+    return this.#iterate((key, value) => [key, value]);
   }
 
   /** Call a function for each entry whose value wasn't released. */
   forEach(callback: (value: V, key: K, map: Map<K, V>) => void, thisArg?: unknown): void {
+    assertCallback(callback);
     for (const [key, value] of this.entries()) {
       callback.call(thisArg, value, key, this);
     }
@@ -124,10 +122,8 @@ export class StrongWeakMap<K, V extends object> implements Map<K, V> {
   }
 
   /** Get the values that weren't released. */
-  *values(): MapIterator<V> {
-    for (const [, value] of this.entries()) {
-      yield value;
-    }
+  values(): MapIterator<V> {
+    return this.#iterate((_, value) => value);
   }
 
   /** Get the key and value of each entry whose value wasn't released. */
@@ -141,6 +137,21 @@ export class StrongWeakMap<K, V extends object> implements Map<K, V> {
 
   #find(key: K): V | undefined {
     return this.#map.get(key)?.deref();
+  }
+
+  /** Not a generator, which would keep the last value alive while paused, and couldn't be continued after a `break`. */
+  #iterate<T>(pick: (key: K, value: V) => T): MapIterator<T> {
+    const entries = this.#map.entries();
+    const iterator: Iterator<T, undefined> = {
+      next() {
+        for (const [key, ref] of entries) {
+          const value = ref.deref();
+          if (value !== undefined) return { done: false, value: pick(key, value) };
+        }
+        return { done: true, value: undefined };
+      },
+    };
+    return Iterator.from(iterator);
   }
 
   #store(key: K, value: V): void {

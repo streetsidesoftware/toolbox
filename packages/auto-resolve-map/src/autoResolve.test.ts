@@ -68,4 +68,26 @@ describe('autoResolve', () => {
     autoResolve(map, 'a', () => 1);
     assert.deepEqual(values, { a: 1 });
   });
+
+  test('the map alone decides the types', () => {
+    class Animal {
+      name = 'animal';
+    }
+    class Dog extends Animal {
+      bark(): string {
+        return 'woof';
+      }
+    }
+    const numbers = new Map<string, number>();
+    // @ts-expect-error: the map doesn't hold undefined
+    autoResolve(numbers, 'a', () => undefined);
+    // @ts-expect-error: the map doesn't hold null
+    autoResolve(numbers, 'b', () => null);
+    // @ts-expect-error: not every Animal is a Dog
+    autoResolve(new Map<string, Dog>(), 'a', () => new Animal());
+    // @ts-expect-error: not every Animal is a Dog
+    autoResolve(new Map<Dog, number>(), new Animal(), () => 1);
+    // A subtype fits.
+    autoResolve(new Map<Animal, Animal>(), new Dog(), () => new Dog());
+  });
 });

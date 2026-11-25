@@ -13,7 +13,8 @@ export class AutoResolveMap<K, V> extends Map<K, V> {
 
   /** Get the value for a key, or store the given one when there is none. */
   getOrInsert(key: K, value: V): V {
-    if (super.has(key)) return super.get(key) as V;
+    const found = super.get(key);
+    if (found !== undefined || super.has(key)) return found as V;
     super.set(key, value);
     return value;
   }
@@ -28,7 +29,8 @@ export class AutoResolveMap<K, V> extends Map<K, V> {
    */
   getOrInsertComputed(key: K, callback: (key: K) => V): V {
     assertCallback(callback);
-    if (super.has(key)) return super.get(key) as V;
+    const found = super.get(key);
+    if (found !== undefined || super.has(key)) return found as V;
     const value = callback(normalizeKey(key));
     super.set(key, value);
     return value;
