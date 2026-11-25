@@ -6,15 +6,16 @@ Tools and libraries used across Street Side Software's repositories.
 
 <!--- @@inject: static/packages.csv#markdown --->
 
-| Package                                                                       | Description                                                                                 |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| [`@streetsidesoftware/copy-github-files`](packages/copy-github-files)         | Copy files from a GitHub repository into local files.                                       |
-| [`@streetsidesoftware/github-action-toolkit`](packages/github-action-toolkit) | A small replacement for @actions/core in the code of a GitHub Action, with no dependencies. |
-| [`@streetsidesoftware/markdown-sanitizer`](packages/markdown-sanitizer)       | Find Markdown text that the page hides but agents read, and remove it or make it visible.   |
-| [`@streetsidesoftware/markdown-toolkit`](packages/markdown-toolkit)           | A toolkit for generating Markdown: builders, templates and placeholders.                    |
-| [`@streetsidesoftware/placeholders`](packages/placeholders)                   | Replace placeholders in a string.                                                           |
-| [`@streetsidesoftware/test-each`](packages/test-each)                         | Table-driven tests for node:test, written as vitest-style tagged-template tables.           |
-| [`@streetsidesoftware/unindent`](packages/unindent)                           | Remove the common indentation from multi-line strings and template literals.                |
+| Package                                                                       | Description                                                                                                |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| [`@streetsidesoftware/auto-resolve-map`](packages/auto-resolve-map)           | Maps that compute and store a missing value, with strong or weak keys and values -- Private until verified |
+| [`@streetsidesoftware/copy-github-files`](packages/copy-github-files)         | Copy files from a GitHub repository into local files.                                                      |
+| [`@streetsidesoftware/github-action-toolkit`](packages/github-action-toolkit) | A small replacement for @actions/core in the code of a GitHub Action, with no dependencies.                |
+| [`@streetsidesoftware/markdown-sanitizer`](packages/markdown-sanitizer)       | Find Markdown text that the page hides but agents read, and remove it or make it visible.                  |
+| [`@streetsidesoftware/markdown-toolkit`](packages/markdown-toolkit)           | A toolkit for generating Markdown: builders, templates and placeholders.                                   |
+| [`@streetsidesoftware/placeholders`](packages/placeholders)                   | Replace placeholders in a string.                                                                          |
+| [`@streetsidesoftware/test-each`](packages/test-each)                         | Table-driven tests for node:test, written as vitest-style tagged-template tables.                          |
+| [`@streetsidesoftware/unindent`](packages/unindent)                           | Remove the common indentation from multi-line strings and template literals.                               |
 
 <!--- @@inject-end: static/packages.csv#markdown --->
 
