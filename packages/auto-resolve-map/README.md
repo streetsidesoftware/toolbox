@@ -1,8 +1,12 @@
 # @streetsidesoftware/auto-resolve-map
 
-Compute a value the first time it's asked for, and get it from a map after that.
+Lazy value resolution, `getOrInsert` / `getOrInsertComputed` collections, weak-value maps, and cache instrumentation for
+TypeScript and JavaScript.
 
-Without this package, that takes a few lines, and it's easy to get wrong when a stored value can be `undefined`:
+## Why?
+
+Lazily populating a `Map` or `WeakMap` requires boilerplate, and checking only the result of `get` breaks when
+`undefined` is a valid value:
 
 ```ts
 let size = sizes.get(name);
@@ -12,14 +16,18 @@ if (size === undefined && !sizes.has(name)) {
 }
 ```
 
-With it, it's one line:
+The `autoResolve` function reduces this to a single, `undefined`-safe call:
 
 ```ts
 const size = autoResolve(sizes, name, measure);
 ```
 
-There are also maps with this built in. Some of them keep a value only while something uses it, so a large object can be
-shared without staying in memory forever. Each comes in a version that counts how well it works as a cache.
+This package also provides:
+
+- Map classes with `getOrInsert` and `getOrInsertComputed`, as in the
+  [TC39 upsert proposal](https://github.com/tc39/proposal-upsert), on every supported Node.js version.
+- Maps with `WeakRef` values, for memory-sensitive caching or object canonicalization.
+- Instrumented `*Cache` variants, for measuring hits and misses.
 
 ## Install
 
@@ -27,20 +35,27 @@ shared without staying in memory forever. Each comes in a version that counts ho
 npm install @streetsidesoftware/auto-resolve-map
 ```
 
-## Which one do I need?
+## Overview
 
-| You want to                                                         | Use                                       |
-| ------------------------------------------------------------------- | ----------------------------------------- |
-| Compute missing values in a map you already have                    | [`autoResolve`](#a-map-you-already-have)  |
-| Remember a value for a string, a number or any other key            | [`AutoResolveMap`](#values-by-any-key)    |
-| Remember a value for an object, until the object is gone            | [`AutoResolveWeakMap`](#values-by-object) |
-| Share large objects by name, and let each go when nothing uses it   | [`StrongWeakMap`](#large-objects-by-name) |
-| Share large objects by object, and let each go when nothing uses it | [`WeakWeakMap`](#large-objects-by-object) |
-| Find out how well one of these maps works as a cache                | [A cache with stats](#a-cache-with-stats) |
+| Export                 | Keys   | Values | Description                                                                  |
+| ---------------------- | ------ | ------ | ---------------------------------------------------------------------------- |
+| `autoResolve`          | Any    | Any    | Function for any map-like object (`get`, `has`, `set`).                      |
+| `AutoResolveMap`       | Strong | Strong | `Map` subclass with `getOrInsert` and `getOrInsertComputed`.                 |
+| `AutoResolveWeakMap`   | Weak   | Strong | `WeakMap` interface with `getOrInsert`, `getOrInsertComputed` and `clear`.   |
+| `StrongWeakMap`        | Strong | Weak   | `Map` interface with `WeakRef` values. Keys of collected values are removed. |
+| `WeakWeakMap`          | Weak   | Weak   | `WeakMap` interface with `WeakRef` values and `clear`.                       |
+| `AutoResolveCache`     | Strong | Strong | `AutoResolveMap` with lookup and mutation statistics.                        |
+| `AutoResolveWeakCache` | Weak   | Strong | `AutoResolveWeakMap` with lookup and mutation statistics.                    |
+| `StrongWeakCache`      | Strong | Weak   | `StrongWeakMap` with lookup and mutation statistics.                         |
+| `WeakWeakCache`        | Weak   | Weak   | `WeakWeakMap` with lookup and mutation statistics.                           |
 
-## A map you already have
+All the map classes have `getOrInsert` and `getOrInsertComputed`.
 
-Call `autoResolve` with the map, the key and a function that computes the value:
+## Usage
+
+### `autoResolve(map, key, callback)`
+
+Resolves and stores a value in any existing `Map`, `WeakMap`, or custom map-like object with `get`, `has` and `set`.
 
 ```ts
 import { autoResolve } from '@streetsidesoftware/auto-resolve-map';
@@ -52,21 +67,18 @@ function measure(word: string): number {
   return word.length;
 }
 
-autoResolve(lengths, 'apple', measure); // 5, and logs "Measuring apple"
-autoResolve(lengths, 'apple', measure); // 5, from the map
+autoResolve(lengths, 'apple', measure); // 5 (logs "Measuring apple")
+autoResolve(lengths, 'apple', measure); // 5 (from the map)
 ```
 
-It works with a `Map`, a `WeakMap`, or any other object that has `get`, `has` and `set`.
+**Semantics:**
 
-- A stored `undefined` counts as a value.
-- If the function throws, nothing is stored.
+- Checks `has(key)` when `get(key)` returns `undefined`, so a stored `undefined` counts as a value.
+- If `callback(key)` throws, nothing is stored and the error propagates.
 
-## Values by any key
+### `AutoResolveMap`
 
-Use `AutoResolveMap` when you create the map yourself. It's a `Map` with two more ways to get a value:
-
-- `getOrInsert` stores the value you give it when there is none.
-- `getOrInsertComputed` calls your function only when there is none.
+A standard `Map` extended with `getOrInsert(key, value)` and `getOrInsertComputed(key, callback)`.
 
 ```ts
 import { AutoResolveMap } from '@streetsidesoftware/auto-resolve-map';
@@ -74,19 +86,17 @@ import { AutoResolveMap } from '@streetsidesoftware/auto-resolve-map';
 const byLetter = new AutoResolveMap<string, string[]>();
 
 for (const word of ['apple', 'banana', 'avocado']) {
-  byLetter.getOrInsertComputed(word[0] ?? '', () => []).push(word);
+  byLetter.getOrInsertComputed(word.charAt(0), () => []).push(word);
 }
 
 byLetter.get('a'); // ['apple', 'avocado']
 byLetter.get('b'); // ['banana']
 ```
 
-Newer versions of Node.js have these two methods on `Map` and `WeakMap`. Versions 22 and 24 don't. All the maps in this
-package have them on every supported version.
+### `AutoResolveWeakMap`
 
-## Values by object
-
-Use `AutoResolveWeakMap` to remember something about an object for as long as that object is used:
+A `WeakMap`-compatible collection with `getOrInsert`, `getOrInsertComputed` and `clear`. It associates derived data with
+an object without preventing garbage collection of that object.
 
 ```ts
 import { AutoResolveWeakMap } from '@streetsidesoftware/auto-resolve-map';
@@ -104,23 +114,16 @@ function hasWord(settings: Settings, word: string): boolean {
 
 const settings: Settings = { words: ['apple', 'banana'] };
 
-hasWord(settings, 'apple'); // true, after building the set
-hasWord(settings, 'cherry'); // false, from the same set
+hasWord(settings, 'apple'); // true (builds the Set)
+hasWord(settings, 'cherry'); // false (reuses the Set)
 
-settings.words.push('cherry');
-hasWord(settings, 'cherry'); // false, the set is out of date
-
-lookups.clear();
-hasWord(settings, 'cherry'); // true, after building the set again
+lookups.clear(); // Releases every Set, even when its Settings object is still in use.
 ```
 
-It's a `WeakMap`, so an entry goes away with its key. An object that is used for a long time keeps its value for just as
-long. Call `clear` to let go of all the values at once. A plain `WeakMap` has no way to do that.
+### `StrongWeakMap`
 
-## Large objects by name
-
-Use `StrongWeakMap` to share objects that take a lot of time to load and a lot of memory to keep. Everyone who asks for
-the same name gets the same object, and once nobody uses it, its memory can be freed:
+A `Map`-compatible collection with strong keys and weak values, backed by `WeakRef` and `FinalizationRegistry`. It caches
+large objects, or canonicalizes instances by key, while allowing unused values to be garbage-collected.
 
 ```ts
 import { StrongWeakMap } from '@streetsidesoftware/auto-resolve-map';
@@ -143,24 +146,23 @@ const second = dictionaries.getOrInsertComputed('en', loadDictionary);
 first === second; // true
 ```
 
-The map doesn't keep the dictionary in memory. Here, `first` and `second` do. Asking for `'en'` after it was freed loads
-it again.
+**Garbage collection and memory semantics:**
 
-It has all the methods of a `Map`. What's different is that a value can disappear:
+- **Object values:** Values must be objects. Store the resolved object, not a promise for it. The promise can be
+  collected while its result is still in use.
+- **Caller retention:** The map doesn't hold strong references to values. Callers must retain a reference for as long as
+  they need the value.
+- **Lifetime:** Any lookup, including `has`, and iterating over the values or entries keep a value alive until the end of
+  the current turn of the event loop.
+- **Key cleanup:** Once a value is collected, lookups and iteration over the values or entries treat the entry as absent.
+  The `FinalizationRegistry` removes the key some time later. Until then, `size` and `keys()` include it.
+- **Per-entry overhead:** Each entry allocates a `WeakRef` and is registered with a `FinalizationRegistry`. For many small
+  objects, prefer `AutoResolveMap`.
 
-- Keep a reference to a value for as long as you need it. The map alone won't.
-- A value is freed by garbage collection, which runs when it wants to, so it may stay for a while after its last use.
-- Calling `get` or `has`, or looping over the values, keeps what it finds until the current turn of the event loop ends.
-- Once a value is freed, `get`, `has` and looping treat its key as missing. The map removes the key by itself some time
-  later. Until then, `size` and `keys()` include it.
+### `WeakWeakMap`
 
-Each entry costs more than one in a normal `Map`, however small the value is. For many small values, use
-`AutoResolveMap`.
-
-## Large objects by object
-
-Use `WeakWeakMap` when the key is an object and the value is large. Compared to `AutoResolveWeakMap`, the value can be
-freed while its key is still used:
+A `WeakMap`-compatible collection with weak keys and weak values, and `clear`. Unlike with `AutoResolveWeakMap`, a value
+can be garbage-collected while its key is still alive.
 
 ```ts
 import { WeakWeakMap } from '@streetsidesoftware/auto-resolve-map';
@@ -178,22 +180,15 @@ function getLines(file: TextFile): string[] {
 const file: TextFile = { text: 'one\ntwo' };
 const current = getLines(file);
 
-getLines(file) === current; // true, as long as something uses `current`
+getLines(file) === current; // true while `current` is strongly referenced
 ```
 
-The rules are those of `StrongWeakMap`, except that it's a `WeakMap`: there is no `size` and no looping. Like
-`AutoResolveWeakMap`, it has `clear`.
+Object values, caller retention and lifetime are the same as for `StrongWeakMap`. There is no `FinalizationRegistry`: the
+empty `WeakRef` of a collected value stays until its key is collected.
 
-## A cache with stats
+### Cache instrumentation
 
-To find out if a cache is worth having, use the version of the map that counts:
-
-| Map                  | With stats             |
-| -------------------- | ---------------------- |
-| `AutoResolveMap`     | `AutoResolveCache`     |
-| `AutoResolveWeakMap` | `AutoResolveWeakCache` |
-| `StrongWeakMap`      | `StrongWeakCache`      |
-| `WeakWeakMap`        | `WeakWeakCache`        |
+Each `*Cache` class extends its map class, and tracks lookups and mutations.
 
 ```ts
 import { AutoResolveCache } from '@streetsidesoftware/auto-resolve-map';
@@ -207,22 +202,18 @@ for (const n of [1, 2, 1, 2, 1]) {
 squares.stats(); // { hits: 3, misses: 2, resolved: 2, sets: 0, deletes: 0, clears: 0 }
 ```
 
-Three of the five lookups were answered from the cache, and the other two did the work.
+| Metric     | Description                                                               |
+| ---------- | ------------------------------------------------------------------------- |
+| `hits`     | Lookups (`get`, `getOrInsert`, `getOrInsertComputed`) that found a value. |
+| `misses`   | Lookups that found no value. A collected value is a miss.                 |
+| `resolved` | Values computed by `getOrInsertComputed` and stored.                      |
+| `sets`     | Values stored by `set` or `getOrInsert`.                                  |
+| `deletes`  | Calls to `delete`.                                                        |
+| `clears`   | Calls to `clear`.                                                         |
 
-| Count      | What it counts                                   | What it tells you                      |
-| ---------- | ------------------------------------------------ | -------------------------------------- |
-| `hits`     | Lookups that found a value                       | How much work the cache saved          |
-| `misses`   | Lookups that found none                          | With `hits`, whether it's worth having |
-| `resolved` | Values a function computed, and the cache stored | How often the work was done            |
-| `sets`     | Values stored by `set`, or by `getOrInsert`      | How much is stored without a function  |
-| `deletes`  | Calls to `delete`                                | Whether it's emptied too often         |
-| `clears`   | Calls to `clear`                                 | Whether it's emptied too often         |
-
-A lookup is `get`, `getOrInsert` or `getOrInsertComputed`. Calling `has` isn't counted, and neither are the entries a
-cache starts with.
-
-Call `resetStats` to start counting from 0, for example to measure only one part of a program. The entries stay. Calling
-`clear` removes the entries, and keeps the counts.
+- Calls to `has` and entries passed to the constructor aren't counted.
+- Calling `resetStats()` sets all counters to 0 and keeps the entries.
+- Calling `clear()` removes all entries and keeps the other counters.
 
 ## Requirements
 
