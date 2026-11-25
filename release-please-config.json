@@ -66,6 +66,9 @@
     ".": {
       "component": "toolbox"
     },
+    "packages/auto-resolve-map": {
+      "component": "@streetsidesoftware/auto-resolve-map"
+    },
     "packages/copy-github-files": {
       "component": "@streetsidesoftware/copy-github-files"
     },
