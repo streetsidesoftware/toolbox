@@ -10,7 +10,11 @@ export interface CacheStats {
   misses: number;
   /** The number of values a callback computed and the cache stored. */
   resolved: number;
-  /** The number of values stored without a callback, by `set` or `getOrInsert`. */
+  /**
+   * The number of values stored without a callback, by `set` or `getOrInsert`.
+   *
+   * The entries a cache starts with aren't included.
+   */
   sets: number;
   /** The number of calls to `delete`. */
   deletes: number;

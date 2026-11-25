@@ -43,7 +43,7 @@ export class AutoResolveCache<K, V> extends AutoResolveMap<K, V> implements Cach
    *
    * The result is `true` when there was one.
    *
-   * Counts a call, also when there was none.
+   * Counts a call, also when there was no entry.
    *
    * @param key - the key to remove.
    */
@@ -111,6 +111,8 @@ export class AutoResolveCache<K, V> extends AutoResolveMap<K, V> implements Cach
 
   /**
    * Store a value for a key, replacing the one it had.
+   *
+   * Counts a set.
    *
    * @param key - the key to store the value for.
    * @param value - the value to store.
@@ -159,7 +161,7 @@ export class AutoResolveWeakCache<K extends WeakKey, V> extends AutoResolveWeakM
    *
    * The result is `true` when there was one.
    *
-   * Counts a call, also when there was none.
+   * Counts a call, also when there was no entry.
    *
    * @param key - the key to remove.
    */
@@ -229,6 +231,8 @@ export class AutoResolveWeakCache<K extends WeakKey, V> extends AutoResolveWeakM
   /**
    * Store a value for a key, replacing the one it had.
    *
+   * Counts a set.
+   *
    * @param key - the key to store the value for.
    * @param value - the value to store.
    */
@@ -276,7 +280,7 @@ export class StrongWeakCache<K, V extends object> extends StrongWeakMap<K, V> im
    *
    * The result is `true` when there was one whose value hadn't been released.
    *
-   * Counts a call, also when there was none.
+   * Counts a call, also when there was no entry.
    *
    * @param key - the key to remove.
    */
@@ -344,6 +348,8 @@ export class StrongWeakCache<K, V extends object> extends StrongWeakMap<K, V> im
   /**
    * Store a value for a key, replacing the one it had.
    *
+   * Counts a set.
+   *
    * @param key - the key to store the value for.
    * @param value - the value to store.
    */
@@ -391,7 +397,7 @@ export class WeakWeakCache<K extends WeakKey, V extends object> extends WeakWeak
    *
    * The result is `true` when there was one whose value hadn't been released.
    *
-   * Counts a call, also when there was none.
+   * Counts a call, also when there was no entry.
    *
    * @param key - the key to remove.
    */
@@ -459,6 +465,8 @@ export class WeakWeakCache<K extends WeakKey, V extends object> extends WeakWeak
 
   /**
    * Store a value for a key, replacing the one it had.
+   *
+   * Counts a set.
    *
    * @param key - the key to store the value for.
    * @param value - the value to store.

@@ -105,7 +105,8 @@ cache.stats(); // { hits: 1, misses: 1, resolved: 1, sets: 0, deletes: 0, clears
 | `deletes`  | `delete` is called                              |
 | `clears`   | `clear` is called                               |
 
-A lookup is `get`, `getOrInsert` or `getOrInsertComputed`. Calling `has` doesn't count.
+A lookup is `get`, `getOrInsert` or `getOrInsertComputed`. Calling `has` doesn't count, and neither do the entries a cache
+starts with.
 
 To start counting again, call `resetStats()`. It leaves the entries alone, as `clear()` leaves the earlier counts alone.
 
