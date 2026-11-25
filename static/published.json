@@ -1,4 +1,5 @@
 {
+  "@streetsidesoftware/auto-resolve-map": { "trustedPublishing": true },
   "@streetsidesoftware/copy-github-files": { "trustedPublishing": true },
   "@streetsidesoftware/github-action-toolkit": { "trustedPublishing": true },
   "@streetsidesoftware/markdown-sanitizer": { "trustedPublishing": true },
