@@ -1,6 +1,6 @@
 {
   "name": "@streetsidesoftware/copy-github-files",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Copy files from a GitHub repository into local files.",
   "repository": {
     "type": "git",
