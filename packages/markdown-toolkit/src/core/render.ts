@@ -50,7 +50,8 @@ export function renderNodes(children: RootContent[], style: MarkdownStyle | unde
       node.children = trimLineEdges(node.children);
     }
   });
-  // Markdown reads frontmatter after other content, such as a parsed document's, as a rule and a heading.
+  // Frontmatter works only at the start of a file, and a parsed document can bring it after other content. There,
+  // Markdown would read it as content.
   visit(root, 'yaml', (_node, index, parent) => {
     if (parent === undefined || index === undefined || (parent === root && index === 0)) return undefined;
     parent.children.splice(index, 1);
@@ -63,8 +64,8 @@ export function renderNodes(children: RootContent[], style: MarkdownStyle | unde
     if ('children' in node) {
       node.children = withCodeSpansApart(node.children as PhrasingContent[]) as typeof node.children;
     }
-    // Markdown has no empty code. It reads a lone pair of backticks as text, and two pairs on a line as code around the
-    // text between them.
+    // Markdown has no empty code. It reads a lone pair of backticks as text, and two pairs in a paragraph as code
+    // around the text between them.
     if (node.type === 'inlineCode' && !node.value) node.value = ' ';
     // Markdown reads formatting markers with nothing between them as text, or on a line of their own as a rule or a
     // code fence.
