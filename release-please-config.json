@@ -67,7 +67,8 @@
       "component": "toolbox"
     },
     "packages/auto-resolve-map": {
-      "component": "@streetsidesoftware/auto-resolve-map"
+      "component": "@streetsidesoftware/auto-resolve-map",
+      "release-as": "1.0.0"
     },
     "packages/copy-github-files": {
       "component": "@streetsidesoftware/copy-github-files"
