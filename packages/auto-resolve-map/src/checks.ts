@@ -3,7 +3,7 @@ export function assertCallback(callback: unknown): asserts callback is (...args:
 }
 
 /** Reject a key that a `WeakMap` can't store. The methods that only look up such a key find nothing instead. */
-export function assertWeakKey(key: unknown): void {
+export function assertWeakKey(key: unknown): asserts key is WeakKey {
   if (Object(key) === key) return;
   if (typeof key === 'symbol' && Symbol.keyFor(key) === undefined) return;
   throw new TypeError('The key must be an object or a non-registered symbol.');
