@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0](https://github.com/streetsidesoftware/toolbox/compare/toolbox@2.3.0...toolbox@2.4.0) (2026-11-25)
+
+
+### Features
+
+* **copy-github-files:** support simple glob patterns and --exclude ([#247](https://github.com/streetsidesoftware/toolbox/issues/247)) ([fea05b2](https://github.com/streetsidesoftware/toolbox/commit/fea05b2584e603fbb5853587c93b4b04b6d0589e))
+
 ## [2.3.0](https://github.com/streetsidesoftware/toolbox/compare/toolbox@2.2.0...toolbox@2.3.0) (2026-11-23)
 
 
