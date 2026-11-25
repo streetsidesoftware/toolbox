@@ -5,7 +5,8 @@ import { StatsTracker } from './cacheStats.ts';
 import { StrongWeakMap } from './StrongWeakMap.ts';
 import { WeakWeakMap } from './WeakWeakMap.ts';
 
-// The four classes repeat each other. A shared mixin would be a call, and bundlers couldn't remove an unused class.
+// The four classes repeat each other. A shared mixin would need a cast to keep the type parameters, and a pure
+// annotation for bundlers to remove an unused class.
 
 /** The same as {@link AutoResolveMap}, with stats on how often it's used. */
 export class AutoResolveCache<K, V> extends AutoResolveMap<K, V> implements CacheMethods {
