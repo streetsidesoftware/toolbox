@@ -10,7 +10,7 @@ import { assertCallback, assertWeakKey } from './checks.ts';
  * sizes.clear();
  * sizes.has(point); // false
  */
-export class AutoResolveWeakMap<K extends object, V> implements WeakMap<K, V> {
+export class AutoResolveWeakMap<K extends WeakKey, V> implements WeakMap<K, V> {
   #map: WeakMap<K, V>;
 
   constructor(entries?: Iterable<readonly [K, V]> | null) {

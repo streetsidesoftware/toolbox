@@ -11,7 +11,7 @@ export interface AnyMap<K, V> {
 
 type Entries<K, V> = Iterable<readonly [K, V]> | null;
 
-export type AnyMapClass = new <K extends object, V extends object>(entries?: Entries<K, V>) => AnyMap<K, V>;
-export type StrongValueMapClass = new <K extends object, V>(entries?: Entries<K, V>) => AnyMap<K, V>;
+export type AnyMapClass = new <K extends WeakKey, V extends object>(entries?: Entries<K, V>) => AnyMap<K, V>;
+export type StrongValueMapClass = new <K extends WeakKey, V>(entries?: Entries<K, V>) => AnyMap<K, V>;
 export type StrongKeyMapClass = new <K, V extends object>(entries?: Entries<K, V>) => Map<K, V>;
-export type WeakKeyMapClass = new <K extends object, V extends object>(entries?: Entries<K, V>) => WeakMap<K, V>;
+export type WeakKeyMapClass = new <K extends WeakKey, V extends object>(entries?: Entries<K, V>) => WeakMap<K, V>;

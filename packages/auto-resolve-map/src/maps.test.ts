@@ -296,8 +296,8 @@ for (const [name, MapClass] of Object.entries(weakKeyMaps)) {
     }
 
     test('accepts functions and non-registered symbols as keys', () => {
-      const map = new MapClass<object, Value>();
-      for (const key of [() => {}, Symbol('key') as unknown as object]) {
+      const map = new MapClass<WeakKey, Value>();
+      for (const key of [() => {}, Symbol('key')]) {
         assert.equal(
           map.getOrInsertComputed(key, () => one),
           one,

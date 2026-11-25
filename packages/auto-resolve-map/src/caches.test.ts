@@ -12,8 +12,8 @@ interface Value {
 
 type AnyCache<K, V> = AnyMap<K, V> & CacheMethods;
 type Entries<K, V> = Iterable<readonly [K, V]> | null;
-type StrongValueCacheClass = new <K extends object, V>(entries?: Entries<K, V>) => AnyCache<K, V>;
-type CacheClass = new <K extends object, V extends object>(entries?: Entries<K, V>) => AnyCache<K, V>;
+type StrongValueCacheClass = new <K extends WeakKey, V>(entries?: Entries<K, V>) => AnyCache<K, V>;
+type CacheClass = new <K extends WeakKey, V extends object>(entries?: Entries<K, V>) => AnyCache<K, V>;
 type StrongKeyCacheClass = new <K, V extends object>(entries?: Entries<K, V>) => Map<K, V> & CacheMethods;
 
 const strongValueCaches: Record<string, StrongValueCacheClass> = { AutoResolveCache, AutoResolveWeakCache };

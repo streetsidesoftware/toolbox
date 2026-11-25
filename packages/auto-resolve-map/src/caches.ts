@@ -93,7 +93,7 @@ export class AutoResolveCache<K, V> extends AutoResolveMap<K, V> implements Cach
 }
 
 /** The same as {@link AutoResolveWeakMap}, with stats on how often it's used. */
-export class AutoResolveWeakCache<K extends object, V> extends AutoResolveWeakMap<K, V> implements CacheMethods {
+export class AutoResolveWeakCache<K extends WeakKey, V> extends AutoResolveWeakMap<K, V> implements CacheMethods {
   readonly #stats = new StatsTracker();
 
   /** Remove every entry. The stats stay, apart from counting the call. */
@@ -243,7 +243,7 @@ export class StrongWeakCache<K, V extends object> extends StrongWeakMap<K, V> im
 }
 
 /** The same as {@link WeakWeakMap}, with stats on how often it's used. */
-export class WeakWeakCache<K extends object, V extends object> extends WeakWeakMap<K, V> implements CacheMethods {
+export class WeakWeakCache<K extends WeakKey, V extends object> extends WeakWeakMap<K, V> implements CacheMethods {
   readonly #stats = new StatsTracker();
 
   /** Remove every entry. The stats stay, apart from counting the call. */

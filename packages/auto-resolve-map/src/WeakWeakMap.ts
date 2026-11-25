@@ -14,7 +14,7 @@ import { assertCallback, assertWeakKey } from './checks.ts';
  * const result = parsed.getOrInsertComputed(url, (key) => ({ hosts: [key.host] }));
  * parsed.get(url) === result; // true, as long as something uses `result`
  */
-export class WeakWeakMap<K extends object, V extends object> implements WeakMap<K, V> {
+export class WeakWeakMap<K extends WeakKey, V extends object> implements WeakMap<K, V> {
   // A released value leaves its WeakRef behind, until the key goes away too.
   #map: WeakMap<K, WeakRef<V>> = new WeakMap();
 
